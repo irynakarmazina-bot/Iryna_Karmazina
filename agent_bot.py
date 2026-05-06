@@ -1,0 +1,351 @@
+import os, logging, base64, json, math, re
+from datetime import datetime
+from pathlib import Path
+
+for v in ("HTTP_PROXY","HTTPS_PROXY","http_proxy","https_proxy","ALL_PROXY","all_proxy"):
+    os.environ.pop(v, None)
+
+from dotenv import load_dotenv
+import anthropic
+import httpx
+from bs4 import BeautifulSoup
+from telegram import Update
+from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, ContextTypes
+
+load_dotenv()
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+log = logging.getLogger(__name__)
+
+claude = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
+history: dict[int, list[dict]] = {}
+
+NOTES_DIR = Path(__file__).parent / "notes"
+NOTES_DIR.mkdir(exist_ok=True)
+
+SYSTEM_PROMPT = """Ти бізнес-асистент. Відповідаєш українською мовою, коротко і по суті.
+
+Маєш інструменти:
+- calculate: математичні розрахунки
+- save_note: зберегти нотатку
+- list_notes: переглянути нотатки
+- delete_note: видалити нотатку
+- get_datetime: поточна дата і час
+- read_url: прочитати веб-сторінку
+
+Використовуй інструменти коли це доречно. Відповідай завжди українською."""
+
+TOOLS = [
+    {
+        "name": "calculate",
+        "description": "Виконує математичні розрахунки. Підтримує +, -, *, /, **, sqrt, round тощо.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "expression": {"type": "string", "description": "Математичний вираз, наприклад: '2 + 2 * 10' або 'sqrt(144)'"}
+            },
+            "required": ["expression"],
+        },
+    },
+    {
+        "name": "save_note",
+        "description": "Зберігає нотатку для користувача.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "user_id": {"type": "string", "description": "ID користувача"},
+                "text": {"type": "string", "description": "Текст нотатки"},
+            },
+            "required": ["user_id", "text"],
+        },
+    },
+    {
+        "name": "list_notes",
+        "description": "Повертає список нотаток користувача.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "user_id": {"type": "string", "description": "ID користувача"},
+            },
+            "required": ["user_id"],
+        },
+    },
+    {
+        "name": "delete_note",
+        "description": "Видаляє нотатку за номером.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "user_id": {"type": "string", "description": "ID користувача"},
+                "note_id": {"type": "string", "description": "Номер нотатки (починається з 1)"},
+            },
+            "required": ["user_id", "note_id"],
+        },
+    },
+    {
+        "name": "get_datetime",
+        "description": "Повертає поточну дату і час українською.",
+        "input_schema": {
+            "type": "object",
+            "properties": {},
+            "required": [],
+        },
+    },
+    {
+        "name": "read_url",
+        "description": "Читає вміст веб-сторінки за URL і повертає текст.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "url": {"type": "string", "description": "URL сторінки"},
+            },
+            "required": ["url"],
+        },
+    },
+]
+
+
+# ── Реалізація інструментів ──────────────────────────────────────────────────
+
+def tool_calculate(expression: str) -> str:
+    safe_names = {k: v for k, v in math.__dict__.items() if not k.startswith("_")}
+    safe_names["abs"] = abs
+    safe_names["round"] = round
+    expression = re.sub(r"[^\d\s\+\-\*\/\(\)\.\,\%\^a-zA-Z_]", "", expression)
+    expression = expression.replace("^", "**").replace(",", ".")
+    try:
+        result = eval(expression, {"__builtins__": {}}, safe_names)
+        return f"{expression} = {result}"
+    except Exception as e:
+        return f"Помилка розрахунку: {e}"
+
+
+def _user_notes_dir(user_id: str) -> Path:
+    d = NOTES_DIR / str(user_id)
+    d.mkdir(exist_ok=True)
+    return d
+
+
+def tool_save_note(user_id: str, text: str) -> str:
+    d = _user_notes_dir(user_id)
+    ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+    (d / f"{ts}.txt").write_text(text, encoding="utf-8")
+    return f"Нотатку збережено."
+
+
+def tool_list_notes(user_id: str) -> str:
+    d = _user_notes_dir(user_id)
+    files = sorted(d.glob("*.txt"))
+    if not files:
+        return "Нотаток немає."
+    lines = []
+    for i, f in enumerate(files, 1):
+        text = f.read_text(encoding="utf-8").strip()
+        ts = datetime.strptime(f.stem, "%Y%m%d_%H%M%S").strftime("%d.%m.%Y %H:%M")
+        lines.append(f"{i}. [{ts}] {text}")
+    return "\n".join(lines)
+
+
+def tool_delete_note(user_id: str, note_id: str) -> str:
+    d = _user_notes_dir(user_id)
+    files = sorted(d.glob("*.txt"))
+    try:
+        idx = int(note_id) - 1
+        if idx < 0 or idx >= len(files):
+            return "Нотатку не знайдено."
+        files[idx].unlink()
+        return f"Нотатку #{note_id} видалено."
+    except ValueError:
+        return "Вкажи номер нотатки цифрою."
+
+
+def tool_get_datetime() -> str:
+    MONTHS = ["січня","лютого","березня","квітня","травня","червня",
+              "липня","серпня","вересня","жовтня","листопада","грудня"]
+    DAYS = ["понеділок","вівторок","середа","четвер","п'ятниця","субота","неділя"]
+    now = datetime.now()
+    return (f"{DAYS[now.weekday()]}, {now.day} {MONTHS[now.month-1]} {now.year} р., "
+            f"{now.strftime('%H:%M')}")
+
+
+def tool_read_url(url: str) -> str:
+    try:
+        r = httpx.get(url, timeout=15, follow_redirects=True,
+                      headers={"User-Agent": "Mozilla/5.0"})
+        soup = BeautifulSoup(r.text, "html.parser")
+        for tag in soup(["script", "style", "nav", "footer", "header"]):
+            tag.decompose()
+        text = soup.get_text(separator="\n", strip=True)
+        lines = [l for l in text.splitlines() if l.strip()]
+        return "\n".join(lines[:200])
+    except Exception as e:
+        return f"Помилка читання URL: {e}"
+
+
+def execute_tool(name: str, inputs: dict, uid: int) -> str:
+    if name == "calculate":
+        return tool_calculate(inputs["expression"])
+    elif name == "save_note":
+        return tool_save_note(str(uid), inputs["text"])
+    elif name == "list_notes":
+        return tool_list_notes(str(uid))
+    elif name == "delete_note":
+        return tool_delete_note(str(uid), inputs["note_id"])
+    elif name == "get_datetime":
+        return tool_get_datetime()
+    elif name == "read_url":
+        return tool_read_url(inputs["url"])
+    return "Невідомий інструмент."
+
+
+# ── Агентний цикл ────────────────────────────────────────────────────────────
+
+async def run_agent(uid: int, messages: list) -> str:
+    for _ in range(10):  # максимум 10 ітерацій
+        resp = claude.messages.create(
+            model="claude-opus-4-7",
+            max_tokens=2048,
+            system=SYSTEM_PROMPT,
+            tools=TOOLS,
+            messages=messages,
+        )
+
+        if resp.stop_reason == "end_turn":
+            for block in resp.content:
+                if hasattr(block, "text"):
+                    return block.text
+            return "Готово."
+
+        if resp.stop_reason == "tool_use":
+            messages.append({"role": "assistant", "content": resp.content})
+            tool_results = []
+            for block in resp.content:
+                if block.type == "tool_use":
+                    result = execute_tool(block.name, block.input, uid)
+                    log.info(f"Tool {block.name}: {result[:80]}")
+                    tool_results.append({
+                        "type": "tool_result",
+                        "tool_use_id": block.id,
+                        "content": result,
+                    })
+            messages.append({"role": "user", "content": tool_results})
+            continue
+
+        break
+    return "Не вдалося отримати відповідь."
+
+
+# ── Telegram handlers ────────────────────────────────────────────────────────
+
+async def start(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text(
+        "Привіт! Я бізнес-асистент з інструментами.\n\n"
+        "Що вмію:\n"
+        "🔢 Рахую: «скільки буде 15% від 42000»\n"
+        "📝 Нотатки: «запиши: зателефонувати Іванову»\n"
+        "📅 Дата/час: «яке сьогодні число»\n"
+        "🌐 Читаю сайти: «прочитай example.com»\n"
+        "🖼 Аналізую фото\n"
+        "📄 Читаю PDF\n\n"
+        "Команди: /notes — мої нотатки | /reset — очистити розмову"
+    )
+
+async def cmd_notes(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
+    uid = update.effective_user.id
+    result = tool_list_notes(str(uid))
+    await update.message.reply_text(f"📝 Твої нотатки:\n\n{result}")
+
+async def reset(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
+    history.pop(update.effective_user.id, None)
+    await update.message.reply_text("Розмову очищено.")
+
+async def handle_photo(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
+    uid = update.effective_user.id
+    await ctx.bot.send_chat_action(chat_id=update.effective_chat.id, action="typing")
+
+    photo = update.message.photo[-1]
+    tg_file = await ctx.bot.get_file(photo.file_id)
+    import io
+    buf = io.BytesIO()
+    await tg_file.download_to_memory(buf)
+    img_b64 = base64.standard_b64encode(buf.getvalue()).decode()
+
+    caption = update.message.caption or "Опиши що на фото."
+    user_content = [
+        {"type": "image", "source": {"type": "base64", "media_type": "image/jpeg", "data": img_b64}},
+        {"type": "text", "text": caption},
+    ]
+    msgs = history.setdefault(uid, [])
+    msgs.append({"role": "user", "content": user_content})
+
+    try:
+        text = await run_agent(uid, msgs)
+        msgs.append({"role": "assistant", "content": text})
+        history[uid] = msgs[-20:]
+        await update.message.reply_text(text)
+    except Exception:
+        log.exception("photo error")
+        await update.message.reply_text("Помилка обробки фото.")
+
+async def handle_document(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
+    uid = update.effective_user.id
+    doc = update.message.document
+
+    if doc.mime_type != "application/pdf":
+        await update.message.reply_text("Надішли, будь ласка, PDF-файл.")
+        return
+
+    await ctx.bot.send_chat_action(chat_id=update.effective_chat.id, action="typing")
+    await update.message.reply_text("Читаю PDF...")
+
+    tg_file = await ctx.bot.get_file(doc.file_id)
+    import io
+    buf = io.BytesIO()
+    await tg_file.download_to_memory(buf)
+    pdf_b64 = base64.standard_b64encode(buf.getvalue()).decode()
+
+    caption = update.message.caption or "Проаналізуй цей документ."
+    user_content = [
+        {"type": "document", "source": {"type": "base64", "media_type": "application/pdf", "data": pdf_b64}},
+        {"type": "text", "text": caption},
+    ]
+    msgs = history.setdefault(uid, [])
+    msgs.append({"role": "user", "content": user_content})
+
+    try:
+        text = await run_agent(uid, msgs)
+        msgs.append({"role": "assistant", "content": text})
+        history[uid] = msgs[-10:]
+        await update.message.reply_text(text)
+    except Exception:
+        log.exception("document error")
+        await update.message.reply_text("Помилка обробки документа.")
+
+async def chat(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
+    uid = update.effective_user.id
+    msgs = history.setdefault(uid, [])
+    msgs.append({"role": "user", "content": update.message.text})
+    await ctx.bot.send_chat_action(chat_id=update.effective_chat.id, action="typing")
+    try:
+        text = await run_agent(uid, msgs)
+        msgs.append({"role": "assistant", "content": text})
+        history[uid] = msgs[-20:]
+        await update.message.reply_text(text)
+    except Exception:
+        log.exception("chat error")
+        await update.message.reply_text("Помилка. Спробуй ще раз.")
+
+
+def main():
+    app = ApplicationBuilder().token(os.environ["TELEGRAM_BOT_TOKEN"]).build()
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(CommandHandler("reset", reset))
+    app.add_handler(CommandHandler("notes", cmd_notes))
+    app.add_handler(MessageHandler(filters.PHOTO, handle_photo))
+    app.add_handler(MessageHandler(filters.Document.ALL, handle_document))
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, chat))
+    log.info("Agent bot started with tools")
+    app.run_polling()
+
+
+if __name__ == "__main__":
+    main()
