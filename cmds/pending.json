@@ -1,1 +1,1 @@
-{"id": "switch-to-agent-1", "cmd": "cd /root/Iryna_Karmazina && git pull && ./venv/bin/pip install -q httpx beautifulsoup4 && sed -i 's|bot.py|agent_bot.py|g' /etc/systemd/system/mybot.service && systemctl daemon-reload && systemctl restart mybot.service && sleep 3 && systemctl status mybot.service --no-pager | head -15"}
+{"id": "restart-agent-2", "cmd": "cd /root/Iryna_Karmazina && git pull && systemctl restart mybot.service && sleep 3 && journalctl -u mybot.service -n 10 --no-pager"}
