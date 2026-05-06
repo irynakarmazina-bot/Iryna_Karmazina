@@ -1,7 +1,7 @@
 {
-  "stdout": "Already up to date.\n● mybot.service - Telegram Bot on Claude\n     Loaded: loaded (/etc/systemd/system/mybot.service; enabled; preset: enabled)\n     Active: activating (auto-restart) (Result: exit-code) since Wed 2026-05-06 18:48:48 UTC; 2s ago\n    Process: 8027 ExecStart=/root/Iryna_Karmazina/venv/bin/python /root/Iryna_Karmazina/agent_agent_agent_bot.py (code=exited, status=2)\n   Main PID: 8027 (code=exited, status=2)\n        CPU: 29ms\n",
+  "stdout": "Already up to date.\n● mybot.service - Telegram Bot on Claude\n     Loaded: loaded (/etc/systemd/system/mybot.service; enabled; preset: enabled)\n     Active: activating (auto-restart) (Result: exit-code) since Wed 2026-05-06 18:49:48 UTC; 2s ago\n    Process: 8196 ExecStart=/root/Iryna_Karmazina/venv/bin/python /root/Iryna_Karmazina/agent_agent_agent_agent_bot.py (code=exited, status=2)\n   Main PID: 8196 (code=exited, status=2)\n        CPU: 20ms\n",
   "stderr": "",
   "returncode": 0,
   "id": "switch-to-agent-1",
-  "ts": "2026-05-06T18:48:51Z"
+  "ts": "2026-05-06T18:49:51Z"
 }
