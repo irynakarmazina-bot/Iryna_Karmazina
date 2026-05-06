@@ -1,1 +1,1 @@
-{"id": "restart-agent-2", "cmd": "cd /root/Iryna_Karmazina && git pull && systemctl restart mybot.service && sleep 3 && journalctl -u mybot.service -n 10 --no-pager"}
+{"id": "fix-service-3", "cmd": "sed -i 's|ExecStart=.*|ExecStart=/root/Iryna_Karmazina/venv/bin/python /root/Iryna_Karmazina/agent_bot.py|' /etc/systemd/system/mybot.service && systemctl daemon-reload && systemctl restart mybot.service && sleep 3 && journalctl -u mybot.service -n 5 --no-pager"}
