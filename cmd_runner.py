@@ -1,8 +1,19 @@
-import json, os, subprocess, time, urllib.request, urllib.error
-from pathlib import Path
-from dotenv import load_dotenv
+import json, os, subprocess, time, urllib.request
 
-load_dotenv()
+# systemd loads vars via EnvironmentFile; fallback: parse .env manually
+def _load_env():
+    env_path = os.path.join(os.path.dirname(__file__), ".env")
+    if not os.path.exists(env_path):
+        return
+    with open(env_path) as f:
+        for line in f:
+            line = line.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+            k, v = line.split("=", 1)
+            os.environ.setdefault(k.strip(), v.strip().strip('"').strip("'"))
+
+_load_env()
 
 GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN", "")
 GH_USER = "irynakarmazina-bot"
@@ -59,7 +70,7 @@ def run_cmd(cmd):
 
 def main():
     global last_id
-    print("cmd_runner started")
+    print("cmd_runner started", flush=True)
     while True:
         try:
             data = gh_get(PENDING_PATH)
@@ -69,7 +80,7 @@ def main():
             cmd = content.get("cmd", "")
 
             if cmd_id and cmd_id != last_id:
-                print(f"Executing [{cmd_id}]: {cmd}")
+                print(f"Executing [{cmd_id}]: {cmd}", flush=True)
                 result = run_cmd(cmd)
                 result["id"] = cmd_id
                 result["ts"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
@@ -77,9 +88,9 @@ def main():
                 result_data = gh_get(RESULT_PATH)
                 gh_put(RESULT_PATH, json.dumps(result, ensure_ascii=False, indent=2), result_data["sha"])
                 last_id = cmd_id
-                print(f"Done [{cmd_id}] rc={result['returncode']}")
+                print(f"Done [{cmd_id}] rc={result['returncode']}", flush=True)
         except Exception as e:
-            print(f"Error: {e}")
+            print(f"Error: {e}", flush=True)
 
         time.sleep(5)
 
