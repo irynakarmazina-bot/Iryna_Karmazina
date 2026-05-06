@@ -1,0 +1,15 @@
+[Unit]
+Description=Git Relay cmd_runner
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root/Iryna_Karmazina
+ExecStart=/usr/bin/python3 /root/Iryna_Karmazina/cmd_runner.py
+Restart=always
+RestartSec=10
+EnvironmentFile=-/root/Iryna_Karmazina/.env
+
+[Install]
+WantedBy=multi-user.target
