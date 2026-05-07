@@ -1,7 +1,7 @@
 {
-  "stdout": "May 07 06:07:59 ubuntu-s-1vcpu-1gb-ams3 systemd[1]: Stopping mybot.service - Telegram Bot on Claude...\nMay 07 06:07:59 ubuntu-s-1vcpu-1gb-ams3 systemd[1]: mybot.service: Deactivated successfully.\nMay 07 06:07:59 ubuntu-s-1vcpu-1gb-ams3 systemd[1]: Stopped mybot.service - Telegram Bot on Claude.\nMay 07 06:07:59 ubuntu-s-1vcpu-1gb-ams3 systemd[1]: mybot.service: Consumed 1.066s CPU time, 22.5M memory peak, 0B memory swap peak.\nMay 07 06:07:59 ubuntu-s-1vcpu-1gb-ams3 systemd[1]: Started mybot.service - Telegram Bot on Claude.\n",
+  "stdout": "May 07 06:09:02 ubuntu-s-1vcpu-1gb-ams3 systemd[1]: Stopping mybot.service - Telegram Bot on Claude...\nMay 07 06:09:02 ubuntu-s-1vcpu-1gb-ams3 systemd[1]: mybot.service: Deactivated successfully.\nMay 07 06:09:02 ubuntu-s-1vcpu-1gb-ams3 systemd[1]: Stopped mybot.service - Telegram Bot on Claude.\nMay 07 06:09:02 ubuntu-s-1vcpu-1gb-ams3 systemd[1]: mybot.service: Consumed 1.016s CPU time, 16.8M memory peak, 0B memory swap peak.\nMay 07 06:09:02 ubuntu-s-1vcpu-1gb-ams3 systemd[1]: Started mybot.service - Telegram Bot on Claude.\n",
   "stderr": "",
   "returncode": 0,
   "id": "fix-service-3",
-  "ts": "2026-05-07T06:08:02Z"
+  "ts": "2026-05-07T06:09:05Z"
 }
