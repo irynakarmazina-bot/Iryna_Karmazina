@@ -1,7 +1,7 @@
 {
-  "stdout": "May 23 18:32:00 ubuntu-s-1vcpu-1gb-ams3 systemd[1]: Stopping mybot.service - Telegram Bot on Claude...\nMay 23 18:32:00 ubuntu-s-1vcpu-1gb-ams3 systemd[1]: mybot.service: Deactivated successfully.\nMay 23 18:32:00 ubuntu-s-1vcpu-1gb-ams3 systemd[1]: Stopped mybot.service - Telegram Bot on Claude.\nMay 23 18:32:00 ubuntu-s-1vcpu-1gb-ams3 systemd[1]: mybot.service: Consumed 1.108s CPU time, 22.5M memory peak, 0B memory swap peak.\nMay 23 18:32:00 ubuntu-s-1vcpu-1gb-ams3 systemd[1]: Started mybot.service - Telegram Bot on Claude.\n",
+  "stdout": "May 23 18:33:11 ubuntu-s-1vcpu-1gb-ams3 systemd[1]: Started mybot.service - Telegram Bot on Claude.\nMay 23 18:33:12 ubuntu-s-1vcpu-1gb-ams3 python[2250675]: 2026-05-23 18:33:12,468 - INFO - Agent bot started with tools\nMay 23 18:33:12 ubuntu-s-1vcpu-1gb-ams3 python[2250675]: 2026-05-23 18:33:12,493 - INFO - HTTP Request: POST https://api.telegram.org/bot8563424583:AAEDM2-4Bttv-rEt9n3JdROCyjyWTC0I7s0/getMe \"HTTP/1.1 200 OK\"\nMay 23 18:33:12 ubuntu-s-1vcpu-1gb-ams3 python[2250675]: 2026-05-23 18:33:12,499 - INFO - HTTP Request: POST https://api.telegram.org/bot8563424583:AAEDM2-4Bttv-rEt9n3JdROCyjyWTC0I7s0/deleteWebhook \"HTTP/1.1 200 OK\"\nMay 23 18:33:12 ubuntu-s-1vcpu-1gb-ams3 python[2250675]: 2026-05-23 18:33:12,501 - INFO - Application started\n",
   "stderr": "",
   "returncode": 0,
   "id": "fix-service-3",
-  "ts": "2026-05-23T18:32:03Z"
+  "ts": "2026-05-23T18:33:14Z"
 }
