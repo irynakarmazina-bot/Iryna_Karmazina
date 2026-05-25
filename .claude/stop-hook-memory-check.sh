@@ -1,11 +1,26 @@
 #!/bin/bash
-# Нагадує оновити MEMORY.md якщо є нові коміти після останнього оновлення
-REPO_DIR="/home/user/Iryna_Karmazina"
-cd "$REPO_DIR" || exit 0
 
-MEMORY_LAST_COMMIT=$(git log -1 --format="%ct" -- MEMORY.md 2>/dev/null || echo "0")
-LATEST_COMMIT=$(git log -1 --format="%ct" 2>/dev/null || echo "0")
+input=$(cat)
+stop_hook_active=$(echo "$input" | jq -r '.stop_hook_active // empty')
+if [[ "$stop_hook_active" == "true" ]]; then exit 0; fi
 
-if [ "$LATEST_COMMIT" -gt "$MEMORY_LAST_COMMIT" ]; then
-    echo '{"systemMessage": "[Памʼять] Є нові зміни в репо після останнього оновлення MEMORY.md. Оновіть MEMORY.md з підсумком сесії і запушайте."}'
+cd /home/user/Iryna_Karmazina || exit 0
+
+if ! git rev-parse --git-dir >/dev/null 2>&1; then exit 0; fi
+if [[ -z "$(git remote)" ]]; then exit 0; fi
+
+# Якщо є незакомічені зміни або нові файли — комітимо і пушимо мовчки
+if ! git diff --quiet || ! git diff --cached --quiet || [[ -n "$(git ls-files --others --exclude-standard)" ]]; then
+    git add -A
+    git commit -m "Автозбереження сесії $(date '+%Y-%m-%d %H:%M')" --no-gpg-sign -q
 fi
+
+branch=$(git branch --show-current)
+if [[ -n "$branch" ]]; then
+    unpushed=$(git rev-list "origin/$branch..HEAD" --count 2>/dev/null) || unpushed=0
+    if [[ "$unpushed" -gt 0 ]]; then
+        git push -u origin "$branch" -q
+    fi
+fi
+
+exit 0
