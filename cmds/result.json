@@ -1,7 +1,7 @@
 {
-  "stdout": "May 26 12:25:52 ubuntu-s-1vcpu-1gb-ams3 python[2620247]:     result = await self._request_wrapper(\nMay 26 12:25:52 ubuntu-s-1vcpu-1gb-ams3 python[2620247]:              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nMay 26 12:25:52 ubuntu-s-1vcpu-1gb-ams3 python[2620247]:   File \"/root/Iryna_Karmazina/venv/lib/python3.12/site-packages/telegram/request/_baserequest.py\", line 375, in _request_wrapper\nMay 26 12:25:52 ubuntu-s-1vcpu-1gb-ams3 python[2620247]:     raise exception\nMay 26 12:25:52 ubuntu-s-1vcpu-1gb-ams3 python[2620247]: telegram.error.Conflict: Conflict: terminated by other getUpdates request; make sure that only one bot instance is running\n",
+  "stdout": "May 26 12:26:53 ubuntu-s-1vcpu-1gb-ams3 python[2620379]:     result = await self._request_wrapper(\nMay 26 12:26:53 ubuntu-s-1vcpu-1gb-ams3 python[2620379]:              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nMay 26 12:26:53 ubuntu-s-1vcpu-1gb-ams3 python[2620379]:   File \"/root/Iryna_Karmazina/venv/lib/python3.12/site-packages/telegram/request/_baserequest.py\", line 375, in _request_wrapper\nMay 26 12:26:53 ubuntu-s-1vcpu-1gb-ams3 python[2620379]:     raise exception\nMay 26 12:26:53 ubuntu-s-1vcpu-1gb-ams3 python[2620379]: telegram.error.Conflict: Conflict: terminated by other getUpdates request; make sure that only one bot instance is running\n",
   "stderr": "",
   "returncode": 0,
   "id": "fix-service-3",
-  "ts": "2026-05-26T12:25:52Z"
+  "ts": "2026-05-26T12:26:54Z"
 }
