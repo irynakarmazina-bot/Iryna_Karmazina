@@ -60,6 +60,8 @@ async def reset(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("Розмову очищено. Надішли новий рахунок.")
 
 async def handle_document(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
+    if update.message.from_user.is_bot:
+        return
     uid = update.effective_user.id
     doc = update.message.document
 
@@ -119,6 +121,8 @@ async def handle_document(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("Помилка при обробці файлу. Спробуй ще раз.")
 
 async def chat(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
+    if update.message.from_user.is_bot:
+        return
     uid = update.effective_user.id
     history.setdefault(uid, []).append({"role": "user", "content": update.message.text})
     await ctx.bot.send_chat_action(chat_id=update.effective_chat.id, action="typing")
