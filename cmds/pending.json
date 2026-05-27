@@ -1,1 +1,1 @@
-{"id": "check-bot-4", "cmd": "ps aux | grep python | grep -v grep && echo '===' && journalctl -u mybot.service --since '5 minutes ago' --no-pager | tail -20"}
+{"id": "check-bot-5", "cmd": "echo '=== ALL PYTHON PROCESSES ===' && ps aux | grep python | grep -v grep && echo '=== ALL SYSTEMD BOT SERVICES ===' && systemctl list-units | grep -i bot && echo '=== WEBHOOK STATUS ===' && curl -s 'https://api.telegram.org/bot8563424583:AAEDM2-4Bttv-rEt9n3JdROCyjyWTC0I7s0/getWebhookInfo'"}
