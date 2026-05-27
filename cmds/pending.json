@@ -1,1 +1,1 @@
-{"id": "check-bot-status-1", "cmd": "systemctl status mybot.service --no-pager && echo '---' && journalctl -u mybot.service -n 10 --no-pager"}
+{"id": "check-bot-2", "cmd": "systemctl status mybot.service --no-pager | head -20 && echo '---' && journalctl -u mybot.service -n 5 --no-pager"}
