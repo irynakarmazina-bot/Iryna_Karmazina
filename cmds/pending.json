@@ -1,1 +1,1 @@
-{"id": "fix-conflict-1", "cmd": "pkill -f 'python.*bot.py' ; pkill -f 'python.*agent_bot.py' ; sleep 2 && systemctl restart mybot.service && sleep 3 && journalctl -u mybot.service -n 5 --no-pager"}
+{"id": "check-bot-3", "cmd": "ps aux | grep -E 'bot\\.py|agent_bot' | grep -v grep && echo '---' && journalctl -u mybot.service -n 8 --no-pager"}
