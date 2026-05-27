@@ -1,1 +1,1 @@
-{"id": "get-chat-id-2", "cmd": "journalctl -u mybot.service -n 100 --no-pager | grep -oP '\"from\":\\{\"id\":\\K[0-9]+' | tail -5"}
+{"id": "get-chat-id-3", "cmd": "journalctl -u mybot.service -n 200 --no-pager | grep -i 'chat\\|user\\|update' | tail -20"}
