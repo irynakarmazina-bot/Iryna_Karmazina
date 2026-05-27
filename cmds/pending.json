@@ -1,1 +1,1 @@
-{"id": "get-chat-id-3", "cmd": "journalctl -u mybot.service -n 200 --no-pager | grep -i 'chat\\|user\\|update' | tail -20"}
+{"id": "get-chat-id-4", "cmd": "curl -s 'https://api.telegram.org/bot8563424583:AAEDM2-4Bttv-rEt9n3JdROCyjyWTC0I7s0/getUpdates?limit=10' | python3 -c \"import sys,json; updates=json.load(sys.stdin).get('result',[]); [print(u['message']['from']['id'], u['message']['from']['first_name']) for u in updates if 'message' in u]\""}
