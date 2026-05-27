@@ -255,6 +255,10 @@ async def cmd_notes(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     result = tool_list_notes(str(uid))
     await update.message.reply_text(f"📝 Твої нотатки:\n\n{result}")
 
+async def myid(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
+    uid = update.effective_user.id
+    await update.message.reply_text(f"Твій Telegram ID: `{uid}`", parse_mode="Markdown")
+
 async def reset(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     history.pop(update.effective_user.id, None)
     await update.message.reply_text("Розмову очищено.")
@@ -339,6 +343,7 @@ async def chat(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
 def main():
     app = ApplicationBuilder().token(os.environ["TELEGRAM_BOT_TOKEN"]).build()
     app.add_handler(CommandHandler("start", start))
+    app.add_handler(CommandHandler("myid", myid))
     app.add_handler(CommandHandler("reset", reset))
     app.add_handler(CommandHandler("notes", cmd_notes))
     app.add_handler(MessageHandler(filters.PHOTO, handle_photo))
