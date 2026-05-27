@@ -1,1 +1,1 @@
-{"id": "check-bot-6", "cmd": "journalctl -u mybot.service --since '2 minutes ago' --no-pager | tail -15 && echo '===' && cat /etc/systemd/system/mybot.service"}
+{"id": "reset-tg-session-1", "cmd": "curl -s 'https://api.telegram.org/bot8563424583:AAEDM2-4Bttv-rEt9n3JdROCyjyWTC0I7s0/close' && sleep 3 && systemctl restart mybot.service && sleep 5 && journalctl -u mybot.service -n 5 --no-pager"}
