@@ -53,6 +53,10 @@ async def start(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         "/template — надіслати шаблон довідки (необов'язково)"
     )
 
+async def myid(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
+    uid = update.effective_user.id
+    await update.message.reply_text(f"Твій Telegram ID: `{uid}`", parse_mode="Markdown")
+
 async def reset(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     uid = update.effective_user.id
     history.pop(uid, None)
@@ -140,6 +144,7 @@ async def chat(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
 def main():
     app = ApplicationBuilder().token(os.environ["TELEGRAM_BOT_TOKEN"]).build()
     app.add_handler(CommandHandler("start", start))
+    app.add_handler(CommandHandler("myid", myid))
     app.add_handler(CommandHandler("reset", reset))
     app.add_handler(MessageHandler(filters.Document.ALL, handle_document))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, chat))
