@@ -1,7 +1,7 @@
 {
-  "stdout": "",
+  "stdout": "root     2788273  5.1  6.9 153892 68788 ?        Ssl  16:06   0:01 /root/Iryna_Karmazina/venv/bin/python /root/Iryna_Karmazina/agent_bot.py\n---\nMay 27 16:07:15 ubuntu-s-1vcpu-1gb-ams3 python[2788273]:              ^^^^^^^^^^^^^^^^^^^\nMay 27 16:07:15 ubuntu-s-1vcpu-1gb-ams3 python[2788273]:   File \"/root/Iryna_Karmazina/venv/lib/python3.12/site-packages/telegram/request/_baserequest.py\", line 198, in post\nMay 27 16:07:15 ubuntu-s-1vcpu-1gb-ams3 python[2788273]:     result = await self._request_wrapper(\nMay 27 16:07:15 ubuntu-s-1vcpu-1gb-ams3 python[2788273]:              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nMay 27 16:07:15 ubuntu-s-1vcpu-1gb-ams3 python[2788273]:   File \"/root/Iryna_Karmazina/venv/lib/python3.12/site-packages/telegram/request/_baserequest.py\", line 375, in _request_wrapper\nMay 27 16:07:15 ubuntu-s-1vcpu-1gb-ams3 python[2788273]:     raise exception\nMay 27 16:07:15 ubuntu-s-1vcpu-1gb-ams3 python[2788273]: telegram.error.Conflict: Conflict: terminated by other getUpdates request; make sure that only one bot instance is running\nMay 27 16:07:18 ubuntu-s-1vcpu-1gb-ams3 systemd[1]: Stopping mybot.service - Telegram Bot on Claude...\n",
   "stderr": "",
-  "returncode": -15,
-  "id": "fix-conflict-1",
-  "ts": "2026-05-27T16:06:41Z"
+  "returncode": 0,
+  "id": "check-bot-3",
+  "ts": "2026-05-27T16:07:19Z"
 }
