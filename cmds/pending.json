@@ -1,1 +1,1 @@
-{"id": "fix-service-3", "cmd": "sed -i 's|ExecStart=.*|ExecStart=/root/Iryna_Karmazina/venv/bin/python /root/Iryna_Karmazina/agent_bot.py|' /etc/systemd/system/mybot.service && systemctl daemon-reload && systemctl restart mybot.service && sleep 3 && journalctl -u mybot.service -n 5 --no-pager"}
+{"id": "get-chat-id-1", "cmd": "journalctl -u mybot.service -n 50 --no-pager | grep -i 'chat_id\\|from_user\\|effective_user\\|update_id\\|message' | tail -20"}
