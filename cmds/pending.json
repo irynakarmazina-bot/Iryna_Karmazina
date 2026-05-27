@@ -1,1 +1,1 @@
-{"id": "check-bot-3", "cmd": "ps aux | grep -E 'bot\\.py|agent_bot' | grep -v grep && echo '---' && journalctl -u mybot.service -n 8 --no-pager"}
+{"id": "check-bot-4", "cmd": "ps aux | grep python | grep -v grep && echo '===' && journalctl -u mybot.service --since '5 minutes ago' --no-pager | tail -20"}
