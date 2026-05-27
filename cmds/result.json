@@ -1,7 +1,7 @@
 {
-  "stdout": "#!/bin/bash\ncd /root/Iryna_Karmazina || exit 1\nBEFORE=$(git rev-parse HEAD)\ngit pull --quiet\nAFTER=$(git rev-parse HEAD)\nif [ \"$BEFORE\" != \"$AFTER\" ]; then\n    /root/Iryna_Karmazina/venv/bin/pip install -q -r requirements.txt\n    systemctl restart mybot.service\n    systemctl restart cmdrunner.service\nfi\n",
+  "stdout": "autodeploy.sh updated OK\n#!/bin/bash\ncd /root/Iryna_Karmazina || exit 1\nBEFORE=$(git rev-parse HEAD)\ngit pull --quiet\nAFTER=$(git rev-parse HEAD)\nif [ \"$BEFORE\" != \"$AFTER\" ]; then\n    CHANGED=$(git diff --name-only $BEFORE $AFTER)\n    BOT_CHANGED=$(echo \"$CHANGED\" | grep -E '^(agent_bot|bot)\\.py$|^requirements\\.txt$')\n    RUNNER_CHANGED=$(echo \"$CHANGED\" | grep -E '^cmd_runner\\.py$')\n    if [ -n \"$BOT_CHANGED\" ]; then\n        /root/Iryna_Karmazina/venv/bin/pip install -q -r requirements.txt\n        systemctl restart mybot.service\n    fi\n    if [ -n \"$RUNNER_CHANGED\" ]; then\n        systemctl restart cmdrunner.service\n    fi\nfi\n",
   "stderr": "",
   "returncode": 0,
-  "id": "read-autodeploy",
-  "ts": "2026-05-27T16:12:34Z"
+  "id": "fix-autodeploy-1",
+  "ts": "2026-05-27T16:13:17Z"
 }
