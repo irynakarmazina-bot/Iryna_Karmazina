@@ -1,7 +1,7 @@
 {
-  "stdout": "May 27 13:37:40 ubuntu-s-1vcpu-1gb-ams3 systemd[1]: Started mybot.service - Telegram Bot on Claude.\nMay 27 13:37:42 ubuntu-s-1vcpu-1gb-ams3 python[2775867]: 2026-05-27 13:37:42,209 - INFO - Agent bot started with tools\nMay 27 13:37:42 ubuntu-s-1vcpu-1gb-ams3 python[2775867]: 2026-05-27 13:37:42,234 - INFO - HTTP Request: POST https://api.telegram.org/bot8563424583:AAEDM2-4Bttv-rEt9n3JdROCyjyWTC0I7s0/getMe \"HTTP/1.1 200 OK\"\nMay 27 13:37:42 ubuntu-s-1vcpu-1gb-ams3 python[2775867]: 2026-05-27 13:37:42,239 - INFO - HTTP Request: POST https://api.telegram.org/bot8563424583:AAEDM2-4Bttv-rEt9n3JdROCyjyWTC0I7s0/deleteWebhook \"HTTP/1.1 200 OK\"\nMay 27 13:37:42 ubuntu-s-1vcpu-1gb-ams3 python[2775867]: 2026-05-27 13:37:42,242 - INFO - Application started\n",
+  "stdout": "May 27 13:38:53 ubuntu-s-1vcpu-1gb-ams3 python[2775967]:     result = await self._request_wrapper(\nMay 27 13:38:53 ubuntu-s-1vcpu-1gb-ams3 python[2775967]:              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nMay 27 13:38:53 ubuntu-s-1vcpu-1gb-ams3 python[2775967]:   File \"/root/Iryna_Karmazina/venv/lib/python3.12/site-packages/telegram/request/_baserequest.py\", line 375, in _request_wrapper\nMay 27 13:38:53 ubuntu-s-1vcpu-1gb-ams3 python[2775967]:     raise exception\nMay 27 13:38:53 ubuntu-s-1vcpu-1gb-ams3 python[2775967]: telegram.error.Conflict: Conflict: terminated by other getUpdates request; make sure that only one bot instance is running\n",
   "stderr": "",
   "returncode": 0,
   "id": "fix-service-3",
-  "ts": "2026-05-27T13:37:43Z"
+  "ts": "2026-05-27T13:38:53Z"
 }
