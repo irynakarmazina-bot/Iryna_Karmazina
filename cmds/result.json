@@ -1,7 +1,7 @@
 {
-  "stdout": "● mybot.service - Telegram Bot on Claude\n     Loaded: loaded (/etc/systemd/system/mybot.service; enabled; preset: enabled)\n     Active: active (running) since Wed 2026-05-27 16:06:18 UTC; 731ms ago\n   Main PID: 2788257 (python)\n      Tasks: 1 (limit: 1110)\n     Memory: 22.8M (peak: 23.1M)\n        CPU: 475ms\n     CGroup: /system.slice/mybot.service\n             └─2788257 /root/Iryna_Karmazina/venv/bin/python /root/Iryna_Karmazina/agent_bot.py\n\nMay 27 16:06:18 ubuntu-s-1vcpu-1gb-ams3 systemd[1]: Started mybot.service - Telegram Bot on Claude.\n---\nMay 27 16:06:18 ubuntu-s-1vcpu-1gb-ams3 python[2788205]: 2026-05-27 16:06:18,297 - INFO - Application.stop() complete\nMay 27 16:06:18 ubuntu-s-1vcpu-1gb-ams3 systemd[1]: mybot.service: Deactivated successfully.\nMay 27 16:06:18 ubuntu-s-1vcpu-1gb-ams3 systemd[1]: Stopped mybot.service - Telegram Bot on Claude.\nMay 27 16:06:18 ubuntu-s-1vcpu-1gb-ams3 systemd[1]: mybot.service: Consumed 2.155s CPU time, 52.5M memory peak, 0B memory swap peak.\nMay 27 16:06:18 ubuntu-s-1vcpu-1gb-ams3 systemd[1]: Started mybot.service - Telegram Bot on Claude.\n",
+  "stdout": "",
   "stderr": "",
-  "returncode": 0,
-  "id": "check-bot-2",
-  "ts": "2026-05-27T16:06:19Z"
+  "returncode": -15,
+  "id": "fix-conflict-1",
+  "ts": "2026-05-27T16:06:41Z"
 }
