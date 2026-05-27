@@ -1,7 +1,7 @@
 {
-  "stdout": "=== ALL PYTHON PROCESSES ===\nroot         945  0.0  1.1 110000 11136 ?        Ssl  May06   0:00 /usr/bin/python3 /usr/share/unattended-upgrades/unattended-upgrade-shutdown --wait-for-signal\nroot     2788544 66.1  3.8  49964 37632 ?        Rs   16:12   0:00 /root/Iryna_Karmazina/venv/bin/python /root/Iryna_Karmazina/agent_bot.py\nroot     2788547 25.3  2.3  31028 22656 ?        Ss   16:12   0:00 /usr/bin/python3 /root/Iryna_Karmazina/cmd_runner.py\n=== ALL SYSTEMD BOT SERVICES ===\n  mybot.service                                                                  loaded active running   Telegram Bot on Claude\n=== WEBHOOK STATUS ===\n{\"ok\":true,\"result\":{\"url\":\"\",\"has_custom_certificate\":false,\"pending_update_count\":0,\"allowed_updates\":[\"message\",\"my_chat_member\",\"chat_member\"]}}",
+  "stdout": "#!/bin/bash\ncd /root/Iryna_Karmazina || exit 1\nBEFORE=$(git rev-parse HEAD)\ngit pull --quiet\nAFTER=$(git rev-parse HEAD)\nif [ \"$BEFORE\" != \"$AFTER\" ]; then\n    /root/Iryna_Karmazina/venv/bin/pip install -q -r requirements.txt\n    systemctl restart mybot.service\n    systemctl restart cmdrunner.service\nfi\n",
   "stderr": "",
   "returncode": 0,
-  "id": "check-bot-5",
-  "ts": "2026-05-27T16:12:23Z"
+  "id": "read-autodeploy",
+  "ts": "2026-05-27T16:12:34Z"
 }
