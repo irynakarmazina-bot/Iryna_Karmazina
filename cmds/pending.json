@@ -1,1 +1,1 @@
-{"id": "verify-tools", "cmd": "which xdotool xclip scrot import && dpkg -l xdotool xclip scrot imagemagick 2>/dev/null | grep '^ii'"}
+{"id": "check-rdp-security", "cmd": "echo '=== xfreerdp NLA/security caps ===' && xfreerdp --version 2>&1 | head -5 && echo '=== Test RDP connection (3 sec timeout) ===' && timeout 3 xfreerdp /v:unitex.rdport.net:31230 /u:karmazina.i /p:FAKE_PASS_TEST /cert:ignore /log-level:DEBUG 2>&1 | grep -iE 'security|nla|tls|negotiate|block|locked|fail|error|auth' | head -20 || echo 'Connection attempt done'"}
