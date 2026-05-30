@@ -1,7 +1,7 @@
 {
-  "stdout": "\nNo user sessions are running outdated binaries.\n\nNo VM guests are running outdated hypervisor (qemu) binaries on this host.\nPending kernel upgrade\n----------------------\n\nNewer kernel available\n\nThe currently running kernel version is 6.8.0-71-generic which is not the \nexpected kernel version 6.8.0-117-generic.\n\nRestarting the system to load the new kernel will not be handled automatically, \nso you should consider rebooting.\n\n---\n[08:25:31:914] [2910700:2910700] [ERROR][com.freerdp.client.x11] - failed to open display: \n[08:25:31:914] [2910700:2910700] [ERROR][com.freerdp.client.x11] - Please check that the $DISPLAY environment variable is properly set.\nuse: X [:<display>] [option]\n-a #                   default pointer acceleration (factor)\n",
-  "stderr": "",
-  "returncode": 0,
-  "id": "install-rdp-xvfb-2",
-  "ts": "2026-05-30T08:25:31Z"
+  "stdout": "----------------------\n\nNewer kernel available\n\nThe currently running kernel version is 6.8.0-71-generic which is not the \nexpected kernel version 6.8.0-117-generic.\n\nRestarting the system to load the new kernel will not be handled automatically, \nso you should consider rebooting.\n\n---VERSIONS---\n",
+  "stderr": "Error: Can't open display: (null)\nFailed creating new xdo instance\n",
+  "returncode": 1,
+  "id": "install-xdotool-xclip-scrot",
+  "ts": "2026-05-30T08:44:58Z"
 }
