@@ -1,7 +1,7 @@
 """
-Computer Use agent for Ekspeditor — batch income invoice processing.
-Reads PDF files from a folder on the remote server's desktop,
-extracts container numbers and amounts, creates matching income invoices.
+Computer vision agent for Ekspeditor — batch income invoice processing.
+Uses regular Claude vision (images in messages) instead of Computer Use API.
+Claude analyzes each screenshot and returns a single structured action.
 """
 import base64
 import json
@@ -16,92 +16,66 @@ from .session import RDPSession
 
 load_dotenv()
 
-# Load nomenclature mapping table
 _NOMENCLATURE_FILE = Path(__file__).parent / "nomenclature.json"
 _nomenclature_raw = json.loads(_NOMENCLATURE_FILE.read_text(encoding="utf-8"))
 NOMENCLATURE_MAPPINGS = _nomenclature_raw["mappings"]
 
-# Build readable table for system prompt
+
 def _mapping_table() -> str:
     lines = []
     for m in NOMENCLATURE_MAPPINGS:
-        keywords = " / ".join(m["match"][:3])  # show first 3 keywords
-        lines.append(f'  - якщо є «{keywords}...» → «{m["ekspedytor"]}»')
+        keywords = " / ".join(m["match"][:3])
+        lines.append(f'  - «{keywords}...» → «{m["ekspedytor"]}»')
     return "\n".join(lines)
 
 
-SYSTEM_PROMPT = f"""Ти — агент автоматизації в системі Експедитор (1С:Підприємство, конфігурація логістики).
-Ти обробляєш ПАКЕТ офіційних рахунків (PDF) і вносиш їх як доходні рахунки в Експедитор.
+AGENT_SYSTEM = f"""Ти — агент управління Windows комп'ютером через скріншоти.
+Екран: 1920x1080 пікселів. Ти отримуєш скріншот + задачу + лог дій.
+Твоя відповідь — ТІЛЬКИ ОДИН рядок, без пояснень.
 
-═══ СУВОРІ ПРАВИЛА БЕЗПЕКИ ═══
-1. Виконуй ТІЛЬКИ задачу з повідомлення користувача
-2. Відкривай ТІЛЬКИ угоди що відповідають знайденому контейнеру
-3. НЕ видаляй, НЕ переміщуй файли крім: перемістити оброблений PDF у підпапку "Готово"
-4. НЕ редагуй існуючі рахунки — тільки СТВОРЮЙ нові
-5. ПЕРЕД створенням — ОБОВ'ЯЗКОВО перевір дублі. Якщо знайдено → пропусти цей файл
+ФОРМАТ ВІДПОВІДІ:
+ACTION: left_click X Y          — лівий клік (X,Y — центр елемента)
+ACTION: double_click X Y        — подвійний клік
+ACTION: right_click X Y         — правий клік
+ACTION: type ТЕКСТ              — ввести текст (все після «type » — текст)
+ACTION: key KEYNAME             — клавіша: Return, Escape, Tab, Delete, BackSpace,
+                                   ctrl+v, ctrl+a, ctrl+z, alt+F4, F5
+ACTION: scroll X Y down N       — прокрутка вниз N разів
+ACTION: scroll X Y up N         — прокрутка вгору N разів
+DONE: повідомлення              — задача повністю виконана
+ERROR: причина                  — неможливо продовжити
 
-═══ АЛГОРИТМ ДЛЯ КОЖНОГО PDF ═══
+═══ ПРАВИЛА БЕЗПЕКИ ═══
+- Відкривай ТІЛЬКИ угоду по знайденому контейнеру
+- НЕ видаляй і НЕ переміщуй нічого крім: перемісти оброблений PDF у підпапку «Готово»
+- НЕ редагуй існуючі рахунки
+- Перевіряй дублі перед створенням
 
-Крок 1 — ВІДКРИТИ PDF:
-  - Двічі клікни на PDF файл у папці
-  - Дочекайся відкриття PDF-переглядача
-  - Зроби скріншоти всіх сторінок (гортай якщо потрібно)
+═══ НАВІГАЦІЯ В ЕКСПЕДИТОРІ ═══
+- Головний екран → клікни «Угоди» в лівому нижньому блоці «Журнали та обробки»
+- Список угод: поле «Контейнер» (вгорі праворуч, мітка «містить») → введи номер → Enter
+- Відкрити угоду: подвійний клік по рядку
+- Вкладки угоди: Загальна інформація | Рахунки | Файли | ...
+- Вкладка «Рахунки»: верхня таблиця = доходні, нижня = витратні
+- Перевірка дублів: подивись чи є вже рядки у верхній таблиці
+- Додати доходний рахунок: «+» зліва від ВЕРХНЬОЇ таблиці
+- Форма рахунку: заповни рядки послуг і суми з PDF → «Записати» → «ОК»
 
-Крок 2 — ПРОЧИТАТИ З PDF:
-  Структура документу: "Рахунок на оплату № [N] від [дата]"
-  - НОМЕР РАХУНКУ: після знаку "№" (напр. № 74) — запиши в поле "Номер О" при створенні
-  - ДАТА: після слова "від" (напр. 20 квітня 2026 р.)
-  - КОНТЕЙНЕР: шукай рядок "Контейнер:" або "контейнер:" — значення після двокрапки (4 літери + 7 цифр, напр. MRKU2048060)
-    Увага: номер контейнера також зустрічається всередині опису послуг — але шукай окремий рядок "Контейнер:"
-  - ПОСЛУГИ: таблиця "Товари (роботи, послуги)" — зчитай кожен рядок: опис і суму в колонці "Сума"
-  - ВАЛЮТА: завжди UAH (гривня) — одиниця виміру "грн."
-  - ЗАГАЛЬНА СУМА: рядок "Всього:" — для перевірки
-
-  Приклад що шукати:
-    "Відшкодування навантажувально-розвантажувальних робіт... контейнер: MRKU2048060" → 15 501,50
-    "Відшкодування міжнародного залізничного перевезення..." → 73 078,50
-    "Винагорода експедитора на території України" → 2 000,00
-
-Крок 3 — ЗАКРИТИ PDF:
-  - Alt+F4 або кнопка X
-
-Крок 4 — ПЕРЕМКНУТИСЯ НА ЕКСПЕДИТОР:
-  - Клікни на іконку Експедитора на панелі задач або відкрий через Пуск
-
-Крок 5 — ЗНАЙТИ УГОДУ:
-  - Головний екран → "Угоди" (в розділі "Журнали та обробки")
-  - Поле "Контейнер" (вгорі праворуч, мітка "містить") → введи номер контейнера → Enter
-  - Якщо не знайдено → запиши в журнал помилок, перейди до наступного PDF
-
-Крок 6 — ПЕРЕВІРКА ДУБЛІВ:
-  - Подвійний клік по знайденій угоді
-  - Вкладка "Рахунки" → верхня таблиця (доходні)
-  - Перевір чи є вже рахунок з такою самою датою або сумою
-  - Якщо ДУБЛЬ знайдено → запиши в журнал, перейди до наступного PDF
-
-Крок 7 — СТВОРИТИ ДОХОДНИЙ РАХУНОК:
-  - Вкладка "Рахунки" → "+" зліва від ВЕРХНЬОЇ таблиці
-  - Форма відкриється (можливо з даними з плану — їх ІГНОРУЙ, введи з PDF)
-  - Заповни рядки по послугах з PDF, використовуючи ТАБЛИЦЮ ВІДПОВІДНОСТІ нижче
-  - Валюта: UAH, суми точно як в PDF
-  - Натисни "Записати" → "ОК"
-
-Крок 8 — ПОЗНАЧИТИ PDF ЯК ОБРОБЛЕНИЙ:
-  - Поверніись у папку з PDF
-  - Перемісти оброблений файл у підпапку "Готово" (створи якщо немає)
+═══ ЯК ЧИТАТИ PDF ═══
+- Шукай рядок «Контейнер:» — після нього номер (4 літери + 7 цифр, напр. MRKU2048060)
+- Таблиця «Товари (роботи, послуги)» — кожен рядок: опис послуги + сума
+- Рядок «Всього:» — загальна сума для перевірки
+- «Рахунок на оплату № X від дата» — номер рахунку (→ поле «Номер О»)
 
 ═══ ТАБЛИЦЯ ВІДПОВІДНОСТІ НОМЕНКЛАТУРИ ═══
-Якщо в PDF зустрічаєш такий текст → використовуй в Експедиторі:
 {_mapping_table()}
-  - якщо відповідності немає → залиш поле "Стаття" порожнім, але введи правильну суму і продовжуй
+  - якщо немає відповідності → залиш поле «Стаття» порожнім, введи правильну суму
 
-═══ СТРУКТУРА ФІНАЛЬНОГО ЗВІТУ ═══
-Після обробки ВСІХ файлів надай звіт:
-ОБРОБЛЕНО: [N] файлів
-УСПІШНО: [список: "назва_файлу.pdf → угода №XXXXX, рахунок на [сума] UAH"]
-ДУБЛІ (пропущено): [список файлів]
-ПОМИЛКИ: [список: "назва_файлу.pdf → причина"]
-СТАТТІ БЕЗ НАЗВИ (порожнє поле): [список: "назва_файлу.pdf → невідомий текст з PDF"]
+═══ ФОРМАТ ЗВІТУ (у DONE) ═══
+ОБРОБЛЕНО: N файлів
+УСПІШНО: назва.pdf → угода №XXXXX, рахунок на [сума] UAH
+ДУБЛІ: назва.pdf (вже існує)
+ПОМИЛКИ: назва.pdf → причина
 """
 
 
@@ -115,15 +89,6 @@ class EkspedytorAgent:
         )
 
     def process_folder(self, folder_name: str) -> str:
-        """
-        Process all PDF invoices in the specified folder on the remote desktop.
-
-        Args:
-            folder_name: Name of the folder on the remote server's Desktop
-
-        Returns:
-            Summary report string
-        """
         try:
             self.session.start()
             return self._agent_loop(folder_name)
@@ -132,116 +97,95 @@ class EkspedytorAgent:
         finally:
             self.session.stop()
 
-    def _agent_loop(self, folder_name: str) -> str:
-        task = (
-            f"Обробити всі PDF рахунки у папці «{folder_name}» на Робочому столі сервера.\n\n"
-            "1. Відкрий папку на Робочому столі\n"
-            "2. Для кожного PDF файлу виконай алгоритм з інструкцій\n"
-            "3. Після всіх файлів надай звіт"
-        )
-
-        messages = [
-            {
-                "role": "user",
-                "content": [
-                    {
-                        "type": "image",
-                        "source": {
-                            "type": "base64",
-                            "media_type": "image/png",
-                            "data": self._screenshot_b64(),
-                        },
-                    },
-                    {"type": "text", "text": task},
-                ],
-            }
-        ]
-
-        # Batch processing needs more steps (many PDFs × many actions each)
-        for _ in range(200):
-            response = self.client.beta.messages.create(
-                model="claude-opus-4-8",
-                max_tokens=4096,
-                system=SYSTEM_PROMPT,
-                betas=["computer-use-2025-01-24"],
-                tools=[
-                    {
-                        "type": "computer_20250124",
-                        "name": "computer",
-                        "display_width_px": 1920,
-                        "display_height_px": 1080,
-                        "display_number": 99,
-                    }
-                ],
-                messages=messages,
-            )
-
-            messages.append({"role": "assistant", "content": response.content})
-
-            if response.stop_reason == "end_turn":
-                for block in response.content:
-                    if hasattr(block, "text"):
-                        return block.text
-                return "Завдання завершено"
-
-            tool_results = []
-            for block in response.content:
-                if block.type != "tool_use" or block.name != "computer":
-                    continue
-
-                action = block.input.get("action")
-                if action == "screenshot":
-                    img = self._screenshot_b64()
-                else:
-                    self._execute(action, block.input)
-                    time.sleep(1.2)
-                    img = self._screenshot_b64()
-
-                tool_results.append(
-                    {
-                        "type": "tool_result",
-                        "tool_use_id": block.id,
-                        "content": [
-                            {
-                                "type": "image",
-                                "source": {
-                                    "type": "base64",
-                                    "media_type": "image/png",
-                                    "data": img,
-                                },
-                            }
-                        ],
-                    }
-                )
-
-            if tool_results:
-                messages.append({"role": "user", "content": tool_results})
-
-        return "ПОМИЛКА: досягнуто ліміт кроків (200)"
-
     def _screenshot_b64(self) -> str:
         return base64.standard_b64encode(self.session.screenshot()).decode()
 
-    def _execute(self, action: str, params: dict):
-        coord = params.get("coordinate", [0, 0])
-        if action == "left_click":
-            self.session.click(coord[0], coord[1])
-        elif action == "double_click":
-            self.session.double_click(coord[0], coord[1])
-        elif action == "right_click":
-            self.session.right_click(coord[0], coord[1])
-        elif action == "left_click_drag":
-            sc = params.get("start_coordinate", [0, 0])
-            self.session.drag(sc[0], sc[1], coord[0], coord[1])
-        elif action == "type":
-            self.session.type_text(params.get("text", ""))
-        elif action == "key":
-            self.session.key(params.get("key", ""))
-        elif action == "scroll":
-            self.session.scroll(
-                coord[0], coord[1],
-                params.get("direction", "down"),
-                params.get("amount", 3),
+    def _agent_loop(self, folder_name: str) -> str:
+        task = (
+            f"Обробити всі PDF рахунки у папці «{folder_name}» на Робочому столі.\n"
+            "1. Відкрий папку → для кожного PDF: відкрий, прочитай контейнер і суми, закрий\n"
+            "2. Знайди угоду в Експедиторі → перевір дублі → створи доходний рахунок\n"
+            "3. Перемісти PDF у підпапку «Готово» → перейди до наступного\n"
+            "4. Після всіх файлів → DONE з повним звітом"
+        )
+        action_log = []
+
+        for step in range(200):
+            screenshot = self._screenshot_b64()
+            recent = "\n".join(action_log[-20:]) or "Початок роботи."
+
+            messages = [
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "image",
+                            "source": {
+                                "type": "base64",
+                                "media_type": "image/png",
+                                "data": screenshot,
+                            },
+                        },
+                        {
+                            "type": "text",
+                            "text": (
+                                f"ЗАДАЧА: {task}\n\n"
+                                f"ВИКОНАНІ ДІЇ ({len(action_log)} кроків):\n{recent}\n\n"
+                                "Що зараз на екрані? Яка наступна дія?\n"
+                                "Відповідай ТІЛЬКИ одним рядком: ACTION: або DONE: або ERROR:"
+                            ),
+                        },
+                    ],
+                }
+            ]
+
+            response = self.client.messages.create(
+                model="claude-opus-4-8",
+                max_tokens=256,
+                system=AGENT_SYSTEM,
+                messages=messages,
             )
-        elif action == "mouse_move":
+
+            text = next(
+                (b.text.strip() for b in response.content if hasattr(b, "text")), ""
+            )
+
+            if text.startswith("DONE:"):
+                return text[5:].strip()
+            if text.startswith("ERROR:"):
+                return f"ПОМИЛКА: {text[6:].strip()}"
+
+            if text.startswith("ACTION:"):
+                action_str = text[7:].strip()
+                action_log.append(f"[{step}] {action_str}")
+                self._execute(action_str)
+                time.sleep(1.2)
+            else:
+                # Unexpected response — log and continue
+                action_log.append(f"[{step}] (відповідь без дії) {text[:80]}")
+
+        return "ПОМИЛКА: досягнуто ліміт 200 кроків"
+
+    def _execute(self, action_str: str):
+        parts = action_str.split(None, 4)
+        if not parts:
+            return
+        verb = parts[0].lower()
+
+        try:
+            if verb in ("left_click", "click") and len(parts) >= 3:
+                self.session.click(int(parts[1]), int(parts[2]))
+            elif verb == "double_click" and len(parts) >= 3:
+                self.session.double_click(int(parts[1]), int(parts[2]))
+            elif verb == "right_click" and len(parts) >= 3:
+                self.session.right_click(int(parts[1]), int(parts[2]))
+            elif verb == "type" and len(parts) >= 2:
+                self.session.type_text(" ".join(parts[1:]))
+            elif verb == "key" and len(parts) >= 2:
+                self.session.key(parts[1])
+            elif verb == "scroll" and len(parts) >= 5:
+                self.session.scroll(
+                    int(parts[1]), int(parts[2]), parts[3], int(parts[4])
+                )
+        except (ValueError, IndexError):
             pass
