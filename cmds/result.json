@@ -1,7 +1,7 @@
 {
-  "stdout": "Reading package lists...\nBuilding dependency tree...\nReading state information...\nE: Unable to locate package xfreerdp2-x11\n",
+  "stdout": "Distributor ID:\tUbuntu\nDescription:\tUbuntu 24.04.3 LTS\nRelease:\t24.04\nCodename:\tnoble\n---\nlibfreerdp-client3-3 - Free Remote Desktop Protocol library (client library)\nlibfreerdp-server3-3 - Free Remote Desktop Protocol library (server library)\nlibfreerdp3-3 - Free Remote Desktop Protocol library (core library)\nfreerdp2-dev - Free Remote Desktop Protocol library (development files)\nfreerdp2-shadow-x11 - FreeRDP x11 shadowing server\nfreerdp2-wayland - RDP client for Windows Terminal Services (wayland client)\nfreerdp2-x11 - RDP client for Windows Terminal Services (X11 client)\nfreerdp3-dev - Free Remote Desktop Protocol library (development files)\nfreerdp3-shadow-x11 - FreeRDP x11 shadowing server\nlibfreerdp-client2-2t64 - Free Remote Desktop Protocol library (client library)\nlibfreerdp-server2-2t64 - Free Remote Desktop Protocol library (server library)\nlibfreerdp-shadow-subsystem2-2t64 - FreeRDP Remote Desktop Protocol shadow subsystem libraries\nlibfreerdp-shadow-subsystem3-3 - FreeRDP Remote Desktop Protocol shadow subsystem libraries\nlibfreerdp-shadow2-2t64 - FreeRDP Remote Desktop Protocol shadow libraries\nlibfreerdp-shadow3-3 - FreeRDP Remote Desktop Protocol shadow libraries\nlibfreerdp2-2t64 - Free Remote Desktop Protocol library (core library)\nlibpam-freerdp2 - PAM Module to auth against an RDP server using FreeRDPv2\nlibpam-freerdp2-dev - PAM Module to auth against an RDP server using FreeRDPv2 (development files)\nlightdm-remote-session-freerdp2 - LightDM Remote Logon Support for RDP sessions\nxrdp - Remote Desktop Protocol (RDP) server\nfreerdp3-wayland - RDP client for Windows Terminal Services (wayland client)\nfreerdp3-x11 - RDP client for Windows Terminal Services (X11 client)\n",
   "stderr": "",
   "returncode": 0,
-  "id": "install-xfreerdp-xvfb-1",
-  "ts": "2026-05-30T08:24:18Z"
+  "id": "check-os-rdp-1",
+  "ts": "2026-05-30T08:24:36Z"
 }
