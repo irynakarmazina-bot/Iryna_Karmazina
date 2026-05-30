@@ -1,1 +1,1 @@
-{"id": "rdp-port-check", "cmd": "timeout 10 bash -c 'echo >/dev/tcp/unitex.rdport.net/31230' && echo 'PORT 31230: OPEN' || echo 'PORT 31230: CLOSED/UNREACHABLE'"}
+{"id": "rdp-debug-connect", "cmd": "Xvfb :99 -screen 0 800x600x24 -ac &sleep 2 && DISPLAY=:99 timeout 25 xfreerdp /v:unitex.rdport.net:31230 /u:karmazina.i /p:rT3jfZ8usC /w:800 /h:600 /cert:ignore /log-level:DEBUG 2>&1 | grep -iE 'connect|auth|error|security|nla|tls|negotiate|success|fail|warn|rdp|license' | head -30; kill %1 2>/dev/null; echo '===END==='" }
