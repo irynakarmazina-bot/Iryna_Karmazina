@@ -159,13 +159,14 @@ class EkspedytorAgent:
 
         # Batch processing needs more steps (many PDFs × many actions each)
         for _ in range(200):
-            response = self.client.messages.create(
+            response = self.client.beta.messages.create(
                 model="claude-opus-4-8",
                 max_tokens=4096,
                 system=SYSTEM_PROMPT,
+                betas=["computer-use-2025-01-24"],
                 tools=[
                     {
-                        "type": "computer_20241022",
+                        "type": "computer_20250124",
                         "name": "computer",
                         "display_width_px": 1920,
                         "display_height_px": 1080,
