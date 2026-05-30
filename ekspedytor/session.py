@@ -36,6 +36,16 @@ class RDPSession:
         self._rdp = None
 
     def start(self):
+        # Clean up any leftover Xvfb process and lock file from previous runs
+        subprocess.run(["pkill", "-f", f"Xvfb {DISPLAY}"], capture_output=True)
+        time.sleep(1)
+        lock = f"/tmp/.X{DISPLAY.lstrip(':')}-lock"
+        if os.path.exists(lock):
+            os.remove(lock)
+        sock = f"/tmp/.X11-unix/X{DISPLAY.lstrip(':')}"
+        if os.path.exists(sock):
+            os.remove(sock)
+
         self._xvfb = subprocess.Popen(
             ["Xvfb", DISPLAY, "-screen", "0", "1920x1080x24", "-ac"],
             stdout=subprocess.DEVNULL,
@@ -51,10 +61,9 @@ class RDPSession:
                 f"/u:{self.user}",
                 f"/p:{self.password}",
                 "/w:1920", "/h:1080",
-                "/bpp:32",          # 32-bit color
-                "/rfx",             # RemoteFX codec — fixes black screen
-                "-themes",          # disable themes (faster rendering)
-                "-wallpaper",       # disable wallpaper (faster rendering)
+                "/bpp:32",
+                "-themes",
+                "-wallpaper",
                 "/cert:ignore",
                 "/log-level:ERROR",
             ],
@@ -62,14 +71,11 @@ class RDPSession:
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
         )
-        # Wait longer for Windows desktop to fully render
-        time.sleep(20)
-        # Wake up the screen with a mouse move
-        subprocess.run(
-            ["xdotool", "mousemove", "960", "540"],
-            env=env, capture_output=True,
-        )
-        time.sleep(2)
+        # Wait for NLA auth + Windows desktop to fully render
+        time.sleep(30)
+        # Wake up screen
+        subprocess.run(["xdotool", "mousemove", "960", "540"], env=env, capture_output=True)
+        time.sleep(3)
 
     def stop(self):
         for proc in (self._rdp, self._xvfb):
