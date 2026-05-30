@@ -1,7 +1,7 @@
 {
-  "stdout": "/usr/bin/xdotool\n/usr/bin/xclip\n/usr/bin/scrot\n/usr/bin/import\nii  imagemagick    8:6.9.12.98+dfsg1-5.2build2 amd64        image manipulation programs -- binaries\nii  scrot          1.10-1build2                amd64        command line screen capture utility\nii  xclip          0.13-3                      amd64        command line interface to X selections\nii  xdotool        1:3.20160805.1-5build1      amd64        simulate (generate) X11 keyboard/mouse input events\n",
+  "stdout": "=== xfreerdp NLA/security caps ===\n[09:17:00:204] [2914006:2914006] [ERROR][com.freerdp.client.x11] - failed to open display: \n[09:17:00:205] [2914006:2914006] [ERROR][com.freerdp.client.x11] - Please check that the $DISPLAY environment variable is properly set.\n=== Test RDP connection (3 sec timeout) ===\n[09:17:00:243] [2914011:2914011] [ERROR][com.freerdp.client.x11] - failed to open display: \n[09:17:00:244] [2914011:2914011] [ERROR][com.freerdp.client.x11] - Please check that the $DISPLAY environment variable is properly set.\n",
   "stderr": "",
   "returncode": 0,
-  "id": "verify-tools",
-  "ts": "2026-05-30T08:45:20Z"
+  "id": "check-rdp-security",
+  "ts": "2026-05-30T09:17:00Z"
 }
