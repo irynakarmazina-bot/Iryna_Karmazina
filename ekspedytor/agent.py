@@ -1,10 +1,13 @@
 """
-Computer Use agent for Ekspeditor (1C logistics system).
-Uses Anthropic's computer_20241022 tool to navigate the UI as a human would.
+Computer Use agent for Ekspeditor — batch income invoice processing.
+Reads PDF files from a folder on the remote server's desktop,
+extracts container numbers and amounts, creates matching income invoices.
 """
 import base64
+import json
 import os
 import time
+from pathlib import Path
 
 import anthropic
 from dotenv import load_dotenv
@@ -13,58 +16,84 @@ from .session import RDPSession
 
 load_dotenv()
 
-SYSTEM_PROMPT = """Ти — агент автоматизації в системі Експедитор (1С:Підприємство, конфігурація логістики).
+# Load nomenclature mapping table
+_NOMENCLATURE_FILE = Path(__file__).parent / "nomenclature.json"
+_nomenclature_raw = json.loads(_NOMENCLATURE_FILE.read_text(encoding="utf-8"))
+NOMENCLATURE_MAPPINGS = _nomenclature_raw["mappings"]
+
+# Build readable table for system prompt
+def _mapping_table() -> str:
+    lines = []
+    for m in NOMENCLATURE_MAPPINGS:
+        keywords = " / ".join(m["match"][:3])  # show first 3 keywords
+        lines.append(f'  - якщо є «{keywords}...» → «{m["ekspedytor"]}»')
+    return "\n".join(lines)
+
+
+SYSTEM_PROMPT = f"""Ти — агент автоматизації в системі Експедитор (1С:Підприємство, конфігурація логістики).
+Ти обробляєш ПАКЕТ офіційних рахунків (PDF) і вносиш їх як доходні рахунки в Експедитор.
 
 ═══ СУВОРІ ПРАВИЛА БЕЗПЕКИ ═══
 1. Виконуй ТІЛЬКИ задачу з повідомлення користувача
-2. Відкривай ТІЛЬКИ угоду що відповідає пошуковому номеру
-3. Переходь ТІЛЬКИ: Список Угод → Знайдена угода → Вкладка "Рахунки"
-4. НЕ видаляй жодних записів
-5. НЕ копіюй і НЕ переміщуй файли
-6. НЕ відкривай інші угоди, папки або розділи крім потрібних
-7. НЕ редагуй існуючі рахунки — тільки СТВОРЮЙ нові
-8. ПЕРЕД створенням — ОБОВ'ЯЗКОВО перевір дублі. Якщо знайдено → ЗУПИНИСЬ
+2. Відкривай ТІЛЬКИ угоди що відповідають знайденому контейнеру
+3. НЕ видаляй, НЕ переміщуй файли крім: перемістити оброблений PDF у підпапку "Готово"
+4. НЕ редагуй існуючі рахунки — тільки СТВОРЮЙ нові
+5. ПЕРЕД створенням — ОБОВ'ЯЗКОВО перевір дублі. Якщо знайдено → пропусти цей файл
 
-═══ НАВІГАЦІЯ В ЕКСПЕДИТОРІ ═══
-Список угод:
-  - Головний екран → "Угоди" в розділі "Журнали та обробки" (лівий нижній блок)
-  - Фільтр по КОНТЕЙНЕРУ: поле "Контейнер" з міткою "містить" (правий верхній кут)
-  - Фільтр по КОНОСАМЕНТУ: поле "B/L" з міткою "містить" (правий верхній кут)
-  - Після вводу номера натисни Enter або кнопку оновлення (кругла стрілка)
-  - Відкрити угоду: подвійний клік по рядку
+═══ АЛГОРИТМ ДЛЯ КОЖНОГО PDF ═══
 
-Всередині угоди є вкладки:
-  Загальна інформація | Букінг | План/Калькуляція | Дохід/витрати | Рахунки | Витрати | Файли | Коносаменти | Наряди | Доручення | CMR
+Крок 1 — ВІДКРИТИ PDF:
+  - Двічі клікни на PDF файл у папці
+  - Дочекайся відкриття PDF-переглядача
+  - Зроби скріншоти всіх сторінок (гортай якщо потрібно)
 
-═══ ДОХОДНИЙ РАХУНОК (тип: income) ═══
-1. Відкрий вкладку "Рахунки"
-2. ПЕРЕВІР ДУБЛІ: у верхній таблиці перегляди колонку "Документ" і дати — чи є вже рахунок?
-3. Якщо дублю немає → натисни "+" (зелений плюс) зліва від ВЕРХНЬОЇ таблиці
-4. Форма відкриється з автоматично заповненими даними з плану/калькуляції
-5. Перевір що дані коректні (послуги, суми, платник)
-6. Натисни "Записати" → "ОК"
+Крок 2 — ПРОЧИТАТИ З PDF:
+  - Номер контейнера (формат: 4 літери + 7 цифр, напр. MSCU1234567 або TEMU6140659)
+  - Список послуг і сум у гривнях (UAH)
+  - Загальна сума рахунку
+  - Дата рахунку
+  - Номер рахунку (для перевірки дублів)
 
-═══ ВИТРАТНИЙ РАХУНОК (тип: expense) ═══
-1. Відкрий вкладку "Рахунки"
-2. ПЕРЕВІР ДУБЛІ: у нижній таблиці перегляди колонку "Номер рахунку" — чи є вже такий номер?
-3. Якщо дублю немає → відкрий PDF файл на робочому столі (подвійний клік)
-4. Зчитай з PDF: Контрагент (постачальник), Послуга, Валюта, Номер рахунку, Дата, Сума
-5. Закрий PDF (Alt+F4 або кнопка X)
-6. Повернись в угоду → вкладка "Рахунки" → "+" зліва від НИЖНЬОЇ таблиці
-7. Заповни форму:
-   - Контрагент: назва постачальника з PDF
-   - Послуга: тип послуги з PDF
-   - Валюта: USD або UAH (з PDF)
-   - Номер рахунку: номер з PDF (поле праворуч від дати)
-   - Дата рахунку постач.: дата з PDF
-   - Сума: сума з PDF
-8. Натисни "Записати" → "ОК"
+Крок 3 — ЗАКРИТИ PDF:
+  - Alt+F4 або кнопка X
 
-═══ ФОРМАТ ВІДПОВІДІ ═══
-Успіх:    "ГОТОВО: [тип] рахунок [номер] від [дата] на суму [сума] [валюта] створено в угоді [номер угоди]"
-Дубль:    "ДУБЛЬ: рахунок [номер або деталі] вже існує в угоді [номер угоди]"
-Не знайдено: "НЕ ЗНАЙДЕНО: угоду по номеру [номер] не знайдено"
-Помилка:  "ПОМИЛКА: [що саме пішло не так]"
+Крок 4 — ПЕРЕМКНУТИСЯ НА ЕКСПЕДИТОР:
+  - Клікни на іконку Експедитора на панелі задач або відкрий через Пуск
+
+Крок 5 — ЗНАЙТИ УГОДУ:
+  - Головний екран → "Угоди" (в розділі "Журнали та обробки")
+  - Поле "Контейнер" (вгорі праворуч, мітка "містить") → введи номер контейнера → Enter
+  - Якщо не знайдено → запиши в журнал помилок, перейди до наступного PDF
+
+Крок 6 — ПЕРЕВІРКА ДУБЛІВ:
+  - Подвійний клік по знайденій угоді
+  - Вкладка "Рахунки" → верхня таблиця (доходні)
+  - Перевір чи є вже рахунок з такою самою датою або сумою
+  - Якщо ДУБЛЬ знайдено → запиши в журнал, перейди до наступного PDF
+
+Крок 7 — СТВОРИТИ ДОХОДНИЙ РАХУНОК:
+  - Вкладка "Рахунки" → "+" зліва від ВЕРХНЬОЇ таблиці
+  - Форма відкриється (можливо з даними з плану — їх ІГНОРУЙ, введи з PDF)
+  - Заповни рядки по послугах з PDF, використовуючи ТАБЛИЦЮ ВІДПОВІДНОСТІ нижче
+  - Валюта: UAH, суми точно як в PDF
+  - Натисни "Записати" → "ОК"
+
+Крок 8 — ПОЗНАЧИТИ PDF ЯК ОБРОБЛЕНИЙ:
+  - Поверніись у папку з PDF
+  - Перемісти оброблений файл у підпапку "Готово" (створи якщо немає)
+
+═══ ТАБЛИЦЯ ВІДПОВІДНОСТІ НОМЕНКЛАТУРИ ═══
+Якщо в PDF зустрічаєш такий текст → використовуй в Експедиторі:
+{_mapping_table()}
+  - якщо відповідності немає → використовуй найближчу схожу або запиши в журнал для уточнення
+
+═══ СТРУКТУРА ФІНАЛЬНОГО ЗВІТУ ═══
+Після обробки ВСІХ файлів надай звіт:
+ОБРОБЛЕНО: [N] файлів
+УСПІШНО: [список: "назва_файлу.pdf → угода №XXXXX, рахунок на [сума] UAH"]
+ДУБЛІ (пропущено): [список файлів]
+ПОМИЛКИ: [список: "назва_файлу.pdf → причина"]
+ПОТРЕБУЮТЬ УТОЧНЕННЯ НОМЕНКЛАТУРИ: [список невідомих назв послуг]
 """
 
 
@@ -77,47 +106,31 @@ class EkspedytorAgent:
             password=os.environ["RDP_PASSWORD"],
         )
 
-    def run(self, search_number: str, invoice_type: str, pdf_filename: str = None) -> str:
+    def process_folder(self, folder_name: str) -> str:
         """
-        Create an invoice in Ekspeditor.
+        Process all PDF invoices in the specified folder on the remote desktop.
 
         Args:
-            search_number: Container or Bill of Lading number
-            invoice_type: 'income' (доходний) or 'expense' (витратний)
-            pdf_filename: PDF filename on the remote server's desktop (for expense)
+            folder_name: Name of the folder on the remote server's Desktop
 
         Returns:
-            Status string starting with ГОТОВО/ДУБЛЬ/НЕ ЗНАЙДЕНО/ПОМИЛКА
+            Summary report string
         """
         try:
             self.session.start()
-            return self._agent_loop(search_number, invoice_type, pdf_filename)
+            return self._agent_loop(folder_name)
         except Exception as e:
             return f"ПОМИЛКА: {e}"
         finally:
             self.session.stop()
 
-    def _build_task(self, search_number: str, invoice_type: str, pdf_filename: str) -> str:
-        type_ua = "доходний" if invoice_type == "income" else "витратний"
-        pdf_line = ""
-        if invoice_type == "expense":
-            pdf_line = (
-                f"\nPDF файл на робочому столі: {pdf_filename}"
-                if pdf_filename
-                else "\nЗнайди відповідний PDF файл на робочому столі."
-            )
-        return (
-            f"Створи {type_ua} рахунок в Експедиторі.\n"
-            f"Пошуковий номер: {search_number}{pdf_line}\n\n"
-            "Формат номера визнач сам: контейнер (літери+цифри, напр. MSCU1234567) "
-            "або коносамент (зазвичай тільки цифри або специфічний формат лінії)."
+    def _agent_loop(self, folder_name: str) -> str:
+        task = (
+            f"Обробити всі PDF рахунки у папці «{folder_name}» на Робочому столі сервера.\n\n"
+            "1. Відкрий папку на Робочому столі\n"
+            "2. Для кожного PDF файлу виконай алгоритм з інструкцій\n"
+            "3. Після всіх файлів надай звіт"
         )
-
-    def _screenshot_b64(self) -> str:
-        return base64.standard_b64encode(self.session.screenshot()).decode()
-
-    def _agent_loop(self, search_number: str, invoice_type: str, pdf_filename: str) -> str:
-        task = self._build_task(search_number, invoice_type, pdf_filename)
 
         messages = [
             {
@@ -136,7 +149,8 @@ class EkspedytorAgent:
             }
         ]
 
-        for _ in range(60):
+        # Batch processing needs more steps (many PDFs × many actions each)
+        for _ in range(200):
             response = self.client.messages.create(
                 model="claude-opus-4-8",
                 max_tokens=4096,
@@ -159,7 +173,7 @@ class EkspedytorAgent:
                 for block in response.content:
                     if hasattr(block, "text"):
                         return block.text
-                return "Завдання завершено без результату"
+                return "Завдання завершено"
 
             tool_results = []
             for block in response.content:
@@ -167,12 +181,11 @@ class EkspedytorAgent:
                     continue
 
                 action = block.input.get("action")
-
                 if action == "screenshot":
                     img = self._screenshot_b64()
                 else:
                     self._execute(action, block.input)
-                    time.sleep(1.0)
+                    time.sleep(1.2)
                     img = self._screenshot_b64()
 
                 tool_results.append(
@@ -195,11 +208,13 @@ class EkspedytorAgent:
             if tool_results:
                 messages.append({"role": "user", "content": tool_results})
 
-        return "ПОМИЛКА: досягнуто ліміт кроків (60), завдання не завершено"
+        return "ПОМИЛКА: досягнуто ліміт кроків (200)"
+
+    def _screenshot_b64(self) -> str:
+        return base64.standard_b64encode(self.session.screenshot()).decode()
 
     def _execute(self, action: str, params: dict):
         coord = params.get("coordinate", [0, 0])
-
         if action == "left_click":
             self.session.click(coord[0], coord[1])
         elif action == "double_click":

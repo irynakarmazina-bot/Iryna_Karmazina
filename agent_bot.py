@@ -1,4 +1,6 @@
+import asyncio
 import os, logging, base64, json, math, re
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 from pathlib import Path
 
@@ -325,6 +327,44 @@ async def handle_document(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         log.exception("document error")
         await update.message.reply_text("Помилка обробки документа.")
 
+async def cmd_invoice(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
+    """
+    /invoice <назва_папки>
+    Запускає пакетну обробку PDF рахунків з вказаної папки на Робочому столі сервера.
+    """
+    if update.message.from_user.is_bot:
+        return
+
+    args = ctx.args
+    if not args:
+        await update.message.reply_text(
+            "Вкажи назву папки з рахунками на Робочому столі.\n\n"
+            "Приклад:\n/invoice Рахунки_травень_2026"
+        )
+        return
+
+    folder_name = " ".join(args)
+    await update.message.reply_text(
+        f"Починаю обробку папки «{folder_name}»...\n"
+        "Це може зайняти кілька хвилин (залежно від кількості PDF)."
+    )
+
+    try:
+        from ekspedytor.agent import EkspedytorAgent
+        loop = asyncio.get_event_loop()
+        with ThreadPoolExecutor(max_workers=1) as pool:
+            result = await loop.run_in_executor(
+                pool,
+                lambda: EkspedytorAgent().process_folder(folder_name),
+            )
+    except Exception as e:
+        result = f"ПОМИЛКА запуску агента: {e}"
+
+    # Telegram limit 4096 chars per message
+    for chunk_start in range(0, len(result), 4000):
+        await update.message.reply_text(result[chunk_start:chunk_start + 4000])
+
+
 async def chat(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     uid = update.effective_user.id
     msgs = history.setdefault(uid, [])
@@ -346,6 +386,7 @@ def main():
     app.add_handler(CommandHandler("myid", myid))
     app.add_handler(CommandHandler("reset", reset))
     app.add_handler(CommandHandler("notes", cmd_notes))
+    app.add_handler(CommandHandler("invoice", cmd_invoice))
     app.add_handler(MessageHandler(filters.PHOTO, handle_photo))
     app.add_handler(MessageHandler(filters.Document.ALL, handle_document))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, chat))
