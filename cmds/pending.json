@@ -1,1 +1,1 @@
-{"id": "install-xdotool-xclip-scrot", "cmd": "apt-get install -y xdotool xclip scrot imagemagick 2>&1 | tail -10 && echo '---VERSIONS---' && xdotool version && scrot --version 2>&1 | head -1"}
+{"id": "verify-tools", "cmd": "which xdotool xclip scrot import && dpkg -l xdotool xclip scrot imagemagick 2>/dev/null | grep '^ii'"}
