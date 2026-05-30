@@ -1,7 +1,7 @@
 {
-  "stdout": "=== xfreerdp NLA/security caps ===\n[09:17:00:204] [2914006:2914006] [ERROR][com.freerdp.client.x11] - failed to open display: \n[09:17:00:205] [2914006:2914006] [ERROR][com.freerdp.client.x11] - Please check that the $DISPLAY environment variable is properly set.\n=== Test RDP connection (3 sec timeout) ===\n[09:17:00:243] [2914011:2914011] [ERROR][com.freerdp.client.x11] - failed to open display: \n[09:17:00:244] [2914011:2914011] [ERROR][com.freerdp.client.x11] - Please check that the $DISPLAY environment variable is properly set.\n",
-  "stderr": "",
+  "stdout": "Updating 1652bbc99..23455974f\nFast-forward\n cmds/pending.json | 2 +-\n 1 file changed, 1 insertion(+), 1 deletion(-)\n=== agent.py version ===\nNo computer_ tool found (good)\nMay 30 15:46:18 ubuntu-s-1vcpu-1gb-ams3 systemd[1]: Started mybot.service - Telegram Bot on Claude.\nMay 30 15:46:19 ubuntu-s-1vcpu-1gb-ams3 python[2924365]: 2026-05-30 15:46:19,883 - INFO - Agent bot started with tools\nMay 30 15:46:19 ubuntu-s-1vcpu-1gb-ams3 python[2924365]: 2026-05-30 15:46:19,903 - INFO - HTTP Request: POST https://api.telegram.org/bot8563424583:AAEDM2-4Bttv-rEt9n3JdROCyjyWTC0I7s0/getMe \"HTTP/1.1 200 OK\"\nMay 30 15:46:19 ubuntu-s-1vcpu-1gb-ams3 python[2924365]: 2026-05-30 15:46:19,908 - INFO - HTTP Request: POST https://api.telegram.org/bot8563424583:AAEDM2-4Bttv-rEt9n3JdROCyjyWTC0I7s0/deleteWebhook \"HTTP/1.1 200 OK\"\nMay 30 15:46:19 ubuntu-s-1vcpu-1gb-ams3 python[2924365]: 2026-05-30 15:46:19,910 - INFO - Application started\n",
+  "stderr": "From https://github.com/irynakarmazina-bot/Iryna_Karmazina\n * branch                main       -> FETCH_HEAD\n   1652bbc99..23455974f  main       -> origin/main\n",
   "returncode": 0,
-  "id": "check-rdp-security",
-  "ts": "2026-05-30T09:17:00Z"
+  "id": "check-and-restart-bot",
+  "ts": "2026-05-30T15:46:21Z"
 }
