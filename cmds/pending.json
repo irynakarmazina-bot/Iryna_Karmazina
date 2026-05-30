@@ -1,1 +1,1 @@
-{"id": "reset-tg-session-1", "cmd": "curl -s 'https://api.telegram.org/bot8563424583:AAEDM2-4Bttv-rEt9n3JdROCyjyWTC0I7s0/close' && sleep 3 && systemctl restart mybot.service && sleep 5 && journalctl -u mybot.service -n 5 --no-pager"}
+{"id": "install-xfreerdp-xvfb-1", "cmd": "apt-get update -qq && apt-get install -y xfreerdp2-x11 xvfb 2>&1 | tail -20"}
