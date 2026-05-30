@@ -1,7 +1,7 @@
 {
-  "stdout": "",
-  "stderr": "Timeout (120s)",
-  "returncode": -1,
-  "id": "rdp-screenshot-test",
-  "ts": "2026-05-30T15:57:44Z"
+  "stdout": "PORT 31230: OPEN\n",
+  "stderr": "",
+  "returncode": 0,
+  "id": "rdp-port-check",
+  "ts": "2026-05-30T15:58:16Z"
 }
