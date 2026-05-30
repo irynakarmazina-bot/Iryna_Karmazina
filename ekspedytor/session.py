@@ -37,11 +37,11 @@ class RDPSession:
 
     def start(self):
         self._xvfb = subprocess.Popen(
-            ["Xvfb", DISPLAY, "-screen", "0", "1920x1080x24"],
+            ["Xvfb", DISPLAY, "-screen", "0", "1920x1080x24", "-ac"],
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
         )
-        time.sleep(2)
+        time.sleep(3)
 
         env = {**os.environ, "DISPLAY": DISPLAY}
         self._rdp = subprocess.Popen(
@@ -51,15 +51,25 @@ class RDPSession:
                 f"/u:{self.user}",
                 f"/p:{self.password}",
                 "/w:1920", "/h:1080",
+                "/bpp:32",          # 32-bit color
+                "/rfx",             # RemoteFX codec — fixes black screen
+                "-themes",          # disable themes (faster rendering)
+                "-wallpaper",       # disable wallpaper (faster rendering)
                 "/cert:ignore",
-                "/log-level:OFF",
+                "/log-level:ERROR",
             ],
             env=env,
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
         )
-        # Wait for Windows desktop to fully load
-        time.sleep(12)
+        # Wait longer for Windows desktop to fully render
+        time.sleep(20)
+        # Wake up the screen with a mouse move
+        subprocess.run(
+            ["xdotool", "mousemove", "960", "540"],
+            env=env, capture_output=True,
+        )
+        time.sleep(2)
 
     def stop(self):
         for proc in (self._rdp, self._xvfb):
@@ -73,17 +83,31 @@ class RDPSession:
     # ── Screenshots ──────────────────────────────────────────────────────────
 
     def screenshot(self) -> bytes:
-        """Capture the current RDP screen."""
+        """Capture the current RDP screen. Retries if screen appears black."""
         env = {**os.environ, "DISPLAY": DISPLAY}
         tmp = "/tmp/eks_screen.png"
-        result = subprocess.run(["scrot", "-z", tmp], env=env, capture_output=True)
-        if result.returncode != 0:
-            subprocess.run(
-                ["import", "-display", DISPLAY, "-window", "root", tmp],
-                env=env, check=True,
-            )
-        with open(tmp, "rb") as f:
-            return f.read()
+
+        for attempt in range(3):
+            result = subprocess.run(["scrot", "-z", tmp], env=env, capture_output=True)
+            if result.returncode != 0:
+                subprocess.run(
+                    ["import", "-display", DISPLAY, "-window", "root", tmp],
+                    env=env, capture_output=True,
+                )
+            if not os.path.exists(tmp):
+                time.sleep(2)
+                continue
+
+            data = open(tmp, "rb").read()
+            if len(data) > 5000:  # non-trivial image (black screen is ~1-3KB)
+                return data
+
+            # Screen looks black — wake up and wait
+            subprocess.run(["xdotool", "mousemove", "960", "540"], env=env, capture_output=True)
+            subprocess.run(["xdotool", "click", "1"], env=env, capture_output=True)
+            time.sleep(5)
+
+        return data  # return whatever we have after retries
 
     # ── Mouse ─────────────────────────────────────────────────────────────────
 
