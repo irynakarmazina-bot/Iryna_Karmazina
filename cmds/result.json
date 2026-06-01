@@ -1,7 +1,7 @@
 {
-  "stdout": "{\"ok\":true,\"result\":{\"id\":8563424583,\"is_bot\":true,\"first_name\":\"\\u041c\\u0456\\u0439 AI \\u041f\\u043e\\u043c\\u0456\\u0447\\u043d\\u0438\\u043a\",\"username\":\"AIassistantKuzia_bot\",\"can_join_groups\":true,\"can_read_all_group_messages\":false,\"supports_inline_queries\":false,\"supports_guest_queries\":false,\"can_connect_to_business\":false,\"has_main_web_app\":false,\"has_topics_enabled\":false,\"allows_users_to_create_topics\":false,\"can_manage_bots\":false}}",
+  "stdout": "Bot: Мій AI Помічник @AIassistantKuzia_bot\nBot: \n",
   "stderr": "",
   "returncode": 0,
-  "id": "get-bot-info",
-  "ts": "2026-06-01T11:20:33Z"
+  "id": "find-maksym-bot",
+  "ts": "2026-06-01T11:22:41Z"
 }
