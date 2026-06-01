@@ -1,1 +1,1 @@
-{"id": "xvfb-test-fix", "cmd": "pkill -f 'Xvfb :99' 2>/dev/null; sleep 1; rm -f /tmp/.X99-lock /tmp/.X11-unix/X99 2>/dev/null; Xvfb :99 -screen 0 1920x1080x24 -ac & sleep 4; DISPLAY=:99 scrot -z /tmp/test_screen.png 2>&1; ls -la /tmp/test_screen.png 2>&1; python3 -c \"d=open('/tmp/test_screen.png','rb').read(); print(f'size={len(d)} bytes, OK={len(d)>5000}')\" 2>&1; pkill -f 'Xvfb :99'; echo '===END==='"}
+{"id": "get-bot-info", "cmd": "curl -s 'https://api.telegram.org/bot8563424583:AAEDM2-4Bttv-rEt9n3JdROCyjyWTC0I7s0/getMe'"}
