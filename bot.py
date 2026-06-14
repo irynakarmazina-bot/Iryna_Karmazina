@@ -1,4 +1,4 @@
-import os, logging, base64
+import os, logging, base64, re
 for v in ("HTTP_PROXY","HTTPS_PROXY","http_proxy","https_proxy","ALL_PROXY","all_proxy"):
     os.environ.pop(v, None)
 from dotenv import load_dotenv
@@ -43,10 +43,83 @@ SYSTEM_PROMPT = """Ти асистент логістичної компанії
 
 Якщо якихось реквізитів (коносамент, ЦМР, контейнер, авто) немає в рахунку — ОБОВ'ЯЗКОВО запитай їх у користувача перед тим як видати довідку."""
 
+YOUTUBE_PATTERN = re.compile(
+    r'https?://(?:www\.)?(?:youtube\.com/watch\?v=|youtu\.be/|youtube\.com/embed/)([\w-]+)'
+)
+
+def extract_youtube_id(text: str) -> tuple[str, str] | tuple[None, None]:
+    m = YOUTUBE_PATTERN.search(text)
+    if m:
+        return m.group(0), m.group(1)
+    return None, None
+
+async def summarize_youtube(update: Update, ctx: ContextTypes.DEFAULT_TYPE, url: str, video_id: str):
+    await ctx.bot.send_chat_action(chat_id=update.effective_chat.id, action="typing")
+    await update.message.reply_text("Отримую субтитри відео...")
+
+    try:
+        from youtube_transcript_api import YouTubeTranscriptApi
+        fetcher = YouTubeTranscriptApi()
+        # Спочатку пробуємо українську, потім російську, потім англійську
+        try:
+            transcript_obj = fetcher.fetch(video_id, languages=['uk', 'ru', 'en'])
+        except Exception:
+            # Якщо конкретні мови недоступні — беремо будь-яку
+            listing = fetcher.list(video_id)
+            first = next(iter(listing))
+            transcript_obj = first.fetch()
+
+        snippets = list(transcript_obj)
+        full_text = ' '.join(item.text for item in snippets)
+    except Exception as e:
+        log.exception("YouTube transcript error")
+        await update.message.reply_text(
+            "Не вдалося отримати субтитри відео.\n"
+            "Можливі причини:\n"
+            "• Субтитри вимкнені автором\n"
+            "• Відео недоступне в цьому регіоні\n"
+            "• Технічна помилка\n\n"
+            f"Спробуй надіслати текст або питання про відео — я відповім на основі своїх знань."
+        )
+        return
+
+    await ctx.bot.send_chat_action(chat_id=update.effective_chat.id, action="typing")
+    await update.message.reply_text("Аналізую вміст...")
+
+    # Обрізаємо до ~15 000 символів щоб не перевищити ліміти
+    text_for_claude = full_text[:15000]
+    if len(full_text) > 15000:
+        text_for_claude += "\n\n[...транскрипт скорочено...]"
+
+    prompt = f"""Я надаю транскрипт відео з YouTube: {url}
+
+Транскрипт:
+{text_for_claude}
+
+Зроби, будь ласка:
+1. **Короткий переказ** (3-5 речень) — про що це відео
+2. **Основні моменти** — 5-8 ключових тез у вигляді маркованого списку
+3. **Важливі факти/цифри** — якщо є конкретні дані, дати, статистика
+
+Відповідай українською."""
+
+    try:
+        resp = claude.messages.create(
+            model="claude-opus-4-7",
+            max_tokens=2048,
+            messages=[{"role": "user", "content": prompt}],
+        )
+        result_text = resp.content[0].text
+        await update.message.reply_text(result_text)
+    except Exception:
+        log.exception("Claude error")
+        await update.message.reply_text("Помилка при аналізі відео. Спробуй ще раз.")
+
 async def start(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
         "Привіт! Я допомагаю складати довідки про вартість транспортних послуг.\n\n"
         "Надішли мені PDF-рахунок — я виділю послуги до кордону України і складу довідку.\n\n"
+        "Також можу зробити переказ YouTube-відео — просто надішли посилання!\n\n"
         "Команди:\n"
         "/start — це повідомлення\n"
         "/reset — очистити розмову\n"
@@ -74,7 +147,6 @@ async def handle_document(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     await ctx.bot.send_chat_action(chat_id=update.effective_chat.id, action="typing")
     await update.message.reply_text("Читаю PDF...")
 
-    # Завантажуємо файл
     tg_file = await ctx.bot.get_file(doc.file_id)
     import io
     buf = io.BytesIO()
@@ -82,10 +154,8 @@ async def handle_document(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     pdf_bytes = buf.getvalue()
     pdf_b64 = base64.standard_b64encode(pdf_bytes).decode()
 
-    # Перевіряємо чи є підпис у повідомленні (caption)
     caption = update.message.caption or ""
 
-    # Формуємо повідомлення для Claude
     user_content = [
         {
             "type": "document",
@@ -123,8 +193,19 @@ async def handle_document(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("Помилка при обробці файлу. Спробуй ще раз.")
 
 async def chat(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
+    if update.message.from_user.is_bot:
+        return
+
     uid = update.effective_user.id
-    history.setdefault(uid, []).append({"role": "user", "content": update.message.text})
+    text_msg = update.message.text or ""
+
+    # Перевіряємо чи є YouTube-посилання
+    url, video_id = extract_youtube_id(text_msg)
+    if video_id:
+        await summarize_youtube(update, ctx, url, video_id)
+        return
+
+    history.setdefault(uid, []).append({"role": "user", "content": text_msg})
     await ctx.bot.send_chat_action(chat_id=update.effective_chat.id, action="typing")
     try:
         resp = claude.messages.create(
