@@ -1,7 +1,7 @@
 {
-  "stdout": "",
-  "stderr": "hon application,\n    it may be easiest to use pipx install xyz, which will manage a\n    virtual environment for you. Make sure you have pipx installed.\n    \n    See /usr/share/doc/python3.12/README.venv for more information.\n\nnote: If you believe this is a mistake, please contact your Python installation or OS distribution provider. You can override this, at the risk of breaking your Python installation or OS, by passing --break-system-packages.\nhint: See PEP 668 for the detailed specification.\n",
-  "returncode": 1,
-  "id": "install-yt-api",
-  "ts": "2026-06-14T09:33:12Z"
+  "stdout": "OK: встановлено\nOK: бот перезапущено\n",
+  "stderr": "WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv\n",
+  "returncode": 0,
+  "id": "install-yt-api-2",
+  "ts": "2026-06-14T09:33:46Z"
 }
