@@ -1,7 +1,7 @@
 {
-  "stdout": "stats.json не існує\n---\n",
-  "stderr": "",
+  "stdout": "OK: gTTS встановлено\nRestarting the system to load the new kernel will not be handled automatically, \nso you should consider rebooting.\n\nOK: ffmpeg\nAlready up to date.\nOK: бот перезапущено\n",
+  "stderr": "From https://github.com/irynakarmazina-bot/Iryna_Karmazina\n * branch                main       -> FETCH_HEAD\n",
   "returncode": 0,
-  "id": "check-stats",
-  "ts": "2026-06-14T16:10:00Z"
+  "id": "install-gtts",
+  "ts": "2026-06-14T16:14:42Z"
 }
