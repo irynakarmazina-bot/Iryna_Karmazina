@@ -1,4 +1,4 @@
-import os, logging, base64, re
+import os, logging, base64, re, json
 for v in ("HTTP_PROXY","HTTPS_PROXY","http_proxy","https_proxy","ALL_PROXY","all_proxy"):
     os.environ.pop(v, None)
 from dotenv import load_dotenv
@@ -11,7 +11,44 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(
 log = logging.getLogger(__name__)
 
 claude = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
-history: dict[int, list[dict]] = {}
+
+HISTORY_FILE = os.path.join(os.path.dirname(__file__), "chat_history.json")
+
+def load_history() -> dict[int, list[dict]]:
+    if os.path.exists(HISTORY_FILE):
+        try:
+            with open(HISTORY_FILE, "r", encoding="utf-8") as f:
+                raw = json.load(f)
+            return {int(k): v for k, v in raw.items()}
+        except Exception:
+            log.exception("Не вдалося завантажити chat_history.json")
+    return {}
+
+def save_history(h: dict[int, list[dict]]):
+    try:
+        # Зберігаємо тільки текстовий вміст — пропускаємо великі PDF-об'єкти
+        saveable = {}
+        for uid, msgs in h.items():
+            clean = []
+            for m in msgs:
+                if isinstance(m["content"], str):
+                    clean.append(m)
+                elif isinstance(m["content"], list):
+                    # Замінюємо PDF-блоки на текстовий заповнювач
+                    text_parts = [
+                        p["text"] for p in m["content"]
+                        if p.get("type") == "text"
+                    ]
+                    placeholder = " ".join(text_parts) if text_parts else "[PDF документ]"
+                    clean.append({"role": m["role"], "content": placeholder})
+            if clean:
+                saveable[str(uid)] = clean
+        with open(HISTORY_FILE, "w", encoding="utf-8") as f:
+            json.dump(saveable, f, ensure_ascii=False, indent=2)
+    except Exception:
+        log.exception("Не вдалося зберегти chat_history.json")
+
+history: dict[int, list[dict]] = load_history()
 
 # Зберігаємо шаблон довідки для кожного користувача
 templates: dict[int, bytes] = {}
@@ -134,6 +171,7 @@ async def reset(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     uid = update.effective_user.id
     history.pop(uid, None)
     pending_invoices.pop(uid, None)
+    save_history(history)
     await update.message.reply_text("Розмову очищено. Надішли новий рахунок.")
 
 async def handle_document(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
@@ -187,6 +225,7 @@ async def handle_document(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         text = resp.content[0].text
         history[uid].append({"role": "assistant", "content": text})
         history[uid] = history[uid][-10:]
+        save_history(history)
         await update.message.reply_text(text)
     except Exception:
         log.exception("error")
@@ -217,6 +256,7 @@ async def chat(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         text = resp.content[0].text
         history[uid].append({"role": "assistant", "content": text})
         history[uid] = history[uid][-20:]
+        save_history(history)
         await update.message.reply_text(text)
     except Exception:
         log.exception("error")
