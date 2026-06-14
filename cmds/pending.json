@@ -1,1 +1,1 @@
-{"id": "deploy-stats", "cmd": "cd /root/Iryna_Karmazina && git pull origin main && systemctl restart mybot.service && sleep 2 && systemctl status mybot.service --no-pager | grep Active"}
+{"id": "check-stats", "cmd": "cat /root/Iryna_Karmazina/stats.json 2>/dev/null || echo 'stats.json не існує' && echo '---' && journalctl -u mybot.service --since '16:05' --no-pager 2>&1 | grep -E 'run_agent|add_usage|stats|in=|out=' | tail -20"}
