@@ -1,1 +1,1 @@
-{"id": "bot-logs-2", "cmd": "journalctl -u mybot.service -n 80 --no-pager 2>&1 | grep -v 'getUpdates' | tail -50"}
+{"id": "logs-after-fix", "cmd": "journalctl -u mybot.service -n 100 --no-pager 2>&1 | grep -E 'run_agent|Tool |stop_reason|ERROR|Exception|Не вдалося|Помилка' | tail -30"}
