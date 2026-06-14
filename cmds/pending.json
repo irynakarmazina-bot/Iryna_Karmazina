@@ -1,1 +1,1 @@
-{"id": "restart-bot", "cmd": "cd /root/Iryna_Karmazina && git pull origin main && systemctl restart mybot.service && echo 'OK: restarted' && sleep 3 && systemctl status mybot.service --no-pager | grep 'Active:'"}
+{"id": "debug-logs", "cmd": "journalctl -u mybot.service --since '10:18' --no-pager 2>&1 | grep -v 'getUpdates' | tail -80"}
