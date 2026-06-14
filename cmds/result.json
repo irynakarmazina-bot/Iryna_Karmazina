@@ -1,7 +1,7 @@
 {
-  "stdout": "Jun 14 10:15:54 ubuntu-s-1vcpu-1gb-ams3 python[3467715]: 2026-06-14 10:15:54,633 - INFO - HTTP Request: POST https://api.telegram.org/bot8563424583:AAEDM2-4Bttv-rEt9n3JdROCyjyWTC0I7s0/sendChatAction \"HTTP/1.1 200 OK\"\n",
-  "stderr": "",
+  "stdout": "Updating a9db6a1e1..95fd7af39\nFast-forward\n cmds/pending.json | 2 +-\n 1 file changed, 1 insertion(+), 1 deletion(-)\nOK: restarted\n     Active: active (running) since Sun 2026-06-14 10:18:13 UTC; 3s ago\n",
+  "stderr": "From https://github.com/irynakarmazina-bot/Iryna_Karmazina\n * branch                main       -> FETCH_HEAD\n   a9db6a1e1..95fd7af39  main       -> origin/main\n",
   "returncode": 0,
-  "id": "fresh-logs",
-  "ts": "2026-06-14T10:16:33Z"
+  "id": "restart-bot",
+  "ts": "2026-06-14T10:18:16Z"
 }
