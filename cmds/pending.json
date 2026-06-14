@@ -1,1 +1,1 @@
-{"id": "bot-logs", "cmd": "journalctl -u mybot.service -n 50 --no-pager 2>&1 | tail -60"}
+{"id": "bot-logs-2", "cmd": "journalctl -u mybot.service -n 80 --no-pager 2>&1 | grep -v 'getUpdates' | tail -50"}
