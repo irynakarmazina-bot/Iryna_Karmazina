@@ -1,1 +1,1 @@
-{"id": "find-maksym-bot", "cmd": "for token in $(grep 'TOKEN' /root/Iryna_Karmazina/.env | cut -d= -f2); do result=$(curl -s \"https://api.telegram.org/bot$token/getMe\"); name=$(echo $result | python3 -c \"import sys,json; d=json.load(sys.stdin); print(d['result']['first_name'], '@'+d['result']['username'])\" 2>/dev/null); echo \"Bot: $name\"; done"}
+{"id": "install-yt-api", "cmd": "pip install youtube-transcript-api -q && echo 'OK: youtube-transcript-api встановлено' && systemctl restart mybot.service && echo 'OK: бот перезапущено' && cat /root/autodeploy.sh"}
