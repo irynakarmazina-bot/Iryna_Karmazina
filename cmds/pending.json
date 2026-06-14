@@ -1,1 +1,1 @@
-{"id": "fresh-logs", "cmd": "journalctl -u mybot.service --since '10:14' --no-pager 2>&1 | grep -v 'getUpdates' | tail -60"}
+{"id": "restart-bot", "cmd": "cd /root/Iryna_Karmazina && git pull origin main && systemctl restart mybot.service && echo 'OK: restarted' && sleep 3 && systemctl status mybot.service --no-pager | grep 'Active:'"}
