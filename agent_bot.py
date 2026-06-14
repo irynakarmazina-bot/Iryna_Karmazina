@@ -66,6 +66,43 @@ def save_history(h: dict[int, list[dict]]):
 
 history: dict[int, list[dict]] = load_history()
 
+STATS_FILE = Path(__file__).parent / "stats.json"
+
+# Ціни claude-opus-4-7 ($ за 1 млн токенів)
+PRICE_INPUT_PER_M = 15.0
+PRICE_OUTPUT_PER_M = 75.0
+
+
+def load_stats() -> dict[int, dict]:
+    if STATS_FILE.exists():
+        try:
+            raw = json.loads(STATS_FILE.read_text(encoding="utf-8"))
+            return {int(k): v for k, v in raw.items()}
+        except Exception:
+            log.exception("Не вдалося завантажити stats.json")
+    return {}
+
+
+def save_stats(s: dict[int, dict]):
+    try:
+        STATS_FILE.write_text(
+            json.dumps({str(k): v for k, v in s.items()}, ensure_ascii=False, indent=2),
+            encoding="utf-8",
+        )
+    except Exception:
+        log.exception("Не вдалося зберегти stats.json")
+
+
+def add_usage(uid: int, input_tokens: int, output_tokens: int):
+    entry = user_stats.setdefault(uid, {"input_tokens": 0, "output_tokens": 0, "requests": 0})
+    entry["input_tokens"] += input_tokens
+    entry["output_tokens"] += output_tokens
+    entry["requests"] += 1
+    save_stats(user_stats)
+
+
+user_stats: dict[int, dict] = load_stats()
+
 SYSTEM_PROMPT = """Ти — AI бізнес-асистент для підприємців.
 
 Твої сильні сторони:
@@ -287,7 +324,8 @@ async def run_agent(uid: int, messages: list) -> str:
             messages=messages,
         )
 
-        log.info(f"run_agent iter={iteration} stop_reason={resp.stop_reason} blocks={[getattr(b,'type','?') for b in resp.content]}")
+        add_usage(uid, resp.usage.input_tokens, resp.usage.output_tokens)
+        log.info(f"run_agent iter={iteration} stop_reason={resp.stop_reason} in={resp.usage.input_tokens} out={resp.usage.output_tokens}")
 
         if resp.stop_reason == "end_turn":
             for block in resp.content:
@@ -310,7 +348,6 @@ async def run_agent(uid: int, messages: list) -> str:
             messages.append({"role": "user", "content": tool_results})
             continue
 
-        # Будь-який інший stop_reason — намагаємося витягти текст
         log.warning(f"Неочікуваний stop_reason={resp.stop_reason}")
         for block in resp.content:
             if hasattr(block, "text"):
@@ -339,7 +376,28 @@ async def start(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         "🌐 Читаю сайти: «прочитай example.com»\n"
         "🖼 Аналізую фото\n"
         "📄 Читаю PDF\n\n"
-        "Команди: /notes — мої нотатки | /reset — очистити розмову"
+        "Команди: /notes — нотатки | /stats — витрати | /reset — очистити розмову"
+    )
+
+async def cmd_stats(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
+    uid = update.effective_user.id
+    s = user_stats.get(uid, {"input_tokens": 0, "output_tokens": 0, "requests": 0})
+    inp = s["input_tokens"]
+    out = s["output_tokens"]
+    reqs = s["requests"]
+    cost_usd = (inp * PRICE_INPUT_PER_M + out * PRICE_OUTPUT_PER_M) / 1_000_000
+    cost_uah = cost_usd * 41  # орієнтовний курс
+    await update.message.reply_text(
+        f"📊 Статистика використання\n\n"
+        f"Запитів: {reqs}\n"
+        f"Токени вхідні: {inp:,}\n"
+        f"Токени вихідні: {out:,}\n"
+        f"Разом токенів: {inp + out:,}\n\n"
+        f"💰 Приблизна вартість:\n"
+        f"  ~${cost_usd:.4f} USD\n"
+        f"  ~{cost_uah:.2f} грн\n\n"
+        f"Модель: claude-opus-4-7\n"
+        f"(Точний рахунок — console.anthropic.com)"
     )
 
 async def cmd_notes(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
@@ -479,6 +537,7 @@ def main():
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("myid", myid))
     app.add_handler(CommandHandler("reset", reset))
+    app.add_handler(CommandHandler("stats", cmd_stats))
     app.add_handler(CommandHandler("notes", cmd_notes))
     app.add_handler(CommandHandler("invoice", cmd_invoice))
     app.add_handler(MessageHandler(filters.PHOTO, handle_photo))

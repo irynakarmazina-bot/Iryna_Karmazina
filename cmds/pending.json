@@ -1,1 +1,1 @@
-{"id": "restart-after-fix", "cmd": "cd /root/Iryna_Karmazina && git pull origin main && systemctl restart mybot.service && sleep 2 && systemctl status mybot.service --no-pager | grep Active"}
+{"id": "deploy-stats", "cmd": "cd /root/Iryna_Karmazina && git pull origin main && systemctl restart mybot.service && sleep 2 && systemctl status mybot.service --no-pager | grep Active"}
