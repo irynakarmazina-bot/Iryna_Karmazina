@@ -1,1 +1,1 @@
-{"id": "install-in-venv", "cmd": "/root/Iryna_Karmazina/venv/bin/pip install youtube-transcript-api -q && echo 'OK: встановлено в venv'"}
+{"id": "verify-deploy", "cmd": "cd /root/Iryna_Karmazina && git log --oneline -2 && echo '---' && grep -c 'get_youtube_transcript' agent_bot.py && systemctl status mybot.service --no-pager | grep 'Active:'"}
