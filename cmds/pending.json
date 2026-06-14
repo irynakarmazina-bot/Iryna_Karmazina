@@ -1,1 +1,1 @@
-{"id": "get-agent-bot", "cmd": "cat /root/Iryna_Karmazina/agent_bot.py"}
+{"id": "get-agent-bot-full", "cmd": "wc -l /root/Iryna_Karmazina/agent_bot.py && cat /root/Iryna_Karmazina/agent_bot.py"}
