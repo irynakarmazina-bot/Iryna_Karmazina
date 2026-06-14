@@ -1,1 +1,1 @@
-{"id": "get-agent-bot-full", "cmd": "wc -l /root/Iryna_Karmazina/agent_bot.py && cat /root/Iryna_Karmazina/agent_bot.py"}
+{"id": "install-in-venv", "cmd": "/root/Iryna_Karmazina/venv/bin/pip install youtube-transcript-api -q && echo 'OK: встановлено в venv'"}

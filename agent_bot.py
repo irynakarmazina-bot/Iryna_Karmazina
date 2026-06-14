@@ -19,10 +19,52 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(
 log = logging.getLogger(__name__)
 
 claude = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
-history: dict[int, list[dict]] = {}
 
 NOTES_DIR = Path(__file__).parent / "notes"
 NOTES_DIR.mkdir(exist_ok=True)
+
+HISTORY_FILE = Path(__file__).parent / "chat_history.json"
+
+
+def load_history() -> dict[int, list[dict]]:
+    if HISTORY_FILE.exists():
+        try:
+            raw = json.loads(HISTORY_FILE.read_text(encoding="utf-8"))
+            return {int(k): v for k, v in raw.items()}
+        except Exception:
+            log.exception("Не вдалося завантажити chat_history.json")
+    return {}
+
+
+def save_history(h: dict[int, list[dict]]):
+    try:
+        saveable = {}
+        for uid, msgs in h.items():
+            clean = []
+            for m in msgs:
+                if isinstance(m["content"], str):
+                    clean.append(m)
+                elif isinstance(m["content"], list):
+                    # Зберігаємо тільки текстові блоки — пропускаємо великі зображення/PDF
+                    text_parts = [
+                        p.get("text", "") for p in m["content"]
+                        if isinstance(p, dict) and p.get("type") == "text"
+                    ]
+                    placeholder = " ".join(text_parts) if text_parts else "[медіа]"
+                    clean.append({"role": m["role"], "content": placeholder})
+                else:
+                    # tool_use/tool_result блоки — пропускаємо, вони технічні
+                    pass
+            if clean:
+                saveable[str(uid)] = clean
+        HISTORY_FILE.write_text(
+            json.dumps(saveable, ensure_ascii=False, indent=2), encoding="utf-8"
+        )
+    except Exception:
+        log.exception("Не вдалося зберегти chat_history.json")
+
+
+history: dict[int, list[dict]] = load_history()
 
 SYSTEM_PROMPT = """Ти — AI бізнес-асистент для підприємців.
 
@@ -95,13 +137,24 @@ TOOLS = [
     },
     {
         "name": "read_url",
-        "description": "Читає вміст веб-сторінки за URL і повертає текст.",
+        "description": "Читає вміст веб-сторінки за URL і повертає текст. НЕ використовуй для YouTube — для відео використовуй get_youtube_transcript.",
         "input_schema": {
             "type": "object",
             "properties": {
                 "url": {"type": "string", "description": "URL сторінки"},
             },
             "required": ["url"],
+        },
+    },
+    {
+        "name": "get_youtube_transcript",
+        "description": "Отримує субтитри (транскрипт) YouTube-відео. Використовуй завжди, коли бачиш youtube.com або youtu.be посилання.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "video_url": {"type": "string", "description": "URL відео YouTube (youtu.be/... або youtube.com/watch?v=...)"},
+            },
+            "required": ["video_url"],
         },
     },
 ]
@@ -184,6 +237,26 @@ def tool_read_url(url: str) -> str:
         return f"Помилка читання URL: {e}"
 
 
+def tool_get_youtube_transcript(video_url: str) -> str:
+    m = re.search(r'(?:youtube\.com/watch\?v=|youtu\.be/|youtube\.com/embed/)([\w-]+)', video_url)
+    video_id = m.group(1) if m else video_url.strip()
+    try:
+        from youtube_transcript_api import YouTubeTranscriptApi
+        fetcher = YouTubeTranscriptApi()
+        try:
+            transcript_obj = fetcher.fetch(video_id, languages=['uk', 'ru', 'en'])
+        except Exception:
+            listing = fetcher.list(video_id)
+            first = next(iter(listing))
+            transcript_obj = first.fetch()
+        full_text = ' '.join(item.text for item in transcript_obj)
+        if len(full_text) > 15000:
+            full_text = full_text[:15000] + "\n\n[...транскрипт скорочено до 15 000 символів...]"
+        return full_text if full_text else "Транскрипт порожній."
+    except Exception as e:
+        return f"Не вдалося отримати транскрипт: {e}"
+
+
 def execute_tool(name: str, inputs: dict, uid: int) -> str:
     if name == "calculate":
         return tool_calculate(inputs["expression"])
@@ -197,6 +270,8 @@ def execute_tool(name: str, inputs: dict, uid: int) -> str:
         return tool_get_datetime()
     elif name == "read_url":
         return tool_read_url(inputs["url"])
+    elif name == "get_youtube_transcript":
+        return tool_get_youtube_transcript(inputs["video_url"])
     return "Невідомий інструмент."
 
 
@@ -263,6 +338,7 @@ async def myid(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
 
 async def reset(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     history.pop(update.effective_user.id, None)
+    save_history(history)
     await update.message.reply_text("Розмову очищено.")
 
 async def handle_photo(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
@@ -288,6 +364,7 @@ async def handle_photo(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         text = await run_agent(uid, msgs)
         msgs.append({"role": "assistant", "content": text})
         history[uid] = msgs[-20:]
+        save_history(history)
         await update.message.reply_text(text)
     except Exception:
         log.exception("photo error")
@@ -322,6 +399,7 @@ async def handle_document(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         text = await run_agent(uid, msgs)
         msgs.append({"role": "assistant", "content": text})
         history[uid] = msgs[-10:]
+        save_history(history)
         await update.message.reply_text(text)
     except Exception:
         log.exception("document error")
@@ -374,6 +452,7 @@ async def chat(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         text = await run_agent(uid, msgs)
         msgs.append({"role": "assistant", "content": text})
         history[uid] = msgs[-20:]
+        save_history(history)
         await update.message.reply_text(text)
     except Exception:
         log.exception("chat error")
