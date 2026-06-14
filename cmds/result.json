@@ -1,7 +1,7 @@
 {
-  "stdout": "Jun 14 10:03:09 ubuntu-s-1vcpu-1gb-ams3 python[3467715]: 2026-06-14 10:03:09,745 - ERROR - chat error\nJun 14 10:03:09 ubuntu-s-1vcpu-1gb-ams3 python[3467715]:     text = await run_agent(uid, msgs)\nJun 14 10:03:09 ubuntu-s-1vcpu-1gb-ams3 python[3467715]:   File \"/root/Iryna_Karmazina/agent_bot.py\", line 282, in run_agent\n",
+  "stdout": "Jun 14 10:15:54 ubuntu-s-1vcpu-1gb-ams3 python[3467715]: 2026-06-14 10:15:54,633 - INFO - HTTP Request: POST https://api.telegram.org/bot8563424583:AAEDM2-4Bttv-rEt9n3JdROCyjyWTC0I7s0/sendChatAction \"HTTP/1.1 200 OK\"\n",
   "stderr": "",
   "returncode": 0,
-  "id": "logs-after-fix",
-  "ts": "2026-06-14T10:15:45Z"
+  "id": "fresh-logs",
+  "ts": "2026-06-14T10:16:33Z"
 }
