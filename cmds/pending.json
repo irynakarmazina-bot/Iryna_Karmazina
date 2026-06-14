@@ -1,1 +1,1 @@
-{"id": "install-yt-api-2", "cmd": "pip install youtube-transcript-api --break-system-packages -q && echo 'OK: встановлено' && systemctl restart mybot.service && echo 'OK: бот перезапущено'"}
+{"id": "check-bot-version", "cmd": "cd /root/Iryna_Karmazina && git log --oneline -3 && echo '---' && python3 -c 'import youtube_transcript_api; print(\"yt-api OK\")' && echo '---' && grep -n 'summarize_youtube\\|YOUTUBE_PATTERN\\|youtube_transcript' bot.py | head -10 && echo '---' && systemctl status mybot.service --no-pager | head -15"}
