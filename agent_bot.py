@@ -319,6 +319,14 @@ async def run_agent(uid: int, messages: list) -> str:
     return "Не вдалося отримати відповідь."
 
 
+# ── Helpers ─────────────────────────────────────────────────────────────────
+
+async def send_long(update: Update, text: str):
+    """Відправляє довге повідомлення частинами по 4000 символів."""
+    for i in range(0, len(text), 4000):
+        await update.message.reply_text(text[i:i + 4000])
+
+
 # ── Telegram handlers ────────────────────────────────────────────────────────
 
 async def start(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
@@ -372,7 +380,7 @@ async def handle_photo(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         msgs.append({"role": "assistant", "content": text})
         history[uid] = msgs[-20:]
         save_history(history)
-        await update.message.reply_text(text)
+        await send_long(update, text)
     except Exception:
         log.exception("photo error")
         await update.message.reply_text("Помилка обробки фото.")
@@ -407,7 +415,7 @@ async def handle_document(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         msgs.append({"role": "assistant", "content": text})
         history[uid] = msgs[-10:]
         save_history(history)
-        await update.message.reply_text(text)
+        await send_long(update, text)
     except Exception:
         log.exception("document error")
         await update.message.reply_text("Помилка обробки документа.")
@@ -460,7 +468,7 @@ async def chat(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         msgs.append({"role": "assistant", "content": text})
         history[uid] = msgs[-20:]
         save_history(history)
-        await update.message.reply_text(text)
+        await send_long(update, text)
     except Exception:
         log.exception("chat error")
         await update.message.reply_text("Помилка. Спробуй ще раз.")
