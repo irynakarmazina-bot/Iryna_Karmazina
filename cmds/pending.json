@@ -1,1 +1,1 @@
-{"id": "install-yt-api", "cmd": "pip install youtube-transcript-api -q && echo 'OK: youtube-transcript-api встановлено' && systemctl restart mybot.service && echo 'OK: бот перезапущено' && cat /root/autodeploy.sh"}
+{"id": "install-yt-api-2", "cmd": "pip install youtube-transcript-api --break-system-packages -q && echo 'OK: встановлено' && systemctl restart mybot.service && echo 'OK: бот перезапущено'"}
