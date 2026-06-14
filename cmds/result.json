@@ -1,7 +1,7 @@
 {
-  "stdout": "OK: встановлено в venv\n",
+  "stdout": "17434bc23 relay: update cmds/result.json\nfaf04e9a6 feat: YouTube-переказ і пам'ять розмов в agent_bot.py (правильний файл)\n---\n5\n     Active: active (running) since Sun 2026-06-14 09:58:00 UTC; 14s ago\n",
   "stderr": "",
   "returncode": 0,
-  "id": "install-in-venv",
-  "ts": "2026-06-14T09:57:38Z"
+  "id": "verify-deploy",
+  "ts": "2026-06-14T09:58:15Z"
 }
