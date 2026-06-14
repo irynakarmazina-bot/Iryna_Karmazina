@@ -1,1 +1,1 @@
-{"id": "verify-deploy", "cmd": "cd /root/Iryna_Karmazina && git log --oneline -2 && echo '---' && grep -c 'get_youtube_transcript' agent_bot.py && systemctl status mybot.service --no-pager | grep 'Active:'"}
+{"id": "bot-logs", "cmd": "journalctl -u mybot.service -n 50 --no-pager 2>&1 | tail -60"}
