@@ -278,7 +278,7 @@ def execute_tool(name: str, inputs: dict, uid: int) -> str:
 # ── Агентний цикл ────────────────────────────────────────────────────────────
 
 async def run_agent(uid: int, messages: list) -> str:
-    for _ in range(10):  # максимум 10 ітерацій
+    for iteration in range(10):
         resp = claude.messages.create(
             model="claude-opus-4-7",
             max_tokens=2048,
@@ -286,6 +286,8 @@ async def run_agent(uid: int, messages: list) -> str:
             tools=TOOLS,
             messages=messages,
         )
+
+        log.info(f"run_agent iter={iteration} stop_reason={resp.stop_reason} blocks={[getattr(b,'type','?') for b in resp.content]}")
 
         if resp.stop_reason == "end_turn":
             for block in resp.content:
@@ -299,7 +301,7 @@ async def run_agent(uid: int, messages: list) -> str:
             for block in resp.content:
                 if block.type == "tool_use":
                     result = execute_tool(block.name, block.input, uid)
-                    log.info(f"Tool {block.name}: {result[:80]}")
+                    log.info(f"Tool {block.name} result (перші 200): {result[:200]}")
                     tool_results.append({
                         "type": "tool_result",
                         "tool_use_id": block.id,
@@ -308,6 +310,11 @@ async def run_agent(uid: int, messages: list) -> str:
             messages.append({"role": "user", "content": tool_results})
             continue
 
+        # Будь-який інший stop_reason — намагаємося витягти текст
+        log.warning(f"Неочікуваний stop_reason={resp.stop_reason}")
+        for block in resp.content:
+            if hasattr(block, "text"):
+                return block.text
         break
     return "Не вдалося отримати відповідь."
 
