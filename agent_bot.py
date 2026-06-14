@@ -1,5 +1,6 @@
 import asyncio
-import os, logging, base64, json, math, re
+import io
+import os, logging, base64, json, math, re, subprocess, tempfile
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 from pathlib import Path
@@ -102,6 +103,50 @@ def add_usage(uid: int, input_tokens: int, output_tokens: int):
 
 
 user_stats: dict[int, dict] = load_stats()
+
+VOICE_FILE = Path(__file__).parent / "voice_prefs.json"
+
+
+def load_voice_prefs() -> dict[int, bool]:
+    if VOICE_FILE.exists():
+        try:
+            raw = json.loads(VOICE_FILE.read_text(encoding="utf-8"))
+            return {int(k): v for k, v in raw.items()}
+        except Exception:
+            pass
+    return {}
+
+
+def save_voice_prefs(v: dict[int, bool]):
+    VOICE_FILE.write_text(
+        json.dumps({str(k): val for k, val in v.items()}, ensure_ascii=False),
+        encoding="utf-8",
+    )
+
+
+voice_prefs: dict[int, bool] = load_voice_prefs()
+
+
+def text_to_ogg(text: str) -> bytes:
+    from gtts import gTTS
+    # gTTS не любить дуже довгі тексти — обрізаємо до 3000 символів
+    chunk = text[:3000]
+    tts = gTTS(text=chunk, lang="uk", slow=False)
+    with tempfile.NamedTemporaryFile(suffix=".mp3", delete=False) as mp3f:
+        mp3_path = mp3f.name
+    with tempfile.NamedTemporaryFile(suffix=".ogg", delete=False) as oggf:
+        ogg_path = oggf.name
+    try:
+        tts.save(mp3_path)
+        subprocess.run(
+            ["ffmpeg", "-y", "-i", mp3_path, "-c:a", "libopus", "-b:a", "32k", ogg_path],
+            check=True, capture_output=True,
+        )
+        return Path(ogg_path).read_bytes()
+    finally:
+        for p in (mp3_path, ogg_path):
+            try: os.unlink(p)
+            except: pass
 
 SYSTEM_PROMPT = """Ти — AI бізнес-асистент для підприємців.
 
@@ -359,9 +404,20 @@ async def run_agent(uid: int, messages: list) -> str:
 # ── Helpers ─────────────────────────────────────────────────────────────────
 
 async def send_long(update: Update, text: str):
-    """Відправляє довге повідомлення частинами по 4000 символів."""
     for i in range(0, len(text), 4000):
         await update.message.reply_text(text[i:i + 4000])
+
+
+async def send_response(update: Update, text: str, uid: int):
+    if voice_prefs.get(uid):
+        try:
+            loop = asyncio.get_event_loop()
+            ogg_bytes = await loop.run_in_executor(None, text_to_ogg, text)
+            await update.message.reply_voice(io.BytesIO(ogg_bytes))
+            return
+        except Exception:
+            log.exception("TTS помилка — відправляємо текст")
+    await send_long(update, text)
 
 
 # ── Telegram handlers ────────────────────────────────────────────────────────
@@ -376,8 +432,19 @@ async def start(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         "🌐 Читаю сайти: «прочитай example.com»\n"
         "🖼 Аналізую фото\n"
         "📄 Читаю PDF\n\n"
-        "Команди: /notes — нотатки | /stats — витрати | /reset — очистити розмову"
+        "Команди: /notes — нотатки | /stats — витрати | /voice — голос вкл/викл | /reset — очистити розмову"
     )
+
+async def cmd_voice(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
+    uid = update.effective_user.id
+    current = voice_prefs.get(uid, False)
+    voice_prefs[uid] = not current
+    save_voice_prefs(voice_prefs)
+    if voice_prefs[uid]:
+        await update.message.reply_text("🔊 Голосовий режим увімкнено! Бот відповідатиме голосом.\nВимкнути: /voice")
+    else:
+        await update.message.reply_text("🔇 Голосовий режим вимкнено. Бот відповідає текстом.\nУвімкнути: /voice")
+
 
 async def cmd_stats(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     uid = update.effective_user.id
@@ -438,7 +505,7 @@ async def handle_photo(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         msgs.append({"role": "assistant", "content": text})
         history[uid] = msgs[-20:]
         save_history(history)
-        await send_long(update, text)
+        await send_response(update, text, uid)
     except Exception:
         log.exception("photo error")
         await update.message.reply_text("Помилка обробки фото.")
@@ -473,7 +540,7 @@ async def handle_document(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         msgs.append({"role": "assistant", "content": text})
         history[uid] = msgs[-10:]
         save_history(history)
-        await send_long(update, text)
+        await send_response(update, text, uid)
     except Exception:
         log.exception("document error")
         await update.message.reply_text("Помилка обробки документа.")
@@ -526,7 +593,7 @@ async def chat(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         msgs.append({"role": "assistant", "content": text})
         history[uid] = msgs[-20:]
         save_history(history)
-        await send_long(update, text)
+        await send_response(update, text, uid)
     except Exception:
         log.exception("chat error")
         await update.message.reply_text("Помилка. Спробуй ще раз.")
@@ -537,6 +604,7 @@ def main():
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("myid", myid))
     app.add_handler(CommandHandler("reset", reset))
+    app.add_handler(CommandHandler("voice", cmd_voice))
     app.add_handler(CommandHandler("stats", cmd_stats))
     app.add_handler(CommandHandler("notes", cmd_notes))
     app.add_handler(CommandHandler("invoice", cmd_invoice))
