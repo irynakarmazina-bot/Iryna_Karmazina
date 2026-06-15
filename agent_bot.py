@@ -127,10 +127,29 @@ def save_voice_prefs(v: dict[int, bool]):
 voice_prefs: dict[int, bool] = load_voice_prefs()
 
 
+def strip_markdown(text: str) -> str:
+    # Жирний/курсив: **text** → text, *text* → text, __text__ → text
+    text = re.sub(r'\*{1,3}(.*?)\*{1,3}', r'\1', text)
+    text = re.sub(r'_{1,2}(.*?)_{1,2}', r'\1', text)
+    # Заголовки: ## Заголовок → Заголовок
+    text = re.sub(r'^#{1,6}\s+', '', text, flags=re.MULTILINE)
+    # Маркери списків: - item / * item / • item → item
+    text = re.sub(r'^[\-\*•]\s+', '', text, flags=re.MULTILINE)
+    # Нумеровані списки: 1. item → item
+    text = re.sub(r'^\d+\.\s+', '', text, flags=re.MULTILINE)
+    # Inline code: `code` → code
+    text = re.sub(r'`{1,3}(.*?)`{1,3}', r'\1', text, flags=re.DOTALL)
+    # Посилання: [текст](url) → текст
+    text = re.sub(r'\[([^\]]+)\]\([^\)]+\)', r'\1', text)
+    # Залишкові символи
+    text = re.sub(r'[~>]', '', text)
+    return text.strip()
+
+
 def text_to_ogg(text: str) -> bytes:
     from gtts import gTTS
-    # gTTS не любить дуже довгі тексти — обрізаємо до 3000 символів
-    chunk = text[:3000]
+    clean = strip_markdown(text)
+    chunk = clean[:3000]
     tts = gTTS(text=chunk, lang="uk", slow=False)
     with tempfile.NamedTemporaryFile(suffix=".mp3", delete=False) as mp3f:
         mp3_path = mp3f.name
