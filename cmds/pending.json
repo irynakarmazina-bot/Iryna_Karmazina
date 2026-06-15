@@ -1,1 +1,1 @@
-{"id": "deploy-markdown-fix", "cmd": "cd /root/Iryna_Karmazina && git pull origin main && systemctl restart mybot.service && echo 'OK'"}
+{"id": "fix-double-dash", "cmd": "cd /root/Iryna_Karmazina && git pull origin main && systemctl restart mybot.service && echo 'OK'"}

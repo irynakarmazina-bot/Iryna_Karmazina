@@ -141,6 +141,10 @@ def strip_markdown(text: str) -> str:
     text = re.sub(r'`{1,3}(.*?)`{1,3}', r'\1', text, flags=re.DOTALL)
     # Посилання: [текст](url) → текст
     text = re.sub(r'\[([^\]]+)\]\([^\)]+\)', r'\1', text)
+    # Горизонтальні лінії: --- / *** → пауза
+    text = re.sub(r'^[-\*]{3,}\s*$', '.', text, flags=re.MULTILINE)
+    # Подвійний/потрійний дефіс → пауза
+    text = re.sub(r'-{2,}', '.', text)
     # Залишкові символи
     text = re.sub(r'[~>]', '', text)
     return text.strip()
