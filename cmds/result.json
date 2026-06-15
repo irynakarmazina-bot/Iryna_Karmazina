@@ -1,7 +1,7 @@
 {
-  "stdout": "OK: gTTS встановлено\nRestarting the system to load the new kernel will not be handled automatically, \nso you should consider rebooting.\n\nOK: ffmpeg\nAlready up to date.\nOK: бот перезапущено\n",
-  "stderr": "From https://github.com/irynakarmazina-bot/Iryna_Karmazina\n * branch                main       -> FETCH_HEAD\n",
+  "stdout": "Updating 37a99e455..3b3452575\nFast-forward\n agent_bot.py      | 23 +++++++++++++++++++++--\n cmds/pending.json |  2 +-\n 2 files changed, 22 insertions(+), 3 deletions(-)\nOK\n",
+  "stderr": "From https://github.com/irynakarmazina-bot/Iryna_Karmazina\n * branch                main       -> FETCH_HEAD\n   37a99e455..3b3452575  main       -> origin/main\n",
   "returncode": 0,
-  "id": "install-gtts",
-  "ts": "2026-06-14T16:14:42Z"
+  "id": "deploy-markdown-fix",
+  "ts": "2026-06-15T12:54:25Z"
 }
