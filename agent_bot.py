@@ -15,6 +15,8 @@ from bs4 import BeautifulSoup
 from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, ContextTypes
 
+import finance
+
 load_dotenv()
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 log = logging.getLogger(__name__)
@@ -181,7 +183,19 @@ SYSTEM_PROMPT = """Ти — AI бізнес-асистент для підпри
 
 Будь конкретним, давай цифри та плани.
 
-Маєш інструменти: calculate, save_note, list_notes, delete_note, get_datetime, read_url.
+📒 Фінансовий облік:
+Коли користувач згадує дохід або витрату («витратила 500 грн на пальне»,
+«отримала 20000 за фрахт») — ОДРАЗУ зберігай через add_transaction.
+Категорію підбирай сам: коротка, одним-двома словами (Пальне, Фрахт, Зарплата,
+Продукти, Оренда...). Валюта за замовчуванням UAH. Після збереження коротко підтверди.
+На питання про фінанси («скільки я витратила на пальне?») відповідай через
+finance_summary або list_transactions.
+Звіти користувач отримує командами: /report (P&L за місяць), /cashflow (рух грошей),
+/dashboard (інтерактивні графіки) — підказуй їх, коли доречно.
+
+Маєш інструменти: calculate, save_note, list_notes, delete_note, get_datetime,
+read_url, get_youtube_transcript, add_transaction, delete_transaction,
+list_transactions, finance_summary.
 Використовуй їх коли це доречно. Відповідай завжди українською."""
 
 TOOLS = [
@@ -249,6 +263,55 @@ TOOLS = [
                 "url": {"type": "string", "description": "URL сторінки"},
             },
             "required": ["url"],
+        },
+    },
+    {
+        "name": "add_transaction",
+        "description": "Зберігає фінансову операцію (дохід або витрату) користувача. Викликай одразу, коли користувач згадує що заробив/отримав/витратив гроші.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "type": {"type": "string", "enum": ["income", "expense"], "description": "income — дохід, expense — витрата"},
+                "amount": {"type": "number", "description": "Сума (додатне число)"},
+                "category": {"type": "string", "description": "Коротка категорія: Пальне, Фрахт, Зарплата, Продукти, Оренда тощо"},
+                "description": {"type": "string", "description": "Необов'язковий опис деталей"},
+                "currency": {"type": "string", "description": "Код валюти: UAH (за замовчуванням), USD, EUR..."},
+                "date": {"type": "string", "description": "Дата у форматі YYYY-MM-DD. Не вказуй — буде сьогодні. Якщо користувач каже «вчора» — порахуй дату через get_datetime"},
+            },
+            "required": ["type", "amount", "category"],
+        },
+    },
+    {
+        "name": "delete_transaction",
+        "description": "Видаляє фінансову операцію за її номером (#id зі списку транзакцій).",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "transaction_id": {"type": "string", "description": "Номер транзакції"},
+            },
+            "required": ["transaction_id"],
+        },
+    },
+    {
+        "name": "list_transactions",
+        "description": "Показує список фінансових операцій користувача (останні або за конкретний місяць).",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "month": {"type": "string", "description": "Місяць у форматі MM.YYYY, наприклад 06.2026. Не вказуй — покаже останні операції"},
+            },
+            "required": [],
+        },
+    },
+    {
+        "name": "finance_summary",
+        "description": "Підсумок фінансів за місяць: доходи, витрати, прибуток, розбивка за категоріями. Використовуй для відповідей на питання про фінанси.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "month": {"type": "string", "description": "Місяць у форматі MM.YYYY. Не вказуй — поточний місяць"},
+            },
+            "required": [],
         },
     },
     {
@@ -377,6 +440,22 @@ def execute_tool(name: str, inputs: dict, uid: int) -> str:
         return tool_read_url(inputs["url"])
     elif name == "get_youtube_transcript":
         return tool_get_youtube_transcript(inputs["video_url"])
+    elif name == "add_transaction":
+        return finance.add_transaction(
+            uid,
+            inputs["type"],
+            inputs["amount"],
+            inputs["category"],
+            description=inputs.get("description", ""),
+            currency=inputs.get("currency", "UAH"),
+            tx_date=inputs.get("date"),
+        )
+    elif name == "delete_transaction":
+        return finance.delete_transaction(uid, inputs["transaction_id"])
+    elif name == "list_transactions":
+        return finance.list_transactions(uid, month=inputs.get("month"))
+    elif name == "finance_summary":
+        return finance.finance_summary(uid, month=inputs.get("month"))
     return "Невідомий інструмент."
 
 
@@ -454,8 +533,13 @@ async def start(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         "📅 Дата/час: «яке сьогодні число»\n"
         "🌐 Читаю сайти: «прочитай example.com»\n"
         "🖼 Аналізую фото\n"
-        "📄 Читаю PDF\n\n"
-        "Команди: /notes — нотатки | /stats — витрати | /voice — голос вкл/викл | /reset — очистити розмову"
+        "📄 Читаю PDF\n"
+        "💰 Веду фінанси: «витратила 500 грн на пальне», «отримала 20000 за фрахт»\n\n"
+        "Фінансові звіти:\n"
+        "/report — P&L за місяць (доходи/витрати/прибуток)\n"
+        "/cashflow — рух грошей за 6 місяців\n"
+        "/dashboard — інтерактивний дашборд з графіками\n\n"
+        "Інші команди: /notes — нотатки | /stats — витрати на API | /voice — голос вкл/викл | /reset — очистити розмову"
     )
 
 async def cmd_voice(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
@@ -489,6 +573,44 @@ async def cmd_stats(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         f"Модель: claude-opus-4-7\n"
         f"(Точний рахунок — console.anthropic.com)"
     )
+
+async def cmd_report(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
+    """P&L-звіт за місяць. /report — поточний, /report 06.2026 — конкретний."""
+    uid = update.effective_user.id
+    month = ctx.args[0] if ctx.args else None
+    await send_long(update, finance.pnl_report(uid, month))
+
+
+async def cmd_cashflow(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
+    """Cash Flow — рух грошей за останні 6 місяців."""
+    uid = update.effective_user.id
+    await send_long(update, finance.cashflow_report(uid))
+
+
+async def cmd_dashboard(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
+    """Генерує HTML-дашборд з графіками і надсилає файлом."""
+    uid = update.effective_user.id
+    await ctx.bot.send_chat_action(chat_id=update.effective_chat.id, action="upload_document")
+    try:
+        path = finance.build_dashboard(uid)
+    except Exception:
+        log.exception("dashboard error")
+        await update.message.reply_text("Помилка при побудові дашборда. Спробуй ще раз.")
+        return
+    if path is None:
+        await update.message.reply_text(
+            "Даних для дашборда поки немає.\n"
+            "Додай першу операцію — просто напиши, наприклад:\n"
+            "«витратила 500 грн на пальне»"
+        )
+        return
+    with path.open("rb") as f:
+        await update.message.reply_document(
+            document=f,
+            filename="finance_dashboard.html",
+            caption="📈 Твій фінансовий дашборд.\nВідкрий файл у браузері — графіки інтерактивні.",
+        )
+
 
 async def cmd_notes(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     uid = update.effective_user.id
@@ -631,6 +753,9 @@ def main():
     app.add_handler(CommandHandler("stats", cmd_stats))
     app.add_handler(CommandHandler("notes", cmd_notes))
     app.add_handler(CommandHandler("invoice", cmd_invoice))
+    app.add_handler(CommandHandler("report", cmd_report))
+    app.add_handler(CommandHandler("cashflow", cmd_cashflow))
+    app.add_handler(CommandHandler("dashboard", cmd_dashboard))
     app.add_handler(MessageHandler(filters.PHOTO, handle_photo))
     app.add_handler(MessageHandler(filters.Document.ALL, handle_document))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, chat))
