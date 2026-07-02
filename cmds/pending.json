@@ -1,1 +1,1 @@
-{"id": "fix-double-dash", "cmd": "cd /root/Iryna_Karmazina && git pull origin main && systemctl restart mybot.service && echo 'OK'"}
+{"id": "probe-1c-web", "cmd": "for u in http://unitex.rdport.net https://unitex.rdport.net http://unitex.rdport.net:8080 https://unitex.rdport.net:8443; do echo \"$u -> $(curl -sk -m 8 -o /dev/null -w \"%{http_code}\" $u)\"; done"}
