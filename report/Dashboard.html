@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; }
+  body { font-family: Arial, sans-serif; background: #f9f9f7; color: #0b0b0b; padding: 14px; font-size: 13px; }
+  h1 { font-size: 17px; margin-bottom: 2px; }
+  .sub { color: #898781; font-size: 11px; margin-bottom: 12px; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .card { background: #fff; border: 1px solid rgba(11,11,11,.12); border-radius: 8px; padding: 10px 12px; }
+  .card h2 { font-size: 12px; color: #1c5cab; margin-bottom: 6px; text-transform: uppercase; }
+  .wide { grid-column: 1 / -1; }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  th { text-align: right; color: #898781; font-weight: normal; font-size: 10px; padding: 2px 5px; border-bottom: 1px solid #e1e0d9; }
+  th:first-child { text-align: left; }
+  td { padding: 3px 5px; border-bottom: 1px solid #eeede8; }
+  td.n { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  tr.total td { font-weight: bold; border-top: 2px solid #c3c2b7; }
+  .neg { color: #d03b3b; font-weight: bold; }
+  .pos { color: #006300; font-weight: bold; }
+  .kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 10px; }
+  .kpi { background: #fff; border: 1px solid rgba(11,11,11,.12); border-radius: 8px; padding: 10px 12px; }
+  .kpi .l { color: #52514e; font-size: 11px; }
+  .kpi .v { font-size: 20px; font-weight: bold; margin-top: 2px; }
+  .chart-box { position: relative; height: 200px; }
+</style>
+</head>
+<body>
+<h1>ОПЕРАТИВНИЙ ФІНАНСОВИЙ ЗВІТ</h1>
+<div class="sub" id="sub"></div>
+<div class="kpi-row" id="kpis"></div>
+<div class="grid">
+  <div class="card"><h2>Ліквідність по касах (У.О.)</h2><div id="liq"></div></div>
+  <div class="card"><h2>Платіжний календар — прогноз (У.О.)</h2><div id="cal"></div>
+    <div class="chart-box"><canvas id="calChart"></canvas></div></div>
+  <div class="card"><h2>Кешфлоу — факт, останні 4 тижні (У.О.)</h2><div id="ruh"></div>
+    <div class="chart-box"><canvas id="ruhChart"></canvas></div></div>
+  <div class="card"><h2>Клієнти: зависає vs дохід (У.О.)</h2><div id="cli"></div></div>
+</div>
+
+<script>
+const D = JSON.parse(<?!= JSON.stringify(payload) ?>);
+const fmt = x => Math.round(+x || 0).toLocaleString('uk-UA');
+const num = x => +x || 0;
+
+// ── Дані з аркушів (пропускаємо рядок заголовків) ──
+const hroshi = D.hroshi.slice(1).filter(r => r[0] && r[0] !== 'РАЗОМ У.О.');
+const deb = D.deb.slice(1).filter(r => r[0] && String(r[7]).length);   // 7=Сума УО, 12=Вид оплати
+const kred = D.kred.slice(1).filter(r => r[0] && String(r[7]).length); // 7=Залишок УО, 11=Вид оплати
+const kal = D.kalendar.slice(1).filter(r => r[0] && String(r[0]).indexOf('Тиждень') === 0);
+const ruh = D.ruh.slice(1).filter(r => r[0] && String(r[0]).indexOf('Тиждень') === 0);
+const cli = D.klienty.slice(1).filter(r => r[0] && r[0] !== 'РАЗОМ');
+
+// ── KPI ──
+const money = hroshi.reduce((s, r) => s + num(r[3]), 0);
+const debT = deb.reduce((s, r) => s + num(r[7]), 0);
+const kredT = kred.reduce((s, r) => s + num(r[7]), 0);
+const hang = cli.reduce((s, r) => s + num(r[5]), 0);
+document.getElementById('sub').textContent = 'Всі суми в У.О. (USD-еквівалент) · дашборд читає аркуші таблиці на момент відкриття';
+document.getElementById('kpis').innerHTML = [
+  ['Гроші (всі каси)', money, ''],
+  ['Дебіторка (нам винні)', debT, ''],
+  ['Кредиторка (ми винні)', kredT, ''],
+  ['Зависає по клієнтах', hang, ''],
+].map(([l, v]) => `<div class="kpi"><div class="l">${l}</div><div class="v">${fmt(v)}</div></div>`).join('');
+
+// ── Ліквідність по касах ──
+const kasas = {};
+hroshi.forEach(r => { kasas[r[0]] = { bal: num(r[3]), pay: 0, inn: 0 }; });
+kred.forEach(r => { const k = r[11]; if (k) { (kasas[k] = kasas[k] || {bal:0,pay:0,inn:0}).pay += num(r[7]); } });
+deb.forEach(r => { const k = r[12]; if (k) { (kasas[k] = kasas[k] || {bal:0,pay:0,inn:0}).inn += num(r[7]); } });
+let liqHtml = '<table><tr><th>Каса</th><th>Залишок</th><th>До сплати</th><th>Очік. надх.</th><th>Баланс</th></tr>';
+let tb = 0, tp = 0, ti = 0;
+Object.keys(kasas).forEach(k => {
+  const v = kasas[k]; if (!v.bal && !v.pay && !v.inn) return;
+  const net = v.bal - v.pay; tb += v.bal; tp += v.pay; ti += v.inn;
+  liqHtml += `<tr><td>${k}</td><td class="n">${fmt(v.bal)}</td><td class="n">${fmt(v.pay)}</td>
+    <td class="n">${fmt(v.inn)}</td><td class="n ${net < 0 ? 'neg' : ''}">${fmt(net)}</td></tr>`;
+});
+liqHtml += `<tr class="total"><td>РАЗОМ</td><td class="n">${fmt(tb)}</td><td class="n">${fmt(tp)}</td>
+  <td class="n">${fmt(ti)}</td><td class="n ${tb - tp < 0 ? 'neg' : 'pos'}">${fmt(tb - tp)}</td></tr></table>`;
+document.getElementById('liq').innerHTML = liqHtml;
+
+// ── Календар ──
+let calHtml = '<table><tr><th>Тиждень</th><th>Прогноз надх.</th><th>Планові оплати</th><th>Прогн. залишок</th></tr>';
+kal.forEach(r => {
+  calHtml += `<tr><td>${r[0]}</td><td class="n">${fmt(r[3])}</td><td class="n">${fmt(r[4])}</td>
+    <td class="n ${num(r[6]) < 0 ? 'neg' : ''}">${fmt(r[6])}</td></tr>`;
+});
+const kin = kal.reduce((s, r) => s + num(r[3]), 0), kout = kal.reduce((s, r) => s + num(r[4]), 0);
+calHtml += `<tr class="total"><td>КАСОВИЙ РОЗРИВ</td><td class="n" colspan="3">
+  <span class="${kin - kout < 0 ? 'neg' : 'pos'}">${kin - kout >= 0 ? '+' : ''}${fmt(kin - kout)}</span></td></tr></table>`;
+document.getElementById('cal').innerHTML = calHtml;
+
+// ── Кешфлоу ──
+let ruhHtml = '<table><tr><th>Тиждень</th><th>Надходження</th><th>Виплати</th><th>Потік</th></tr>';
+ruh.forEach(r => {
+  const p = num(r[3]) - num(r[4]);
+  ruhHtml += `<tr><td>${r[0]}</td><td class="n">${fmt(r[3])}</td><td class="n">${fmt(r[4])}</td>
+    <td class="n ${p < 0 ? 'neg' : 'pos'}">${p >= 0 ? '+' : ''}${fmt(p)}</td></tr>`;
+});
+ruhHtml += '</table>';
+document.getElementById('ruh').innerHTML = ruhHtml;
+
+// ── Клієнти ──
+let cliHtml = '<table><tr><th>Клієнт</th><th>Дебіторка</th><th>Вік, дн</th><th>Заморож. в угодах</th><th>Разом зависає</th><th>Дохід з 01.03</th><th>Зависає/дохід</th></tr>';
+cli.slice(0, 12).forEach(r => {
+  const ratio = r[8] === '—' || r[8] === '' ? '—' : Math.round(num(r[8]) * 100) + '%';
+  cliHtml += `<tr><td>${r[0]}</td><td class="n">${fmt(r[1])}</td><td class="n">${fmt(r[2])}</td>
+    <td class="n">${fmt(r[3])}</td><td class="n"><b>${fmt(r[5])}</b></td><td class="n">${fmt(r[6])}</td>
+    <td class="n">${ratio}</td></tr>`;
+});
+cliHtml += '</table>';
+document.getElementById('cli').innerHTML = cliHtml;
+
+// ── Графіки ──
+Chart.defaults.font.family = 'Arial, sans-serif';
+Chart.defaults.color = '#898781';
+new Chart(document.getElementById('calChart'), {
+  type: 'bar',
+  data: {
+    labels: kal.map(r => String(r[0]).replace(/\s*\(.*/, '')),
+    datasets: [
+      { label: 'Прогноз надходжень', data: kal.map(r => num(r[3])), backgroundColor: '#2a78d6', borderRadius: 3 },
+      { label: 'Планові оплати', data: kal.map(r => num(r[4])), backgroundColor: '#eb6834', borderRadius: 3 },
+    ],
+  },
+  options: { responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { position: 'top', labels: { boxWidth: 10, boxHeight: 10 } } },
+    scales: { x: { grid: { display: false } }, y: { beginAtZero: true, ticks: { callback: fmt } } } },
+});
+new Chart(document.getElementById('ruhChart'), {
+  type: 'bar',
+  data: {
+    labels: ruh.map(r => String(r[0]).replace(/\s*\(.*/, '')),
+    datasets: [
+      { label: 'Надходження факт', data: ruh.map(r => num(r[3])), backgroundColor: '#2a78d6', borderRadius: 3 },
+      { label: 'Виплати факт', data: ruh.map(r => num(r[4])), backgroundColor: '#eb6834', borderRadius: 3 },
+    ],
+  },
+  options: { responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { position: 'top', labels: { boxWidth: 10, boxHeight: 10 } } },
+    scales: { x: { grid: { display: false } }, y: { beginAtZero: true, ticks: { callback: fmt } } } },
+});
+</script>
+</body>
+</html>
