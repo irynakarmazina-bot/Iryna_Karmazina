@@ -1,5 +1,17 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "allow": [
+      "mcp__137967d1-23b4-4688-9976-f10ec5d98a7e",
+      "mcp__137967d1-23b4-4688-9976-f10ec5d98a7e__create_file",
+      "mcp__137967d1-23b4-4688-9976-f10ec5d98a7e__search_files",
+      "mcp__137967d1-23b4-4688-9976-f10ec5d98a7e__list_recent_files",
+      "mcp__137967d1-23b4-4688-9976-f10ec5d98a7e__read_file_content",
+      "mcp__137967d1-23b4-4688-9976-f10ec5d98a7e__copy_file",
+      "mcp__137967d1-23b4-4688-9976-f10ec5d98a7e__download_file_content",
+      "mcp__137967d1-23b4-4688-9976-f10ec5d98a7e__get_file_metadata"
+    ]
+  },
   "hooks": {
     "Stop": [
       {
