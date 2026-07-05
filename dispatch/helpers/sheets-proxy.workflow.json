@@ -1,0 +1,97 @@
+{
+ "name": "TEMP Sheets Proxy (Claude)",
+ "nodes": [
+  {
+   "parameters": {
+    "httpMethod": "POST",
+    "path": "claude-sheets-proxy",
+    "responseMode": "responseNode",
+    "options": {}
+   },
+   "name": "Webhook",
+   "type": "n8n-nodes-base.webhook",
+   "typeVersion": 2,
+   "position": [
+    0,
+    0
+   ],
+   "id": "aaaa1111-0000-0000-0000-000000000001",
+   "webhookId": "a23b0ece-e9d9-4377-81fe-9cdacef16a51"
+  },
+  {
+   "parameters": {
+    "method": "={{ $json.body.method }}",
+    "url": "={{ $json.body.url }}",
+    "authentication": "predefinedCredentialType",
+    "nodeCredentialType": "googleSheetsOAuth2Api",
+    "sendBody": true,
+    "contentType": "raw",
+    "rawContentType": "application/json",
+    "body": "={{ $json.body.method === 'GET' ? '' : JSON.stringify($json.body.payload || {}) }}",
+    "options": {
+     "response": {
+      "response": {
+       "neverError": true
+      }
+     }
+    }
+   },
+   "name": "HTTP",
+   "type": "n8n-nodes-base.httpRequest",
+   "typeVersion": 4.2,
+   "position": [
+    220,
+    0
+   ],
+   "credentials": {
+    "googleSheetsOAuth2Api": {
+     "id": "S6pSxt1O96LflGWp",
+     "name": "Google Sheets account"
+    }
+   },
+   "id": "aaaa1111-0000-0000-0000-000000000002"
+  },
+  {
+   "parameters": {
+    "respondWith": "json",
+    "responseBody": "={{ JSON.stringify($json) }}",
+    "options": {}
+   },
+   "name": "Respond",
+   "type": "n8n-nodes-base.respondToWebhook",
+   "typeVersion": 1.1,
+   "position": [
+    440,
+    0
+   ],
+   "id": "aaaa1111-0000-0000-0000-000000000003"
+  }
+ ],
+ "connections": {
+  "Webhook": {
+   "main": [
+    [
+     {
+      "node": "HTTP",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "HTTP": {
+   "main": [
+    [
+     {
+      "node": "Respond",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  }
+ },
+ "settings": {
+  "executionOrder": "v1"
+ }
+}

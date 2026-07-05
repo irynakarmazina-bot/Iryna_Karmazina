@@ -1,0 +1,311 @@
+{
+ "name": "Container Tracking — Maersk (CRM)",
+ "nodes": [
+  {
+   "parameters": {
+    "rule": {
+     "interval": [
+      {
+       "field": "days",
+       "daysInterval": 1,
+       "triggerAtHour": 7
+      }
+     ]
+    }
+   },
+   "name": "Щодня 07:00",
+   "type": "n8n-nodes-base.scheduleTrigger",
+   "typeVersion": 1.2,
+   "position": [
+    0,
+    0
+   ],
+   "id": "d3a6b738-aad3-452a-9a78-cb3845fc2282"
+  },
+  {
+   "parameters": {
+    "method": "POST",
+    "url": "https://api.maersk.com/customer-identity/oauth/v2/access_token",
+    "sendHeaders": true,
+    "headerParameters": {
+     "parameters": [
+      {
+       "name": "Consumer-Key",
+       "value": "{{MAERSK_CLIENT_ID — реальне значення в n8n Cloud, НЕ зберігати в репо}}"
+      },
+      {
+       "name": "Content-Type",
+       "value": "application/x-www-form-urlencoded"
+      }
+     ]
+    },
+    "sendBody": true,
+    "contentType": "form-urlencoded",
+    "bodyParameters": {
+     "parameters": [
+      {
+       "name": "grant_type",
+       "value": "client_credentials"
+      },
+      {
+       "name": "client_id",
+       "value": "{{MAERSK_CLIENT_ID — реальне значення в n8n Cloud, НЕ зберігати в репо}}"
+      },
+      {
+       "name": "client_secret",
+       "value": "{{MAERSK_CLIENT_SECRET — реальне значення в n8n Cloud, НЕ зберігати в репо}}"
+      }
+     ]
+    },
+    "options": {
+     "response": {
+      "response": {
+       "neverError": true
+      }
+     }
+    }
+   },
+   "name": "Maersk Token",
+   "type": "n8n-nodes-base.httpRequest",
+   "typeVersion": 4.2,
+   "position": [
+    220,
+    0
+   ],
+   "id": "d774c441-3f7c-44ea-b26a-40aa03701247"
+  },
+  {
+   "parameters": {
+    "operation": "read",
+    "documentId": {
+     "__rl": true,
+     "value": "1FkvCfEZv7Ni5SYJCuaEB7BubmwPs5D0laM0A9g4byF8",
+     "mode": "id"
+    },
+    "sheetName": {
+     "__rl": true,
+     "value": "https://docs.google.com/spreadsheets/d/1FkvCfEZv7Ni5SYJCuaEB7BubmwPs5D0laM0A9g4byF8/edit#gid=11111",
+     "mode": "url"
+    },
+    "options": {}
+   },
+   "name": "Читаємо CRM",
+   "type": "n8n-nodes-base.googleSheets",
+   "typeVersion": 4.5,
+   "position": [
+    440,
+    0
+   ],
+   "credentials": {
+    "googleSheetsOAuth2Api": {
+     "id": "S6pSxt1O96LflGWp",
+     "name": "Google Sheets account"
+    }
+   },
+   "id": "cf6348c9-a20f-4ee7-8859-836159c0b15c"
+  },
+  {
+   "parameters": {
+    "jsCode": "\nconst out=[];\nfor(const it of $input.all()){ const r=it.json;\n  const bl=String(r['BL/Booking']||'').trim();\n  if(!/^\\d{9}$/.test(bl)) continue;\n  out.push({json:{bl, ourContainer:String(r['Контейнер']||'').trim(),\n    etaPlanOld:String(r['ETA порт (план)']||'').trim(), histOld:String(r['Зміни ETA (історія)']||''),\n    curStatus:String(r['Статус']||'').trim()}});\n}\nreturn out;\n"
+   },
+   "name": "Відбір Maersk",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    660,
+    0
+   ],
+   "id": "d559264e-e6ae-44f7-9e61-4f23323c617e"
+  },
+  {
+   "parameters": {
+    "method": "GET",
+    "url": "={{ 'https://api.maersk.com/track-and-trace-private/events?carrierBookingReference=' + encodeURIComponent($json.bl) }}",
+    "sendHeaders": true,
+    "headerParameters": {
+     "parameters": [
+      {
+       "name": "Consumer-Key",
+       "value": "{{MAERSK_CLIENT_ID — реальне значення в n8n Cloud, НЕ зберігати в репо}}"
+      },
+      {
+       "name": "Authorization",
+       "value": "=Bearer {{ $('Maersk Token').first().json.access_token }}"
+      }
+     ]
+    },
+    "options": {
+     "response": {
+      "response": {
+       "neverError": true,
+       "fullResponse": true
+      }
+     },
+     "batching": {
+      "batch": {
+       "batchSize": 8,
+       "batchInterval": 1500
+      }
+     }
+    }
+   },
+   "name": "Maersk API",
+   "type": "n8n-nodes-base.httpRequest",
+   "typeVersion": 4.2,
+   "position": [
+    880,
+    0
+   ],
+   "id": "79506c17-7abc-4a0e-88c1-5a826b1d48b5"
+  },
+  {
+   "parameters": {
+    "jsCode": "const metas=$('Відбір Maersk').all().map(x=>x.json);\nconst items=$input.all();\nconst today=new Date(); today.setHours(0,0,0,0); const T=today.toISOString().slice(0,10);\nconst byDate=a=>a.sort((x,y)=>String(x.eventDateTime).localeCompare(String(y.eventDateTime)));\nconst results=[];\nfor(let i=0;i<items.length;i++){\n  const meta=metas[i]||{};\n  const resp=items[i].json; const body=resp.body!==undefined?resp.body:resp;\n  const events=(body&&body.events)?body.events:null;\n  if(!events) continue;\n  const out={'BL/Booking':meta.bl,'Лінія':'Maersk','Останнє оновлення':T};\n  const conts=[...new Set(events.map(e=>e.equipmentReference).filter(Boolean))];\n  out['Контейнер (лінія)']=conts.join(', ');\n  if(!meta.ourContainer && conts.length) out['Контейнер']=conts[0];\n  out['Звірка']='';\n  if(meta.ourContainer && conts.length && !conts.includes(meta.ourContainer)) out['Звірка']='За Maersk: '+conts.join(', ');\n  const ves=byDate(events.filter(e=>((e.transportCall||{}).modeOfTransport)==='VESSEL'));\n  const last=ves.length?ves[ves.length-1]:null;\n  const arr=byDate(events.filter(e=>(e.transportEventTypeCode==='ARRI'||e.equipmentEventTypeCode==='ARRI')));\n  const lastArr=arr.length?arr[arr.length-1]:null;\n  let etaIso='',act=false;\n  if(lastArr){ etaIso=String(lastArr.eventDateTime).slice(0,10); act=(lastArr.eventClassifierCode==='ACT'); }\n  let days=999; if(etaIso){ const e=new Date(etaIso); e.setHours(0,0,0,0); days=Math.round((e-today)/86400000); }\n  if(last && days<=7){ const tc=last.transportCall||{};\n    out['Судно']=(tc.vessel||{}).vesselName||'';\n    out['Вояж']=tc.carrierVoyageNumber||tc.exportVoyageNumber||tc.importVoyageNumber||''; }\n  if(etaIso){\n    if(act){ out['ETA порт (факт)']=etaIso; }\n    else { out['ETA порт (план)']=etaIso;\n      if(meta.etaPlanOld && meta.etaPlanOld!==etaIso){\n        out['Зміни ETA (історія)']=(meta.histOld?meta.histOld+'\\n':'')+T+': ETA порт: '+meta.etaPlanOld+' → '+etaIso+' (Maersk)';\n        out['Остання зміна']=T; } } }\n  const all=byDate(events.slice()); const le=all[all.length-1];\n  const mode=((le.transportCall||{}).modeOfTransport)||'';\n  const c2=le.equipmentEventTypeCode||le.transportEventTypeCode||le.shipmentEventTypeCode||'';\n  const isVes=(mode==='VESSEL'||mode==='');\n  let st='';\n  if(c2==='LOAD') st=isVes?'В морі':(mode==='RAIL'?'Завантажений на потяг':'Завантажений на авто');\n  else if(c2==='DEPA') st=isVes?'В морі':(mode==='RAIL'?'Завантажений на потяг':'Завантажений на авто');\n  else if(c2==='ARRI') st=(mode==='VESSEL')?'В морі':(mode==='RAIL'?'Прибув в сухій порт':'Доставка отримувачу');\n  else if(c2==='DISC') st=(mode==='VESSEL'||!mode)?'Вивантажений в порту прибуття':'Прибув в сухій порт';\n  else if(c2==='GTOT') st=(mode==='RAIL')?'Завантажений на потяг':'Завантажений на авто';\n  else if(c2==='GTIN') st=(mode==='TRUCK')?'Вантаж доставлено':'Прибув в сухій порт';\n  if(st && meta.curStatus!=='Вантаж доставлено') out['Статус']=st;  // «Доставлено» заморожено\n  results.push({json:out});\n}\nreturn results;\n"
+   },
+   "name": "Розбір",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    1100,
+    0
+   ],
+   "id": "c8cec335-7ec5-408f-af22-c1a547e96434"
+  },
+  {
+   "parameters": {
+    "operation": "appendOrUpdate",
+    "documentId": {
+     "__rl": true,
+     "value": "1FkvCfEZv7Ni5SYJCuaEB7BubmwPs5D0laM0A9g4byF8",
+     "mode": "id"
+    },
+    "sheetName": {
+     "__rl": true,
+     "value": "https://docs.google.com/spreadsheets/d/1FkvCfEZv7Ni5SYJCuaEB7BubmwPs5D0laM0A9g4byF8/edit#gid=11111",
+     "mode": "url"
+    },
+    "columns": {
+     "mappingMode": "autoMapInputData",
+     "matchingColumns": [
+      "BL/Booking"
+     ],
+     "schema": []
+    },
+    "options": {}
+   },
+   "name": "Запис у CRM",
+   "type": "n8n-nodes-base.googleSheets",
+   "typeVersion": 4.5,
+   "position": [
+    1320,
+    0
+   ],
+   "credentials": {
+    "googleSheetsOAuth2Api": {
+     "id": "S6pSxt1O96LflGWp",
+     "name": "Google Sheets account"
+    }
+   },
+   "id": "c89dd540-2656-4a68-a078-ac3069891d98"
+  },
+  {
+   "parameters": {
+    "httpMethod": "POST",
+    "path": "jqka-run",
+    "responseMode": "onReceived",
+    "options": {}
+   },
+   "name": "Ручний запуск",
+   "type": "n8n-nodes-base.webhook",
+   "typeVersion": 2,
+   "position": [
+    -200,
+    200
+   ],
+   "id": "50ce30ac-26de-4b8a-90d3-af587983c24c",
+   "webhookId": "e7e9c493-9a0e-4646-9c88-249e1b8c9a53"
+  }
+ ],
+ "connections": {
+  "Щодня 07:00": {
+   "main": [
+    [
+     {
+      "node": "Maersk Token",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Maersk Token": {
+   "main": [
+    [
+     {
+      "node": "Читаємо CRM",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Читаємо CRM": {
+   "main": [
+    [
+     {
+      "node": "Відбір Maersk",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Відбір Maersk": {
+   "main": [
+    [
+     {
+      "node": "Maersk API",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Maersk API": {
+   "main": [
+    [
+     {
+      "node": "Розбір",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Розбір": {
+   "main": [
+    [
+     {
+      "node": "Запис у CRM",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Ручний запуск": {
+   "main": [
+    [
+     {
+      "node": "Maersk Token",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  }
+ },
+ "settings": {
+  "executionOrder": "v1"
+ }
+}

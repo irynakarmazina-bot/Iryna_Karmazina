@@ -1,0 +1,31 @@
+{
+ "method": "GET",
+ "url": "={{ 'https://api.maersk.com/track-and-trace-private/events?carrierBookingReference=' + encodeURIComponent($json.bl) }}",
+ "sendHeaders": true,
+ "headerParameters": {
+  "parameters": [
+   {
+    "name": "Consumer-Key",
+    "value": "euoSpwATjMpLeIlp6wcnFRtt9dG4i6Gg"
+   },
+   {
+    "name": "Authorization",
+    "value": "=Bearer {{ $('Maersk Token').first().json.access_token }}"
+   }
+  ]
+ },
+ "options": {
+  "response": {
+   "response": {
+    "neverError": true,
+    "fullResponse": true
+   }
+  },
+  "batching": {
+   "batch": {
+    "batchSize": 8,
+    "batchInterval": 1500
+   }
+  }
+ }
+}
