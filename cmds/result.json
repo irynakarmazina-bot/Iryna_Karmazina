@@ -1,7 +1,7 @@
 {
-  "stdout": "",
-  "stderr": "'utf-8' codec can't decode byte 0xd0 in position 252: invalid continuation byte",
-  "returncode": -1,
-  "id": "n8n-webhook-probe-0706",
-  "ts": "2026-07-06T09:50:49Z"
+  "stdout": "GET /webhook/crm-dashboard -> HTTP 200, bytes 270631\n<!DOCTYPE html><html lang=\"uk\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><meta http-equiv=\"refres\nGET /webhook/portal?t=probe-invalid -> HTTP 200, bytes 22151\n<!DOCTYPE html><html lang=\"uk\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><meta http-equiv=\"refres\nPOST /webhook/claude-sheets-proxy -> HTTP 404, bytes 363\n{\"code\":404,\"message\":\"The requested webhook \\\"POST claude-sheets-proxy\\\" is not registered.\",\"hint\":\"The workflow must be active for a production URL to run successfully. You can activate the workflo",
+  "stderr": "",
+  "returncode": 0,
+  "id": "n8n-webhook-probe2-0706",
+  "ts": "2026-07-06T09:51:48Z"
 }
