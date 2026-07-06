@@ -1,7 +1,7 @@
 {
-  "stdout": "=== ROOT ===\nHTTP/1.1 200 OK\nContent-Type: text/html\nLast-Modified: Thu, 15 Apr 2021 18:25:42 GMT\nAccept-Ranges: bytes\nETag: \"86f97abe2432d71:0\"\nServer: Microsoft-IIS/10.0\nDate: Thu, 02 Jul 2026 10:39:37 GMT\nContent-Length: 703\n\n<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">\n<html xmlns=\"http://www.w3.org/1999/xhtml\">\n<head>\n<meta http-equiv=\"Content-Type\" content=\"text/html; charset=iso-8859-1\" />\n<title>IIS Windows Server</title>\n<style type=\"text/css\">\n<!--\nbody {\n\tcolor:#000000;\n\tbackground-color:#0072C6;\n\tmargin:0;\n}\n\n#container {\n\tmargin-left:auto;\n\tmargin-right:auto;\n\ttext-align:center;\n\t}\n\na img {\n\tborder:none;\n}\n\n-->\n</style>\n</head>\n<body>\n<div id=\"container\">\n<a href=\"http://go.microsoft.com/fwlink/?linkid=66138&amp;c\n=== PATHS ===\n/ekspedytor -> 404, odata -> 404\n/expeditor -> 404, odata -> 404\n/Ekspedytor -> 404, odata -> 404\n/Expeditor -> 404, odata -> 404\n/unitex -> 404, odata -> 404\n/Unitex -> 404, odata -> 404\n/base -> 404, odata -> 404\n/1c -> 404, odata -> 404\n/ka -> 404, odata -> 404\n",
-  "stderr": "",
-  "returncode": 0,
-  "id": "probe-1c-paths",
-  "ts": "2026-07-02T10:39:38Z"
+  "stdout": "",
+  "stderr": "'utf-8' codec can't decode byte 0xd0 in position 252: invalid continuation byte",
+  "returncode": -1,
+  "id": "n8n-webhook-probe-0706",
+  "ts": "2026-07-06T09:50:49Z"
 }
