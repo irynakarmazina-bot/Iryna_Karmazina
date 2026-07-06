@@ -9,9 +9,12 @@ const dir=r=>{const d=String(r['Напрямок']||r['Вид']||'').trim(); if(
 const delivered=r=>String(r['Статус']||'')==='Вантаж доставлено';
 const relDate=r=>isExp(r)?(r['ETD (факт)']||r['ETD (план)']||''):(r['ETA порт (факт)']||r['ETA порт (план)']||'');
 const delDate=r=>r['Вивантаження у отримувача (факт)']||r['Остання зміна']||'';
-const blue=['Стафіровка','Завантажений на потяг','Завантажений на авто','Зданий в порт','Завантажений на судно','В морі'];
-const purple=['Вивантажений в порту прибуття','Прибув в сухій порт'];
-const pill=s=>{ if(s==='Вантаж доставлено')return['#e6e5df','#5f5e5a']; if(s==='На кордоні')return['#FAEEDA','#854F0B']; if(s==='Доставка отримувачу')return['#E1F5EE','#0F6E56']; if(blue.includes(s))return['#E6F1FB','#0C447C']; if(purple.includes(s))return['#EEEDFE','#3C3489']; return['#F1EFE8','#444441']; };
+// Нова 8-модель статусів (STATUS-MODEL.md, задача 1.3): Букінг, Стафіровка, В порту відправлення,
+// Завантажений на судно, В морі, Вивантажений в порту прибуття, Завантажений на авто/потяг,
+// Вантаж доставлено. «Букінг» навмисно не в blue/purple — падає у нейтральний колір за замовчуванням.
+const blue=['Стафіровка','В порту відправлення','Завантажений на судно','В морі'];
+const purple=['Вивантажений в порту прибуття','Завантажений на авто/потяг'];
+const pill=s=>{ if(s==='Вантаж доставлено')return['#e6e5df','#5f5e5a']; if(blue.includes(s))return['#E6F1FB','#0C447C']; if(purple.includes(s))return['#EEEDFE','#3C3489']; return['#F1EFE8','#444441']; };
 rows.sort((a,b)=>{ const da=delivered(a),db=delivered(b); if(da!==db) return da?-1:1;
   if(da) return String(delDate(a)||'9999').localeCompare(String(delDate(b)||'9999'));
   return String(relDate(a)||'9999-99-99').localeCompare(String(relDate(b)||'9999-99-99')); });

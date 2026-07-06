@@ -20,7 +20,24 @@
     0,
     0
    ],
-   "id": "d3a6b738-aad3-452a-9a78-cb3845fc2282"
+   "id": "f3ca3c38-f05e-42c7-a883-bde63f5de617"
+  },
+  {
+   "parameters": {
+    "httpMethod": "POST",
+    "path": "jqka-run",
+    "responseMode": "onReceived",
+    "options": {}
+   },
+   "name": "Ручний запуск",
+   "type": "n8n-nodes-base.webhook",
+   "typeVersion": 2,
+   "position": [
+    -200,
+    220
+   ],
+   "id": "db27a9d0-0d34-4a1f-a142-af95f693f370",
+   "webhookId": "e7e9c493-9a0e-4646-9c88-249e1b8c9a53"
   },
   {
    "parameters": {
@@ -60,7 +77,8 @@
     "options": {
      "response": {
       "response": {
-       "neverError": true
+       "neverError": true,
+       "fullResponse": true
       }
      }
     }
@@ -72,7 +90,133 @@
     220,
     0
    ],
-   "id": "d774c441-3f7c-44ea-b26a-40aa03701247"
+   "id": "06bd1436-dc70-4143-8a64-57031dad3916"
+  },
+  {
+   "parameters": {
+    "conditions": {
+     "options": {
+      "caseSensitive": true,
+      "leftValue": "",
+      "typeValidation": "loose"
+     },
+     "conditions": [
+      {
+       "id": "dfe8504a-550f-40e3-9d7f-d456db8dd813",
+       "leftValue": "={{ ($json.statusCode < 300) && !!($json.body && $json.body.access_token) }}",
+       "operator": {
+        "type": "boolean",
+        "operation": "true",
+        "singleValue": true
+       }
+      }
+     ],
+     "combinator": "and"
+    },
+    "options": {}
+   },
+   "name": "Токен дійсний?",
+   "type": "n8n-nodes-base.if",
+   "typeVersion": 2,
+   "position": [
+    440,
+    0
+   ],
+   "id": "7a6ac081-9b02-4f3c-8040-7e2897ab6678"
+  },
+  {
+   "parameters": {
+    "jsCode": "const T = new Date().toISOString().slice(0,10);\nreturn [{json:{\n  'Дата/час': new Date().toISOString(), 'Ключ':'', 'Колонка':'',\n  'Старе':'', 'Нове':'401 — недійсний токен, прогін зупинено, '+T, 'Джерело':'Maersk'\n}}];\n"
+   },
+   "name": "Лог: 401 токен",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    660,
+    220
+   ],
+   "id": "73c355c9-4c8f-4e92-9a0f-6890c009a13d"
+  },
+  {
+   "parameters": {
+    "operation": "append",
+    "documentId": {
+     "__rl": true,
+     "value": "1FkvCfEZv7Ni5SYJCuaEB7BubmwPs5D0laM0A9g4byF8",
+     "mode": "id"
+    },
+    "sheetName": {
+     "__rl": true,
+     "value": "TODO_ВКАЗАТИ_GID_ПІСЛЯ_СТВОРЕННЯ_АРКУША",
+     "mode": "id",
+     "cachedResultName": "Журнал автооновлень"
+    },
+    "columns": {
+     "mappingMode": "autoMapInputData",
+     "matchingColumns": [],
+     "schema": []
+    },
+    "options": {}
+   },
+   "name": "Запис логу (401 токен)",
+   "type": "n8n-nodes-base.googleSheets",
+   "typeVersion": 4.5,
+   "position": [
+    880,
+    220
+   ],
+   "credentials": {
+    "googleSheetsOAuth2Api": {
+     "id": "S6pSxt1O96LflGWp",
+     "name": "Google Sheets account"
+    }
+   },
+   "id": "f44a5685-c103-49f2-8099-18fafa048b7b"
+  },
+  {
+   "parameters": {
+    "errorType": "errorMessage",
+    "errorMessage": "=401 — недійсний токен, прогін зупинено, {{ $now.toFormat('yyyy-LL-dd') }}"
+   },
+   "name": "Стоп: недійсний токен",
+   "type": "n8n-nodes-base.stopAndError",
+   "typeVersion": 1,
+   "position": [
+    1100,
+    220
+   ],
+   "id": "815bdc60-f503-4f4a-8409-0fb119e01d1f"
+  },
+  {
+   "parameters": {
+    "operation": "read",
+    "documentId": {
+     "__rl": true,
+     "value": "1FkvCfEZv7Ni5SYJCuaEB7BubmwPs5D0laM0A9g4byF8",
+     "mode": "id"
+    },
+    "sheetName": {
+     "__rl": true,
+     "value": "TODO_ВКАЗАТИ_GID_ПІСЛЯ_СТВОРЕННЯ_АРКУША",
+     "mode": "id",
+     "cachedResultName": "Журнал автооновлень"
+    },
+    "options": {}
+   },
+   "name": "Читаємо Журнал",
+   "type": "n8n-nodes-base.googleSheets",
+   "typeVersion": 4.5,
+   "position": [
+    660,
+    -100
+   ],
+   "credentials": {
+    "googleSheetsOAuth2Api": {
+     "id": "S6pSxt1O96LflGWp",
+     "name": "Google Sheets account"
+    }
+   },
+   "id": "bb330dd0-201a-4bd5-9682-a8d673868f1c"
   },
   {
    "parameters": {
@@ -93,8 +237,8 @@
    "type": "n8n-nodes-base.googleSheets",
    "typeVersion": 4.5,
    "position": [
-    440,
-    0
+    880,
+    -100
    ],
    "credentials": {
     "googleSheetsOAuth2Api": {
@@ -102,74 +246,152 @@
      "name": "Google Sheets account"
     }
    },
-   "id": "cf6348c9-a20f-4ee7-8859-836159c0b15c"
+   "id": "561d5ebe-c21c-4509-af0b-80157d425268"
   },
   {
    "parameters": {
-    "jsCode": "\nconst out=[];\nfor(const it of $input.all()){ const r=it.json;\n  const bl=String(r['BL/Booking']||'').trim();\n  if(!/^\\d{9}$/.test(bl)) continue;\n  out.push({json:{bl, ourContainer:String(r['Контейнер']||'').trim(),\n    etaPlanOld:String(r['ETA порт (план)']||'').trim(), histOld:String(r['Зміни ETA (історія)']||''),\n    curStatus:String(r['Статус']||'').trim()}});\n}\nreturn out;\n"
+    "jsCode": "// «Відбір Maersk» — які рядки CRM трекати і як (задача 1.2: ключ трекінгу BL/контейнер-fallback).\n//\n// РІШЕННЯ ПРО МАТЧ-КЛЮЧ ЗАПИСУ (проблема з задачі 1.2): рядки, що трекаються по BL, і рядки,\n// що трекаються по контейнеру, мають РІЗНИЙ природний ключ — а appendOrUpdate матчить лише по\n// ОДНІЙ колонці. Замість двох гілок запису або нової службової колонки, використовуємо колонку\n// «Угода» (кол. A, SHEET-STRUCTURE.md) як ЄДИНИЙ матч-ключ для всіх записів цього воркфлоу:\n// вона унікальна для кожного рядка, завжди заповнена (це первинний ключ імпорту з Експедитора)\n// і НЕ залежить від того, чим трекаємо рядок цього прогону. Це простіше й надійніше за дві гілки\n// запису чи ще одну службову колонку. Див. «Запис у CRM» у workflows/maersk-container-tracking.json\n// та коментар на початку rozbir.code.js.\n//\n// Кожен вихідний item має поле `_route`:\n//   'fetch' — потрібен запит до Maersk API (далі йде в «Розбір»), несе метадані рядка;\n//   'mark'  — запиту не буде, просто виставляємо «Ключ трекінгу» напряму (готовий об'єкт запису).\n\nconst out = [];\nfor (const it of $input.all()) {\n  const r = it.json;\n  const uhoda = String(r['Угода'] || '').trim();\n  if (!uhoda) continue; // без «Угода» немає надійного ключа для запису — пропускаємо рядок безпечно\n\n  const line = String(r['Лінія'] || '').trim().toLowerCase();\n  const bl = String(r['BL/Booking'] || '').trim();\n  const ourContainer = String(r['Контейнер'] || '').trim();\n  const hasBL = /^\\d{9}$/.test(bl);\n  const hasContainer = !!ourContainer;\n  const oldTrackKey = String(r['Ключ трекінгу'] || '').trim();\n\n  // Рядки інших ліній (явно вказана НЕ Maersk) — поза зоною відповідальності цього воркфлоу.\n  // Нічого не пишемо і не чіпаємо — цим рядком має зайнятись MSC/CMA-воркфлоу (1.6/1.7).\n  if (line && line !== 'maersk') continue;\n\n  if (line === 'maersk' && hasBL) {\n    out.push({ json: {\n      _route: 'fetch', trackByType: 'bl', newTrackKeyLabel: 'BL',\n      uhoda, bl, ourContainer, line,\n      curStatus: String(r['Статус'] || '').trim(),\n      curEtaPlan: String(r['ETA порт (план)'] || '').trim(),\n      curEtaAct: String(r['ETA порт (факт)'] || '').trim(),\n      curVessel: String(r['Судно'] || '').trim(),\n      curContainerNow: ourContainer,\n      histOld: String(r['Зміни ETA (історія)'] || ''),\n      napryamok: String(r['Напрямок'] || '').trim().toLowerCase(),\n      // автоперехід (1.2, останній пункт): рядок раніше трекався по контейнеру, тепер з'явився BL\n      autoTransition: (oldTrackKey === 'контейнер (тимчасово)')\n    }});\n    continue;\n  }\n\n  if (line === 'maersk' && hasContainer) {\n    out.push({ json: {\n      _route: 'fetch', trackByType: 'container', newTrackKeyLabel: 'контейнер (тимчасово)',\n      uhoda, bl, ourContainer, line,\n      curStatus: String(r['Статус'] || '').trim(),\n      curEtaPlan: String(r['ETA порт (план)'] || '').trim(),\n      curEtaAct: String(r['ETA порт (факт)'] || '').trim(),\n      curVessel: String(r['Судно'] || '').trim(),\n      curContainerNow: ourContainer,\n      histOld: String(r['Зміни ETA (історія)'] || ''),\n      napryamok: String(r['Напрямок'] || '').trim().toLowerCase(),\n      autoTransition: false\n    }});\n    continue;\n  }\n\n  if (hasContainer) {\n    // є контейнер, лінія ще не вказана (могла б бути Maersk, MSC, CMA — невідомо) → просимо вказати\n    out.push({ json: { _route: 'mark', 'Угода': uhoda, 'Ключ трекінгу': 'вкажіть лінію' } });\n    continue;\n  }\n\n  // нема ні BL (валідного, 9 цифр), ні контейнера — трекати нічим\n  out.push({ json: { _route: 'mark', 'Угода': uhoda, 'Ключ трекінгу': 'не трекається' } });\n}\nreturn out;\n"
    },
    "name": "Відбір Maersk",
    "type": "n8n-nodes-base.code",
    "typeVersion": 2,
    "position": [
-    660,
-    0
+    1100,
+    -100
    ],
-   "id": "d559264e-e6ae-44f7-9e61-4f23323c617e"
+   "id": "dcedff65-23d9-479c-9154-ae5689d62eab"
   },
   {
    "parameters": {
-    "method": "GET",
-    "url": "={{ 'https://api.maersk.com/track-and-trace-private/events?carrierBookingReference=' + encodeURIComponent($json.bl) }}",
-    "sendHeaders": true,
-    "headerParameters": {
-     "parameters": [
-      {
-       "name": "Consumer-Key",
-       "value": "{{MAERSK_CLIENT_ID — реальне значення в n8n Cloud, НЕ зберігати в репо}}"
-      },
-      {
-       "name": "Authorization",
-       "value": "=Bearer {{ $('Maersk Token').first().json.access_token }}"
-      }
-     ]
-    },
-    "options": {
-     "response": {
-      "response": {
-       "neverError": true,
-       "fullResponse": true
-      }
+    "conditions": {
+     "options": {
+      "caseSensitive": true,
+      "leftValue": "",
+      "typeValidation": "loose"
      },
-     "batching": {
-      "batch": {
-       "batchSize": 8,
-       "batchInterval": 1500
+     "conditions": [
+      {
+       "id": "9d5389e2-0ede-4bea-aaaa-91fca933bebe",
+       "leftValue": "={{ $json._route }}",
+       "rightValue": "fetch",
+       "operator": {
+        "type": "string",
+        "operation": "equals"
+       }
       }
-     }
-    }
+     ],
+     "combinator": "and"
+    },
+    "options": {}
    },
-   "name": "Maersk API",
-   "type": "n8n-nodes-base.httpRequest",
-   "typeVersion": 4.2,
+   "name": "Чи потрібен запит?",
+   "type": "n8n-nodes-base.if",
+   "typeVersion": 2,
    "position": [
-    880,
-    0
+    1320,
+    -100
    ],
-   "id": "79506c17-7abc-4a0e-88c1-5a826b1d48b5"
+   "id": "ef2f2d92-21af-46f2-8898-8c3b01087037"
   },
   {
    "parameters": {
-    "jsCode": "const metas=$('Відбір Maersk').all().map(x=>x.json);\nconst items=$input.all();\nconst today=new Date(); today.setHours(0,0,0,0); const T=today.toISOString().slice(0,10);\nconst byDate=a=>a.sort((x,y)=>String(x.eventDateTime).localeCompare(String(y.eventDateTime)));\nconst results=[];\nfor(let i=0;i<items.length;i++){\n  const meta=metas[i]||{};\n  const resp=items[i].json; const body=resp.body!==undefined?resp.body:resp;\n  const events=(body&&body.events)?body.events:null;\n  if(!events) continue;\n  const out={'BL/Booking':meta.bl,'Лінія':'Maersk','Останнє оновлення':T};\n  const conts=[...new Set(events.map(e=>e.equipmentReference).filter(Boolean))];\n  out['Контейнер (лінія)']=conts.join(', ');\n  if(!meta.ourContainer && conts.length) out['Контейнер']=conts[0];\n  out['Звірка']='';\n  if(meta.ourContainer && conts.length && !conts.includes(meta.ourContainer)) out['Звірка']='За Maersk: '+conts.join(', ');\n  const ves=byDate(events.filter(e=>((e.transportCall||{}).modeOfTransport)==='VESSEL'));\n  const last=ves.length?ves[ves.length-1]:null;\n  const arr=byDate(events.filter(e=>(e.transportEventTypeCode==='ARRI'||e.equipmentEventTypeCode==='ARRI')));\n  const lastArr=arr.length?arr[arr.length-1]:null;\n  let etaIso='',act=false;\n  if(lastArr){ etaIso=String(lastArr.eventDateTime).slice(0,10); act=(lastArr.eventClassifierCode==='ACT'); }\n  let days=999; if(etaIso){ const e=new Date(etaIso); e.setHours(0,0,0,0); days=Math.round((e-today)/86400000); }\n  if(last && days<=7){ const tc=last.transportCall||{};\n    out['Судно']=(tc.vessel||{}).vesselName||'';\n    out['Вояж']=tc.carrierVoyageNumber||tc.exportVoyageNumber||tc.importVoyageNumber||''; }\n  if(etaIso){\n    if(act){ out['ETA порт (факт)']=etaIso; }\n    else { out['ETA порт (план)']=etaIso;\n      if(meta.etaPlanOld && meta.etaPlanOld!==etaIso){\n        out['Зміни ETA (історія)']=(meta.histOld?meta.histOld+'\\n':'')+T+': ETA порт: '+meta.etaPlanOld+' → '+etaIso+' (Maersk)';\n        out['Остання зміна']=T; } } }\n  const all=byDate(events.slice()); const le=all[all.length-1];\n  const mode=((le.transportCall||{}).modeOfTransport)||'';\n  const c2=le.equipmentEventTypeCode||le.transportEventTypeCode||le.shipmentEventTypeCode||'';\n  const isVes=(mode==='VESSEL'||mode==='');\n  let st='';\n  if(c2==='LOAD') st=isVes?'В морі':(mode==='RAIL'?'Завантажений на потяг':'Завантажений на авто');\n  else if(c2==='DEPA') st=isVes?'В морі':(mode==='RAIL'?'Завантажений на потяг':'Завантажений на авто');\n  else if(c2==='ARRI') st=(mode==='VESSEL')?'В морі':(mode==='RAIL'?'Прибув в сухій порт':'Доставка отримувачу');\n  else if(c2==='DISC') st=(mode==='VESSEL'||!mode)?'Вивантажений в порту прибуття':'Прибув в сухій порт';\n  else if(c2==='GTOT') st=(mode==='RAIL')?'Завантажений на потяг':'Завантажений на авто';\n  else if(c2==='GTIN') st=(mode==='TRUCK')?'Вантаж доставлено':'Прибув в сухій порт';\n  if(st && meta.curStatus!=='Вантаж доставлено') out['Статус']=st;  // «Доставлено» заморожено\n  results.push({json:out});\n}\nreturn results;\n"
+    "jsCode": "// «Розбір» — приймає лише item'и з _route==='fetch' (IF-вузол «Чи потрібен запит?» відсіяв\n// «mark»-рядки раніше). Сам виконує HTTP-запит до Maersk API для КОЖНОГО рядка (замість окремого\n// HTTP-вузла) — так простіше й надійніше зробити точний retry/backoff і розрізнити 429/401/404/\n// «поганий формат», ніж вбудованим retry n8n-вузла (в нього лише стала пауза, без розрізнення\n// типів збоїв). Джерело параметризовано константою SOURCE (задача 1.4) — при підключенні MSC/CMA\n// до того самого «Журналу автооновлень» досить змінити лише цю константу в їхньому коді.\n//\n// ВАЖЛИВО про запис у CRM (задача 1.5): googleSheets appendOrUpdate з autoMapInputData оновлює\n// ЛИШЕ ті колонки, ключі яких присутні в об'єкті `out`. Якщо поле не включити в `out` — комірка\n// в таблиці лишається як є. На цьому базується guard: якщо поле «зайняте» ручною правкою,\n// ми просто НЕ додаємо його в `out`, замість того щоб писати туди старе значення.\n//\n// TODO: перевірити на живій версії n8n точні назви опцій helpers.httpRequest, які тут\n// використані (returnFullResponse / ignoreHttpStatusErrors) — вони можуть відрізнятись між\n// мінорними версіями n8n. Якщо назви інші — HTTP-виклик нижче потрібно поправити (без цього\n// класифікація 429/401/404 не спрацює коректно).\n\nconst SOURCE = 'Maersk';\nconst today = new Date(); today.setHours(0, 0, 0, 0);\nconst T = today.toISOString().slice(0, 10);\nconst NOWISO = new Date().toISOString();\n\nconst metas = $input.all().map(x => x.json);\n\n// Токен: вузол «Maersk Token» читається з fullResponse:true, тож access_token у .body\nconst tokenResp = $('Maersk Token').first().json;\nconst token = (tokenResp && tokenResp.body) ? tokenResp.body.access_token : (tokenResp || {}).access_token;\n\n// «Останнє записане скриптом значення» по полю (потрібне для guard 1.5) читаємо з «Журналу\n// автооновлень» (1.4), а не з окремих прихованих колонок CRM — журнал і так є append-only\n// історією таких значень, тримати їх ще й окремо в CRM було б дублюванням. Ключ мапи:\n// Ключ(BL або контейнер цього прогону) + '|' + Колонка. Джерело фільтруємо, щоб не змішувати\n// з майбутніми MSC/CMA-записами в той самий журнал.\nconst journalRows = (function () {\n  try { return $('Читаємо Журнал').all().map(x => x.json); } catch (e) { return []; }\n})();\nconst journalMap = {};\nfor (const jr of journalRows) {\n  if (String(jr['Джерело'] || '') !== SOURCE) continue;\n  const k = String(jr['Ключ'] || '') + '|' + String(jr['Колонка'] || '');\n  journalMap[k] = jr['Нове'];\n}\n\n// guard 1.5: чи можна писати нове авто-значення в поле?\n// Так — якщо в комірці зараз ПОРОЖНЬО (нічого перезаписувати), АБО поточне значення дорівнює\n// тому, що скрипт сам туди востаннє писав (за журналом) — тобто людина його не чіпала.\n// Якщо історії немає (lastAuto===undefined) — вважаємо це безпечним дефолтом «не чіпали».\n// Якщо поточне значення відрізняється від останнього авто-значення — це РУЧНА правка, поле\n// НЕ перезаписуємо, а лишаємо позначку в «Нагадування».\n// ⚠ Чесне обмеження (TOCTOU, задача 1.5): guard бачить стан таблиці лише на момент вузла\n// «Читаємо CRM» на початку прогону. Якщо людина відредагує комірку рівно між читанням і\n// записом У МЕЖАХ ЦЬОГО Ж прогону — guard цього не побачить і запис може перетерти правку.\n// Також: одразу після автопереходу «контейнер → BL» (1.2) журнал ще не має записів під новим\n// ключем (BL), тож перший прогін після переходу вважає поле «не чіпали» — це прийнятний і\n// задокументований компроміс, не помилка.\nfunction guardOk(curVal, lastAuto) {\n  if (!curVal) return true;\n  if (lastAuto === undefined) return true;\n  return curVal === lastAuto;\n}\n\nconst byDate = a => a.slice().sort((x, y) => String(x.eventDateTime).localeCompare(String(y.eventDateTime)));\n\nconst results = [];\nlet stop401 = false;\n\nfunction markRow(meta, trackVal, text) {\n  results.push({ json: { _kind: 'write-crm', 'Угода': meta.uhoda, 'Нагадування': text } });\n  results.push({ json: {\n    _kind: 'log', 'Дата/час': NOWISO, 'Ключ': trackVal, 'Колонка': 'Нагадування',\n    'Старе': '', 'Нове': text, 'Джерело': SOURCE\n  }});\n}\n\nfor (const meta of metas) {\n  if (stop401) break;\n\n  const trackVal = meta.trackByType === 'bl' ? meta.bl : meta.ourContainer;\n  let url;\n  if (meta.trackByType === 'bl') {\n    url = 'https://api.maersk.com/track-and-trace-private/events?carrierBookingReference=' + encodeURIComponent(meta.bl);\n  } else {\n    // TODO: підтвердити параметр контейнерного пошуку Maersk на живому API (задача 1.2).\n    // Ймовірно `equipmentReference`, можливо окремий endpoint — не підтверджено документацією.\n    // Якщо параметр невірний, API поверне неочікуваний формат — спрацює гілка 'bad-format'\n    // нижче (рядок піде в «потребує перевірки», а не тихо пропаде).\n    url = 'https://api.maersk.com/track-and-trace-private/events?equipmentReference=' + encodeURIComponent(meta.ourContainer);\n  }\n\n  // Retry/backoff (задача 1.1): ≤3 повтори на конкретний запит у межах поточного прогону,\n  // паузи 2с/4с/8с (лише при 429). Разом до 4 спроб (1 початкова + до 3 повторів).\n  const backoffMs = [2000, 4000, 8000];\n  const maxAttempts = 1 + backoffMs.length;\n  let attempt = 0, classify = null, body = null, statusCode = null;\n\n  while (attempt < maxAttempts) {\n    attempt++;\n    try {\n      const resp = await this.helpers.httpRequest({\n        method: 'GET',\n        url,\n        headers: {\n          'Consumer-Key': '{{MAERSK_CLIENT_ID — реальне значення в n8n Cloud, НЕ зберігати в репо}}',\n          'Authorization': 'Bearer ' + token\n        },\n        json: true,\n        timeout: 20000,\n        returnFullResponse: true,\n        ignoreHttpStatusErrors: true\n      });\n      statusCode = resp.statusCode || resp.status || 200;\n      body = resp.body !== undefined ? resp.body : resp;\n    } catch (e) {\n      // мережева помилка/timeout/парсинг — не 429/401, повторювати цей запит сенсу нема\n      classify = 'bad-format';\n      break;\n    }\n\n    if (statusCode === 429) {\n      if (attempt < maxAttempts) {\n        await new Promise(resolve => setTimeout(resolve, backoffMs[attempt - 1]));\n        continue; // повтор ЦЬОГО Ж запиту\n      }\n      classify = 'rate-limit-exhausted';\n      break;\n    }\n    if (statusCode === 401) { classify = 'stop-401'; break; }\n    if (statusCode === 404) { classify = 'bl-not-found'; break; }\n    if (statusCode >= 200 && statusCode < 300) {\n      if (!body || typeof body !== 'object' || !Array.isArray(body.events)) { classify = 'bad-format'; break; }\n      if (body.events.length === 0) { classify = 'bl-not-found'; break; }\n      classify = 'ok';\n      break;\n    }\n    classify = 'bad-format'; // будь-який інший статус (5xx тощо) — загальний технічний збій формату\n    break;\n  }\n\n  if (classify === 'stop-401') {\n    // 1.1: 401 на весь батч (протухлий токен) — жоден рядок НЕ отримує «оновлено».\n    // Скидаємо все, що встигли зібрати в цьому ж прогоні до цього моменту.\n    stop401 = true;\n    results.length = 0;\n    break;\n  }\n  if (classify === 'rate-limit-exhausted') { markRow(meta, trackVal, 'потребує перевірки: ліміт запитів ' + T); continue; }\n  if (classify === 'bl-not-found') { markRow(meta, trackVal, 'потребує перевірки: BL не знайдено ' + T); continue; }\n  if (classify === 'bad-format') { markRow(meta, trackVal, 'потребує перевірки: формат/timeout ' + T); continue; }\n\n  // classify === 'ok' — парсинг подій, нова 8-модель статусів (1.3), guard (1.5), журнал (1.4)\n  const events = body.events;\n  const out = {\n    'Угода': meta.uhoda, 'Лінія': 'Maersk', 'Останнє оновлення': T,\n    'Ключ трекінгу': meta.newTrackKeyLabel\n  };\n  const reminders = [];\n\n  const conts = [...new Set(events.map(e => e.equipmentReference).filter(Boolean))];\n  out['Контейнер (лінія)'] = conts.join(', ');\n  out['Звірка'] = '';\n  if (meta.ourContainer && conts.length && !conts.includes(meta.ourContainer)) {\n    out['Звірка'] = 'За Maersk: ' + conts.join(', ');\n  }\n\n  // «Контейнер» — виняток fill-if-empty (1.5): пишемо лише якщо комірка порожня; якщо людина\n  // вже щось вписала — не чіпаємо, і навіть guard-конфлікт тут не потрібен (просто пропускаємо).\n  if (!meta.curContainerNow && conts.length) {\n    out['Контейнер'] = conts[0];\n    results.push({ json: {\n      _kind: 'log', 'Дата/час': NOWISO, 'Ключ': trackVal, 'Колонка': 'Контейнер',\n      'Старе': '', 'Нове': conts[0], 'Джерело': SOURCE\n    }});\n  }\n\n  // --- ETA (план/факт) + Судно/Вояж ---\n  const arr = byDate(events.filter(e => (e.transportEventTypeCode === 'ARRI' || e.equipmentEventTypeCode === 'ARRI')));\n  const lastArr = arr.length ? arr[arr.length - 1] : null;\n  let etaIso = '', act = false;\n  if (lastArr) { etaIso = String(lastArr.eventDateTime).slice(0, 10); act = (lastArr.eventClassifierCode === 'ACT'); }\n  let days = 999;\n  if (etaIso) { const e = new Date(etaIso); e.setHours(0, 0, 0, 0); days = Math.round((e - today) / 86400000); }\n\n  const ves = byDate(events.filter(e => ((e.transportCall || {}).modeOfTransport) === 'VESSEL'));\n  const lastVes = ves.length ? ves[ves.length - 1] : null;\n  if (lastVes && days <= 7) {\n    const tc = lastVes.transportCall || {};\n    const newVessel = (tc.vessel || {}).vesselName || '';\n    const newVoyage = tc.carrierVoyageNumber || tc.exportVoyageNumber || tc.importVoyageNumber || '';\n    if (newVessel && newVessel !== meta.curVessel) {\n      const lastAutoVessel = journalMap[trackVal + '|Судно'];\n      if (guardOk(meta.curVessel, lastAutoVessel)) {\n        out['Судно'] = newVessel;\n        if (newVoyage) out['Вояж'] = newVoyage;\n        results.push({ json: {\n          _kind: 'log', 'Дата/час': NOWISO, 'Ключ': trackVal, 'Колонка': 'Судно',\n          'Старе': meta.curVessel, 'Нове': newVessel, 'Джерело': SOURCE\n        }});\n      } else {\n        reminders.push('трекінг: ' + newVessel + ' ≠ ваше ' + meta.curVessel + ', перевірте ' + T);\n      }\n    }\n  }\n\n  if (etaIso) {\n    const field = act ? 'ETA порт (факт)' : 'ETA порт (план)';\n    const curVal = act ? meta.curEtaAct : meta.curEtaPlan;\n    if (etaIso !== curVal) {\n      const lastAutoEta = journalMap[trackVal + '|' + field];\n      if (guardOk(curVal, lastAutoEta)) {\n        out[field] = etaIso;\n        results.push({ json: {\n          _kind: 'log', 'Дата/час': NOWISO, 'Ключ': trackVal, 'Колонка': field,\n          'Старе': curVal, 'Нове': etaIso, 'Джерело': SOURCE\n        }});\n        if (!act && meta.curEtaPlan && meta.curEtaPlan !== etaIso) {\n          out['Зміни ETA (історія)'] = (meta.histOld ? meta.histOld + '\\n' : '') + T + ': ETA порт: ' + meta.curEtaPlan + ' → ' + etaIso + ' (Maersk)';\n          out['Остання зміна'] = T;\n        }\n      } else {\n        reminders.push('трекінг: ' + etaIso + ' ≠ ваше ' + curVal + ', перевірте ' + T);\n      }\n    }\n  }\n\n  // --- Статус: нова 8-модель (1.3), за кодом+модою ОСТАННЬОЇ події ---\n  // Букінг → Стафіровка → В порту відправлення → Завантажений на судно → В морі →\n  // Вивантажений в порту прибуття → Завантажений на авто/потяг → Вантаж доставлено.\n  // Заморозка: імпорт на «Вантаж доставлено», експорт на «Вивантажений в порту прибуття».\n  const frozen = (meta.napryamok === 'імпорт' && meta.curStatus === 'Вантаж доставлено') ||\n                 (meta.napryamok === 'експорт' && meta.curStatus === 'Вивантажений в порту прибуття');\n  if (!frozen) {\n    const all = byDate(events);\n    const le = all[all.length - 1];\n    const mode = ((le.transportCall || {}).modeOfTransport) || '';\n    const code = le.equipmentEventTypeCode || le.transportEventTypeCode || le.shipmentEventTypeCode || '';\n    const isVesCtx = (mode === 'VESSEL' || mode === '');\n    let st = '';\n    if (code === 'GTIN' && mode === 'TRUCK') st = 'Вантаж доставлено';\n    else if ((code === 'LOAD' || code === 'DEPA' || code === 'ARRI' || code === 'GTIN' || code === 'GTOT') && (mode === 'RAIL' || mode === 'TRUCK')) st = 'Завантажений на авто/потяг';\n    else if (code === 'LOAD' && isVesCtx) st = 'Завантажений на судно';\n    else if ((code === 'DEPA' || code === 'ARRI') && isVesCtx) st = 'В морі';\n    else if (code === 'DISC' && isVesCtx) st = 'Вивантажений в порту прибуття';\n    else if (code === 'GTIN' && isVesCtx) st = 'В порту відправлення';\n    else if (code === 'GTOT' && isVesCtx) st = 'Стафіровка';\n\n    if (st) {\n      if (st !== meta.curStatus) {\n        const lastAutoStatus = journalMap[trackVal + '|Статус'];\n        if (guardOk(meta.curStatus, lastAutoStatus)) {\n          out['Статус'] = st;\n          results.push({ json: {\n            _kind: 'log', 'Дата/час': NOWISO, 'Ключ': trackVal, 'Колонка': 'Статус',\n            'Старе': meta.curStatus, 'Нове': st, 'Джерело': SOURCE\n          }});\n        } else {\n          reminders.push('трекінг: ' + st + ' ≠ ваше ' + meta.curStatus + ', перевірте ' + T);\n        }\n      }\n    } else {\n      // 1.3: жодна комбінація код+режим не мовчить без відповідного запису\n      reminders.push('потребує перевірки: незнайома подія ' + (code || '?') + '/' + (mode || '—') + ' ' + T);\n      results.push({ json: {\n        _kind: 'log', 'Дата/час': NOWISO, 'Ключ': trackVal, 'Колонка': 'Статус',\n        'Старе': meta.curStatus, 'Нове': '(незнайома подія ' + (code || '?') + '/' + (mode || '—') + ')', 'Джерело': SOURCE\n      }});\n    }\n  }\n\n  // автоперехід «контейнер → BL» (1.2, останній пункт)\n  if (meta.autoTransition) {\n    out['Ключ трекінгу'] = 'BL';\n    out['Зміни ETA (історія)'] = (out['Зміни ETA (історія)'] ? out['Зміни ETA (історія)'] + '\\n' : (meta.histOld ? meta.histOld + '\\n' : '')) + T + ': контейнер → BL (Maersk)';\n    results.push({ json: {\n      _kind: 'log', 'Дата/час': NOWISO, 'Ключ': meta.bl, 'Колонка': 'Ключ трекінгу',\n      'Старе': 'контейнер (тимчасово)', 'Нове': 'BL', 'Джерело': SOURCE\n    }});\n  }\n\n  if (reminders.length) out['Нагадування'] = reminders.join(' | ');\n\n  results.push({ json: Object.assign({ _kind: 'write-crm' }, out) });\n}\n\nif (stop401) {\n  results.push({ json: {\n    _kind: 'stop-401', 'Дата/час': NOWISO, 'Ключ': '', 'Колонка': '',\n    'Старе': '', 'Нове': '401 — недійсний токен, прогін зупинено, ' + T, 'Джерело': SOURCE\n  }});\n}\n\nreturn results;\n"
    },
    "name": "Розбір",
    "type": "n8n-nodes-base.code",
    "typeVersion": 2,
    "position": [
-    1100,
-    0
+    1540,
+    -180
    ],
-   "id": "c8cec335-7ec5-408f-af22-c1a547e96434"
+   "id": "24a0c27f-d7c4-44b6-8d39-34fba2d281fe"
+  },
+  {
+   "parameters": {
+    "mode": "rules",
+    "rules": {
+     "values": [
+      {
+       "conditions": {
+        "options": {
+         "caseSensitive": true,
+         "leftValue": "",
+         "typeValidation": "loose"
+        },
+        "conditions": [
+         {
+          "id": "b094ca94-abe4-4ac6-9dff-c044429234b2",
+          "leftValue": "={{ $json._kind }}",
+          "rightValue": "write-crm",
+          "operator": {
+           "type": "string",
+           "operation": "equals"
+          }
+         }
+        ],
+        "combinator": "and"
+       },
+       "renameOutput": true,
+       "outputKey": "write-crm"
+      },
+      {
+       "conditions": {
+        "options": {
+         "caseSensitive": true,
+         "leftValue": "",
+         "typeValidation": "loose"
+        },
+        "conditions": [
+         {
+          "id": "9bb58325-3788-4efe-a04f-04e7ef5b6c3d",
+          "leftValue": "={{ $json._kind }}",
+          "rightValue": "log",
+          "operator": {
+           "type": "string",
+           "operation": "equals"
+          }
+         }
+        ],
+        "combinator": "and"
+       },
+       "renameOutput": true,
+       "outputKey": "log"
+      },
+      {
+       "conditions": {
+        "options": {
+         "caseSensitive": true,
+         "leftValue": "",
+         "typeValidation": "loose"
+        },
+        "conditions": [
+         {
+          "id": "25c9dbc0-1939-4d97-8a5f-18a66e631958",
+          "leftValue": "={{ $json._kind }}",
+          "rightValue": "stop-401",
+          "operator": {
+           "type": "string",
+           "operation": "equals"
+          }
+         }
+        ],
+        "combinator": "and"
+       },
+       "renameOutput": true,
+       "outputKey": "stop-401"
+      }
+     ]
+    },
+    "options": {}
+   },
+   "name": "Маршрутизація Розбір",
+   "type": "n8n-nodes-base.switch",
+   "typeVersion": 3,
+   "position": [
+    1760,
+    -180
+   ],
+   "id": "e5797c7c-f50c-44fc-84fb-eff9d4aa98c6"
   },
   {
    "parameters": {
@@ -187,7 +409,7 @@
     "columns": {
      "mappingMode": "autoMapInputData",
      "matchingColumns": [
-      "BL/Booking"
+      "Угода"
      ],
      "schema": []
     },
@@ -197,8 +419,8 @@
    "type": "n8n-nodes-base.googleSheets",
    "typeVersion": 4.5,
    "position": [
-    1320,
-    0
+    1980,
+    -260
    ],
    "credentials": {
     "googleSheetsOAuth2Api": {
@@ -206,24 +428,93 @@
      "name": "Google Sheets account"
     }
    },
-   "id": "c89dd540-2656-4a68-a078-ac3069891d98"
+   "id": "8863eb8f-63d7-476c-a9a0-a1cbdff87edb"
   },
   {
    "parameters": {
-    "httpMethod": "POST",
-    "path": "jqka-run",
-    "responseMode": "onReceived",
+    "operation": "append",
+    "documentId": {
+     "__rl": true,
+     "value": "1FkvCfEZv7Ni5SYJCuaEB7BubmwPs5D0laM0A9g4byF8",
+     "mode": "id"
+    },
+    "sheetName": {
+     "__rl": true,
+     "value": "TODO_ВКАЗАТИ_GID_ПІСЛЯ_СТВОРЕННЯ_АРКУША",
+     "mode": "id",
+     "cachedResultName": "Журнал автооновлень"
+    },
+    "columns": {
+     "mappingMode": "autoMapInputData",
+     "matchingColumns": [],
+     "schema": []
+    },
     "options": {}
    },
-   "name": "Ручний запуск",
-   "type": "n8n-nodes-base.webhook",
-   "typeVersion": 2,
+   "name": "Запис логу",
+   "type": "n8n-nodes-base.googleSheets",
+   "typeVersion": 4.5,
    "position": [
-    -200,
-    200
+    1980,
+    -180
    ],
-   "id": "50ce30ac-26de-4b8a-90d3-af587983c24c",
-   "webhookId": "e7e9c493-9a0e-4646-9c88-249e1b8c9a53"
+   "credentials": {
+    "googleSheetsOAuth2Api": {
+     "id": "S6pSxt1O96LflGWp",
+     "name": "Google Sheets account"
+    }
+   },
+   "id": "bef3e701-ad6f-441b-b973-661809b7f8ac"
+  },
+  {
+   "parameters": {
+    "operation": "append",
+    "documentId": {
+     "__rl": true,
+     "value": "1FkvCfEZv7Ni5SYJCuaEB7BubmwPs5D0laM0A9g4byF8",
+     "mode": "id"
+    },
+    "sheetName": {
+     "__rl": true,
+     "value": "TODO_ВКАЗАТИ_GID_ПІСЛЯ_СТВОРЕННЯ_АРКУША",
+     "mode": "id",
+     "cachedResultName": "Журнал автооновлень"
+    },
+    "columns": {
+     "mappingMode": "autoMapInputData",
+     "matchingColumns": [],
+     "schema": []
+    },
+    "options": {}
+   },
+   "name": "Запис логу (стоп)",
+   "type": "n8n-nodes-base.googleSheets",
+   "typeVersion": 4.5,
+   "position": [
+    1980,
+    -80
+   ],
+   "credentials": {
+    "googleSheetsOAuth2Api": {
+     "id": "S6pSxt1O96LflGWp",
+     "name": "Google Sheets account"
+    }
+   },
+   "id": "089993be-d6d6-49ff-a9e6-285038ec11dd"
+  },
+  {
+   "parameters": {
+    "errorType": "errorMessage",
+    "errorMessage": "={{ $json['Нове'] }}"
+   },
+   "name": "Стоп: 401 (events)",
+   "type": "n8n-nodes-base.stopAndError",
+   "typeVersion": 1,
+   "position": [
+    2200,
+    -80
+   ],
+   "id": "c41b822b-0a30-4e31-a1bc-fb59ebee9a02"
   }
  ],
  "connections": {
@@ -238,7 +529,69 @@
     ]
    ]
   },
+  "Ручний запуск": {
+   "main": [
+    [
+     {
+      "node": "Maersk Token",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
   "Maersk Token": {
+   "main": [
+    [
+     {
+      "node": "Токен дійсний?",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Токен дійсний?": {
+   "main": [
+    [
+     {
+      "node": "Читаємо Журнал",
+      "type": "main",
+      "index": 0
+     }
+    ],
+    [
+     {
+      "node": "Лог: 401 токен",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Лог: 401 токен": {
+   "main": [
+    [
+     {
+      "node": "Запис логу (401 токен)",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Запис логу (401 токен)": {
+   "main": [
+    [
+     {
+      "node": "Стоп: недійсний токен",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Читаємо Журнал": {
    "main": [
     [
      {
@@ -264,18 +617,25 @@
    "main": [
     [
      {
-      "node": "Maersk API",
+      "node": "Чи потрібен запит?",
       "type": "main",
       "index": 0
      }
     ]
    ]
   },
-  "Maersk API": {
+  "Чи потрібен запит?": {
    "main": [
     [
      {
       "node": "Розбір",
+      "type": "main",
+      "index": 0
+     }
+    ],
+    [
+     {
+      "node": "Запис у CRM",
       "type": "main",
       "index": 0
      }
@@ -286,18 +646,43 @@
    "main": [
     [
      {
-      "node": "Запис у CRM",
+      "node": "Маршрутизація Розбір",
       "type": "main",
       "index": 0
      }
     ]
    ]
   },
-  "Ручний запуск": {
+  "Маршрутизація Розбір": {
    "main": [
     [
      {
-      "node": "Maersk Token",
+      "node": "Запис у CRM",
+      "type": "main",
+      "index": 0
+     }
+    ],
+    [
+     {
+      "node": "Запис логу",
+      "type": "main",
+      "index": 0
+     }
+    ],
+    [
+     {
+      "node": "Запис логу (стоп)",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Запис логу (стоп)": {
+   "main": [
+    [
+     {
+      "node": "Стоп: 401 (events)",
       "type": "main",
       "index": 0
      }
