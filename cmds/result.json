@@ -1,7 +1,7 @@
 {
-  "stdout": "GET /webhook/crm-dashboard -> HTTP 200, bytes 270631\n<!DOCTYPE html><html lang=\"uk\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><meta http-equiv=\"refres\nGET /webhook/portal?t=probe-invalid -> HTTP 200, bytes 22151\n<!DOCTYPE html><html lang=\"uk\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><meta http-equiv=\"refres\nPOST /webhook/claude-sheets-proxy -> HTTP 404, bytes 363\n{\"code\":404,\"message\":\"The requested webhook \\\"POST claude-sheets-proxy\\\" is not registered.\",\"hint\":\"The workflow must be active for a production URL to run successfully. You can activate the workflo",
+  "stdout": "=== n8n reach (no key, expect 401 if reachable) ===\napi HTTP 401\n=== .env files present ===\nFOUND /root/Iryna_Karmazina/.env\n=== N8N key NAMES on VPS (names only, no values) ===\n=== has any N8N key? ===\nNO_KEY_ON_VPS\n",
   "stderr": "",
   "returncode": 0,
-  "id": "n8n-webhook-probe2-0706",
-  "ts": "2026-07-06T09:51:48Z"
+  "id": "n8n-vps-access-0706b",
+  "ts": "2026-07-06T16:40:16Z"
 }
