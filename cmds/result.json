@@ -1,7 +1,7 @@
 {
-  "stdout": "exec id 4466 | status success | finished True | started 2026-07-07T05:19:13\n  Maersk API -> помилка: False\n  Розбір -> помилка: False\n  Запис у CRM -> помилка: False\n  Розбір рядків: 121 | статуси: {'(без зміни)': 90, 'Завантажений на авто/потяг': 25, 'В морі': 6}\n   BL 264900732 | (без зміни) | ETA - | Судно -\n   BL 264909561 | (без зміни) | ETA - | Судно -\n   BL 261714468 | Завантажений на авто/потяг | ETA - | Судно -\n   BL 262362017 | Завантажений на авто/потяг | ETA 2026-03-03 | Судно MAERSK EINDHOVEN\n   BL 262190526 | Завантажений на авто/потяг | ETA 2026-02-15 | Судно JPO GEMINI\n   BL 263120787 | (без зміни) | ETA 2026-03-17 | Судно MAERSK SARAT\n   BL 261397724 | (без зміни) | ETA - | Судно -\n   BL 263902944 | Завантажений на авто/потяг | ETA 2026-03-14 | Судно JPO GEMINI\n   BL 265687470 | (без зміни) | ETA 2026-05-01 | Судно LAURA MAERSK \n   BL 263508304 | Завантажений на авто/потяг | ETA 2026-02-17 | Судно MAERSK NUBA\n",
-  "stderr": "",
-  "returncode": 0,
-  "id": "mk-inspect-run-0707",
-  "ts": "2026-07-07T05:22:02Z"
+  "stdout": "",
+  "stderr": "= self.parent.error(\n               ^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/urllib/request.py\", line 559, in error\n    return self._call_chain(*args)\n           ^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/urllib/request.py\", line 492, in _call_chain\n    result = func(*args)\n             ^^^^^^^^^^^\n  File \"/usr/lib/python3.12/urllib/request.py\", line 639, in http_error_default\n    raise HTTPError(req.full_url, code, msg, hdrs, fp)\nurllib.error.HTTPError: HTTP Error 404: Not Found\n",
+  "returncode": 1,
+  "id": "dash-sticky-0707",
+  "ts": "2026-07-07T05:31:29Z"
 }
