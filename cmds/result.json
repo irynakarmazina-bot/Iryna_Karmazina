@@ -1,7 +1,7 @@
 {
-  "stdout": "=== n8n reach (no key, expect 401 if reachable) ===\napi HTTP 401\n=== .env files present ===\nFOUND /root/Iryna_Karmazina/.env\n=== N8N key NAMES on VPS (names only, no values) ===\n=== has any N8N key? ===\nNO_KEY_ON_VPS\n",
+  "stdout": "auth HTTP: 200\ncount: 16\nON  1YdXnLFOXI85IsWv | CRM Дашборд (web)\noff 9TYcb0FgtNfQn1EQ | Container Tracking — Maersk\nON  FC3qzaxp5M89LpI7 | UNITEX Telegram Bot\nON  GGnGKrjyuCU3nrcC | Дайджест новин ліній (Claude)\nON  GIhQk0ETziCTYgTB | Довідка про транспортні витрати\nON  JQKA35haUsXU4XqE | Container Tracking — Maersk (CRM)\noff K46BPFQ4ws1pgRII | TEMP Sheets Proxy (Claude)\noff NkGnkXJYqXXLohtF | AI Health Assistant\nON  VGi9phda7zLZC9eD | CRM Клієнтська вітрина (web)\noff Zg8MJMYycdHUQJ98 | Monitor OEA0218983 — Email Alert\noff bB1o1593vdzL1Diy | Контроль прибуття — пошта (Claude)\nON  iJygxTPoeyRNijnQ | Monitor OEA0218983 — Email Alert\noff oVQAV2rB5l0kuBXO | Monitor OEA0218983 — Email Alert\nON  rEfN8GCZnDxpTmJ0 | My workflow\noff rGwJHfUdDtX59Nvl | My workflow 3\nON  zVlHFJCe0Afy0kMU | finrep-sheets-proxy\n",
   "stderr": "",
   "returncode": 0,
-  "id": "n8n-vps-access-0706b",
-  "ts": "2026-07-06T16:40:16Z"
+  "id": "n8n-auth-check-0707",
+  "ts": "2026-07-07T04:53:35Z"
 }
