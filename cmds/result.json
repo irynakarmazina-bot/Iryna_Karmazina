@@ -1,7 +1,7 @@
 {
-  "stdout": "backup bytes: 17452\npatched: True\nPUT 200\nactivate HTTP 200\nverify new-status present: True | old-status gone: True | active: True\n",
+  "stdout": "dashboard 1YdXnLFOXI85IsWv patched: 1 | PUT: 200 | activate: ok | verify: True | active: True\nportal VGi9phda7zLZC9eD patched: 1 | PUT: 200 | activate: ok | verify: True | active: True\n",
   "stderr": "",
   "returncode": 0,
-  "id": "mk-deploy-status-0707",
-  "ts": "2026-07-07T05:07:06Z"
+  "id": "web-colors-0707",
+  "ts": "2026-07-07T05:08:49Z"
 }
