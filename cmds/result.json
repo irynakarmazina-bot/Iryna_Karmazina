@@ -1,7 +1,7 @@
 {
-  "stdout": "",
-  "stderr": "= self.parent.error(\n               ^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/urllib/request.py\", line 559, in error\n    return self._call_chain(*args)\n           ^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/urllib/request.py\", line 492, in _call_chain\n    result = func(*args)\n             ^^^^^^^^^^^\n  File \"/usr/lib/python3.12/urllib/request.py\", line 639, in http_error_default\n    raise HTTPError(req.full_url, code, msg, hdrs, fp)\nurllib.error.HTTPError: HTTP Error 404: Not Found\n",
-  "returncode": 1,
-  "id": "dash-sticky3-0707",
-  "ts": "2026-07-07T05:36:43Z"
+  "stdout": "th=1 scroll=1\npatched: True\nPUT 200\nactivate ok\nverify sticky: True | active: True\n",
+  "stderr": "",
+  "returncode": 0,
+  "id": "dash-sticky4-0707",
+  "ts": "2026-07-07T05:38:03Z"
 }
