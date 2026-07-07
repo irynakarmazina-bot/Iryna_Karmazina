@@ -1,7 +1,7 @@
 {
-  "stdout": "dashboard 1YdXnLFOXI85IsWv patched: 1 | PUT: 200 | activate: ok | verify: True | active: True\nportal VGi9phda7zLZC9eD patched: 1 | PUT: 200 | activate: ok | verify: True | active: True\n",
-  "stderr": "",
-  "returncode": 0,
-  "id": "web-colors-0707",
-  "ts": "2026-07-07T05:08:49Z"
+  "stdout": "",
+  "stderr": "Timeout (120s)",
+  "returncode": -1,
+  "id": "mk-testrun-0707",
+  "ts": "2026-07-07T05:21:13Z"
 }
