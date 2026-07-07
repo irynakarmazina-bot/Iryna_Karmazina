@@ -1,7 +1,7 @@
 {
-  "stdout": "code node Guard | env-refs: [] | uses token check: True\ncode node BuildRequest | env-refs: [] | uses token check: False\nHTTP node: HTTP\n  authentication: predefinedCredentialType\n  nodeCredentialType: googleSheetsOAuth2Api\n  method: ={{ $json.method }}\n  cred googleSheetsOAuth2Api -> id S6pSxt1O96LflGWp name Google Sheets account\n--- .env var NAMES (no values) ---\nANTHROPIC_API_KEY\nGITHUB_TOKEN\nN8N_API_KEY\nRDP_PASSWORD\nTELEGRAM_BOT_TOKEN\n",
+  "stdout": "backup bytes: 17452\npatched: True\nPUT 200\nactivate HTTP 200\nverify new-status present: True | old-status gone: True | active: True\n",
   "stderr": "",
   "returncode": 0,
-  "id": "n8n-proxy-contract-0707",
-  "ts": "2026-07-07T04:59:38Z"
+  "id": "mk-deploy-status-0707",
+  "ts": "2026-07-07T05:07:06Z"
 }
