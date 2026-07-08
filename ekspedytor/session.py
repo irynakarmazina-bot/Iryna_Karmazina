@@ -53,6 +53,15 @@ class RDPSession:
         )
         time.sleep(3)
 
+        # Віконний менеджер — щоб вікно xfreerdp було «видимим» і сервер
+        # не вимикав оновлення екрана (Suppress Output), + коректний фокус.
+        wm_env = {**os.environ, "DISPLAY": DISPLAY}
+        self._wm = subprocess.Popen(
+            ["openbox"], env=wm_env,
+            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+        )
+        time.sleep(2)
+
         env = {
             **os.environ,
             "DISPLAY": DISPLAY,
@@ -111,7 +120,7 @@ class RDPSession:
             pass
 
     def stop(self):
-        for proc in (self._rdp, self._xvfb):
+        for proc in (self._rdp, getattr(self, "_wm", None), self._xvfb):
             if proc:
                 proc.terminate()
                 try:
