@@ -1,7 +1,7 @@
 {
-  "stdout": "1_desktop: 53672b md5=feb256ce upload=201\n2_after_winkey: 53672b md5=feb256ce upload=201\n3_after_dblclick: 53672b md5=feb256ce upload=201\n4_wait15: 53672b md5=feb256ce upload=201\n5_wait35: 53672b md5=feb256ce upload=201\n6_wait55: 53672b md5=feb256ce upload=201\nmouse: x:37 y:342 screen:0 window:2097153\n---proc---\n165418 /bin/sh -c cat /root/eks_run/diag.log 2>/dev/null; echo \"---proc---\"; pgrep -af ekspedytor.diag || echo FINISHED\n",
+  "stdout": "launched pid 165485\n",
   "stderr": "",
   "returncode": 0,
-  "id": "eks-polldiag-1",
-  "ts": "2026-07-08T17:33:26Z"
+  "id": "eks-diag-2",
+  "ts": "2026-07-08T17:36:16Z"
 }
