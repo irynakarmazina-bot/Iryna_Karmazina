@@ -1,7 +1,7 @@
 {
-  "stdout": "=== tools ===\nxfreerdp: OK /usr/bin/xfreerdp\nXvfb: OK /usr/bin/Xvfb\nxdotool: OK /usr/bin/xdotool\nscrot: OK /usr/bin/scrot\nimport: OK /usr/bin/import\nxclip: OK /usr/bin/xclip\n=== env keys (наявність, без значень) ===\nRDP_HOST: MISSING\nRDP_USER: MISSING\nRDP_PASSWORD: SET\nANTHROPIC_API_KEY: SET\n=== python deps ===\nopenpyxl: MISSING\nanthropic: MISSING\n=== TCP reach 1C ===\nTCP unitex.rdport.net:31230 OK\n",
+  "stdout": "PY=venv/bin/python\nexec /root/Iryna_Karmazina/venv/bin/python\nanthropic 0.100.0\nopenpyxl 3.1.5\n--- ExecStart ---\nExecStart={ path=/root/Iryna_Karmazina/venv/bin/python ; argv[]=/root/Iryna_Karmazina/venv/bin/python /root/Iryna_Karmazina/agent_bot.py ; ignore_errors=no ; start_time=[Wed 2026-07-08 06:33:14 UTC] ; stop_time=[n/a] ; pid=152667 ; code=(null) ; status=0/0 }\n",
   "stderr": "",
   "returncode": 0,
-  "id": "eks-probe-0708",
-  "ts": "2026-07-08T17:06:44Z"
+  "id": "eks-setup-0708",
+  "ts": "2026-07-08T17:08:19Z"
 }
