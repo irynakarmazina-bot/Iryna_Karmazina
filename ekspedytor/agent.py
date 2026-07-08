@@ -1,7 +1,17 @@
 """
-Computer vision agent for Ekspeditor — batch income invoice processing.
-Uses regular Claude vision (images in messages) instead of Computer Use API.
-Claude analyzes each screenshot and returns a single structured action.
+Комп'ютерний агент для Експедитора — рознесення витратних рахунків Маерска.
+
+Джерело даних — Excel-таблиця (див. invoices.py), НЕ PDF.
+Для кожного рядка: знайти угоду за BL → вкладка «Рахунки» → перевірити дубль
+(номер рахунку в коментарі витратного) → створити витратний рахунок і заповнити
+постачальника / суму / валюту / коментар. Статтю НЕ чіпаємо (проставляється вручну).
+
+Режими (mode):
+  dry-run  — тільки знайти угоду й прочитати наявні витратні; НІЧОГО не створює
+  create   — реально створює витратний рахунок
+
+Claude бачить скріншоти (через API) і повертає ОДНУ дію за крок.
+Прогрес пишеться у JSON-файл (progress_path), щоб його можна було читати ззовні.
 """
 import base64
 import json
@@ -12,71 +22,75 @@ from pathlib import Path
 import anthropic
 from dotenv import load_dotenv
 
+from .invoices import read_invoices
 from .session import RDPSession
 
 load_dotenv()
 
-_NOMENCLATURE_FILE = Path(__file__).parent / "nomenclature.json"
-_nomenclature_raw = json.loads(_NOMENCLATURE_FILE.read_text(encoding="utf-8"))
-NOMENCLATURE_MAPPINGS = _nomenclature_raw["mappings"]
+SUPPLIER = "Maersk A/S"          # постачальник для демереджних рахунків Маерска
+MAX_STEPS_PER_INVOICE = 60       # запобіжник від зациклення на одному рахунку
 
 
-def _mapping_table() -> str:
-    lines = []
-    for m in NOMENCLATURE_MAPPINGS:
-        keywords = " / ".join(m["match"][:3])
-        lines.append(f'  - «{keywords}...» → «{m["ekspedytor"]}»')
-    return "\n".join(lines)
-
-
-AGENT_SYSTEM = f"""Ти — агент управління Windows комп'ютером через скріншоти.
-Екран: 1920x1080 пікселів. Ти отримуєш скріншот + задачу + лог дій.
-Твоя відповідь — ТІЛЬКИ ОДИН рядок, без пояснень.
-
-ФОРМАТ ВІДПОВІДІ:
+def _action_protocol() -> str:
+    return """ФОРМАТ ВІДПОВІДІ — ТІЛЬКИ ОДИН РЯДОК, без пояснень:
 ACTION: left_click X Y          — лівий клік (X,Y — центр елемента)
 ACTION: double_click X Y        — подвійний клік
 ACTION: right_click X Y         — правий клік
-ACTION: type ТЕКСТ              — ввести текст (все після «type » — текст)
-ACTION: key KEYNAME             — клавіша: Return, Escape, Tab, Delete, BackSpace,
-                                   ctrl+v, ctrl+a, ctrl+z, alt+F4, F5
-ACTION: scroll X Y down N       — прокрутка вниз N разів
-ACTION: scroll X Y up N         — прокрутка вгору N разів
-DONE: повідомлення              — задача повністю виконана
-ERROR: причина                  — неможливо продовжити
+ACTION: type ТЕКСТ              — ввести текст (усе після «type » — текст)
+ACTION: key KEYNAME             — клавіша: Return, Escape, Tab, Delete, BackSpace, ctrl+a, ctrl+v, F5
+ACTION: scroll X Y down N       — прокрутка вниз N разів (або up)
+DONE: <статус> | <деталі>       — задача по ЦЬОМУ рахунку завершена
+ERROR: <причина>                — неможливо продовжити (опиши, що на екрані)"""
+
+
+def system_prompt(mode: str) -> str:
+    create_block = (
+        "═══ РЕЖИМ: СТВОРЕННЯ ═══\n"
+        "Якщо дубля НЕМАЄ — створи витратний рахунок:\n"
+        "  1. Натисни «+» ЗЛІВА ВІД НИЖНЬОЇ таблиці (витратні)\n"
+        "  2. Постачальник → обери зі списку ТОЧНО «Maersk A/S»\n"
+        "  3. Сума → введи суму з задачі\n"
+        "  4. Валюта → обери валюту з задачі (напр. USD)\n"
+        "  5. Коментар → встав номер рахунку Маерска з задачі\n"
+        "  6. Статтю НЕ чіпай (лишається порожня)\n"
+        "  7. «Записати» → «ОК»\n"
+        "  8. DONE: СТВОРЕНО | угода <№>, сума <...> <валюта>\n"
+        if mode == "create" else
+        "═══ РЕЖИМ: СУХА ПРОГОНКА (нічого не створювати!) ═══\n"
+        "НІЧОГО не створюй, не тисни «+», не редагуй. Тільки знайди й прочитай.\n"
+        "Коли зайшов у вкладку «Рахунки» й побачив нижню (витратну) таблицю:\n"
+        "  - якщо серед витратних Є рядок з цим номером рахунку в коментарі →\n"
+        "    DONE: ДУБЛЬ | угода <№>, рахунок вже заведено\n"
+        "  - якщо такого рахунку немає →\n"
+        "    DONE: ГОТОВО_ДО_СТВОРЕННЯ | угода <№>, витратних рядків: <скільки бачиш>\n"
+    )
+
+    return f"""Ти — агент керування Windows-комп'ютером (1С «Експедитор») через скріншоти.
+Екран 1920x1080. Отримуєш скріншот + задачу по ОДНОМУ рахунку + лог дій.
+
+{_action_protocol()}
 
 ═══ ПРАВИЛА БЕЗПЕКИ ═══
-- Відкривай ТІЛЬКИ угоду по знайденому контейнеру
-- НЕ видаляй і НЕ переміщуй нічого крім: перемісти оброблений PDF у підпапку «Готово»
-- НЕ редагуй існуючі рахунки
-- Перевіряй дублі перед створенням
+- Працюй ТІЛЬКИ з угодою, знайденою за вказаним BL.
+- НЕ видаляй, НЕ переміщуй, НЕ редагуй існуючі рахунки.
+- Перед створенням ЗАВЖДИ перевіряй дубль (номер рахунку в коментарях витратних).
+- Сумніваєшся, що на екрані — краще ERROR з описом, ніж навмання.
 
 ═══ НАВІГАЦІЯ В ЕКСПЕДИТОРІ ═══
-- Головний екран → клікни «Угоди» в лівому нижньому блоці «Журнали та обробки»
-- Список угод: поле «Контейнер» (вгорі праворуч, мітка «містить») → введи номер → Enter
-- Відкрити угоду: подвійний клік по рядку
-- Вкладки угоди: Загальна інформація | Рахунки | Файли | ...
-- Вкладка «Рахунки»: верхня таблиця = доходні, нижня = витратні
-- Перевірка дублів: подивись чи є вже рядки у верхній таблиці
-- Додати доходний рахунок: «+» зліва від ВЕРХНЬОЇ таблиці
-- Форма рахунку: заповни рядки послуг і суми з PDF → «Записати» → «ОК»
+- Головний екран → блок «Журнали та обробки» (лівий низ) → «Угоди».
+- Список угод: знайди поле фільтра для номера коносамента (BL) → введи BL → Enter.
+  (Поле може називатись «BL», «Коносамент», «Bill of lading» або бути у панелі відбору.)
+- Відкрити угоду: подвійний клік по знайденому рядку.
+- У картці угоди — вкладка «Рахунки». Там ДВІ таблиці:
+    ВЕРХНЯ = доходні рахунки, НИЖНЯ = витратні рахунки.
+- Нас цікавить ТІЛЬКИ НИЖНЯ (витратна) таблиця.
+- Дубль: у нижній таблиці подивись колонку «Коментар» — чи є там номер нашого рахунку.
 
-═══ ЯК ЧИТАТИ PDF ═══
-- Шукай рядок «Контейнер:» — після нього номер (4 літери + 7 цифр, напр. MRKU2048060)
-- Таблиця «Товари (роботи, послуги)» — кожен рядок: опис послуги + сума
-- Рядок «Всього:» — загальна сума для перевірки
-- «Рахунок на оплату № X від дата» — номер рахунку (→ поле «Номер О»)
+{create_block}
+═══ ЯКЩО УГОДУ ЗА BL НЕ ЗНАЙДЕНО ═══
+DONE: НЕ_ЗНАЙДЕНО | угоди за BL немає
 
-═══ ТАБЛИЦЯ ВІДПОВІДНОСТІ НОМЕНКЛАТУРИ ═══
-{_mapping_table()}
-  - якщо немає відповідності → залиш поле «Стаття» порожнім, введи правильну суму
-
-═══ ФОРМАТ ЗВІТУ (у DONE) ═══
-ОБРОБЛЕНО: N файлів
-УСПІШНО: назва.pdf → угода №XXXXX, рахунок на [сума] UAH
-ДУБЛІ: назва.pdf (вже існує)
-ПОМИЛКИ: назва.pdf → причина
-"""
+Відповідай СТРОГО одним рядком: ACTION: / DONE: / ERROR:"""
 
 
 class EkspedytorAgent:
@@ -88,90 +102,107 @@ class EkspedytorAgent:
             password=os.environ["RDP_PASSWORD"],
         )
 
-    def process_folder(self, folder_name: str) -> str:
+    # ── Публічний вхід ────────────────────────────────────────────────────────
+
+    def process_invoices(self, xlsx_path: str, mode: str = "dry-run",
+                         limit: int | None = None, only_bl: str | None = None,
+                         progress_path: str | None = None) -> str:
+        invoices = read_invoices(xlsx_path)
+        if only_bl:
+            invoices = [i for i in invoices if i["bl"] == only_bl]
+        if limit:
+            invoices = invoices[:limit]
+
+        if not invoices:
+            return "ПОМИЛКА: немає рахунків для обробки (перевір BL/ліміт/файл)"
+
+        progress = {
+            "mode": mode, "total": len(invoices), "done": 0,
+            "started": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+            "results": [], "finished": False,
+        }
+        self._write_progress(progress_path, progress)
+
         try:
             self.session.start()
-            return self._agent_loop(folder_name)
+            for inv in invoices:
+                res = self._process_one(inv, mode)
+                progress["results"].append(res)
+                progress["done"] = len(progress["results"])
+                self._write_progress(progress_path, progress)
         except Exception as e:
-            return f"ПОМИЛКА: {e}"
+            progress["error"] = str(e)
         finally:
             self.session.stop()
+            progress["finished"] = True
+            progress["ended"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+            self._write_progress(progress_path, progress)
 
-    def _screenshot_b64(self) -> str:
-        return base64.standard_b64encode(self.session.screenshot()).decode()
+        return self._format_report(progress)
 
-    def _agent_loop(self, folder_name: str) -> str:
+    # ── Обробка одного рахунку ────────────────────────────────────────────────
+
+    def _process_one(self, inv: dict, mode: str) -> dict:
         task = (
-            f"Обробити всі PDF рахунки у папці «{folder_name}» на Робочому столі.\n"
-            "1. Відкрий папку → для кожного PDF: відкрий, прочитай контейнер і суми, закрий\n"
-            "2. Знайди угоду в Експедиторі → перевір дублі → створи доходний рахунок\n"
-            "3. Перемісти PDF у підпапку «Готово» → перейди до наступного\n"
-            "4. Після всіх файлів → DONE з повним звітом"
+            f"Рахунок Маерска для рознесення:\n"
+            f"  BL (коносамент): {inv['bl']}\n"
+            f"  Номер рахунку (у коментар): {inv['invoice_number']}\n"
+            f"  Постачальник: {SUPPLIER}\n"
+            f"  Сума: {inv['amount']}\n"
+            f"  Валюта: {inv['currency']}\n"
+            f"Знайди угоду за BL, відкрий вкладку «Рахунки», працюй з НИЖНЬОЮ (витратною) таблицею."
         )
-        action_log = []
+        action_log: list[str] = []
+        result_text = "ERROR: не завершено (ліміт кроків)"
 
-        for step in range(200):
-            screenshot = self._screenshot_b64()
-            recent = "\n".join(action_log[-20:]) or "Початок роботи."
-
-            messages = [
-                {
-                    "role": "user",
-                    "content": [
-                        {
-                            "type": "image",
-                            "source": {
-                                "type": "base64",
-                                "media_type": "image/png",
-                                "data": screenshot,
-                            },
-                        },
-                        {
-                            "type": "text",
-                            "text": (
-                                f"ЗАДАЧА: {task}\n\n"
-                                f"ВИКОНАНІ ДІЇ ({len(action_log)} кроків):\n{recent}\n\n"
-                                "Що зараз на екрані? Яка наступна дія?\n"
-                                "Відповідай ТІЛЬКИ одним рядком: ACTION: або DONE: або ERROR:"
-                            ),
-                        },
-                    ],
-                }
-            ]
-
+        for step in range(MAX_STEPS_PER_INVOICE):
+            screenshot = base64.standard_b64encode(self.session.screenshot()).decode()
+            recent = "\n".join(action_log[-15:]) or "Початок роботи."
+            messages = [{
+                "role": "user",
+                "content": [
+                    {"type": "image", "source": {"type": "base64",
+                     "media_type": "image/png", "data": screenshot}},
+                    {"type": "text", "text": (
+                        f"ЗАДАЧА:\n{task}\n\n"
+                        f"ВИКОНАНІ ДІЇ ({len(action_log)}):\n{recent}\n\n"
+                        "Що на екрані? Наступна дія — одним рядком.")},
+                ],
+            }]
             response = self.client.messages.create(
-                model="claude-opus-4-8",
-                max_tokens=256,
-                system=AGENT_SYSTEM,
-                messages=messages,
+                model="claude-opus-4-8", max_tokens=256,
+                system=system_prompt(mode), messages=messages,
             )
-
-            text = next(
-                (b.text.strip() for b in response.content if hasattr(b, "text")), ""
-            )
+            text = next((b.text.strip() for b in response.content
+                         if hasattr(b, "text")), "")
 
             if text.startswith("DONE:"):
-                return text[5:].strip()
+                result_text = text[5:].strip()
+                break
             if text.startswith("ERROR:"):
-                return f"ПОМИЛКА: {text[6:].strip()}"
-
+                result_text = "ERROR: " + text[6:].strip()
+                break
             if text.startswith("ACTION:"):
                 action_str = text[7:].strip()
                 action_log.append(f"[{step}] {action_str}")
                 self._execute(action_str)
                 time.sleep(1.2)
             else:
-                # Unexpected response — log and continue
-                action_log.append(f"[{step}] (відповідь без дії) {text[:80]}")
+                action_log.append(f"[{step}] (без дії) {text[:80]}")
 
-        return "ПОМИЛКА: досягнуто ліміт 200 кроків"
+        return {
+            "bl": inv["bl"], "invoice_number": inv["invoice_number"],
+            "amount": inv["amount"], "currency": inv["currency"],
+            "steps": len(action_log), "result": result_text,
+        }
+
+    # ── Виконання дій на екрані ───────────────────────────────────────────────
 
     def _execute(self, action_str: str):
         parts = action_str.split(None, 4)
         if not parts:
             return
         verb = parts[0].lower()
-
         try:
             if verb in ("left_click", "click") and len(parts) >= 3:
                 self.session.click(int(parts[1]), int(parts[2]))
@@ -184,8 +215,25 @@ class EkspedytorAgent:
             elif verb == "key" and len(parts) >= 2:
                 self.session.key(parts[1])
             elif verb == "scroll" and len(parts) >= 5:
-                self.session.scroll(
-                    int(parts[1]), int(parts[2]), parts[3], int(parts[4])
-                )
+                self.session.scroll(int(parts[1]), int(parts[2]), parts[3], int(parts[4]))
         except (ValueError, IndexError):
             pass
+
+    # ── Прогрес і звіт ────────────────────────────────────────────────────────
+
+    @staticmethod
+    def _write_progress(path: str | None, progress: dict):
+        if not path:
+            return
+        Path(path).write_text(
+            json.dumps(progress, ensure_ascii=False, indent=2), encoding="utf-8")
+
+    @staticmethod
+    def _format_report(progress: dict) -> str:
+        lines = [f"РЕЖИМ: {progress['mode']} | оброблено {progress['done']}/{progress['total']}"]
+        for r in progress["results"]:
+            lines.append(f"  BL {r['bl']} (рах. {r['invoice_number']}): "
+                         f"{r['result']}  [{r['steps']} кроків]")
+        if progress.get("error"):
+            lines.append(f"ЗБІЙ СЕСІЇ: {progress['error']}")
+        return "\n".join(lines)
