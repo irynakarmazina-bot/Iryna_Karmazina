@@ -1,7 +1,7 @@
 {
-  "stdout": "PY=venv/bin/python\nexec /root/Iryna_Karmazina/venv/bin/python\nanthropic 0.100.0\nopenpyxl 3.1.5\n--- ExecStart ---\nExecStart={ path=/root/Iryna_Karmazina/venv/bin/python ; argv[]=/root/Iryna_Karmazina/venv/bin/python /root/Iryna_Karmazina/agent_bot.py ; ignore_errors=no ; start_time=[Wed 2026-07-08 06:33:14 UTC] ; stop_time=[n/a] ; pid=152667 ; code=(null) ; status=0/0 }\n",
+  "stdout": "FILES:\ntotal 48\ndrwxrwxr-x 2 root root  4096 Jul  8 17:13 .\ndrwxr-xr-x 3 root root  4096 Jul  8 17:15 ..\n-rw-rw-r-- 1 root root     0 Jul  8 17:13 __init__.py\n-rw-rw-r-- 1 root root 13249 Jul  8 17:13 agent.py\n-rw-rw-r-- 1 root root  4824 Jul  8 17:13 invoices.py\n-rw-rw-r-- 1 root root  2888 Jul  8 17:13 nomenclature.json\n-rw-rw-r-- 1 root root  1935 Jul  8 17:13 run.py\n-rw-rw-r-- 1 root root  8021 Jul  8 17:13 session.py\nIMPORT:\nimport OK\nREAD:\nЗнайдено рахунків: 13\n  BL 263120787 | рах. 5653672740 | DEM-INV | 282,10 USD | 22-06-2026\n  BL 263902944 | рах. 5653672820 | DEM-INV | 281,83 USD | 22-06-2026\n",
   "stderr": "",
   "returncode": 0,
-  "id": "eks-setup-0708",
-  "ts": "2026-07-08T17:08:19Z"
+  "id": "eks-deploy-0708",
+  "ts": "2026-07-08T17:15:04Z"
 }
