@@ -1,7 +1,7 @@
 {
-  "stdout": "FILES:\ntotal 48\ndrwxrwxr-x 2 root root  4096 Jul  8 17:13 .\ndrwxr-xr-x 3 root root  4096 Jul  8 17:15 ..\n-rw-rw-r-- 1 root root     0 Jul  8 17:13 __init__.py\n-rw-rw-r-- 1 root root 13249 Jul  8 17:13 agent.py\n-rw-rw-r-- 1 root root  4824 Jul  8 17:13 invoices.py\n-rw-rw-r-- 1 root root  2888 Jul  8 17:13 nomenclature.json\n-rw-rw-r-- 1 root root  1935 Jul  8 17:13 run.py\n-rw-rw-r-- 1 root root  8021 Jul  8 17:13 session.py\nIMPORT:\nimport OK\nREAD:\nЗнайдено рахунків: 13\n  BL 263120787 | рах. 5653672740 | DEM-INV | 282,10 USD | 22-06-2026\n  BL 263902944 | рах. 5653672820 | DEM-INV | 281,83 USD | 22-06-2026\n",
+  "stdout": "launched pid 164826\n--- progress ---\n{\n  \"mode\": \"dry-run\",\n  \"total\": 1,\n  \"done\": 0,\n  \"started\": \"2026-07-08T17:16:09Z\",\n  \"results\": [],\n  \"finished\": false\n}--- early log ---\n",
   "stderr": "",
   "returncode": 0,
-  "id": "eks-deploy-0708",
-  "ts": "2026-07-08T17:15:04Z"
+  "id": "eks-dry-263120787",
+  "ts": "2026-07-08T17:16:11Z"
 }
