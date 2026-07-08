@@ -1,7 +1,7 @@
 {
-  "stdout": "created 4XMpsWUqI93DBeyy\nRESULT: {\"reverted\":13,\"deals\":[166,167,211,215,228,229,230,231,232,233,234,239,240]}\ndeleted\n",
+  "stdout": "created vxqCyZjIz1qr1aNJ\nRESULT: \ndeleted\n",
   "stderr": "",
   "returncode": 0,
   "id": "revert-deliv-0707",
-  "ts": "2026-07-07T06:44:44Z"
+  "ts": "2026-07-08T06:33:22Z"
 }
