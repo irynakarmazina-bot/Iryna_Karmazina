@@ -1,1 +1,1 @@
-{"id": "eks-pexp-1", "cmd": "cat /root/eks_run/exp.log 2>/dev/null; echo \"---proc---\"; pgrep -af ekspedytor.experiment || echo FINISHED"}
+{"id": "eks-inst-openbox", "cmd": "apt-get update -qq 2>&1 | tail -2; DEBIAN_FRONTEND=noninteractive apt-get install -y -qq openbox 2>&1 | tail -4; echo '---'; which openbox && echo OPENBOX_OK || echo OPENBOX_FAIL"}
