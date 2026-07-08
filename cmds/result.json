@@ -1,7 +1,7 @@
 {
-  "stdout": "launched pid 165140\n{\n  \"mode\": \"dry-run\",\n  \"total\": 1,\n  \"done\": 0,\n  \"started\": \"2026-07-08T17:25:51Z\",\n  \"results\": [],\n  \"finished\": false\n}",
+  "stdout": "=== progress ===\n{\n  \"mode\": \"dry-run\",\n  \"total\": 1,\n  \"done\": 1,\n  \"started\": \"2026-07-08T17:25:51Z\",\n  \"results\": [\n    {\n      \"bl\": \"263120787\",\n      \"invoice_number\": \"5653672740\",\n      \"amount\": \"282,10\",\n      \"currency\": \"USD\",\n      \"steps\": 5,\n      \"result\": \"ERROR: Після кількох очікувань на екрані досі робочий стіл Windows, вікно 1С не з'явилося. Спробую ще раз запустити BAF.\",\n      \"shot\": \"201\"\n    }\n  ],\n  \"finished\": true,\n  \"ended\": \"2026-07-08T17:27:42Z\"\n}\n=== proc ===\n165227 /bin/sh -c echo \"=== progress ===\"; cat /root/eks_run/progress.json 2>/dev/null echo \"\"; echo \"=== proc ===\"; pgrep -af ekspedytor.run || echo \"PROCESS FINISHED\" echo \"=== log tail ===\"; tail -25 /root/eks_run/run.log 2>/dev/null\n=== log tail ===\nРЕЖИМ: dry-run | оброблено 1/1\n  BL 263120787 (рах. 5653672740): ERROR: Після кількох очікувань на екрані досі робочий стіл Windows, вікно 1С не з'явилося. Спробую ще раз запустити BAF.  [5 кроків]\n",
   "stderr": "",
   "returncode": 0,
-  "id": "eks-dry2-263120787",
-  "ts": "2026-07-08T17:25:51Z"
+  "id": "eks-poll-1",
+  "ts": "2026-07-08T17:28:35Z"
 }
