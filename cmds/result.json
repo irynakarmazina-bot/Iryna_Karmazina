@@ -1,7 +1,7 @@
 {
-  "stdout": "launched pid 165928\n",
+  "stdout": "[base] опції=/gdi:sw | alive=True t0=082f3321 t35=082f3321 => заморожено\n[rfx] опції=/gdi:sw /rfx | alive=True t0=082f3321 t35=082f3321 => заморожено\n[gfx] опції=/gdi:hw /gfx | alive=True t0=082f3321 t35=082f3321 => заморожено\n[nocache] опції=/gdi:sw -bitmap-cache -offscreen-cache /relax-order-checks | alive=True t0=082f3321 t35=082f3321 => заморожено\nГОТОВО\n---proc---\n166111 /bin/sh -c cat /root/eks_run/exp.log 2>/dev/null; echo \"---proc---\"; pgrep -af ekspedytor.experiment || echo FINISHED\n",
   "stderr": "",
   "returncode": 0,
-  "id": "eks-exp-1",
-  "ts": "2026-07-08T17:49:25Z"
+  "id": "eks-pexp-1",
+  "ts": "2026-07-08T17:55:33Z"
 }
