@@ -1,7 +1,7 @@
 {
-  "stdout": "\nNo user sessions are running outdated binaries.\n\nNo VM guests are running outdated hypervisor (qemu) binaries on this host.\n---\n/usr/bin/openbox\nOPENBOX_OK\n",
+  "stdout": "launched pid 166716\n",
   "stderr": "",
   "returncode": 0,
-  "id": "eks-inst-openbox",
-  "ts": "2026-07-08T17:57:14Z"
+  "id": "eks-diag-5",
+  "ts": "2026-07-08T17:58:34Z"
 }
