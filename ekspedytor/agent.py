@@ -22,6 +22,7 @@ from pathlib import Path
 import anthropic
 from dotenv import load_dotenv
 
+from .debug import upload_debug
 from .invoices import read_invoices
 from .session import RDPSession
 
@@ -39,6 +40,7 @@ ACTION: right_click X Y         — правий клік
 ACTION: type ТЕКСТ              — ввести текст (усе після «type » — текст)
 ACTION: key KEYNAME             — клавіша: Return, Escape, Tab, Delete, BackSpace, ctrl+a, ctrl+v, F5
 ACTION: scroll X Y down N       — прокрутка вниз N разів (або up)
+ACTION: wait N                  — зачекати N секунд (для повільного завантаження 1С)
 DONE: <статус> | <деталі>       — задача по ЦЬОМУ рахунку завершена
 ERROR: <причина>                — неможливо продовжити (опиши, що на екрані)"""
 
@@ -75,6 +77,17 @@ def system_prompt(mode: str) -> str:
 - НЕ видаляй, НЕ переміщуй, НЕ редагуй існуючі рахунки.
 - Перед створенням ЗАВЖДИ перевіряй дубль (номер рахунку в коментарях витратних).
 - Сумніваєшся, що на екрані — краще ERROR з описом, ніж навмання.
+
+═══ ЗАПУСК 1С (спочатку!) ═══
+Після входу ти бачиш РОБОЧИЙ СТІЛ Windows — 1С ЩЕ НЕ ВІДКРИТА.
+1. Знайди у ЛІВОМУ ВЕРХНЬОМУ куті ЖОВТУ круглу іконку з символом «∞» і підписом «BAF»
+   (приблизно X=37 Y=342) — це і є 1С «Експедитор».
+2. Подвійний клік по «BAF».
+3. 1С запускається ПОВІЛЬНО (20–60 сек): може бути заставка, порожнє або біле вікно.
+   Це НЕ помилка. Роби «ACTION: wait 15» і дивись знову — повторюй, доки не побачиш
+   ГОЛОВНЕ ВІКНО 1С (меню зверху, розділи/журнали).
+4. Тільки якщо після ~6 разів «wait 15» (≈90 сек) вікна 1С немає — ERROR з описом екрана.
+Якщо 1С вже відкрита (видно вікно програми) — нічого не запускай, працюй у ній.
 
 ═══ НАВІГАЦІЯ В ЕКСПЕДИТОРІ ═══
 - Головний екран → блок «Журнали та обробки» (лівий низ) → «Угоди».
@@ -154,9 +167,11 @@ class EkspedytorAgent:
         )
         action_log: list[str] = []
         result_text = "ERROR: не завершено (ліміт кроків)"
+        last_raw = b""
 
         for step in range(MAX_STEPS_PER_INVOICE):
-            screenshot = base64.standard_b64encode(self.session.screenshot()).decode()
+            last_raw = self.session.screenshot()
+            screenshot = base64.standard_b64encode(last_raw).decode()
             recent = "\n".join(action_log[-15:]) or "Початок роботи."
             messages = [{
                 "role": "user",
@@ -190,10 +205,14 @@ class EkspedytorAgent:
             else:
                 action_log.append(f"[{step}] (без дії) {text[:80]}")
 
+        # Вивантажити останній екран цього рахунку — щоб бачити, де зупинились
+        shot_status = upload_debug(f"bl_{inv['bl']}_last.png", last_raw) if last_raw else "no-shot"
+
         return {
             "bl": inv["bl"], "invoice_number": inv["invoice_number"],
             "amount": inv["amount"], "currency": inv["currency"],
             "steps": len(action_log), "result": result_text,
+            "shot": shot_status,
         }
 
     # ── Виконання дій на екрані ───────────────────────────────────────────────
@@ -216,6 +235,8 @@ class EkspedytorAgent:
                 self.session.key(parts[1])
             elif verb == "scroll" and len(parts) >= 5:
                 self.session.scroll(int(parts[1]), int(parts[2]), parts[3], int(parts[4]))
+            elif verb == "wait" and len(parts) >= 2:
+                time.sleep(min(int(parts[1]), 20))  # стеля 20 сек на один крок
         except (ValueError, IndexError):
             pass
 
