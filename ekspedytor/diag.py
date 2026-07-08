@@ -45,6 +45,9 @@ def main():
         password=os.environ["RDP_PASSWORD"],
     )
     try:
+        print("=== xfreerdp версія ===", flush=True)
+        print(subprocess.run(["xfreerdp", "--version"], capture_output=True,
+                             text=True).stdout.strip()[:200], flush=True)
         s.start()
         print("=== xfreerdp процес ===", flush=True)
         print(sh("pgrep", "-af", "xfreerdp") or "НЕ ПРАЦЮЄ", flush=True)
@@ -64,11 +67,12 @@ def main():
         time.sleep(20)
         snap(s, "3_after_baf")
 
-        print("=== лог xfreerdp (/tmp/eks_rdp.log) ===", flush=True)
-        try:
-            print(open("/tmp/eks_rdp.log").read()[-2500:], flush=True)
-        except Exception as e:
-            print("лог недоступний:", e, flush=True)
+        for logf in ("/tmp/eks_rdp.log", "/tmp/eks_rdp_stdout.log"):
+            print(f"=== {logf} ===", flush=True)
+            try:
+                print(open(logf).read()[-2000:], flush=True)
+            except Exception as e:
+                print("недоступний:", e, flush=True)
     finally:
         s.stop()
 

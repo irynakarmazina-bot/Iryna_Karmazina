@@ -53,8 +53,16 @@ class RDPSession:
         )
         time.sleep(3)
 
-        env = {**os.environ, "DISPLAY": DISPLAY}
-        self._rdplog = open("/tmp/eks_rdp.log", "w")
+        env = {
+            **os.environ,
+            "DISPLAY": DISPLAY,
+            # WLOG у файл — щоб бачити перебіг зʼєднання xfreerdp
+            "WLOG_APPENDER": "FILE",
+            "WLOG_LEVEL": "INFO",
+            "WLOG_FILEAPPENDER_OUTPUT_FILE_PATH": "/tmp",
+            "WLOG_FILEAPPENDER_OUTPUT_FILE_NAME": "eks_rdp.log",
+        }
+        self._rdplog = open("/tmp/eks_rdp_stdout.log", "w")
         self._rdp = subprocess.Popen(
             [
                 "xfreerdp",
@@ -63,7 +71,8 @@ class RDPSession:
                 f"/p:{self.password}",
                 "/w:1920", "/h:1080",
                 "/bpp:24",
-                "-grab-keyboard",       # не захоплювати клавіатуру монопольно
+                "/gdi:sw",               # програмний GDI — рендер у зчитуваний буфер
+                "-grab-keyboard",        # не захоплювати клавіатуру монопольно
                 "-themes",
                 "-wallpaper",
                 "/cert:ignore",
