@@ -1,7 +1,7 @@
 {
-  "stdout": "shot bytes: 53672\nupload status: 201\n",
+  "stdout": "launched pid 165140\n{\n  \"mode\": \"dry-run\",\n  \"total\": 1,\n  \"done\": 0,\n  \"started\": \"2026-07-08T17:25:51Z\",\n  \"results\": [],\n  \"finished\": false\n}",
   "stderr": "",
   "returncode": 0,
-  "id": "eks-shot-1",
-  "ts": "2026-07-08T17:21:09Z"
+  "id": "eks-dry2-263120787",
+  "ts": "2026-07-08T17:25:51Z"
 }
