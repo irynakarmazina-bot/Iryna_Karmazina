@@ -1,7 +1,7 @@
 {
-  "stdout": "launched pid 166716\n",
+  "stdout": "=== віконні менеджери ===\n  openbox: /usr/bin/openbox\n  fluxbox: -\n  metacity: -\n  matchbox-window-manager: -\n  icewm: -\n  twm: -\n  xfwm4: -\n=== ПАСИВНИЙ ТЕСТ: 70 сек без вводу, чи цокає годинник ===\npassive_t0: md5=feb256ce\npassive_t35: md5=feb256ce\npassive_t70: md5=feb256ce\nекран живий (кадри різні)? НІ — заморожений\n=== фокус ===\nfocused window: 4194305\n=== хвіст логу xfreerdp ===\n[17:58:43:748] [166724:166725] [INFO][com.freerdp.gdi] - Local framebuffer format  PIXEL_FORMAT_BGRX32\n[17:58:43:748] [166724:166725] [INFO][com.freerdp.gdi] - Remote framebuffer format PIXEL_FORMAT_RGB16\n[17:58:43:780] [166724:166725] [INFO][com.freerdp.channels.rdpsnd.client] - [static] Loaded fake backend for rdpsnd\n\n---proc---\n166795 /bin/sh -c cat /root/eks_run/diag.log 2>/dev/null; echo \"---proc---\"; pgrep -af ekspedytor.diag || echo FINISHED\n",
   "stderr": "",
   "returncode": 0,
-  "id": "eks-diag-5",
-  "ts": "2026-07-08T17:58:34Z"
+  "id": "eks-pd-5",
+  "ts": "2026-07-08T18:01:13Z"
 }
