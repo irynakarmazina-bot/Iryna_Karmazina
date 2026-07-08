@@ -1,7 +1,7 @@
 {
-  "stdout": "launched pid 165485\n",
+  "stdout": "=== xfreerdp процес ===\n165490 xfreerdp /v:unitex.rdport.net:31230 /u:karmazina.i /p:********** /w:1920 /h:1080 /bpp:24 -grab-keyboard -themes -wallpaper /cert:ignore /log-level:INFO\n=== вікна у Xvfb ===\nвікон знайдено: 2\n  win 543: '' | Window 543   Position: 0,0 (screen: 0)   Geometry: 1920x1080\n  win 2097153: 'FreeRDP: unitex.rdport.net:31230' | Window 2097153   Position: 0,0 (screen: 0)   Geometry: 1920x1080\n1_start: md5=feb256ce upload=201\n2_winkey: md5=feb256ce upload=201\n3_after_baf: md5=feb256ce upload=201\n=== лог xfreerdp (/tmp/eks_rdp.log) ===\n\n---proc---\n165580 /bin/sh -c cat /root/eks_run/diag.log 2>/dev/null; echo \"---proc---\"; pgrep -af ekspedytor.diag || echo FINISHED\n",
   "stderr": "",
   "returncode": 0,
-  "id": "eks-diag-2",
-  "ts": "2026-07-08T17:36:16Z"
+  "id": "eks-polldiag-2",
+  "ts": "2026-07-08T17:38:12Z"
 }
