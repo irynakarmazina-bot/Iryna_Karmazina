@@ -54,6 +54,7 @@ class RDPSession:
         time.sleep(3)
 
         env = {**os.environ, "DISPLAY": DISPLAY}
+        self._rdplog = open("/tmp/eks_rdp.log", "w")
         self._rdp = subprocess.Popen(
             [
                 "xfreerdp",
@@ -61,21 +62,44 @@ class RDPSession:
                 f"/u:{self.user}",
                 f"/p:{self.password}",
                 "/w:1920", "/h:1080",
-                "/bpp:32",
+                "/bpp:24",
+                "-grab-keyboard",       # не захоплювати клавіатуру монопольно
                 "-themes",
                 "-wallpaper",
                 "/cert:ignore",
-                "/log-level:ERROR",
+                "/log-level:INFO",
             ],
             env=env,
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
+            stdout=self._rdplog,
+            stderr=subprocess.STDOUT,
         )
         # Wait for NLA auth + Windows desktop to fully render
         time.sleep(30)
-        # Wake up screen
+        # Дати вікну xfreerdp фокус (без WM ввід інакше не доходить)
+        self._focus_rdp_window(env)
         subprocess.run(["xdotool", "mousemove", "960", "540"], env=env, capture_output=True)
         time.sleep(3)
+
+    def _focus_rdp_window(self, env):
+        """Знайти вікно xfreerdp і активувати його, щоб приймало ввід."""
+        try:
+            out = subprocess.run(
+                ["xdotool", "search", "--name", "FreeRDP"],
+                env=env, capture_output=True, text=True,
+            ).stdout.split()
+            if not out:
+                out = subprocess.run(
+                    ["xdotool", "search", "--name", self.host.split(":")[0]],
+                    env=env, capture_output=True, text=True,
+                ).stdout.split()
+            if out:
+                wid = out[0]
+                subprocess.run(["xdotool", "windowactivate", "--sync", wid],
+                               env=env, capture_output=True)
+                subprocess.run(["xdotool", "windowfocus", wid],
+                               env=env, capture_output=True)
+        except Exception:
+            pass
 
     def stop(self):
         for proc in (self._rdp, self._xvfb):
@@ -85,6 +109,11 @@ class RDPSession:
                     proc.wait(timeout=5)
                 except subprocess.TimeoutExpired:
                     proc.kill()
+        if getattr(self, "_rdplog", None):
+            try:
+                self._rdplog.close()
+            except Exception:
+                pass
 
     # ── Screenshots ──────────────────────────────────────────────────────────
 
