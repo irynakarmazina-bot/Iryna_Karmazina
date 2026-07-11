@@ -1,7 +1,7 @@
 {
-  "stdout": "uploader_id 9ou75lamxrV4fR9J\nWEBHOOK_RESP \nEXEC status error | lastNode Copy convert\nEXEC_ERROR The resource you are requesting could not be found\n  NODE Webhook -> ok {'headers': {'host': 'irynakarmazina.app.n8n.cloud', 'user-agent': 'vps', 'content-length': '2', 'accept-encoding': 'gzi\n  NODE GitHub docx -> ok {'headers': {'host': 'irynakarmazina.app.n8n.cloud', 'user-agent': 'vps', 'content-length': '2', 'accept-encoding': 'gzi\n  NODE Upload media -> ok {'id': '1DSZYsim9Sd-JE203lnRq0kBoJZ4hs7u6'}\n  NODE Copy convert -> ERR:The resource you are requesting could not be found \ndeleted_uploader\n",
+  "stdout": "uploader_id AXfWmMejhxCpWz7c\nWEBHOOK_RESP {\"id\":\"111phWZYtRk5eJpYeaKaHWQaRprxlmYDc2wzN_lHiUAQ\",\"name\":\"Шаблон CMR (автозаповнення)\",\"mimeType\":\"application/vnd.google-apps.document\",\"webViewLink\":\"https://docs.google.com/document/d/111phWZYtRk5eJpYeaKaHWQaRprxlmYDc2wzN_lHiUAQ/edit?usp=drivesdk\",\"owners\":[{\"emailAddress\":\"unitex.automation@gmail.com\"}]}\ndeleted_uploader\n",
   "stderr": "",
   "returncode": 0,
-  "id": "cmr-tpl-upload-3",
-  "ts": "2026-07-11T14:21:39Z"
+  "id": "cmr-tpl-upload-4",
+  "ts": "2026-07-11T14:24:36Z"
 }
