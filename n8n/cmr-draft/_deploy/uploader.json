@@ -39,11 +39,11 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "=https://www.googleapis.com/drive/v3/files/{{ $json.id }}/copy?fields=id&supportsAllDrives=true",
+        "url": "=https://www.googleapis.com/drive/v3/files/{{ $json.id }}/copy?fields=id,name,mimeType,webViewLink,owners(emailAddress)&supportsAllDrives=true",
         "authentication": "predefinedCredentialType",
         "nodeCredentialType": "googleDriveOAuth2Api",
         "sendBody": true, "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ name: 'Шаблон CMR (автозаповнення)', parents: ['1dEXAqPEzbH-UwXuBP3IaSOOopKvDuybg'], mimeType: 'application/vnd.google-apps.document' }) }}",
+        "jsonBody": "={{ JSON.stringify({ name: 'Шаблон CMR (автозаповнення)', mimeType: 'application/vnd.google-apps.document' }) }}",
         "options": {}
       },
       "id": "conv", "name": "Copy convert", "type": "n8n-nodes-base.httpRequest", "typeVersion": 4.2, "position": [860, 300],
@@ -63,7 +63,7 @@
     {
       "parameters": {
         "respondWith": "json",
-        "responseBody": "={{ JSON.stringify({ docId: $('Copy convert').item.json.id }) }}",
+        "responseBody": "={{ JSON.stringify($('Copy convert').item.json) }}",
         "options": {}
       },
       "id": "resp", "name": "Respond", "type": "n8n-nodes-base.respondToWebhook", "typeVersion": 1, "position": [1300, 300]
