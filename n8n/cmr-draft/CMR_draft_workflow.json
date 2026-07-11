@@ -5,11 +5,10 @@
       "parameters": {
         "mailbox": "INBOX",
         "postProcessAction": "read",
-        "format": "simple",
+        "format": "resolved",
         "options": {
           "allowUnauthorizedCerts": false,
-          "unseen": true,
-          "downloadAttachments": true
+          "unseen": true
         }
       },
       "id": "trigger",
