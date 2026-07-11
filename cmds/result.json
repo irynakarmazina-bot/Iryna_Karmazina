@@ -1,7 +1,7 @@
 {
-  "stdout": "UPDATED main active=False\nCLEANUP {\"ok\":true}\ncleanup_wf_deleted\n",
+  "stdout": "=== exec 4970 status error mode manual last Підготовка даних\n   NODE IMAP — новий лист | items 1 | binary [] | err None\n      IMAP json keys: ['textHtml', 'textPlain', 'metadata', 'attributes', 'date', 'subject', 'from', 'to']\n       textPlain -> \n\nЗ повагою / Best regards\n\nIryna Karmazina\nDirector  |  Unitex HD LLC\n[+3\n   NODE Тема містить CMR/ЦМР | items 1 | binary [] | err None\n   NODE Підготовка даних | items 0 | binary [] | err У листі немає PDF-вкладень. [line 13]\n",
   "stderr": "",
   "returncode": 0,
-  "id": "cmr-final-1",
-  "ts": "2026-07-11T14:40:57Z"
+  "id": "cmr-diag-imap-1",
+  "ts": "2026-07-11T14:54:42Z"
 }
