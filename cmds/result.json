@@ -1,7 +1,7 @@
 {
-  "stdout": "### Довідка про транспортні витрати\n  HDR None = None\n  HDR anthropic-version = 2023-06-01\n   const MODEL = 'claude-opus-4-7';\n   model: MODEL,\n   max_tokens: 2500,\n   json: { body, model_used: MODEL },\n### Дайджест новин ліній (Claude)\n   const payload={model:'claude-sonnet-4-6',max_tokens:1000,system:sys,messages:[{role:'user',content:'ВІД: '+from+'\\nТЕМА: '+subject+'\\nДАТА: \n  HDR anthropic-version = 2023-06-01\n",
+  "stdout": "wid TZNegLsLgl8Z0WeE\nRESP \nEXEC last claude err Bad request - please check your parameters | desc messages.0.content.0.document.source.base64: Invalid base64 data\ndeleted\n",
   "stderr": "",
   "returncode": 0,
-  "id": "cmr-claude-model-1",
-  "ts": "2026-07-11T14:34:22Z"
+  "id": "cmr-test-2",
+  "ts": "2026-07-11T14:35:35Z"
 }
