@@ -1,7 +1,7 @@
 {
-  "stdout": "wid uwszdic9I7iGZDyP\nRESP {\"folderId\":\"1Bkgug6m99cdCKeJSF8cVmRjkdpWoniSJ\",\"placeholders\":[\"{{sender}}\",\"{{receiver}}\",\"{{port}}\",\"{{invoice}}\",\"{{container}}\",\"{{weight}}\",\"{{truck}}\",\"{{trailer}}\"]}\ndeleted\n",
+  "stdout": "UPDATED id=mVC0K0ymEiB6DuiT active=False name=CMR draft — автоматизація Unitex\n",
   "stderr": "",
   "returncode": 0,
-  "id": "cmr-setup-1",
-  "ts": "2026-07-11T14:26:21Z"
+  "id": "cmr-n8n-update-1",
+  "ts": "2026-07-11T14:27:10Z"
 }
