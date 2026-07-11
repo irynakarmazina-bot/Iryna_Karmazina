@@ -1,7 +1,7 @@
 {
-  "stdout": "WF_COUNT 16\n1YdXnLFOXI85IsWv | True | CRM Дашборд (web)\n9TYcb0FgtNfQn1EQ | False | Container Tracking — Maersk\nFC3qzaxp5M89LpI7 | True | UNITEX Telegram Bot\nGGnGKrjyuCU3nrcC | True | Дайджест новин ліній (Claude)\nGIhQk0ETziCTYgTB | True | Довідка про транспортні витрати\nJQKA35haUsXU4XqE | True | Container Tracking — Maersk (CRM)\nK46BPFQ4ws1pgRII | False | TEMP Sheets Proxy (Claude)\nNkGnkXJYqXXLohtF | False | AI Health Assistant\nVGi9phda7zLZC9eD | True | CRM Клієнтська вітрина (web)\nZg8MJMYycdHUQJ98 | False | Monitor OEA0218983 — Email Alert\nbB1o1593vdzL1Diy | False | Контроль прибуття — пошта (Claude)\niJygxTPoeyRNijnQ | True | Monitor OEA0218983 — Email Alert\noVQAV2rB5l0kuBXO | False | Monitor OEA0218983 — Email Alert\nrEfN8GCZnDxpTmJ0 | True | My workflow\nrGwJHfUdDtX59Nvl | False | My workflow 3\nzVlHFJCe0Afy0kMU | True | finrep-sheets-proxy\n",
+  "stdout": "imap | kW24ZrmT1XnVuRpA | IMAP account\nanthropicApi | S4WsLWJw1fpDwXqf | Anthropic account\ngoogleSheetsOAuth2Api | S6pSxt1O96LflGWp | Google Sheets account\nsmtp | IRHmy9RLt9AtxQFS | SMTP account\ntelegramApi | pYRC0nXK01Rf8vYv | UNITEX Bot\ngoogleDriveOAuth2Api | 2GWpYd58b4gHSUPi | Google Drive account\n",
   "stderr": "",
   "returncode": 0,
-  "id": "cmr-n8n-list-1",
-  "ts": "2026-07-11T14:03:05Z"
+  "id": "cmr-n8n-creds-1",
+  "ts": "2026-07-11T14:04:23Z"
 }
