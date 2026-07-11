@@ -1,7 +1,7 @@
 {
-  "stdout": "wid Hd1ItdfHigg3GsiK\nRESP \nEXEC last fill err invalid syntax | desc None\ndeleted\n",
+  "stdout": "wid seeyAKBSPaEQE3pz\nRESP {\"parsed\":{\"container\":\"MRSU0348306\",\"sender\":\"LOTTE CHEMICAL CORPORATION, 56, GOSAN-RO, UIWANG-SI 16073, GYEONGGI-DO, REPUBLIC OF KOREA\",\"receiver\":\"OTIS TARDA LTD, 12-A AUTOTRANSPORTNAYA STR., 49089 DNIPRO, UKRAINE\",\"port\":\"GDANSK, POLAND\",\"weight\":\"18,129.600 KGS\",\"invoice\":\"9000241479\",\"truck\":\"ФС1234\",\"trailer\":\"ВТ5678\"},\"docId\":\"1kSalUAU9vmkcPae5jAKdYrn_cksNowa0C4LbOk1OB9Y\",\"leftoverPlaceholders\":[]}\ndeleted\n",
   "stderr": "",
   "returncode": 0,
-  "id": "cmr-test-3",
-  "ts": "2026-07-11T14:37:38Z"
+  "id": "cmr-test-4",
+  "ts": "2026-07-11T14:39:19Z"
 }
