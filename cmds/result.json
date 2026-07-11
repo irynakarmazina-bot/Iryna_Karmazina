@@ -1,7 +1,7 @@
 {
-  "stdout": "wid TZNegLsLgl8Z0WeE\nRESP \nEXEC last claude err Bad request - please check your parameters | desc messages.0.content.0.document.source.base64: Invalid base64 data\ndeleted\n",
+  "stdout": "wid Hd1ItdfHigg3GsiK\nRESP \nEXEC last fill err invalid syntax | desc None\ndeleted\n",
   "stderr": "",
   "returncode": 0,
-  "id": "cmr-test-2",
-  "ts": "2026-07-11T14:35:35Z"
+  "id": "cmr-test-3",
+  "ts": "2026-07-11T14:37:38Z"
 }
