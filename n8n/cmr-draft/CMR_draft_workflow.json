@@ -106,7 +106,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Розбирає JSON Claude, формує поля і назву файлу.\nconst resp = $input.item.json;\nlet text = '';\nif (resp.content && Array.isArray(resp.content)) text = resp.content.map(c => c.text || '').join('');\nelse text = (resp.text || '').toString();\ntext = text.replace(/```json/gi,'').replace(/```/g,'').trim();\nlet data = {};\ntry { data = JSON.parse(text); } catch(e){ const mm=text.match(/\\{[\\s\\S]*\\}/); if(mm) data=JSON.parse(mm[0]); }\n\nconst prep = $('Підготовка даних').item.json;\nconst container = (data.container||'').toString().trim();\nconst receiver = (data.receiver||'').toString().trim();\nconst receiverShort = receiver.split(/[,\\n]/)[0].trim();\n\nreturn [{ json: {\n  container,\n  sender: (data.sender||'').toString().trim(),\n  receiver,\n  port: (data.port||'').toString().trim(),\n  weight: (data.weight||'').toString().trim(),\n  invoice: (data.invoice||'').toString().trim(),\n  truck: prep.truck||'', trailer: prep.trailer||'',\n  docTitle: 'CMR draft №'+container+' '+receiverShort,\n  from: prep.from, cc: prep.cc, subject: prep.subject\n}}];\n"
+        "jsCode": "const resp=$input.item.json;\nlet text=(resp.content&&Array.isArray(resp.content))?resp.content.map(c=>c.text||'').join(''):(resp.text||'').toString();\ntext=text.replace(/```json/gi,'').replace(/```/g,'').trim();\nlet data={};try{data=JSON.parse(text);}catch(e){const mm=text.match(/\\{[\\s\\S]*\\}/);if(mm)data=JSON.parse(mm[0]);}\nconst prep=$('Підготовка даних').item.json;\nconst container=(data.container||'').toString().trim();\nconst sender=(data.sender||'').toString().trim();\nconst receiver=(data.receiver||'').toString().trim();\nconst port=(data.port||'').toString().trim();\nconst weight=(data.weight||'').toString().trim();\nconst invoice=(data.invoice||'').toString().trim();\nconst truck=prep.truck||'';const trailer=prep.trailer||'';\nconst receiverShort=receiver.split(/[,\\n]/)[0].trim();\nconst docTitle='CMR draft №'+container+' '+receiverShort;\n  const ph=[['{{'+'sender}}',sender],['{{'+'receiver}}',receiver],['{{'+'port}}',port],['{{'+'invoice}}',invoice],['{{'+'container}}',container],['{{'+'weight}}',weight],['{{'+'truck}}',truck],['{{'+'trailer}}',trailer]];\n  const docsBody={requests:ph.map(p=>({replaceAllText:{containsText:{text:p[0],matchCase:true},replaceText:String(p[1]||'')}}))};\nreturn [{json:{container,sender,receiver,port,weight,invoice,truck,trailer,docTitle,docsBody,from:prep.from,cc:prep.cc,subject:prep.subject}}];\n"
       },
       "id": "parse",
       "name": "Розбір JSON",
@@ -155,7 +155,7 @@
         "nodeCredentialType": "googleDriveOAuth2Api",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ requests: [ ['{{sender}}', $('Розбір JSON').item.json.sender], ['{{receiver}}', $('Розбір JSON').item.json.receiver], ['{{port}}', $('Розбір JSON').item.json.port], ['{{invoice}}', $('Розбір JSON').item.json.invoice], ['{{container}}', $('Розбір JSON').item.json.container], ['{{weight}}', $('Розбір JSON').item.json.weight], ['{{truck}}', $('Розбір JSON').item.json.truck], ['{{trailer}}', $('Розбір JSON').item.json.trailer] ].map(p => ({ replaceAllText: { containsText: { text: p[0], matchCase: true }, replaceText: String(p[1] || '') } })) }) }}",
+        "jsonBody": "={{ JSON.stringify($('Розбір JSON').item.json.docsBody) }}",
         "options": {}
       },
       "id": "fill",

@@ -105,7 +105,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const resp=$input.item.json;\nlet text=(resp.content&&Array.isArray(resp.content))?resp.content.map(c=>c.text||'').join(''):(resp.text||'');\ntext=text.replace(/```json/gi,'').replace(/```/g,'').trim();\nlet data={};try{data=JSON.parse(text);}catch(e){const m=text.match(/\\{[\\s\\S]*\\}/);if(m)data=JSON.parse(m[0]);}\nconst p=$('prep').item.json;\nconst container=(data.container||'').toString().trim();\nconst receiver=(data.receiver||'').toString().trim();\nreturn [{json:{container,sender:(data.sender||'').trim(),receiver,port:(data.port||'').trim(),weight:(data.weight||'').trim(),invoice:(data.invoice||'').trim(),truck:p.truck,trailer:p.trailer,docTitle:'CMR draft №'+container+' '+receiver.split(/[,\\n]/)[0].trim()}}];"
+        "jsCode": "const resp=$input.item.json;\nlet text=(resp.content&&Array.isArray(resp.content))?resp.content.map(c=>c.text||'').join(''):(resp.text||'').toString();\ntext=text.replace(/```json/gi,'').replace(/```/g,'').trim();\nlet data={};try{data=JSON.parse(text);}catch(e){const m=text.match(/\\{[\\s\\S]*\\}/);if(m)data=JSON.parse(m[0]);}\nconst p=$('prep').item.json;\nconst container=(data.container||'').toString().trim();\nconst sender=(data.sender||'').toString().trim();\nconst receiver=(data.receiver||'').toString().trim();\nconst port=(data.port||'').toString().trim();\nconst weight=(data.weight||'').toString().trim();\nconst invoice=(data.invoice||'').toString().trim();\nconst truck=p.truck;const trailer=p.trailer;\nconst docTitle='CMR draft №'+container+' '+receiver.split(/[,\\n]/)[0].trim();\n  const ph=[['{{'+'sender}}',sender],['{{'+'receiver}}',receiver],['{{'+'port}}',port],['{{'+'invoice}}',invoice],['{{'+'container}}',container],['{{'+'weight}}',weight],['{{'+'truck}}',truck],['{{'+'trailer}}',trailer]];\n  const docsBody={requests:ph.map(p=>({replaceAllText:{containsText:{text:p[0],matchCase:true},replaceText:String(p[1]||'')}}))};\nreturn [{json:{container,sender,receiver,port,weight,invoice,truck,trailer,docTitle,docsBody}}];\n"
       },
       "id": "parse",
       "name": "parse",
@@ -154,7 +154,7 @@
         "nodeCredentialType": "googleDriveOAuth2Api",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ requests: [ ['{{sender}}', $('parse').item.json.sender], ['{{receiver}}', $('parse').item.json.receiver], ['{{port}}', $('parse').item.json.port], ['{{invoice}}', $('parse').item.json.invoice], ['{{container}}', $('parse').item.json.container], ['{{weight}}', $('parse').item.json.weight], ['{{truck}}', $('parse').item.json.truck], ['{{trailer}}', $('parse').item.json.trailer] ].map(p => ({ replaceAllText: { containsText: { text: p[0], matchCase: true }, replaceText: String(p[1]||'') } })) }) }}",
+        "jsonBody": "={{ JSON.stringify($('parse').item.json.docsBody) }}",
         "options": {}
       },
       "id": "fill",
