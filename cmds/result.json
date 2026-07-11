@@ -1,7 +1,7 @@
 {
-  "stdout": "imap | kW24ZrmT1XnVuRpA | IMAP account\nanthropicApi | S4WsLWJw1fpDwXqf | Anthropic account\ngoogleSheetsOAuth2Api | S6pSxt1O96LflGWp | Google Sheets account\nsmtp | IRHmy9RLt9AtxQFS | SMTP account\ntelegramApi | pYRC0nXK01Rf8vYv | UNITEX Bot\ngoogleDriveOAuth2Api | 2GWpYd58b4gHSUPi | Google Drive account\n",
+  "stdout": "CREATED id=mVC0K0ymEiB6DuiT active=False name=CMR draft — автоматизація Unitex\n",
   "stderr": "",
   "returncode": 0,
-  "id": "cmr-n8n-creds-1",
-  "ts": "2026-07-11T14:04:23Z"
+  "id": "cmr-n8n-deploy-1",
+  "ts": "2026-07-11T14:12:18Z"
 }
