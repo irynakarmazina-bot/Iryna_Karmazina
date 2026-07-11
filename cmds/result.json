@@ -1,7 +1,7 @@
 {
-  "stdout": "### WF bB1o1593vdzL1Diy Контроль прибуття — пошта (Claude)\n  NODE n8n-nodes-base.emailReadImap | tv 2 | {\"mailbox\": \"INBOX\", \"format\": \"simple\", \"options\": {\"allowUnauthorizedCerts\": false}, \"postProcessAction\": \"nothing\"}\n  NODE n8n-nodes-base.emailSend | tv 2.1 | {\"fromEmail\": \"i.karmazina@unitex.od.ua\", \"toEmail\": \"i.karmazina@unitex.od.ua\", \"options\": {}, \"emailFormat\": \"html\"}\n### WF iJygxTPoeyRNijnQ Monitor OEA0218983 — Email Alert\n  NODE n8n-nodes-base.emailReadImap | tv 2 | {\"mailbox\": \"INBOX\", \"format\": \"simple\", \"options\": {\"allowUnauthorizedCerts\": false, \"unseen\": true}}\n  NODE n8n-nodes-base.emailSend | tv 2.1 | {\"fromEmail\": \"i.karmazina@unitex.od.ua\", \"toEmail\": \"irynakarmazina@gmail.com\"}\n### WF Zg8MJMYycdHUQJ98 Monitor OEA0218983 — Email Alert\n  NODE n8n-nodes-base.emailReadImap | tv 2 | {\"mailbox\": \"INBOX\", \"format\": \"simple\", \"options\": {\"allowUnauthorizedCerts\": false, \"unseen\": true}}\n  NODE n8n-nodes-base.emailSend | tv 2.1 | {\"fromEmail\": \"i.karmazina@unitex.od.ua\", \"toEmail\": \"irynakarmazina@gmail.com\"}\n",
+  "stdout": "uploader_id uhIXdpDIAQvqouFo\nactivate_err 415 {\"message\":\"unsupported media type application/x-www-form-urlencoded\"}\nwebhook_err 404 {\"code\":404,\"message\":\"The requested webhook \\\"POST cmr-tpl-up\\\" is not registered.\",\"hint\":\"The workflow must be active for a production URL to run successfully. You can activate the workflow using the toggle in the top-right of the editor. Note that unlike test URL calls, production URL calls aren't shown on the canvas (only in the executions list)\"}\ndeleted_uploader\n",
   "stderr": "",
   "returncode": 0,
-  "id": "cmr-n8n-emailcfg-1",
-  "ts": "2026-07-11T14:14:13Z"
+  "id": "cmr-tpl-upload-1",
+  "ts": "2026-07-11T14:17:22Z"
 }
