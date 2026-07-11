@@ -1,7 +1,7 @@
 {
-  "stdout": "wid 8oIMFQ9ezQi4uQ5S\nRESP \nEXEC last claude err Bad request - please check your parameters\ndeleted\n",
+  "stdout": "Дайджест новин ліній (Claude) | n8n-nodes-base.code | model= None | url= \nДайджест новин ліній (Claude) | n8n-nodes-base.httpRequest | model= None | url= https://api.anthropic.com/v1/messages\nКонтроль прибуття — пошта (Claude) | n8n-nodes-base.code | model= None | url= \nКонтроль прибуття — пошта (Claude) | n8n-nodes-base.httpRequest | model= None | url= https://api.anthropic.com/v1/messages\nКонтроль прибуття — пошта (Claude) | n8n-nodes-base.code | model= None | url= \nДовідка про транспортні витрати | n8n-nodes-base.httpRequest | model= None | url= https://api.anthropic.com/v1/messages\nДовідка про транспортні витрати | n8n-nodes-base.code | model= None | url= \n",
   "stderr": "",
   "returncode": 0,
-  "id": "cmr-test-1",
-  "ts": "2026-07-11T14:32:55Z"
+  "id": "cmr-claude-cfg-1",
+  "ts": "2026-07-11T14:33:39Z"
 }
