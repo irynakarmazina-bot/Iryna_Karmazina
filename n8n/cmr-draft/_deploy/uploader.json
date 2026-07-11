@@ -1,0 +1,113 @@
+{
+  "name": "TEMP CMR template uploader",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "cmr-tpl-up",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "wh",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [200, 300]
+    },
+    {
+      "parameters": {
+        "url": "https://api.github.com/repos/irynakarmazina-bot/Iryna_Karmazina/contents/n8n/cmr-draft/CMR_template.docx?ref=claude/n8n-cmr-draft-automation-8tdhbk",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "token GH_TOKEN_PLACEHOLDER" },
+            { "name": "Accept", "value": "application/vnd.github.raw" },
+            { "name": "User-Agent", "value": "n8n" }
+          ]
+        },
+        "options": {
+          "response": { "response": { "responseFormat": "file", "outputPropertyName": "data" } }
+        }
+      },
+      "id": "ghget",
+      "name": "GitHub docx",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [420, 300]
+    },
+    {
+      "parameters": {
+        "name": "CMR_template_raw.docx",
+        "driveId": { "__rl": true, "mode": "list", "value": "My Drive" },
+        "folderId": { "__rl": true, "mode": "id", "value": "1dEXAqPEzbH-UwXuBP3IaSOOopKvDuybg" },
+        "inputDataFieldName": "data",
+        "options": {}
+      },
+      "id": "up",
+      "name": "Drive upload raw",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [640, 300],
+      "credentials": {
+        "googleDriveOAuth2Api": { "id": "2GWpYd58b4gHSUPi", "name": "Google Drive account" }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://www.googleapis.com/drive/v3/files/{{ $json.id }}/copy?fields=id&supportsAllDrives=true",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleDriveOAuth2Api",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ name: 'Шаблон CMR (автозаповнення)', parents: ['1dEXAqPEzbH-UwXuBP3IaSOOopKvDuybg'], mimeType: 'application/vnd.google-apps.document' }) }}",
+        "options": {}
+      },
+      "id": "conv",
+      "name": "Copy convert to GDoc",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [860, 300],
+      "credentials": {
+        "googleDriveOAuth2Api": { "id": "2GWpYd58b4gHSUPi", "name": "Google Drive account" }
+      }
+    },
+    {
+      "parameters": {
+        "method": "DELETE",
+        "url": "=https://www.googleapis.com/drive/v3/files/{{ $('Drive upload raw').item.json.id }}?supportsAllDrives=true",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleDriveOAuth2Api",
+        "options": {}
+      },
+      "id": "del",
+      "name": "Delete raw docx",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1080, 300],
+      "credentials": {
+        "googleDriveOAuth2Api": { "id": "2GWpYd58b4gHSUPi", "name": "Google Drive account" }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ docId: $('Copy convert to GDoc').item.json.id }) }}",
+        "options": {}
+      },
+      "id": "resp",
+      "name": "Respond",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1300, 300]
+    }
+  ],
+  "connections": {
+    "Webhook": { "main": [[{ "node": "GitHub docx", "type": "main", "index": 0 }]] },
+    "GitHub docx": { "main": [[{ "node": "Drive upload raw", "type": "main", "index": 0 }]] },
+    "Drive upload raw": { "main": [[{ "node": "Copy convert to GDoc", "type": "main", "index": 0 }]] },
+    "Copy convert to GDoc": { "main": [[{ "node": "Delete raw docx", "type": "main", "index": 0 }]] },
+    "Delete raw docx": { "main": [[{ "node": "Respond", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" }
+}
