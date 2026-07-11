@@ -1,7 +1,7 @@
 {
-  "stdout": "=== віконні менеджери ===\n  openbox: /usr/bin/openbox\n  fluxbox: -\n  metacity: -\n  matchbox-window-manager: -\n  icewm: -\n  twm: -\n  xfwm4: -\n=== ПАСИВНИЙ ТЕСТ: 70 сек без вводу, чи цокає годинник ===\npassive_t0: md5=feb256ce\npassive_t35: md5=feb256ce\npassive_t70: md5=feb256ce\nекран живий (кадри різні)? НІ — заморожений\n=== фокус ===\nfocused window: 4194305\n=== хвіст логу xfreerdp ===\n[17:58:43:748] [166724:166725] [INFO][com.freerdp.gdi] - Local framebuffer format  PIXEL_FORMAT_BGRX32\n[17:58:43:748] [166724:166725] [INFO][com.freerdp.gdi] - Remote framebuffer format PIXEL_FORMAT_RGB16\n[17:58:43:780] [166724:166725] [INFO][com.freerdp.channels.rdpsnd.client] - [static] Loaded fake backend for rdpsnd\n\n---proc---\n166795 /bin/sh -c cat /root/eks_run/diag.log 2>/dev/null; echo \"---proc---\"; pgrep -af ekspedytor.diag || echo FINISHED\n",
+  "stdout": "WF_COUNT 16\n1YdXnLFOXI85IsWv | True | CRM Дашборд (web)\n9TYcb0FgtNfQn1EQ | False | Container Tracking — Maersk\nFC3qzaxp5M89LpI7 | True | UNITEX Telegram Bot\nGGnGKrjyuCU3nrcC | True | Дайджест новин ліній (Claude)\nGIhQk0ETziCTYgTB | True | Довідка про транспортні витрати\nJQKA35haUsXU4XqE | True | Container Tracking — Maersk (CRM)\nK46BPFQ4ws1pgRII | False | TEMP Sheets Proxy (Claude)\nNkGnkXJYqXXLohtF | False | AI Health Assistant\nVGi9phda7zLZC9eD | True | CRM Клієнтська вітрина (web)\nZg8MJMYycdHUQJ98 | False | Monitor OEA0218983 — Email Alert\nbB1o1593vdzL1Diy | False | Контроль прибуття — пошта (Claude)\niJygxTPoeyRNijnQ | True | Monitor OEA0218983 — Email Alert\noVQAV2rB5l0kuBXO | False | Monitor OEA0218983 — Email Alert\nrEfN8GCZnDxpTmJ0 | True | My workflow\nrGwJHfUdDtX59Nvl | False | My workflow 3\nzVlHFJCe0Afy0kMU | True | finrep-sheets-proxy\n",
   "stderr": "",
   "returncode": 0,
-  "id": "eks-pd-5",
-  "ts": "2026-07-08T18:01:13Z"
+  "id": "cmr-n8n-list-1",
+  "ts": "2026-07-11T14:03:05Z"
 }
