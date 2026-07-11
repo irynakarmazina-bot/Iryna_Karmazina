@@ -3,62 +3,64 @@
   "nodes": [
     {
       "parameters": {
-        "content": "## CMR draft — автоматизація\n\n**Що робить:** лист із темою, що містить CMR/ЦМР → парсить коносамент+інвойс через Claude → заповнює шаблон ЦМР у Google Docs → зберігає новий файл на Drive → відповідає на всіх.\n\n**ПЕРЕД ЗАПУСКОМ заповни:**\n1. Credentials: Gmail, Google Drive, Google Docs, Claude (Header Auth: x-api-key).\n2. Нода «Копія шаблону» → fileId = ID шаблону Google Docs.\n3. Папка збереження вже вписана (folder CMR).\n4. Перевір модель Claude у ноді «Підготовка даних» (за замовч. claude-sonnet-5).",
-        "height": 380,
-        "width": 360
-      },
-      "id": "note1",
-      "name": "Довідка",
-      "type": "n8n-nodes-base.stickyNote",
-      "typeVersion": 1,
-      "position": [-120, 40]
-    },
-    {
-      "parameters": {
-        "pollTimes": {
-          "item": [
-            { "mode": "everyMinute" }
-          ]
-        },
-        "simple": false,
-        "filters": {
-          "q": "subject:(CMR OR ЦМР OR cmr) has:attachment"
-        },
+        "mailbox": "INBOX",
+        "postProcessAction": "read",
+        "format": "resolved",
         "options": {
-          "downloadAttachments": true,
-          "dataPropertyAttachmentsPrefixName": "attachment_"
+          "customEmailConfig": "[\"UNSEEN\"]",
+          "downloadAttachments": true
         }
       },
       "id": "trigger",
-      "name": "Gmail — новий лист",
-      "type": "n8n-nodes-base.gmailTrigger",
-      "typeVersion": 1.2,
-      "position": [320, 300],
+      "name": "IMAP — новий лист",
+      "type": "n8n-nodes-base.emailReadImap",
+      "typeVersion": 2,
+      "position": [160, 300],
       "credentials": {
-        "gmailOAuth2": { "id": "REPLACE_GMAIL_CRED", "name": "Gmail Unitex" }
+        "imap": { "id": "kW24ZrmT1XnVuRpA", "name": "IMAP account" }
       }
     },
     {
       "parameters": {
-        "jsCode": "// Збирає PDF-вкладення, витягує номери авто з тіла листа,\n// будує запит до Claude (використовує ЛИШЕ коносамент + інвойс).\nconst item = $input.item;\nconst bin = item.binary || {};\nconst j = item.json;\n\n// 1) PDF-вкладення -> document-блоки для Claude\nconst docs = [];\nfor (const key of Object.keys(bin)) {\n  const b = bin[key];\n  const mt = (b.mimeType || '').toLowerCase();\n  const nm = (b.fileName || '').toLowerCase();\n  if (mt.includes('pdf') || nm.endsWith('.pdf')) {\n    docs.push({ type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: b.data } });\n  }\n}\n\n// 2) Тіло листа (plain text, з фолбеком на snippet)\nconst textBody = (j.text || j.textPlain || j.snippet || '').toString();\n\n// 3) Номери авто у форматі \"ФСХХХХ / ВТХХХХ\": до \"/\" = тягач, після = напівпричіп\nlet truck = '', trailer = '';\nconst m = textBody.match(/([\\p{L}\\p{N}\\-]{3,})\\s*\\/\\s*([\\p{L}\\p{N}\\-]{3,})/u);\nif (m) { truck = m[1].trim(); trailer = m[2].trim(); }\n\n// 4) Заголовки листа (для відповіді на всіх)\nfunction hdr(name) {\n  if (Array.isArray(j.headers)) {\n    const h = j.headers.find(x => (x.name || '').toLowerCase() === name);\n    if (h) return h.value;\n  }\n  const cap = name.charAt(0).toUpperCase() + name.slice(1);\n  return j[name] || j[cap] || '';\n}\nconst fromAddr = hdr('from');\nconst ccAddr = hdr('cc');\n\n// 5) Промпт для Claude\nconst prompt = 'Ти обробляєш комерційні документи на морський вантаж. У вкладеннях можуть бути різні документи (коносамент, інвойс, пакінг, сертифікати, декларація).\\n' +\n  'ВИКОРИСТОВУЙ ДАНІ ВИКЛЮЧНО з двох документів: Bill of Lading (коносамент) та Commercial Invoice (інвойс). Усі інші документи повністю ІГНОРУЙ, навіть якщо в них є схожі поля.\\n' +\n  'Поверни СТРОГО валідний JSON без пояснень і без markdown, з полями:\\n' +\n  '{\"container\":\"номер контейнера з Bill of Lading\",\"sender\":\"назва і повна адреса відправника (Shipper/Seller)\",\"receiver\":\"назва і повна адреса отримувача (Consignee)\",\"port\":\"порт прибуття/розвантаження (Port of Discharge)\",\"weight\":\"вага БРУТТО (Gross Weight) з одиницею, напр. 18129.600 KG\",\"invoice\":\"номер інвойсу (Invoice No.) з Commercial Invoice\"}\\n' +\n  'Вага — ОБОВ`ЯЗКОВО брутто (Gross Weight), не нетто. Якщо поля немає — постав \"\".';\n\nconst content = docs.concat([{ type: 'text', text: prompt }]);\n\nconst anthropicBody = {\n  model: 'claude-sonnet-5',\n  max_tokens: 1024,\n  messages: [{ role: 'user', content }]\n};\n\nif (docs.length === 0) {\n  throw new Error('У листі немає PDF-вкладень — нема що парсити.');\n}\n\nreturn [{ json: {\n  body: anthropicBody,\n  truck, trailer,\n  messageId: j.id,\n  threadId: j.threadId,\n  from: fromAddr,\n  cc: ccAddr,\n  subject: j.subject || hdr('subject')\n}}];\n"
+        "conditions": {
+          "options": { "caseSensitive": false },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.subject }}",
+              "rightValue": "CMR|ЦМР|cmr",
+              "operator": { "type": "string", "operation": "regex" }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "iffilter",
+      "name": "Тема містить CMR/ЦМР",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [380, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Збирає PDF-вкладення, витягує номери авто з тіла листа, будує запит до Claude.\nconst item = $input.item;\nconst bin = item.binary || {};\nconst j = item.json;\n\nconst docs = [];\nfor (const key of Object.keys(bin)) {\n  const b = bin[key];\n  const mt = (b.mimeType || '').toLowerCase();\n  const nm = (b.fileName || '').toLowerCase();\n  if (mt.includes('pdf') || nm.endsWith('.pdf')) {\n    docs.push({ type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: b.data } });\n  }\n}\nif (docs.length === 0) { throw new Error('У листі немає PDF-вкладень.'); }\n\nconst textBody = (j.textPlain || j.text || j.textHtml || '').toString();\nlet truck = '', trailer = '';\nconst m = textBody.match(/([\\p{L}\\p{N}\\-]{3,})\\s*\\/\\s*([\\p{L}\\p{N}\\-]{3,})/u);\nif (m) { truck = m[1].trim(); trailer = m[2].trim(); }\n\nconst prompt = 'Ти обробляєш комерційні документи на морський вантаж. У вкладеннях можуть бути різні документи.\\n' +\n  'ВИКОРИСТОВУЙ ДАНІ ВИКЛЮЧНО з двох документів: Bill of Lading (коносамент) та Commercial Invoice (інвойс). Решту ІГНОРУЙ.\\n' +\n  'Поверни СТРОГО валідний JSON без пояснень і markdown, з полями:\\n' +\n  '{\"container\":\"номер контейнера з Bill of Lading\",\"sender\":\"назва і повна адреса відправника (Shipper/Seller)\",\"receiver\":\"назва і повна адреса отримувача (Consignee)\",\"port\":\"порт прибуття (Port of Discharge)\",\"weight\":\"вага БРУТТО (Gross Weight) з одиницею\",\"invoice\":\"номер інвойсу (Invoice No.)\"}\\n' +\n  'Вага — ОБОВ`ЯЗКОВО брутто. Якщо поля немає — постав \"\".';\n\nconst content = docs.concat([{ type: 'text', text: prompt }]);\nconst body = { model: 'claude-sonnet-4-5', max_tokens: 1024, messages: [{ role: 'user', content }] };\n\n// заголовки листа для відповіді на всіх\nfunction hdr(name){ if(Array.isArray(j.headers)){const h=j.headers.find(x=>(x.name||'').toLowerCase()===name); if(h) return h.value;} return j[name]||j[name.charAt(0).toUpperCase()+name.slice(1)]||''; }\n\nreturn [{ json: {\n  body,\n  truck, trailer,\n  from: (j.from && j.from.value && j.from.value[0] && j.from.value[0].address) || hdr('from') || j.from || '',\n  cc: (j.cc && j.cc.text) || hdr('cc') || '',\n  subject: j.subject || '',\n  messageId: j.messageId || hdr('message-id') || ''\n}}];\n"
       },
       "id": "prep",
       "name": "Підготовка даних",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [560, 300]
+      "position": [600, 220]
     },
     {
       "parameters": {
         "method": "POST",
         "url": "https://api.anthropic.com/v1/messages",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "anthropicApi",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            { "name": "anthropic-version", "value": "2023-06-01" },
-            { "name": "content-type", "value": "application/json" }
+            { "name": "anthropic-version", "value": "2023-06-01" }
           ]
         },
         "sendBody": true,
@@ -70,83 +72,63 @@
       "name": "Claude — парсинг",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [800, 300],
+      "position": [820, 220],
       "credentials": {
-        "httpHeaderAuth": { "id": "REPLACE_CLAUDE_CRED", "name": "Claude x-api-key" }
+        "anthropicApi": { "id": "S4WsLWJw1fpDwXqf", "name": "Anthropic account" }
       }
     },
     {
       "parameters": {
-        "jsCode": "// Розбирає JSON-відповідь Claude і формує поля + назву файлу.\nconst resp = $input.item.json;\nlet text = '';\nif (resp.content && Array.isArray(resp.content)) text = resp.content.map(c => c.text || '').join('');\nelse text = (resp.text || '').toString();\n\ntext = text.replace(/```json/gi, '').replace(/```/g, '').trim();\nlet data = {};\ntry { data = JSON.parse(text); }\ncatch (e) { const mm = text.match(/\\{[\\s\\S]*\\}/); if (mm) data = JSON.parse(mm[0]); }\n\nconst prep = $('Підготовка даних').item.json;\n\nconst container = (data.container || '').toString().trim();\nconst receiver = (data.receiver || '').toString().trim();\n// Коротка назва компанії-отримувача для імені файлу (до коми / нового рядка)\nconst receiverShort = receiver.split(/[,\\n]/)[0].trim();\nconst docTitle = 'CMR draft №' + container + ' ' + receiverShort;\n\nreturn [{ json: {\n  container,\n  sender: (data.sender || '').toString().trim(),\n  receiver,\n  port: (data.port || '').toString().trim(),\n  weight: (data.weight || '').toString().trim(),\n  invoice: (data.invoice || '').toString().trim(),\n  truck: prep.truck || '',\n  trailer: prep.trailer || '',\n  docTitle,\n  messageId: prep.messageId,\n  threadId: prep.threadId,\n  from: prep.from,\n  cc: prep.cc,\n  subject: prep.subject\n}}];\n"
+        "jsCode": "// Розбирає JSON Claude, формує поля і назву файлу.\nconst resp = $input.item.json;\nlet text = '';\nif (resp.content && Array.isArray(resp.content)) text = resp.content.map(c => c.text || '').join('');\nelse text = (resp.text || '').toString();\ntext = text.replace(/```json/gi,'').replace(/```/g,'').trim();\nlet data = {};\ntry { data = JSON.parse(text); } catch(e){ const mm=text.match(/\\{[\\s\\S]*\\}/); if(mm) data=JSON.parse(mm[0]); }\n\nconst prep = $('Підготовка даних').item.json;\nconst container = (data.container||'').toString().trim();\nconst receiver = (data.receiver||'').toString().trim();\nconst receiverShort = receiver.split(/[,\\n]/)[0].trim();\n\nreturn [{ json: {\n  container,\n  sender: (data.sender||'').toString().trim(),\n  receiver,\n  port: (data.port||'').toString().trim(),\n  weight: (data.weight||'').toString().trim(),\n  invoice: (data.invoice||'').toString().trim(),\n  truck: prep.truck||'', trailer: prep.trailer||'',\n  docTitle: 'CMR draft №'+container+' '+receiverShort,\n  from: prep.from, cc: prep.cc, subject: prep.subject\n}}];\n"
       },
       "id": "parse",
       "name": "Розбір JSON",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1040, 300]
+      "position": [1040, 220]
     },
     {
       "parameters": {
         "operation": "copy",
-        "fileId": {
-          "__rl": true,
-          "value": "PASTE_TEMPLATE_GOOGLE_DOC_ID_HERE",
-          "mode": "id"
-        },
+        "fileId": { "__rl": true, "value": "PASTE_TEMPLATE_GOOGLE_DOC_ID", "mode": "id" },
         "name": "={{ $json.docTitle }}",
-        "options": {
-          "parents": ["1dEXAqPEzbH-UwXuBP3IaSOOopKvDuybg"]
-        }
+        "options": { "parents": ["1dEXAqPEzbH-UwXuBP3IaSOOopKvDuybg"] }
       },
       "id": "copy",
       "name": "Копія шаблону",
       "type": "n8n-nodes-base.googleDrive",
       "typeVersion": 3,
-      "position": [1280, 300],
+      "position": [1260, 220],
       "credentials": {
-        "googleDriveOAuth2Api": { "id": "REPLACE_DRIVE_CRED", "name": "Google Drive Unitex" }
+        "googleDriveOAuth2Api": { "id": "2GWpYd58b4gHSUPi", "name": "Google Drive account" }
       }
     },
     {
       "parameters": {
-        "operation": "update",
-        "documentURL": "={{ $json.id }}",
-        "actionsUi": {
-          "actionFields": [
-            { "action": "replaceAll", "text": "{{sender}}", "replaceText": "={{ $('Розбір JSON').item.json.sender }}" },
-            { "action": "replaceAll", "text": "{{receiver}}", "replaceText": "={{ $('Розбір JSON').item.json.receiver }}" },
-            { "action": "replaceAll", "text": "{{port}}", "replaceText": "={{ $('Розбір JSON').item.json.port }}" },
-            { "action": "replaceAll", "text": "{{invoice}}", "replaceText": "={{ $('Розбір JSON').item.json.invoice }}" },
-            { "action": "replaceAll", "text": "{{container}}", "replaceText": "={{ $('Розбір JSON').item.json.container }}" },
-            { "action": "replaceAll", "text": "{{weight}}", "replaceText": "={{ $('Розбір JSON').item.json.weight }}" },
-            { "action": "replaceAll", "text": "{{truck}}", "replaceText": "={{ $('Розбір JSON').item.json.truck }}" },
-            { "action": "replaceAll", "text": "{{trailer}}", "replaceText": "={{ $('Розбір JSON').item.json.trailer }}" }
-          ]
-        }
+        "method": "POST",
+        "url": "=https://docs.googleapis.com/v1/documents/{{ $json.id }}:batchUpdate",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleDriveOAuth2Api",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ requests: [ ['{{sender}}', $('Розбір JSON').item.json.sender], ['{{receiver}}', $('Розбір JSON').item.json.receiver], ['{{port}}', $('Розбір JSON').item.json.port], ['{{invoice}}', $('Розбір JSON').item.json.invoice], ['{{container}}', $('Розбір JSON').item.json.container], ['{{weight}}', $('Розбір JSON').item.json.weight], ['{{truck}}', $('Розбір JSON').item.json.truck], ['{{trailer}}', $('Розбір JSON').item.json.trailer] ].map(p => ({ replaceAllText: { containsText: { text: p[0], matchCase: true }, replaceText: String(p[1] || '') } })) }) }}",
+        "options": {}
       },
       "id": "fill",
-      "name": "Заповнення ЦМР",
-      "type": "n8n-nodes-base.googleDocs",
-      "typeVersion": 2,
-      "position": [1520, 300],
+      "name": "Заповнення ЦМР (Docs API)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1480, 220],
       "credentials": {
-        "googleDocsOAuth2Api": { "id": "REPLACE_DOCS_CRED", "name": "Google Docs Unitex" }
+        "googleDriveOAuth2Api": { "id": "2GWpYd58b4gHSUPi", "name": "Google Drive account" }
       }
     },
     {
       "parameters": {
         "operation": "download",
-        "fileId": {
-          "__rl": true,
-          "value": "={{ $('Копія шаблону').item.json.id }}",
-          "mode": "id"
-        },
+        "fileId": { "__rl": true, "value": "={{ $('Копія шаблону').item.json.id }}", "mode": "id" },
         "options": {
-          "googleFileConversion": {
-            "conversion": {
-              "docsToFormat": "application/pdf"
-            }
-          },
+          "googleFileConversion": { "conversion": { "docsToFormat": "application/pdf" } },
           "fileName": "={{ $('Розбір JSON').item.json.docTitle }}.pdf"
         }
       },
@@ -154,65 +136,42 @@
       "name": "Експорт у PDF",
       "type": "n8n-nodes-base.googleDrive",
       "typeVersion": 3,
-      "position": [1760, 300],
+      "position": [1700, 220],
       "credentials": {
-        "googleDriveOAuth2Api": { "id": "REPLACE_DRIVE_CRED", "name": "Google Drive Unitex" }
+        "googleDriveOAuth2Api": { "id": "2GWpYd58b4gHSUPi", "name": "Google Drive account" }
       }
     },
     {
       "parameters": {
-        "operation": "reply",
-        "messageId": "={{ $('Розбір JSON').item.json.messageId }}",
-        "emailType": "text",
-        "message": "=Доброго дня!\n\nУ вкладенні — чернетка CMR по контейнеру {{ $('Розбір JSON').item.json.container }} (отримувач: {{ $('Розбір JSON').item.json.receiver }}).\nПеревірте, будь ласка, дані перед використанням.\n\nЗ повагою,\nUnitex",
+        "fromEmail": "PASTE_DOCS_EMAIL_FROM",
+        "toEmail": "={{ $('Розбір JSON').item.json.from }}",
+        "ccEmail": "={{ $('Розбір JSON').item.json.cc }}",
+        "subject": "=Re: {{ $('Розбір JSON').item.json.subject }}",
+        "emailFormat": "text",
+        "text": "=Доброго дня!\n\nУ вкладенні — чернетка CMR по контейнеру {{ $('Розбір JSON').item.json.container }} (отримувач: {{ $('Розбір JSON').item.json.receiver }}).\nПеревірте, будь ласка, дані перед використанням.\n\nЗ повагою,\nUnitex",
         "options": {
-          "ccList": "={{ $('Розбір JSON').item.json.cc }}",
-          "attachmentsUi": {
-            "attachmentsBinary": [
-              { "property": "data" }
-            ]
-          }
+          "attachments": "data"
         }
       },
       "id": "reply",
-      "name": "Відповідь на лист",
-      "type": "n8n-nodes-base.gmail",
-      "typeVersion": 2.1,
-      "position": [2000, 300],
+      "name": "Відповідь (SMTP)",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [1920, 220],
       "credentials": {
-        "gmailOAuth2": { "id": "REPLACE_GMAIL_CRED", "name": "Gmail Unitex" }
+        "smtp": { "id": "IRHmy9RLt9AtxQFS", "name": "SMTP account" }
       }
     }
   ],
   "connections": {
-    "Gmail — новий лист": {
-      "main": [[{ "node": "Підготовка даних", "type": "main", "index": 0 }]]
-    },
-    "Підготовка даних": {
-      "main": [[{ "node": "Claude — парсинг", "type": "main", "index": 0 }]]
-    },
-    "Claude — парсинг": {
-      "main": [[{ "node": "Розбір JSON", "type": "main", "index": 0 }]]
-    },
-    "Розбір JSON": {
-      "main": [[{ "node": "Копія шаблону", "type": "main", "index": 0 }]]
-    },
-    "Копія шаблону": {
-      "main": [[{ "node": "Заповнення ЦМР", "type": "main", "index": 0 }]]
-    },
-    "Заповнення ЦМР": {
-      "main": [[{ "node": "Експорт у PDF", "type": "main", "index": 0 }]]
-    },
-    "Експорт у PDF": {
-      "main": [[{ "node": "Відповідь на лист", "type": "main", "index": 0 }]]
-    }
+    "IMAP — новий лист": { "main": [[{ "node": "Тема містить CMR/ЦМР", "type": "main", "index": 0 }]] },
+    "Тема містить CMR/ЦМР": { "main": [[{ "node": "Підготовка даних", "type": "main", "index": 0 }]] },
+    "Підготовка даних": { "main": [[{ "node": "Claude — парсинг", "type": "main", "index": 0 }]] },
+    "Claude — парсинг": { "main": [[{ "node": "Розбір JSON", "type": "main", "index": 0 }]] },
+    "Розбір JSON": { "main": [[{ "node": "Копія шаблону", "type": "main", "index": 0 }]] },
+    "Копія шаблону": { "main": [[{ "node": "Заповнення ЦМР (Docs API)", "type": "main", "index": 0 }]] },
+    "Заповнення ЦМР (Docs API)": { "main": [[{ "node": "Експорт у PDF", "type": "main", "index": 0 }]] },
+    "Експорт у PDF": { "main": [[{ "node": "Відповідь (SMTP)", "type": "main", "index": 0 }]] }
   },
-  "settings": {
-    "executionOrder": "v1"
-  },
-  "active": false,
-  "pinData": {},
-  "meta": {
-    "templateId": "unitex-cmr-draft"
-  }
+  "settings": { "executionOrder": "v1" }
 }
