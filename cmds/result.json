@@ -1,7 +1,7 @@
 {
-  "stdout": "uploader_id AXfWmMejhxCpWz7c\nWEBHOOK_RESP {\"id\":\"111phWZYtRk5eJpYeaKaHWQaRprxlmYDc2wzN_lHiUAQ\",\"name\":\"Шаблон CMR (автозаповнення)\",\"mimeType\":\"application/vnd.google-apps.document\",\"webViewLink\":\"https://docs.google.com/document/d/111phWZYtRk5eJpYeaKaHWQaRprxlmYDc2wzN_lHiUAQ/edit?usp=drivesdk\",\"owners\":[{\"emailAddress\":\"unitex.automation@gmail.com\"}]}\ndeleted_uploader\n",
+  "stdout": "wid uwszdic9I7iGZDyP\nRESP {\"folderId\":\"1Bkgug6m99cdCKeJSF8cVmRjkdpWoniSJ\",\"placeholders\":[\"{{sender}}\",\"{{receiver}}\",\"{{port}}\",\"{{invoice}}\",\"{{container}}\",\"{{weight}}\",\"{{truck}}\",\"{{trailer}}\"]}\ndeleted\n",
   "stderr": "",
   "returncode": 0,
-  "id": "cmr-tpl-upload-4",
-  "ts": "2026-07-11T14:24:36Z"
+  "id": "cmr-setup-1",
+  "ts": "2026-07-11T14:26:21Z"
 }
