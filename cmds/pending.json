@@ -1,1 +1,1 @@
-{"id": "eks-pd-5", "cmd": "cat /root/eks_run/diag.log 2>/dev/null; echo \"---proc---\"; pgrep -af ekspedytor.diag || echo FINISHED"}
+{"id": "cmr-n8n-list-1", "cmd": "if [ -z \"$N8N_API_KEY\" ]; then echo NO_KEY; exit 0; fi; curl -s \"https://irynakarmazina.app.n8n.cloud/api/v1/workflows?limit=200\" -H \"X-N8N-API-KEY: $N8N_API_KEY\" | python3 -c \"import sys,json;d=json.load(sys.stdin);ws=d.get('data',[]) if isinstance(d,dict) else d;print('WF_COUNT',len(ws));[print(w.get('id'),'|',w.get('active'),'|',w.get('name')) for w in ws]\""}
