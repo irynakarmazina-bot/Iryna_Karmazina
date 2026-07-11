@@ -1,7 +1,7 @@
 {
-  "stdout": "CREATED id=mVC0K0ymEiB6DuiT active=False name=CMR draft — автоматизація Unitex\n",
+  "stdout": "### WF bB1o1593vdzL1Diy Контроль прибуття — пошта (Claude)\n  NODE n8n-nodes-base.emailReadImap | tv 2 | {\"mailbox\": \"INBOX\", \"format\": \"simple\", \"options\": {\"allowUnauthorizedCerts\": false}, \"postProcessAction\": \"nothing\"}\n  NODE n8n-nodes-base.emailSend | tv 2.1 | {\"fromEmail\": \"i.karmazina@unitex.od.ua\", \"toEmail\": \"i.karmazina@unitex.od.ua\", \"options\": {}, \"emailFormat\": \"html\"}\n### WF iJygxTPoeyRNijnQ Monitor OEA0218983 — Email Alert\n  NODE n8n-nodes-base.emailReadImap | tv 2 | {\"mailbox\": \"INBOX\", \"format\": \"simple\", \"options\": {\"allowUnauthorizedCerts\": false, \"unseen\": true}}\n  NODE n8n-nodes-base.emailSend | tv 2.1 | {\"fromEmail\": \"i.karmazina@unitex.od.ua\", \"toEmail\": \"irynakarmazina@gmail.com\"}\n### WF Zg8MJMYycdHUQJ98 Monitor OEA0218983 — Email Alert\n  NODE n8n-nodes-base.emailReadImap | tv 2 | {\"mailbox\": \"INBOX\", \"format\": \"simple\", \"options\": {\"allowUnauthorizedCerts\": false, \"unseen\": true}}\n  NODE n8n-nodes-base.emailSend | tv 2.1 | {\"fromEmail\": \"i.karmazina@unitex.od.ua\", \"toEmail\": \"irynakarmazina@gmail.com\"}\n",
   "stderr": "",
   "returncode": 0,
-  "id": "cmr-n8n-deploy-1",
-  "ts": "2026-07-11T14:12:18Z"
+  "id": "cmr-n8n-emailcfg-1",
+  "ts": "2026-07-11T14:14:13Z"
 }
