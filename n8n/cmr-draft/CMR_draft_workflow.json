@@ -5,9 +5,10 @@
       "parameters": {
         "mailbox": "INBOX",
         "postProcessAction": "read",
-        "format": "resolved",
+        "format": "simple",
         "options": {
-          "customEmailConfig": "[\"UNSEEN\"]",
+          "allowUnauthorizedCerts": false,
+          "unseen": true,
           "downloadAttachments": true
         }
       },
@@ -15,20 +16,31 @@
       "name": "IMAP — новий лист",
       "type": "n8n-nodes-base.emailReadImap",
       "typeVersion": 2,
-      "position": [160, 300],
+      "position": [
+        160,
+        300
+      ],
       "credentials": {
-        "imap": { "id": "kW24ZrmT1XnVuRpA", "name": "IMAP account" }
+        "imap": {
+          "id": "kW24ZrmT1XnVuRpA",
+          "name": "IMAP account"
+        }
       }
     },
     {
       "parameters": {
         "conditions": {
-          "options": { "caseSensitive": false },
+          "options": {
+            "caseSensitive": false
+          },
           "conditions": [
             {
               "leftValue": "={{ $json.subject }}",
               "rightValue": "CMR|ЦМР|cmr",
-              "operator": { "type": "string", "operation": "regex" }
+              "operator": {
+                "type": "string",
+                "operation": "regex"
+              }
             }
           ],
           "combinator": "and"
@@ -39,7 +51,10 @@
       "name": "Тема містить CMR/ЦМР",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
-      "position": [380, 300]
+      "position": [
+        380,
+        300
+      ]
     },
     {
       "parameters": {
@@ -49,7 +64,10 @@
       "name": "Підготовка даних",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [600, 220]
+      "position": [
+        600,
+        220
+      ]
     },
     {
       "parameters": {
@@ -60,7 +78,10 @@
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            { "name": "anthropic-version", "value": "2023-06-01" }
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            }
           ]
         },
         "sendBody": true,
@@ -72,9 +93,15 @@
       "name": "Claude — парсинг",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [820, 220],
+      "position": [
+        820,
+        220
+      ],
       "credentials": {
-        "anthropicApi": { "id": "S4WsLWJw1fpDwXqf", "name": "Anthropic account" }
+        "anthropicApi": {
+          "id": "S4WsLWJw1fpDwXqf",
+          "name": "Anthropic account"
+        }
       }
     },
     {
@@ -85,22 +112,39 @@
       "name": "Розбір JSON",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1040, 220]
+      "position": [
+        1040,
+        220
+      ]
     },
     {
       "parameters": {
         "operation": "copy",
-        "fileId": { "__rl": true, "value": "PASTE_TEMPLATE_GOOGLE_DOC_ID", "mode": "id" },
+        "fileId": {
+          "__rl": true,
+          "value": "111phWZYtRk5eJpYeaKaHWQaRprxlmYDc2wzN_lHiUAQ",
+          "mode": "id"
+        },
         "name": "={{ $json.docTitle }}",
-        "options": { "parents": ["1dEXAqPEzbH-UwXuBP3IaSOOopKvDuybg"] }
+        "options": {
+          "parents": [
+            "1Bkgug6m99cdCKeJSF8cVmRjkdpWoniSJ"
+          ]
+        }
       },
       "id": "copy",
       "name": "Копія шаблону",
       "type": "n8n-nodes-base.googleDrive",
       "typeVersion": 3,
-      "position": [1260, 220],
+      "position": [
+        1260,
+        220
+      ],
       "credentials": {
-        "googleDriveOAuth2Api": { "id": "2GWpYd58b4gHSUPi", "name": "Google Drive account" }
+        "googleDriveOAuth2Api": {
+          "id": "2GWpYd58b4gHSUPi",
+          "name": "Google Drive account"
+        }
       }
     },
     {
@@ -118,17 +162,31 @@
       "name": "Заповнення ЦМР (Docs API)",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [1480, 220],
+      "position": [
+        1480,
+        220
+      ],
       "credentials": {
-        "googleDriveOAuth2Api": { "id": "2GWpYd58b4gHSUPi", "name": "Google Drive account" }
+        "googleDriveOAuth2Api": {
+          "id": "2GWpYd58b4gHSUPi",
+          "name": "Google Drive account"
+        }
       }
     },
     {
       "parameters": {
         "operation": "download",
-        "fileId": { "__rl": true, "value": "={{ $('Копія шаблону').item.json.id }}", "mode": "id" },
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $('Копія шаблону').item.json.id }}",
+          "mode": "id"
+        },
         "options": {
-          "googleFileConversion": { "conversion": { "docsToFormat": "application/pdf" } },
+          "googleFileConversion": {
+            "conversion": {
+              "docsToFormat": "application/pdf"
+            }
+          },
           "fileName": "={{ $('Розбір JSON').item.json.docTitle }}.pdf"
         }
       },
@@ -136,42 +194,136 @@
       "name": "Експорт у PDF",
       "type": "n8n-nodes-base.googleDrive",
       "typeVersion": 3,
-      "position": [1700, 220],
+      "position": [
+        1700,
+        220
+      ],
       "credentials": {
-        "googleDriveOAuth2Api": { "id": "2GWpYd58b4gHSUPi", "name": "Google Drive account" }
+        "googleDriveOAuth2Api": {
+          "id": "2GWpYd58b4gHSUPi",
+          "name": "Google Drive account"
+        }
       }
     },
     {
       "parameters": {
-        "fromEmail": "PASTE_DOCS_EMAIL_FROM",
+        "fromEmail": "i.karmazina@unitex.od.ua",
         "toEmail": "={{ $('Розбір JSON').item.json.from }}",
-        "ccEmail": "={{ $('Розбір JSON').item.json.cc }}",
         "subject": "=Re: {{ $('Розбір JSON').item.json.subject }}",
         "emailFormat": "text",
         "text": "=Доброго дня!\n\nУ вкладенні — чернетка CMR по контейнеру {{ $('Розбір JSON').item.json.container }} (отримувач: {{ $('Розбір JSON').item.json.receiver }}).\nПеревірте, будь ласка, дані перед використанням.\n\nЗ повагою,\nUnitex",
         "options": {
+          "ccEmail": "={{ $('Розбір JSON').item.json.cc }}",
           "attachments": "data"
         }
       },
       "id": "reply",
       "name": "Відповідь (SMTP)",
       "type": "n8n-nodes-base.emailSend",
-      "typeVersion": 2,
-      "position": [1920, 220],
+      "typeVersion": 2.1,
+      "position": [
+        1920,
+        220
+      ],
       "credentials": {
-        "smtp": { "id": "IRHmy9RLt9AtxQFS", "name": "SMTP account" }
+        "smtp": {
+          "id": "IRHmy9RLt9AtxQFS",
+          "name": "SMTP account"
+        }
       }
     }
   ],
   "connections": {
-    "IMAP — новий лист": { "main": [[{ "node": "Тема містить CMR/ЦМР", "type": "main", "index": 0 }]] },
-    "Тема містить CMR/ЦМР": { "main": [[{ "node": "Підготовка даних", "type": "main", "index": 0 }]] },
-    "Підготовка даних": { "main": [[{ "node": "Claude — парсинг", "type": "main", "index": 0 }]] },
-    "Claude — парсинг": { "main": [[{ "node": "Розбір JSON", "type": "main", "index": 0 }]] },
-    "Розбір JSON": { "main": [[{ "node": "Копія шаблону", "type": "main", "index": 0 }]] },
-    "Копія шаблону": { "main": [[{ "node": "Заповнення ЦМР (Docs API)", "type": "main", "index": 0 }]] },
-    "Заповнення ЦМР (Docs API)": { "main": [[{ "node": "Експорт у PDF", "type": "main", "index": 0 }]] },
-    "Експорт у PDF": { "main": [[{ "node": "Відповідь (SMTP)", "type": "main", "index": 0 }]] }
+    "IMAP — новий лист": {
+      "main": [
+        [
+          {
+            "node": "Тема містить CMR/ЦМР",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Тема містить CMR/ЦМР": {
+      "main": [
+        [
+          {
+            "node": "Підготовка даних",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Підготовка даних": {
+      "main": [
+        [
+          {
+            "node": "Claude — парсинг",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claude — парсинг": {
+      "main": [
+        [
+          {
+            "node": "Розбір JSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Розбір JSON": {
+      "main": [
+        [
+          {
+            "node": "Копія шаблону",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Копія шаблону": {
+      "main": [
+        [
+          {
+            "node": "Заповнення ЦМР (Docs API)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Заповнення ЦМР (Docs API)": {
+      "main": [
+        [
+          {
+            "node": "Експорт у PDF",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Експорт у PDF": {
+      "main": [
+        [
+          {
+            "node": "Відповідь (SMTP)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
   },
-  "settings": { "executionOrder": "v1" }
+  "settings": {
+    "executionOrder": "v1"
+  }
 }
