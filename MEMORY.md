@@ -492,6 +492,17 @@ last_memory_cleanup: 2026-07-05
 - ФАКТ (тестові документи ShippingDocs_17.05.2026): контейнер MRSU0348306, відправник LOTTE CHEMICAL CORPORATION, отримувач OTIS TARDA LTD, порт GDANSK POLAND, брутто 18129.600 KG, інвойс 9000241479 → файл «CMR draft №MRSU0348306 OTIS TARDA LTD».
 - last_memory_cleanup: 2026-07-05 (без змін; минуло 4 дні)
 
+## 2026-07-11 — Відновлення: workflow «Довідка про вартість транспортних послуг»
+
+- ВІДНОВЛЕНО з локальних сесій: основна — `cad4117c`, оригінал `d245422c` — **відсутній у файловій системі** (вичерпав контекст).
+- Повна документація → `recovered-sessions/dovidka-workflow-n8n.md`
+- n8n workflow ID: `GIhQk0ETziCTYgTB`, модель: `claude-opus-4-7`, credential: `"Anthropic account"` (S4WsLWJw1fpDwXqf)
+- Логіка: IMAP (тема «довідка») → Find PDF → Claude витягує послуги → Prepare data → Copy Google Doc template → DOCX → SMTP (docs@unitex.od.ua)
+- Ключове правило відбору: включати послуги «за межами кордону»; страхування ЗАВЖДИ в border_total; CMR з email_text (не з PDF)
+- Статус: частково працює (генерує і надсилає), залишились правки граматики та точності суми
+
+---
+
 ## 2026-07-11 — Telegram-бот «Максим»: промт + n8n (відновлена локальна сесія)
 
 - КОНТЕКСТ: сесія відбувалась локально на MacBook Ірини, не була видима іншим сесіям. Повна документація → `recovered-sessions/2026-07-11-telegram-bot-maksym.md`
