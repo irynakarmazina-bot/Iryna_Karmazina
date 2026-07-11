@@ -1,7 +1,7 @@
 {
-  "stdout": "uploader_id uhIXdpDIAQvqouFo\nactivate_err 415 {\"message\":\"unsupported media type application/x-www-form-urlencoded\"}\nwebhook_err 404 {\"code\":404,\"message\":\"The requested webhook \\\"POST cmr-tpl-up\\\" is not registered.\",\"hint\":\"The workflow must be active for a production URL to run successfully. You can activate the workflow using the toggle in the top-right of the editor. Note that unlike test URL calls, production URL calls aren't shown on the canvas (only in the executions list)\"}\ndeleted_uploader\n",
+  "stdout": "uploader_id UKusbqiquVSe6buP\nactivated True\nWEBHOOK_RESP \ndeleted_uploader\n",
   "stderr": "",
   "returncode": 0,
-  "id": "cmr-tpl-upload-1",
-  "ts": "2026-07-11T14:17:22Z"
+  "id": "cmr-tpl-upload-2",
+  "ts": "2026-07-11T14:18:11Z"
 }
