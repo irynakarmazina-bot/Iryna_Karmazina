@@ -1,7 +1,7 @@
 {
-  "stdout": "uploader_id UKusbqiquVSe6buP\nactivated True\nWEBHOOK_RESP \ndeleted_uploader\n",
+  "stdout": "uploader_id 9ou75lamxrV4fR9J\nWEBHOOK_RESP \nEXEC status error | lastNode Copy convert\nEXEC_ERROR The resource you are requesting could not be found\n  NODE Webhook -> ok {'headers': {'host': 'irynakarmazina.app.n8n.cloud', 'user-agent': 'vps', 'content-length': '2', 'accept-encoding': 'gzi\n  NODE GitHub docx -> ok {'headers': {'host': 'irynakarmazina.app.n8n.cloud', 'user-agent': 'vps', 'content-length': '2', 'accept-encoding': 'gzi\n  NODE Upload media -> ok {'id': '1DSZYsim9Sd-JE203lnRq0kBoJZ4hs7u6'}\n  NODE Copy convert -> ERR:The resource you are requesting could not be found \ndeleted_uploader\n",
   "stderr": "",
   "returncode": 0,
-  "id": "cmr-tpl-upload-2",
-  "ts": "2026-07-11T14:18:11Z"
+  "id": "cmr-tpl-upload-3",
+  "ts": "2026-07-11T14:21:39Z"
 }
