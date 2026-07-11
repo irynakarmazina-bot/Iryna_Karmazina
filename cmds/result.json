@@ -1,7 +1,7 @@
 {
-  "stdout": "UPDATED id=mVC0K0ymEiB6DuiT active=False name=CMR draft — автоматизація Unitex\n",
+  "stdout": "wid 8oIMFQ9ezQi4uQ5S\nRESP \nEXEC last claude err Bad request - please check your parameters\ndeleted\n",
   "stderr": "",
   "returncode": 0,
-  "id": "cmr-n8n-update-1",
-  "ts": "2026-07-11T14:27:10Z"
+  "id": "cmr-test-1",
+  "ts": "2026-07-11T14:32:55Z"
 }
