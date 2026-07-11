@@ -2,75 +2,205 @@
   "name": "TEMP CMR test run",
   "nodes": [
     {
-      "parameters": { "httpMethod": "POST", "path": "cmr-test", "responseMode": "responseNode", "options": {} },
-      "id": "wh", "name": "Webhook", "type": "n8n-nodes-base.webhook", "typeVersion": 2, "position": [180, 300]
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "cmr-test",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "wh",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        180,
+        300
+      ]
     },
     {
       "parameters": {
         "url": "https://api.github.com/repos/irynakarmazina-bot/Iryna_Karmazina/contents/n8n/cmr-draft/_deploy/sample_ShippingDocs.pdf?ref=claude/n8n-cmr-draft-automation-8tdhbk",
         "sendHeaders": true,
-        "headerParameters": { "parameters": [
-          { "name": "Authorization", "value": "token GH_TOKEN_PLACEHOLDER" },
-          { "name": "Accept", "value": "application/vnd.github.raw" },
-          { "name": "User-Agent", "value": "n8n" }
-        ] },
-        "options": { "response": { "response": { "responseFormat": "file", "outputPropertyName": "data" } } }
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "token GH_TOKEN_PLACEHOLDER"
+            },
+            {
+              "name": "Accept",
+              "value": "application/vnd.github.raw"
+            },
+            {
+              "name": "User-Agent",
+              "value": "n8n"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file",
+              "outputPropertyName": "data"
+            }
+          }
+        }
       },
-      "id": "pdf", "name": "sample pdf", "type": "n8n-nodes-base.httpRequest", "typeVersion": 4.2, "position": [400, 300]
+      "id": "pdf",
+      "name": "sample pdf",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        400,
+        300
+      ]
     },
     {
       "parameters": {
-        "jsCode": "const bin=$input.item.binary||{};\nconst b=bin.data; if(!b) throw new Error('no pdf');\nconst docs=[{type:'document',source:{type:'base64',media_type:'application/pdf',data:b.data}}];\nconst truck='ФС1234', trailer='ВТ5678';\nconst prompt='Ти обробляєш комерційні документи на морський вантаж. ВИКОРИСТОВУЙ ДАНІ ВИКЛЮЧНО з Bill of Lading (коносамент) та Commercial Invoice (інвойс). Решту ІГНОРУЙ. Поверни СТРОГО валідний JSON без markdown: {\"container\":\"\",\"sender\":\"\",\"receiver\":\"\",\"port\":\"порт прибуття (Port of Discharge)\",\"weight\":\"вага БРУТТО (Gross Weight) з одиницею\",\"invoice\":\"\"}. Вага — брутто.';\nconst body={model:'claude-sonnet-4-6',max_tokens:1024,messages:[{role:'user',content:docs.concat([{type:'text',text:prompt}])}]};\nreturn [{json:{body,truck,trailer}}];"
+        "jsCode": "const items=$input.all();\nconst out=[];\nfor (let i=0;i<items.length;i++){\n  const bin=items[i].binary||{}; const docs=[];\n  for (const key of Object.keys(bin)){\n    const buf=await this.helpers.getBinaryDataBuffer(i,key);\n    docs.push({type:'document',source:{type:'base64',media_type:'application/pdf',data:buf.toString('base64')}});\n  }\n  const truck='ФС1234',trailer='ВТ5678';\n  const prompt=\"Ти обробляєш комерційні документи на морський вантаж. У вкладеннях можуть бути різні документи.\\nВИКОРИСТОВУЙ ДАНІ ВИКЛЮЧНО з двох документів: Bill of Lading (коносамент) та Commercial Invoice (інвойс). Решту ІГНОРУЙ.\\nПоверни СТРОГО валідний JSON без пояснень і markdown, з полями:\\n{\\\"container\\\":\\\"номер контейнера з Bill of Lading\\\",\\\"sender\\\":\\\"назва і повна адреса відправника (Shipper/Seller)\\\",\\\"receiver\\\":\\\"назва і повна адреса отримувача (Consignee)\\\",\\\"port\\\":\\\"порт прибуття (Port of Discharge)\\\",\\\"weight\\\":\\\"вага БРУТТО (Gross Weight) з одиницею\\\",\\\"invoice\\\":\\\"номер інвойсу (Invoice No.)\\\"}\\nВага — ОБОВ`ЯЗКОВО брутто. Якщо поля немає — постав \\\"\\\".\";\n  const body={model:'claude-sonnet-4-6',max_tokens:1024,messages:[{role:'user',content:docs.concat([{type:'text',text:prompt}])}]};\n  out.push({json:{body,truck,trailer}});\n}\nreturn out;\n"
       },
-      "id": "prep", "name": "prep", "type": "n8n-nodes-base.code", "typeVersion": 2, "position": [620, 300]
+      "id": "prep",
+      "name": "prep",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        620,
+        300
+      ]
     },
     {
       "parameters": {
-        "method": "POST", "url": "https://api.anthropic.com/v1/messages",
-        "authentication": "predefinedCredentialType", "nodeCredentialType": "anthropicApi",
-        "sendHeaders": true, "headerParameters": { "parameters": [ { "name": "anthropic-version", "value": "2023-06-01" } ] },
-        "sendBody": true, "specifyBody": "json", "jsonBody": "={{ JSON.stringify($json.body) }}", "options": {}
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "anthropicApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.body) }}",
+        "options": {}
       },
-      "id": "claude", "name": "claude", "type": "n8n-nodes-base.httpRequest", "typeVersion": 4.2, "position": [840, 300],
-      "credentials": { "anthropicApi": { "id": "S4WsLWJw1fpDwXqf", "name": "Anthropic account" } }
+      "id": "claude",
+      "name": "claude",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        840,
+        300
+      ],
+      "credentials": {
+        "anthropicApi": {
+          "id": "S4WsLWJw1fpDwXqf",
+          "name": "Anthropic account"
+        }
+      }
     },
     {
       "parameters": {
         "jsCode": "const resp=$input.item.json;\nlet text=(resp.content&&Array.isArray(resp.content))?resp.content.map(c=>c.text||'').join(''):(resp.text||'');\ntext=text.replace(/```json/gi,'').replace(/```/g,'').trim();\nlet data={};try{data=JSON.parse(text);}catch(e){const m=text.match(/\\{[\\s\\S]*\\}/);if(m)data=JSON.parse(m[0]);}\nconst p=$('prep').item.json;\nconst container=(data.container||'').toString().trim();\nconst receiver=(data.receiver||'').toString().trim();\nreturn [{json:{container,sender:(data.sender||'').trim(),receiver,port:(data.port||'').trim(),weight:(data.weight||'').trim(),invoice:(data.invoice||'').trim(),truck:p.truck,trailer:p.trailer,docTitle:'CMR draft №'+container+' '+receiver.split(/[,\\n]/)[0].trim()}}];"
       },
-      "id": "parse", "name": "parse", "type": "n8n-nodes-base.code", "typeVersion": 2, "position": [1060, 300]
+      "id": "parse",
+      "name": "parse",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1060,
+        300
+      ]
     },
     {
       "parameters": {
         "operation": "copy",
-        "fileId": { "__rl": true, "value": "111phWZYtRk5eJpYeaKaHWQaRprxlmYDc2wzN_lHiUAQ", "mode": "id" },
+        "fileId": {
+          "__rl": true,
+          "value": "111phWZYtRk5eJpYeaKaHWQaRprxlmYDc2wzN_lHiUAQ",
+          "mode": "id"
+        },
         "name": "={{ $json.docTitle }} (TEST)",
-        "options": { "parents": ["1Bkgug6m99cdCKeJSF8cVmRjkdpWoniSJ"] }
+        "options": {
+          "parents": [
+            "1Bkgug6m99cdCKeJSF8cVmRjkdpWoniSJ"
+          ]
+        }
       },
-      "id": "copy", "name": "copy", "type": "n8n-nodes-base.googleDrive", "typeVersion": 3, "position": [1280, 300],
-      "credentials": { "googleDriveOAuth2Api": { "id": "2GWpYd58b4gHSUPi", "name": "Google Drive account" } }
+      "id": "copy",
+      "name": "copy",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        1280,
+        300
+      ],
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "2GWpYd58b4gHSUPi",
+          "name": "Google Drive account"
+        }
+      }
     },
     {
       "parameters": {
         "method": "POST",
         "url": "=https://docs.googleapis.com/v1/documents/{{ $json.id }}:batchUpdate",
-        "authentication": "predefinedCredentialType", "nodeCredentialType": "googleDriveOAuth2Api",
-        "sendBody": true, "specifyBody": "json",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleDriveOAuth2Api",
+        "sendBody": true,
+        "specifyBody": "json",
         "jsonBody": "={{ JSON.stringify({ requests: [ ['{{sender}}', $('parse').item.json.sender], ['{{receiver}}', $('parse').item.json.receiver], ['{{port}}', $('parse').item.json.port], ['{{invoice}}', $('parse').item.json.invoice], ['{{container}}', $('parse').item.json.container], ['{{weight}}', $('parse').item.json.weight], ['{{truck}}', $('parse').item.json.truck], ['{{trailer}}', $('parse').item.json.trailer] ].map(p => ({ replaceAllText: { containsText: { text: p[0], matchCase: true }, replaceText: String(p[1]||'') } })) }) }}",
         "options": {}
       },
-      "id": "fill", "name": "fill", "type": "n8n-nodes-base.httpRequest", "typeVersion": 4.2, "position": [1500, 300],
-      "credentials": { "googleDriveOAuth2Api": { "id": "2GWpYd58b4gHSUPi", "name": "Google Drive account" } }
+      "id": "fill",
+      "name": "fill",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1500,
+        300
+      ],
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "2GWpYd58b4gHSUPi",
+          "name": "Google Drive account"
+        }
+      }
     },
     {
       "parameters": {
         "method": "GET",
         "url": "=https://www.googleapis.com/drive/v3/files/{{ $('copy').item.json.id }}/export?mimeType=text/plain",
-        "authentication": "predefinedCredentialType", "nodeCredentialType": "googleDriveOAuth2Api",
-        "options": { "response": { "response": { "responseFormat": "text", "outputPropertyName": "txt" } } }
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleDriveOAuth2Api",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "text",
+              "outputPropertyName": "txt"
+            }
+          }
+        }
       },
-      "id": "verify", "name": "verify", "type": "n8n-nodes-base.httpRequest", "typeVersion": 4.2, "position": [1720, 300],
-      "credentials": { "googleDriveOAuth2Api": { "id": "2GWpYd58b4gHSUPi", "name": "Google Drive account" } }
+      "id": "verify",
+      "name": "verify",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1720,
+        300
+      ],
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "2GWpYd58b4gHSUPi",
+          "name": "Google Drive account"
+        }
+      }
     },
     {
       "parameters": {
@@ -78,18 +208,107 @@
         "responseBody": "={{ JSON.stringify({ parsed: { container: $('parse').item.json.container, sender: $('parse').item.json.sender, receiver: $('parse').item.json.receiver, port: $('parse').item.json.port, weight: $('parse').item.json.weight, invoice: $('parse').item.json.invoice, truck: $('parse').item.json.truck, trailer: $('parse').item.json.trailer }, docId: $('copy').item.json.id, leftoverPlaceholders: ($('verify').item.json.txt.match(/\\{\\{[a-z]+\\}\\}/g) || []) }) }}",
         "options": {}
       },
-      "id": "resp", "name": "Respond", "type": "n8n-nodes-base.respondToWebhook", "typeVersion": 1, "position": [1940, 300]
+      "id": "resp",
+      "name": "Respond",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        1940,
+        300
+      ]
     }
   ],
   "connections": {
-    "Webhook": { "main": [[{ "node": "sample pdf", "type": "main", "index": 0 }]] },
-    "sample pdf": { "main": [[{ "node": "prep", "type": "main", "index": 0 }]] },
-    "prep": { "main": [[{ "node": "claude", "type": "main", "index": 0 }]] },
-    "claude": { "main": [[{ "node": "parse", "type": "main", "index": 0 }]] },
-    "parse": { "main": [[{ "node": "copy", "type": "main", "index": 0 }]] },
-    "copy": { "main": [[{ "node": "fill", "type": "main", "index": 0 }]] },
-    "fill": { "main": [[{ "node": "verify", "type": "main", "index": 0 }]] },
-    "verify": { "main": [[{ "node": "Respond", "type": "main", "index": 0 }]] }
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "sample pdf",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "sample pdf": {
+      "main": [
+        [
+          {
+            "node": "prep",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "prep": {
+      "main": [
+        [
+          {
+            "node": "claude",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "claude": {
+      "main": [
+        [
+          {
+            "node": "parse",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "parse": {
+      "main": [
+        [
+          {
+            "node": "copy",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "copy": {
+      "main": [
+        [
+          {
+            "node": "fill",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "fill": {
+      "main": [
+        [
+          {
+            "node": "verify",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "verify": {
+      "main": [
+        [
+          {
+            "node": "Respond",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
   },
-  "settings": { "executionOrder": "v1" }
+  "settings": {
+    "executionOrder": "v1"
+  }
 }
