@@ -18,6 +18,7 @@ last_memory_cleanup: 2026-07-05
 
 ### Активні проєкти і мапа гілок
 - **Telegram-бот на Claude** — `main` (bot.py, agent_bot.py) — працює на VPS, autodeploy щохвилини
+- **Telegram-бот «Максим» (Юнітекс клієнти)** — n8n Cloud workflow `FC3qzaxp5M89LpI7`, НЕ в цьому репо. Промт: `/Users/irina/Desktop/UNITEX_bot_prompt.txt`. API ключ n8n у `~/.n8n_env`. Деталі + скрипт оновлення → `recovered-sessions/2026-07-11-telegram-bot-maksym.md`
 - **Автоматизація Експедитора** (/invoice, Computer Use) — `main`, папка `ekspedytor/` — на VPS; перший тест /invoice ще не проведено
 - **Оперативний фінансовий звіт** — гілка `claude/financial-reporting-system-i6auod`, папка `report/` (build_report.py — прототип-генератор; Code.gs + Dashboard.html — Apps Script дашборд) — НЕ злито в main. ⚠️ У цій гілці також НЕпогоджений фінмодуль бота (finance.py) — при злитті переносити ТІЛЬКИ report/
 - **Переказ YouTube-відео в боті** — гілка `claude/video-summary-highlights-arz176` — НЕ злита (бот не підхопить до злиття)
@@ -490,3 +491,11 @@ last_memory_cleanup: 2026-07-05
 - ВІДКРИТІ / чекає користувача: (1) конвертувати шаблон у Google Docs + вставити його ID; перевірити, чи таблиця ЦМР не поламалась при конверсії (якщо так — план Б: заповнення напряму в .docx через string-replace document.xml, бо плейсхолдери суцільні); (2) пошта зроблена під GMAIL (припущення — Drive/пошта в екосистемі Google); якщо докс-пошта не Gmail — тригер+відповідь на IMAP+SMTP; (3) мапінг from/cc для «відповіді на всіх» може потребувати правки після 1-го тесту (залежить від виводу Gmail-ноди); (4) підключити credentials у n8n (Gmail/Drive/Docs/Claude header-auth).
 - ФАКТ (тестові документи ShippingDocs_17.05.2026): контейнер MRSU0348306, відправник LOTTE CHEMICAL CORPORATION, отримувач OTIS TARDA LTD, порт GDANSK POLAND, брутто 18129.600 KG, інвойс 9000241479 → файл «CMR draft №MRSU0348306 OTIS TARDA LTD».
 - last_memory_cleanup: 2026-07-05 (без змін; минуло 4 дні)
+
+## 2026-07-11 — Telegram-бот «Максим»: промт + n8n (відновлена локальна сесія)
+
+- КОНТЕКСТ: сесія відбувалась локально на MacBook Ірини, не була видима іншим сесіям. Повна документація → `recovered-sessions/2026-07-11-telegram-bot-maksym.md`
+- БОТ: workflow `FC3qzaxp5M89LpI7` на irynakarmazina.app.n8n.cloud. Claude Opus (typeVersion 1.2). Системний промт — `/Users/irina/Desktop/UNITEX_bot_prompt.txt` (~25 КБ). n8n API ключ (~267 символів JWT) — тимчасово в `~/.n8n_env`, НЕ видаляти без команди Ірини. Оновлення через PUT /api/v1/workflows (деталі + готовий скрипт у recovered-sessions).
+- ЗМІНИ ПРОМТУ: (1) новий алгоритм — весь список питань для прорахунку надсилається ОДНИМ повідомленням разом із проханням контакту, а не по одному; (2) відповідь на «це бот / хочу людину» — Максим пояснює роль AI-помічника, що менеджер може бачити чат і приєднатися, пропонує телефони Одеси/Києва та @Unitex_Forwarding; (3) прибрано заборону згадувати менеджера до фінального підтвердження.
+- ТЕХНІЧНІ ФАКТИ: Notify Group chat_id `-5171955743` (UNITEX Leads). Токен бота hardcode у HTTP Request вузлах. Бот на сайті через плагін Chaty (WordPress). Група моніторингу: медіа → тихе сповіщення, бот клієнту не відповідає.
+- ВІДОМІ ПАСТКИ: typeVersion Claude має бути 1.2 (не 1.3); Buffer Memory — sessionIdType customKey (не fromInput); PUT workflow — тільки 5 полів (name/nodes/connections/settings/staticData), без id/createdAt/tags.
