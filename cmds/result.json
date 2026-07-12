@@ -1,7 +1,7 @@
 {
-  "stdout": "no executions\nDELETED leftover uploader\n",
+  "stdout": "wid U978IOcu25tMPyEV\nRESP {\"id\":\"1JAU5rPwCQHmQmHTebB445YG-wd4jGVYKsnY0NnoipSM\",\"name\":\"Шаблон CMR (автозаповнення) v2\",\"mimeType\":\"application/vnd.google-apps.document\",\"webViewLink\":\"https://docs.google.com/document/d/1JAU5rPwCQHmQmHTebB445YG-wd4jGVYKsnY0NnoipSM/edit?usp=drivesdk\"}\ndel_err HTTP Error 401: Unauthorized\n",
   "stderr": "",
   "returncode": 0,
-  "id": "cmr-tpl-v2-cleanup",
-  "ts": "2026-07-12T04:06:50Z"
+  "id": "cmr-tpl-v2-2",
+  "ts": "2026-07-12T04:08:41Z"
 }
