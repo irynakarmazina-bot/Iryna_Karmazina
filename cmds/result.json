@@ -1,7 +1,7 @@
 {
-  "stdout": "DELETED K46BPFQ4ws1pgRII TEMP Sheets Proxy (Claude)\nDELETED U978IOcu25tMPyEV TEMP CMR template uploader\nremaining TEMP: []\n",
+  "stdout": "wid f4UXQG3Nmc5vniod\nRESP \nEXEC last sample pdf err The resource you are requesting could not be found\ndeleted\n",
   "stderr": "",
   "returncode": 0,
-  "id": "cmr-sweep-temp",
-  "ts": "2026-07-12T04:09:30Z"
+  "id": "cmr-test-v2",
+  "ts": "2026-07-12T04:12:33Z"
 }
