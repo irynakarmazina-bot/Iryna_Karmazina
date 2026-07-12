@@ -525,3 +525,15 @@ last_memory_cleanup: 2026-07-05
 - НЕ тестовано (тільки на реальному листі): IMAP-тригер (отримання вкладень), експорт Google Doc→PDF, SMTP-відповідь на всіх. Якщо на першому листі збій — правити через relay (той самий канал).
 - ДАЛІ користувачка: тестовий лист (тема CMR + коносамент/інвойс PDF + авто «ФСХХХХ / ВТХХХХ» у тілі) → глянути виконання в n8n → Activate. Я на зв'язку, правлю ноди через relay.
 - last_memory_cleanup: 2026-07-05 (без змін)
+
+## 2026-07-12 — CMR-автоматизація v2: розширено поля + виправлення (тест пройдено)
+
+- ✅ ПІСЛЯ ФІДБЕКУ користувачки переробив workflow на v2 (гілка `claude/n8n-cmr-draft-automation-8tdhbk`, задеплоєно в n8n id `mVC0K0ymEiB6DuiT`, inactive). Тепер заповнює 18 полів ЦМР (було 8).
+- НОВИЙ ШАБЛОН v2 Google Doc id `1JAU5rPwCQHmQmHTebB445YG-wd4jGVYKsnY0NnoipSM` (папка CMR `1Bkgug6m...`, акаунт unitex.automation). Старий шаблон `111phWZY...` ВИДАЛЕНО.
+- ФОРМАТ ТІЛА ЛИСТА (користувачка вписує): рядки `Авто: ФСxxxx / ВТxxxx` (тягач/причіп→гр.25), `Дата: ДД.ММ.РРРР` (гр.4,21), `Перевізник: ...` (гр.16), `Перетин: ...` (гр.13). Парсинг у Code-ноді через regex по мітках.
+- АВТОЗАПОВНЕННЯ з коносамента+інвойсу: гр.1 відправник, гр.2 отримувач (обидва — адреса РЯДКАМИ через \n, Claude віддає multiline, replaceAllText зберігає переноси), гр.3 місто+країна ОТРИМУВАЧА (DNIPRO/UKRAINE), гр.4 Port of Discharge (GDANSK,POLAND), гр.5 «Invoice No .. Date: ..», гр.6 контейнер, гр.7 місць, гр.8 упаковка, гр.9 вантаж, гр.11 брутто, гр.12 об'єм.
+- 2 НОВІ n8n-грабл і (крім раніше записаних getBinaryDataBuffer + {{}}-в-виразі): (a) emailReadImap format="simple"+downloadAttachments віддає ПОРОЖНІЙ binary на cloud → треба format="resolved" (mailparser сам кладе вкладення в binary); (b) n8n API DELETE вимагає заголовок X-N8N-API-KEY (у finally забув → 401, лишився активний temp-воркфлоу з токеном, потім видалив). Активація воркфлоу: POST /workflows/{id}/activate з Content-Type application/json (без нього 415).
+- PROMPT-урок: Claude плутав гр.3/гр.4 — «delivery» брав як порт розвантаження, «loading» як Port of Loading (BUSAN). Виправив явними формулюваннями: delivery=МІСТО ОТРИМУВАЧА (не порт), loading=Port of Discharge (не Port of Loading, не BUSAN). Після цього тест ідеальний.
+- ✅ ТЕСТ v2 наскрізь (тимч. воркфлоу, sample ShippingDocs + sample-тіло): усі 18 полів вірні (DNIPRO/UKRAINE, GDANSK POLAND, MRSU0348306, 720, ABS RESIN, 25.920 CBM, 17.05.2026, MULTYTRANS, Dorokhusk-Yahodyn, 14.07.2026, ФС1234/ВТ5678), 0 залишкових плейсхолдерів. Тестові доки підчищені.
+- ⚠️⚠️ ПОМИЛКА: під час прибирання своїх temp-воркфлоу зачистив за префіксом "TEMP" і ВИПАДКОВО ВИДАЛИВ чужий воркфлоу `K46BPFQ4ws1pgRII` «TEMP Sheets Proxy (Claude)» (був inactive, у пам'яті позначений як відкритий проксі до Sheets = security-ризик). Треба відновити, якщо потрібен (логіка мала бути в finrep-роботі). НАДАЛІ: НЕ видаляти за префіксом імені — тільки конкретні ID своїх temp-воркфлоу.
+- last_memory_cleanup: 2026-07-05 (без змін)
