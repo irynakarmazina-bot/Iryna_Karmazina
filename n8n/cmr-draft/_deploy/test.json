@@ -1,0 +1,314 @@
+{
+ "name": "TEMP CMR test v2",
+ "nodes": [
+  {
+   "parameters": {
+    "httpMethod": "POST",
+    "path": "cmr-test2",
+    "responseMode": "responseNode",
+    "options": {}
+   },
+   "id": "wh",
+   "name": "Webhook",
+   "type": "n8n-nodes-base.webhook",
+   "typeVersion": 2,
+   "position": [
+    180,
+    300
+   ]
+  },
+  {
+   "parameters": {
+    "url": "https://api.github.com/repos/irynakarmazina-bot/Iryna_Karmazina/contents/n8n/cmr-draft/_deploy/sample_ShippingDocs.pdf?ref=claude/n8n-cmr-draft-automation-8tdhbk",
+    "sendHeaders": true,
+    "headerParameters": {
+     "parameters": [
+      {
+       "name": "Authorization",
+       "value": "token GH_TOKEN_PLACEHOLDER"
+      },
+      {
+       "name": "Accept",
+       "value": "application/vnd.github.raw"
+      },
+      {
+       "name": "User-Agent",
+       "value": "n8n"
+      }
+     ]
+    },
+    "options": {
+     "response": {
+      "response": {
+       "responseFormat": "file",
+       "outputPropertyName": "data"
+      }
+     }
+    }
+   },
+   "id": "pdf",
+   "name": "sample pdf",
+   "type": "n8n-nodes-base.httpRequest",
+   "typeVersion": 4.2,
+   "position": [
+    380,
+    300
+   ]
+  },
+  {
+   "parameters": {
+    "jsCode": "const bin=$input.item.binary||{};\nconst b=bin.data; if(!b) throw new Error('no pdf');\nconst buf=await this.helpers.getBinaryDataBuffer(0,'data');\nconst docs=[{type:'document',source:{type:'base64',media_type:'application/pdf',data:buf.toString('base64')}}];\nconst textBody='\\u0410\\u0432\\u0442\\u043e: \\u0424\\u04211234 / \\u0412\\u04225678\\n\\u0414\\u0430\\u0442\\u0430: 14.07.2026\\n\\u041f\\u0435\\u0440\\u0435\\u0432\\u0456\\u0437\\u043d\\u0438\\u043a: MULTYTRANS LLC\\n\\u041f\\u0435\\u0440\\u0435\\u0442\\u0438\\u043d: Dorokhusk - Yahodyn';\nfunction field(label){const re=new RegExp(label+'\\\\s*[:\\uFF1A]\\\\s*(.+)','i');const m=textBody.match(re);return m?m[1].trim():'';}\nlet truck='',trailer='';const av=field('\\u0410\\u0432\\u0442\\u043e');if(av){const p=av.split('/');truck=(p[0]||'').trim();trailer=(p[1]||'').trim();}\nconst date=field('\\u0414\\u0430\\u0442\\u0430');const border=field('\\u041f\\u0435\\u0440\\u0435\\u0442\\u0438\\u043d');const carrier=field('\\u041f\\u0435\\u0440\\u0435\\u0432\\u0456\\u0437\\u043d\\u0438\\u043a');\nconst prompt=\"Ти обробляєш комерційні документи. ВИКОРИСТОВУЙ ЛИШЕ Bill of Lading та Commercial Invoice. Поверни СТРОГО валідний JSON без markdown: {\\\"sender\\\":\\\"відправник назва+адреса, кожна частина з нового рядка через \\\\\\\\n\\\",\\\"receiver\\\":\\\"отримувач так само через \\\\\\\\n\\\",\\\"delivery_city\\\":\\\"місто отримувача\\\",\\\"delivery_country\\\":\\\"країна отримувача\\\",\\\"loading\\\":\\\"порт прибуття МІСТО, КРАЇНА\\\",\\\"invoice\\\":\\\"номер інвойсу\\\",\\\"invoice_date\\\":\\\"дата інвойсу ДД.ММ.РРРР\\\",\\\"container\\\":\\\"номер контейнера\\\",\\\"packages\\\":\\\"к-сть місць число\\\",\\\"packaging\\\":\\\"упаковка\\\",\\\"goods\\\":\\\"назва вантажу\\\",\\\"weight\\\":\\\"вага брутто з одиницею\\\",\\\"volume\\\":\\\"об єм\\\"}. Якщо нема — \\\"\\\".\";\nconst body={model:'claude-sonnet-4-6',max_tokens:1500,messages:[{role:'user',content:docs.concat([{type:'text',text:prompt}])}]};\nreturn [{json:{body,truck,trailer,date,border,carrier}}];\n"
+   },
+   "id": "prep",
+   "name": "prep",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    600,
+    300
+   ]
+  },
+  {
+   "parameters": {
+    "method": "POST",
+    "url": "https://api.anthropic.com/v1/messages",
+    "authentication": "predefinedCredentialType",
+    "nodeCredentialType": "anthropicApi",
+    "sendHeaders": true,
+    "headerParameters": {
+     "parameters": [
+      {
+       "name": "anthropic-version",
+       "value": "2023-06-01"
+      }
+     ]
+    },
+    "sendBody": true,
+    "specifyBody": "json",
+    "jsonBody": "={{ JSON.stringify($json.body) }}",
+    "options": {}
+   },
+   "id": "claude",
+   "name": "claude",
+   "type": "n8n-nodes-base.httpRequest",
+   "typeVersion": 4.2,
+   "position": [
+    820,
+    300
+   ],
+   "credentials": {
+    "anthropicApi": {
+     "id": "S4WsLWJw1fpDwXqf",
+     "name": "Anthropic account"
+    }
+   }
+  },
+  {
+   "parameters": {
+    "jsCode": "const resp=$input.item.json;\nlet text=(resp.content&&Array.isArray(resp.content))?resp.content.map(c=>c.text||'').join(''):(resp.text||'').toString();\ntext=text.replace(/```json/gi,'').replace(/```/g,'').trim();\nlet data={};try{data=JSON.parse(text);}catch(e){const mm=text.match(/\\{[\\s\\S]*\\}/);if(mm)data=JSON.parse(mm[0]);}\nconst prep=$('prep').item.json;const f=k=>(data[k]||'').toString().trim();\nconst container=f('container');const receiver=f('receiver');\nconst docTitle='CMR draft \\u2116'+container+' '+receiver.split(/[\\n,]/)[0].trim()+' (TEST)';\nconst map={sender:f('sender'),receiver:receiver,delivery_city:f('delivery_city'),delivery_country:f('delivery_country'),loading:f('loading'),invoice:f('invoice'),invoice_date:f('invoice_date'),container:container,packages:f('packages'),packaging:f('packaging'),goods:f('goods'),weight:f('weight'),volume:f('volume'),date:prep.date||'',border:prep.border||'',carrier:prep.carrier||'',truck:prep.truck||'',trailer:prep.trailer||''};\nconst ph=Object.keys(map).map(k=>['{'+'{'+k+'}'+'}',map[k]]);\nconst docsBody={requests:ph.map(p=>({replaceAllText:{containsText:{text:p[0],matchCase:true},replaceText:String(p[1]||'')}}))};\nreturn [{json:Object.assign({},map,{docTitle,docsBody})}];\n"
+   },
+   "id": "parse",
+   "name": "parse",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    1040,
+    300
+   ]
+  },
+  {
+   "parameters": {
+    "operation": "copy",
+    "fileId": {
+     "__rl": true,
+     "value": "1JAU5rPwCQHmQmHTebB445YG-wd4jGVYKsnY0NnoipSM",
+     "mode": "id"
+    },
+    "name": "={{ $json.docTitle }}",
+    "options": {
+     "parents": [
+      "1Bkgug6m99cdCKeJSF8cVmRjkdpWoniSJ"
+     ]
+    }
+   },
+   "id": "copy",
+   "name": "copy",
+   "type": "n8n-nodes-base.googleDrive",
+   "typeVersion": 3,
+   "position": [
+    1260,
+    300
+   ],
+   "credentials": {
+    "googleDriveOAuth2Api": {
+     "id": "2GWpYd58b4gHSUPi",
+     "name": "Google Drive account"
+    }
+   }
+  },
+  {
+   "parameters": {
+    "method": "POST",
+    "url": "=https://docs.googleapis.com/v1/documents/{{ $json.id }}:batchUpdate",
+    "authentication": "predefinedCredentialType",
+    "nodeCredentialType": "googleDriveOAuth2Api",
+    "sendBody": true,
+    "specifyBody": "json",
+    "jsonBody": "={{ JSON.stringify($('parse').item.json.docsBody) }}",
+    "options": {}
+   },
+   "id": "fill",
+   "name": "fill",
+   "type": "n8n-nodes-base.httpRequest",
+   "typeVersion": 4.2,
+   "position": [
+    1480,
+    300
+   ],
+   "credentials": {
+    "googleDriveOAuth2Api": {
+     "id": "2GWpYd58b4gHSUPi",
+     "name": "Google Drive account"
+    }
+   }
+  },
+  {
+   "parameters": {
+    "method": "GET",
+    "url": "=https://www.googleapis.com/drive/v3/files/{{ $('copy').item.json.id }}/export?mimeType=text/plain",
+    "authentication": "predefinedCredentialType",
+    "nodeCredentialType": "googleDriveOAuth2Api",
+    "options": {
+     "response": {
+      "response": {
+       "responseFormat": "text",
+       "outputPropertyName": "txt"
+      }
+     }
+    }
+   },
+   "id": "verify",
+   "name": "verify",
+   "type": "n8n-nodes-base.httpRequest",
+   "typeVersion": 4.2,
+   "position": [
+    1700,
+    300
+   ],
+   "credentials": {
+    "googleDriveOAuth2Api": {
+     "id": "2GWpYd58b4gHSUPi",
+     "name": "Google Drive account"
+    }
+   }
+  },
+  {
+   "parameters": {
+    "respondWith": "json",
+    "responseBody": "={{ JSON.stringify({parsed:{container:$('parse').item.json.container,sender:$('parse').item.json.sender,receiver:$('parse').item.json.receiver,delivery_city:$('parse').item.json.delivery_city,loading:$('parse').item.json.loading,packages:$('parse').item.json.packages,packaging:$('parse').item.json.packaging,goods:$('parse').item.json.goods,volume:$('parse').item.json.volume,invoice:$('parse').item.json.invoice,invoice_date:$('parse').item.json.invoice_date,carrier:$('parse').item.json.carrier,border:$('parse').item.json.border,date:$('parse').item.json.date,truck:$('parse').item.json.truck,trailer:$('parse').item.json.trailer},docId:$('copy').item.json.id,leftover:($('verify').item.json.txt.match(/\\{\\{[a-z_]+\\}\\}/g)||[])}) }}",
+    "options": {}
+   },
+   "id": "resp",
+   "name": "Respond",
+   "type": "n8n-nodes-base.respondToWebhook",
+   "typeVersion": 1,
+   "position": [
+    1920,
+    300
+   ]
+  }
+ ],
+ "connections": {
+  "Webhook": {
+   "main": [
+    [
+     {
+      "node": "sample pdf",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "sample pdf": {
+   "main": [
+    [
+     {
+      "node": "prep",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "prep": {
+   "main": [
+    [
+     {
+      "node": "claude",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "claude": {
+   "main": [
+    [
+     {
+      "node": "parse",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "parse": {
+   "main": [
+    [
+     {
+      "node": "copy",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "copy": {
+   "main": [
+    [
+     {
+      "node": "fill",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "fill": {
+   "main": [
+    [
+     {
+      "node": "verify",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "verify": {
+   "main": [
+    [
+     {
+      "node": "Respond",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  }
+ },
+ "settings": {
+  "executionOrder": "v1"
+ }
+}
