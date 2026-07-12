@@ -1,7 +1,7 @@
 {
-  "stdout": "UPDATED main active=False\n",
-  "stderr": "",
-  "returncode": 0,
-  "id": "cmr-n8n-update-imap",
-  "ts": "2026-07-11T14:55:50Z"
+  "stdout": "wid UW6JJ0ZHoC7Ce0k9\n",
+  "stderr": "1\")\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/socket.py\", line 707, in readinto\n    return self._sock.recv_into(b)\n           ^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/ssl.py\", line 1252, in recv_into\n    return self.read(nbytes, buffer)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/ssl.py\", line 1104, in read\n    return self._sslobj.read(len, buffer)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nTimeoutError: The read operation timed out\n",
+  "returncode": 1,
+  "id": "cmr-tpl-v2-1",
+  "ts": "2026-07-12T04:06:14Z"
 }
