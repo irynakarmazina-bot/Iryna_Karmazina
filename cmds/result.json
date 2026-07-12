@@ -1,7 +1,7 @@
 {
-  "stdout": "wid f4UXQG3Nmc5vniod\nRESP \nEXEC last sample pdf err The resource you are requesting could not be found\ndeleted\n",
+  "stdout": "wid wbfKSR44iwlX2d4B\nRESP {\"parsed\":{\"container\":\"MRSU0348306\",\"sender\":\"LOTTE CHEMICAL CORPORATION\\n56, GOSAN-RO, UIWANG-SI 16073\\nGYEONGGI-DO, REPUBLIC OF KOREA\",\"receiver\":\"OTIS TARDA LTD\\n12-A AUTOTRANSPORTNAYA STR.\\n49089 DNIPRO, UKRAINE\",\"delivery_city\":\"GDANSK\",\"loading\":\"BUSAN, KOREA\",\"packages\":\"720\",\"packaging\":\"BAGS\",\"goods\":\"ABS RESIN SV-0167\",\"volume\":\"25.920 CBM\",\"invoice\":\"9000241479\",\"invoice_date\":\"17.05.2026\",\"carrier\":\"MULTYTRANS LLC\",\"border\":\"Dorokhusk - Yahodyn\",\"date\":\"14.07.2026\",\"truck\":\"ФС1234\",\"trailer\":\"ВТ5678\"},\"docId\":\"1-405Pucd5KZZj1rDnLZmRCAqWC6XkcJ_DLOmZ_yy7xs\",\"leftover\":[]}\ndeleted\n",
   "stderr": "",
   "returncode": 0,
-  "id": "cmr-test-v2",
-  "ts": "2026-07-12T04:12:33Z"
+  "id": "cmr-test-v2b",
+  "ts": "2026-07-12T04:13:35Z"
 }
