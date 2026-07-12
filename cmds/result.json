@@ -1,7 +1,7 @@
 {
-  "stdout": "wid idMhhN5KhB8NbZFq\nRESP {\"parsed\":{\"delivery_city\":\"DNIPRO\",\"delivery_country\":\"UKRAINE\",\"loading\":\"GDANSK, POLAND\",\"container\":\"MRSU0348306\",\"packages\":\"720\",\"goods\":\"ABS RESIN SV-0167\",\"volume\":\"25.920 CBM\",\"invoice_date\":\"17.05.2026\",\"carrier\":\"MULTYTRANS LLC\",\"border\":\"Dorokhusk - Yahodyn\",\"date\":\"14.07.2026\",\"truck\":\"ФС1234\"},\"docId\":\"1DTgWXl9ejsv2N5ixD6CjrrzNCPp7MUhqmHjsxmRyb_A\",\"leftover\":[]}\ndeleted\n",
+  "stdout": "PUT v2 main active=False\nCLEANUP {\"ok\":true}\ntemp deleted\n",
   "stderr": "",
   "returncode": 0,
-  "id": "cmr-test-v2c",
-  "ts": "2026-07-12T04:17:15Z"
+  "id": "cmr-v2-golive",
+  "ts": "2026-07-12T04:18:57Z"
 }
