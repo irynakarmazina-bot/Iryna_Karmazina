@@ -206,7 +206,7 @@
     },
     {
       "parameters": {
-        "fromEmail": "i.karmazina@unitex.od.ua",
+        "fromEmail": "docs@unitex.od.ua",
         "toEmail": "={{ $('Розбір JSON').item.json.from }}",
         "subject": "=Re: {{ $('Розбір JSON').item.json.subject }}",
         "emailFormat": "text",
