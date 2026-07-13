@@ -1,7 +1,7 @@
 {
-  "stdout": "PUT v2 main active=False\nCLEANUP {\"ok\":true}\ntemp deleted\n",
+  "stdout": "PUT ok active=False fromEmail=['docs@unitex.od.ua']\n",
   "stderr": "",
   "returncode": 0,
-  "id": "cmr-v2-golive",
-  "ts": "2026-07-12T04:18:57Z"
+  "id": "cmr-fix-from",
+  "ts": "2026-07-13T04:40:17Z"
 }
