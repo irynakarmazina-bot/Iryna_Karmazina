@@ -1,7 +1,7 @@
 {
-  "stdout": "n8n_len 46362 sha b9b015cd32eb419b530649f60e78e5c5595f337e968d5d85a130e0964d43cc4d\nrepo_len 46362 sha b9b015cd32eb419b530649f60e78e5c5595f337e968d5d85a130e0964d43cc4d\nMATCH\n",
+  "stdout": "new_len 48016 sha 5588156047614732b2c7d5727b7c423d722fd33784d7f44ba050dec31ca43a32\nPUT_status 200\nverify_sha 5588156047614732b2c7d5727b7c423d722fd33784d7f44ba050dec31ca43a32\nDEPLOY_OK\n",
   "stderr": "",
   "returncode": 0,
-  "id": "prompt-verify-20260715-1",
-  "ts": "2026-07-15T07:08:07Z"
+  "id": "prompt-deploy-20260715-1",
+  "ts": "2026-07-15T07:09:13Z"
 }
