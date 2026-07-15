@@ -18,7 +18,7 @@ last_memory_cleanup: 2026-07-05
 
 ### Активні проєкти і мапа гілок
 - **Telegram-бот на Claude** — `main` (bot.py, agent_bot.py) — працює на VPS, autodeploy щохвилини
-- **Telegram-бот «Максим» (Юнітекс клієнти)** — n8n Cloud workflow `FC3qzaxp5M89LpI7`, НЕ в цьому репо. Промт: `/Users/irina/Desktop/UNITEX_bot_prompt.txt`. API ключ n8n у `~/.n8n_env`. Деталі + скрипт оновлення → `recovered-sessions/2026-07-11-telegram-bot-maksym.md`
+- **Telegram-бот «Максим» (Юнітекс клієнти)** — n8n Cloud workflow `FC3qzaxp5M89LpI7`, НЕ в цьому репо. Промт: актуальна версія в репо `recovered-sessions/UNITEX_bot_prompt.txt` (гілка claude/chatbot-prompt-changes-rzi1cf); копія на Mac `/Users/irina/Desktop/UNITEX_bot_prompt.txt` ЗАСТАРІЛА з 15.07.2026. API ключ n8n у `~/.n8n_env`. Деталі + скрипт оновлення → `recovered-sessions/2026-07-11-telegram-bot-maksym.md`
 - **Автоматизація Експедитора** (/invoice, Computer Use) — `main`, папка `ekspedytor/` — на VPS; перший тест /invoice ще не проведено
 - **Оперативний фінансовий звіт** — гілка `claude/financial-reporting-system-i6auod`, папка `report/` (build_report.py — прототип-генератор; Code.gs + Dashboard.html — Apps Script дашборд) — НЕ злито в main. ⚠️ У цій гілці також НЕпогоджений фінмодуль бота (finance.py) — при злитті переносити ТІЛЬКИ report/
 - **Переказ YouTube-відео в боті** — гілка `claude/video-summary-highlights-arz176` — НЕ злита (бот не підхопить до злиття)
@@ -543,3 +543,13 @@ last_memory_cleanup: 2026-07-05
 - ⚠️ ВІДКРИТЕ: чи credential «SMTP account» (IRHmy9RLt9AtxQFS) авторизований слати ВІД docs@. Якщо він технічно = інша скринька, сервер може відхилити/підмінити. Перевірити на тесті; якщо треба — SMTP-credential у n8n має бути на скриньку docs@unitex.od.ua.
 - ✅ ДОДАНО ПРАВИЛО №6 в CLAUDE.md (main, коміт 24b2b74): повна заборона будь-якого видалення без явного підтвердження користувача; заборона видалення за назвою/префіксом/шаблоном. Привід: я випадково видалила чужий воркфлоу K46BPFQ4ws1pgRII «TEMP Sheets Proxy (Claude)» під час зачистки temp-воркфлоу за префіксом "TEMP". Користувачка була в шоці. НАДАЛІ: temp-об'єкти видаляти лише за конкретним ID своїх щойно створених, і навіть тоді обережно; чужого не чіпати.
 - last_memory_cleanup: 2026-07-05 (без змін)
+
+## 2026-07-15 — Промт Максима: «під ключ»/карго, ліміт 1 м³, завершення розмови
+
+- На запит користувачки внесено 3 зміни в промт бота «Максим» (сайт unitex.od.ua / Telegram):
+  (1) КРОК 7 Митне оформлення: якщо клієнт каже «під ключ» / «карго» / «на вас» — зафіксувати доставку «під ключ» і БІЛЬШЕ не питати про розмитнення; якщо «розмитнення не потрібне» — уточнити «У Вас свій брокер чи потрібна доставка під ключ?»
+  (2) Обмеження клієнтів: тепер від 100 кг ТА від 1 м³ (про 1 м³ у промті НЕ було — додано); менші вантажі — до кур'єрської/поштової компанії (дешевше)
+  (3) Завершення розмови: після резюме і «передаю менеджеру», якщо питань немає — «Дякуємо за запит! Гарного дня!»
+- Файл промту в репо: recovered-sessions/UNITEX_bot_prompt.txt, гілка `claude/chatbot-prompt-changes-rzi1cf` (коміт 1aa1b36), у main НЕ злито
+- ЗАДЕПЛОЄНО в n8n (workflow FC3qzaxp5M89LpI7) через Git Relay: спершу верифікація — промт у n8n байт-у-байт = копії в репо (sha b9b015cd); потім PUT 200 + verify DEPLOY_OK (sha 5588156). Механізм: base64-скрипт у cmds/pending.json → cmd_runner на VPS → n8n API ($N8N_API_KEY з /root/Iryna_Karmazina/.env)
+- ⚠️ Файл на Mac /Users/irina/Desktop/UNITEX_bot_prompt.txt тепер ЗАСТАРІВ — користувачці сказано оновити його з репо, інакше наступне оновлення з Mac перетре ці зміни
