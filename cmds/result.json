@@ -1,7 +1,7 @@
 {
-  "stdout": "PUT ok active=False fromEmail=['docs@unitex.od.ua']\n",
+  "stdout": "n8n_len 46362 sha b9b015cd32eb419b530649f60e78e5c5595f337e968d5d85a130e0964d43cc4d\nrepo_len 46362 sha b9b015cd32eb419b530649f60e78e5c5595f337e968d5d85a130e0964d43cc4d\nMATCH\n",
   "stderr": "",
   "returncode": 0,
-  "id": "cmr-fix-from",
-  "ts": "2026-07-13T04:40:17Z"
+  "id": "prompt-verify-20260715-1",
+  "ts": "2026-07-15T07:08:07Z"
 }
