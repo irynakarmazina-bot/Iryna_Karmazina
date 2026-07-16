@@ -1,7 +1,7 @@
 {
-  "stdout": "created YqkioKiyTH9C9xhB\nRESULT: {\"upd\":177,\"add\":76,\"deliv\":63,\"total\":253}\ndeleted\n",
+  "stdout": "created OW5TjDul5UOTLtNH\ntotal rows: 254 | унікальних Угод: 254 | ДУБЛІКАТИ: [] (к-ть 0 )\ndeleted\n",
   "stderr": "",
   "returncode": 0,
-  "id": "import-journal-0707",
-  "ts": "2026-07-16T09:13:26Z"
+  "id": "verify-count-0707",
+  "ts": "2026-07-16T09:15:16Z"
 }
