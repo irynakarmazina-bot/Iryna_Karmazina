@@ -1,7 +1,7 @@
 {
-  "stdout": "sha 5fb0f1cf85fe96a8\nause', '/resume', '/getchatid', '/setmanager', '/status', '/msg'];\nconst is_admin_command = admin_commands.some(cmd => text.startsWith(cmd));\n\nif (is_group && !is_admin_command) {\n  return [{ json: { skip: true, chat_id, text, username, first_name, is_admin_command: false, is_group: true, is_media: false, message_id } }];\n}\n\n// Debounce: store latest message_id per chat\nconst wd = $getWorkflowStaticData('global');\nif (!wd.last_msg_id) wd.last_msg_id = {};\nwd.last_msg_id[chat_id] = message_id;\n\nif (is_media) {\n  return [{ json: { chat_id, text: '[МЕДІАФАЙЛ]', username, first_name, is_admin_command: false, is_group, is_media: true, message_id } }];\n}\nif (!text) {\n  return [{ json: { chat_id, text: '[Клієнт надіслав повідомлення]', username, first_name, is_admin_command: false, is_group, is_media: false, message_id } }];\n}\nreturn [{ json: { chat_id, text, username, first_name, is_admin_command, is_group, is_media: false, message_id } }];\n",
+  "stdout": "PUT_status 200\nblock_ok True\nprompt_ok True\nactive True\n",
   "stderr": "",
   "returncode": 0,
-  "id": "prepare-rest-20260716-1",
-  "ts": "2026-07-16T11:44:00Z"
+  "id": "deploy-block-20260716-1",
+  "ts": "2026-07-16T11:46:46Z"
 }
