@@ -1,7 +1,7 @@
 {
-  "stdout": "=== HEADER ===\n'[\\'Відправлення\\',\\'Лінія\\',\\'Перевізник\\',\\'Агент\\',\\'Напрямок\\',\\'Тип\\',\\'Маршрут\\',\\'BL\\',\\'Контейнер\\',\\'Тип обл.\\',\\'К-ть\\',\\'Гейт ін\\',\\'ETD\\',\\'ETA\\',\\'Статус\\',\\'Демередж\\',\\'Примітки (наші)\\'].map(h=>\\'<th style=\"padding:8px;position:sticky;top:0;background:#fff;z-index:3;border-bottom:1px solid #d8d6cd;white-space:nowrap\">\\'+h+\\'</th>\\').join(\\'\\')'\n=== TR BLOCK (len 1074 ) ===\nreturn pre+'<tr style=\"'+bg+'border-bottom:1px solid #ECEAE1;'+tc+'\">'\n  +'<td style=\"padding:9px 8px\"><div style=\"font-weight:500\">'+esc(r['Угода']||'—')+'</div><div style=\"color:#6b6a64;font-size:12px\">'+esc(r['Клієнт']||'')+'</div></td>'\n  +td(esc(r['Лінія']||''))+td(esc(r['Перевізник']||''),'color:#6b6a64')+td(esc(r['Агент']||''),'color:#6b6a64')+td(dir(r),'font-size:12px')+td(esc(r['Тип']||''),'font-size:12px;color:#6b6a64')\n  +td(esc(r['Маршрут']||''))\n  +td(esc(r['BL/Booking']||''),mono)+td(esc(r['Контейнер']||''),mono)\n  +td(esc(r['Тип обладнання']||''),'font-size:12px')+td(esc(r['Кількість']||''),'font-size:12px;color:#6b6a64')\n  +td(dm(r['Гейт ін'])||'—','white-space:nowrap')+td(etd(r),'white-space:nowrap')+td(eta(r),'white-space:nowrap')\n  +'<td style=\"padding:9px 8px\"><span style=\"background:'+p[0]+';color:'+p[1]+';padding:3px 9px;border-radius:999px;font-size:12px;white-space:nowrap\">'+esc(r['Статус']||'')+'</span></td>'\n  +td(dr.html,'white-space:nowrap')\n  +td(esc(r['Коментар внутрішній']||''),'font-size:12px;color:#6b6a64;max-width:220px')\n  +'</tr>'; }).join('');\n",
+  "stdout": "repl header=1 tr=1 colspan=1\nPUT 200\nactivate ok\nverify new-cols: True | active: True\n",
   "stderr": "",
   "returncode": 0,
-  "id": "dash-trblock-0707",
-  "ts": "2026-07-16T13:00:21Z"
+  "id": "dash-cols-0707",
+  "ts": "2026-07-16T13:02:30Z"
 }
