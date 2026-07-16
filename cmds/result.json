@@ -1,7 +1,7 @@
 {
-  "stdout": "PUT_status 200\nblock_ok True\nprompt_ok True\nactive True\n",
+  "stdout": "=== Notify Group: Media n8n-nodes-base.httpRequest\n{\"method\": \"POST\", \"url\": \"https://api.telegram.org/bot8934517388:AAHnecAl53Jo8E11ES5yNg_TPo4rFDByOTg/sendMessage\", \"sendBody\": true, \"bodyParameters\": {\"parameters\": [{\"name\": \"chat_id\", \"value\": \"-5171955743\"}, {\"name\": \"text\", \"value\": \"=⚠️ Клієнт {{ $json.first_name }}{{ $json.username ? ' @' + $json.username : '' }} (chat_id: {{ $json.chat_id }}) надіслав медіафайл або документ — потрібна увага менеджера.\"}]}, \"options\": {}}\n=== Notify Group: Message n8n-nodes-base.httpRequest\n{\"method\": \"POST\", \"url\": \"https://api.telegram.org/bot8934517388:AAHnecAl53Jo8E11ES5yNg_TPo4rFDByOTg/sendMessage\", \"sendBody\": true, \"bodyParameters\": {\"parameters\": [{\"name\": \"chat_id\", \"value\": \"-5171955743\"}, {\"name\": \"text\", \"value\": \"={{ '👤 ' + $('Code: Prepare').item.json.first_name + ($('Code: Prepare').item.json.username ? ' @' + $('Code: Prepare').item.json.username : '') + ' [' + $('Code: Prepare').item.json.chat_id + ']:\\\\n' + $('Code: Prepare').item.json.text + '\\\\n\\\\n🤖 Максим:\\\\n' + $('AI Agent').item.json.output }}\"}]}, \"options\": {}}\n=== IF Is Media n8n-nodes-base.if\n{\"conditions\": {\"options\": {\"caseSensitive\": true, \"leftValue\": \"\", \"typeValidation\": \"strict\"}, \"conditions\": [{\"id\": \"cond-media\", \"leftValue\": \"={{ $json.is_media }}\", \"rightValue\": true, \"operator\": {\"type\": \"boolean\", \"operation\": \"true\", \"singleValue\": true}}], \"combinator\": \"and\"}}\n=== CONNECTIONS (скорочено) ===\nCode: Prepare -> {\"main\": [[{\"node\": \"IF Admin Command\", \"type\": \"main\", \"index\": 0}]]}\nIF Is Media -> {\"main\": [[{\"node\": \"Notify Group: Media\", \"type\": \"main\", \"index\": 0}], [{\"node\": \"AI Agent\", \"type\": \"main\", \"index\": 0}]]}\n",
   "stderr": "",
   "returncode": 0,
-  "id": "deploy-block-20260716-1",
-  "ts": "2026-07-16T11:46:46Z"
+  "id": "nodes-inspect-20260716-1",
+  "ts": "2026-07-16T11:52:59Z"
 }
