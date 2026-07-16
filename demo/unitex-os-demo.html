@@ -1,0 +1,564 @@
+<title>Юнітекс OS — демо платформи</title>
+<style>
+  :root{
+    color-scheme: light;
+    --paper:#f2f4f6; --surface:#ffffff; --surface-2:#f7f9fa;
+    --ink:#17222d; --ink-2:#54616e; --muted:#8a949e;
+    --line:#e2e6ea; --line-soft:#edf0f3;
+    --accent:#14586e; --accent-soft:#e3eef2; --accent-ink:#0f4356;
+    --chart-surface:#fcfcfb;
+    --s1:#2a78d6; --s2:#008300;
+    --good:#0ca30c; --good-text:#006300; --warn:#fab219; --warn-text:#7a5200;
+    --crit:#d03b3b; --crit-text:#a32020; --info-text:#1c5cab;
+    --good-bg:#e9f6e9; --warn-bg:#fdf3dd; --crit-bg:#fbe9e9; --info-bg:#e7f0fb; --neutral-bg:#eef1f4;
+    --shadow:0 1px 2px rgba(23,34,45,.06),0 4px 14px rgba(23,34,45,.06);
+    --radius:10px;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:where(:not([data-theme="light"])){
+      color-scheme: dark;
+      --paper:#0e1319; --surface:#171e26; --surface-2:#1c242e;
+      --ink:#f2f5f7; --ink-2:#aeb9c2; --muted:#7d8893;
+      --line:#2a333d; --line-soft:#222b34;
+      --accent:#4fa3bd; --accent-soft:#173341; --accent-ink:#8ecadd;
+      --chart-surface:#1a1a19;
+      --s1:#3987e5; --s2:#008300;
+      --good:#0ca30c; --good-text:#4ec24e; --warn:#fab219; --warn-text:#fab219;
+      --crit:#e66767; --crit-text:#e66767; --info-text:#6da7ec;
+      --good-bg:#12301a; --warn-bg:#33290e; --crit-bg:#391717; --info-bg:#14273d; --neutral-bg:#232c36;
+      --shadow:0 1px 2px rgba(0,0,0,.4),0 4px 16px rgba(0,0,0,.35);
+    }
+  }
+  :root[data-theme="dark"]{
+    color-scheme: dark;
+    --paper:#0e1319; --surface:#171e26; --surface-2:#1c242e;
+    --ink:#f2f5f7; --ink-2:#aeb9c2; --muted:#7d8893;
+    --line:#2a333d; --line-soft:#222b34;
+    --accent:#4fa3bd; --accent-soft:#173341; --accent-ink:#8ecadd;
+    --chart-surface:#1a1a19;
+    --s1:#3987e5; --s2:#008300;
+    --good:#0ca30c; --good-text:#4ec24e; --warn:#fab219; --warn-text:#fab219;
+    --crit:#e66767; --crit-text:#e66767; --info-text:#6da7ec;
+    --good-bg:#12301a; --warn-bg:#33290e; --crit-bg:#391717; --info-bg:#14273d; --neutral-bg:#232c36;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 4px 16px rgba(0,0,0,.35);
+  }
+  :root[data-theme="light"]{
+    color-scheme: light;
+    --paper:#f2f4f6; --surface:#ffffff; --surface-2:#f7f9fa;
+    --ink:#17222d; --ink-2:#54616e; --muted:#8a949e;
+    --line:#e2e6ea; --line-soft:#edf0f3;
+    --accent:#14586e; --accent-soft:#e3eef2; --accent-ink:#0f4356;
+    --chart-surface:#fcfcfb;
+    --s1:#2a78d6; --s2:#008300;
+    --good:#0ca30c; --good-text:#006300; --warn:#fab219; --warn-text:#7a5200;
+    --crit:#d03b3b; --crit-text:#a32020; --info-text:#1c5cab;
+    --good-bg:#e9f6e9; --warn-bg:#fdf3dd; --crit-bg:#fbe9e9; --info-bg:#e7f0fb; --neutral-bg:#eef1f4;
+    --shadow:0 1px 2px rgba(23,34,45,.06),0 4px 14px rgba(23,34,45,.06);
+  }
+
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:system-ui,-apple-system,"Segoe UI",sans-serif;
+    background:var(--paper); color:var(--ink);
+    font-size:15px; line-height:1.5; min-height:100vh;
+  }
+  button{font:inherit}
+  :focus-visible{outline:2px solid var(--accent); outline-offset:2px; border-radius:4px}
+  @media (prefers-reduced-motion: reduce){ *{transition:none!important;animation:none!important} }
+
+  /* ---------- LOGIN ---------- */
+  #login-screen{
+    min-height:100vh; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; gap:20px; padding:24px;
+  }
+  .demo-banner{
+    max-width:440px; width:100%;
+    background:var(--warn-bg); color:var(--warn-text);
+    border:1px solid color-mix(in srgb, var(--warn) 40%, transparent);
+    border-radius:var(--radius); padding:10px 14px; font-size:13.5px;
+  }
+  .login-card{
+    width:100%; max-width:440px; background:var(--surface);
+    border:1px solid var(--line); border-radius:14px; box-shadow:var(--shadow);
+    padding:32px 28px;
+  }
+  .brand{display:flex; align-items:center; gap:12px; margin-bottom:6px}
+  .brand-mark{
+    width:40px;height:40px;border-radius:9px;background:var(--accent);
+    color:#fff;display:flex;align-items:center;justify-content:center;
+    font-weight:700;font-size:18px; letter-spacing:.5px;
+  }
+  .brand h1{font-size:20px;margin:0;letter-spacing:-.2px}
+  .brand small{display:block;color:var(--muted);font-weight:400;font-size:12.5px}
+  .login-card p.hint{color:var(--ink-2);font-size:13.5px;margin:14px 0 18px}
+  .acct-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+  .acct-chip{
+    flex:1 1 120px; text-align:left; cursor:pointer;
+    background:var(--surface-2); border:1px solid var(--line); border-radius:10px;
+    padding:10px 12px; color:var(--ink); transition:border-color .12s;
+  }
+  .acct-chip:hover{border-color:var(--accent)}
+  .acct-chip.sel{border-color:var(--accent); background:var(--accent-soft)}
+  .acct-chip b{display:block;font-size:14px}
+  .acct-chip span{font-size:12px;color:var(--ink-2)}
+  .acct-chip code{font-size:11.5px;color:var(--muted)}
+  .field label{display:block;font-size:12.5px;font-weight:600;color:var(--ink-2);
+    text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
+  .field input{
+    width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:9px;
+    background:var(--surface); color:var(--ink); font:inherit;
+  }
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:8px;
+    border:none;border-radius:9px;padding:10px 18px;cursor:pointer;
+    background:var(--accent);color:#fff;font-weight:600;
+  }
+  .btn:hover{filter:brightness(1.08)}
+  .btn.full{width:100%;margin-top:16px}
+  .btn.ghost{background:transparent;color:var(--ink-2);border:1px solid var(--line);font-weight:500}
+  .btn.ghost:hover{color:var(--ink);border-color:var(--muted);filter:none}
+  .login-err{display:none;margin-top:12px;background:var(--crit-bg);color:var(--crit-text);
+    border-radius:8px;padding:9px 12px;font-size:13.5px}
+
+  /* ---------- APP SHELL ---------- */
+  #app{display:none; min-height:100vh}
+  .shell{display:flex; min-height:100vh}
+  .sidebar{
+    width:224px; flex-shrink:0; background:var(--surface);
+    border-right:1px solid var(--line); padding:18px 12px;
+    display:flex; flex-direction:column; gap:4px;
+  }
+  .sidebar .brand{padding:0 8px 14px; border-bottom:1px solid var(--line-soft); margin-bottom:10px}
+  .sidebar .brand-mark{width:32px;height:32px;font-size:14px;border-radius:7px}
+  .sidebar .brand h1{font-size:15px}
+  .nav-item{
+    display:flex;align-items:center;gap:10px; width:100%; text-align:left;
+    background:none;border:none; padding:9px 10px; border-radius:8px;
+    color:var(--ink-2); cursor:pointer; font-size:14px; font-weight:500;
+  }
+  .nav-item:hover{background:var(--surface-2); color:var(--ink)}
+  .nav-item.active{background:var(--accent-soft); color:var(--accent-ink); font-weight:600}
+  .nav-item .ico{width:20px;text-align:center}
+  .sidebar .spacer{flex:1}
+  .sidebar .foot{font-size:11.5px;color:var(--muted);padding:8px 10px;border-top:1px solid var(--line-soft)}
+
+  .main{flex:1; display:flex; flex-direction:column; min-width:0}
+  .topbar{
+    display:flex; align-items:center; gap:14px;
+    padding:12px 24px; background:var(--surface); border-bottom:1px solid var(--line);
+  }
+  .topbar h2{font-size:17px;margin:0;flex:1;letter-spacing:-.2px}
+  .user-chip{display:flex;align-items:center;gap:10px}
+  .avatar{width:32px;height:32px;border-radius:50%;background:var(--accent);color:#fff;
+    display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px}
+  .user-chip .who b{display:block;font-size:13.5px;line-height:1.2}
+  .role-badge{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;
+    color:var(--accent-ink);background:var(--accent-soft);border-radius:20px;padding:1px 8px}
+  .content{padding:24px; max-width:1080px; width:100%; margin:0 auto;
+    display:flex;flex-direction:column;gap:20px}
+
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+    box-shadow:var(--shadow); padding:18px 20px}
+  .card h3{margin:0 0 4px;font-size:15px}
+  .card .sub{color:var(--muted);font-size:12.5px;margin:0 0 14px}
+
+  .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px}
+  .tile{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+    box-shadow:var(--shadow);padding:14px 16px}
+  .tile .lbl{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+  .tile .val{font-size:26px;font-weight:700;letter-spacing:-.5px;margin-top:4px}
+  .tile .delta{font-size:12.5px;margin-top:2px}
+  .delta.up{color:var(--good-text)} .delta.down{color:var(--crit-text)}
+
+  /* pills */
+  .pill{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;
+    border-radius:20px;padding:2px 10px;white-space:nowrap}
+  .pill::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
+  .pill.new{background:var(--info-bg);color:var(--info-text)}
+  .pill.work{background:var(--warn-bg);color:var(--warn-text)}
+  .pill.done{background:var(--good-bg);color:var(--good-text)}
+  .pill.late{background:var(--crit-bg);color:var(--crit-text)}
+  .pill.na{background:var(--neutral-bg);color:var(--ink-2)}
+
+  /* table */
+  .tablewrap{overflow-x:auto}
+  table{border-collapse:collapse;width:100%;font-size:14px}
+  th{font-size:11.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);
+    text-align:left;font-weight:600;padding:8px 12px;border-bottom:1px solid var(--line)}
+  td{padding:10px 12px;border-bottom:1px solid var(--line-soft);vertical-align:top}
+  tr:last-child td{border-bottom:none}
+  td.num,th.num{font-variant-numeric:tabular-nums;text-align:right}
+  tbody tr:hover{background:var(--surface-2)}
+  .cell-muted{color:var(--muted);font-size:13px}
+
+  .filters{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+  .filters input,.filters select{
+    padding:8px 10px;border:1px solid var(--line);border-radius:8px;
+    background:var(--surface);color:var(--ink);font:inherit;font-size:13.5px}
+  .filters input{flex:1;min-width:160px}
+
+  /* chart */
+  .chart{background:var(--chart-surface);border:1px solid var(--line-soft);border-radius:8px;
+    padding:16px 14px 8px; position:relative}
+  .bars{display:flex;align-items:flex-end;gap:14px;height:150px;
+    border-bottom:1px solid var(--line); padding:0 4px}
+  .bargroup{flex:1;display:flex;align-items:flex-end;justify-content:center;gap:2px;height:100%;position:relative}
+  .bar{width:22px;max-width:40%;border-radius:4px 4px 0 0;cursor:default;min-height:2px}
+  .bar.s1{background:var(--s1)} .bar.s2{background:var(--s2)}
+  .xlabels{display:flex;gap:14px;padding:6px 4px 4px}
+  .xlabels span{flex:1;text-align:center;font-size:11.5px;color:var(--muted)}
+  .legend{display:flex;gap:16px;margin-top:8px;padding:0 4px 6px;font-size:12.5px;color:var(--ink-2)}
+  .legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+  .tip{position:absolute;pointer-events:none;background:var(--ink);color:var(--paper);
+    font-size:12px;padding:5px 9px;border-radius:6px;transform:translate(-50%,-110%);
+    white-space:nowrap;display:none;z-index:5}
+
+  /* SOP */
+  details.sop{border:1px solid var(--line);border-radius:var(--radius);background:var(--surface);
+    box-shadow:var(--shadow); padding:0; overflow:hidden}
+  details.sop summary{cursor:pointer;padding:14px 18px;font-weight:600;list-style:none;
+    display:flex;align-items:center;gap:10px}
+  details.sop summary::-webkit-details-marker{display:none}
+  details.sop summary::after{content:"▾";margin-left:auto;color:var(--muted);transition:transform .15s}
+  details.sop[open] summary::after{transform:rotate(180deg)}
+  details.sop .body{padding:0 18px 16px;color:var(--ink-2);font-size:14px}
+  details.sop .body ol{margin:6px 0;padding-left:20px}
+
+  .note{background:var(--accent-soft);color:var(--accent-ink);border-radius:var(--radius);
+    padding:12px 16px;font-size:13.5px}
+
+  .lock{display:flex;flex-direction:column;align-items:center;gap:10px;
+    padding:48px 20px;text-align:center;color:var(--ink-2)}
+  .lock .big{font-size:34px}
+
+  .ok{color:var(--good-text);font-weight:700}
+  .no{color:var(--muted)}
+
+  @media (max-width:760px){
+    .shell{flex-direction:column}
+    .sidebar{width:100%;flex-direction:row;flex-wrap:wrap;align-items:center;
+      border-right:none;border-bottom:1px solid var(--line);padding:10px}
+    .sidebar .brand{border:none;margin:0;padding:0 10px 0 4px}
+    .sidebar .spacer,.sidebar .foot{display:none}
+    .nav-item{width:auto;padding:7px 10px}
+    .content{padding:16px}
+  }
+</style>
+
+<!-- ============ LOGIN ============ -->
+<div id="login-screen">
+  <div class="demo-banner">⚠️ Це <b>демонстраційний макет</b>: усі дані вигадані, паролі умовні й видимі нижче. У робочій версії паролі будуть справжні та зберігатимуться безпечно на сервері.</div>
+  <div class="login-card">
+    <div class="brand">
+      <div class="brand-mark">Ю</div>
+      <div><h1>Юнітекс OS<small>операційна система компанії</small></h1></div>
+    </div>
+    <p class="hint">Обери користувача і введи його пароль — у кожного свій рівень доступу.</p>
+    <div class="acct-row" id="acct-row"></div>
+    <div class="field">
+      <label for="pw">Пароль</label>
+      <input id="pw" type="password" autocomplete="off" placeholder="демо-пароль вказано на картці">
+    </div>
+    <button class="btn full" id="login-btn">Увійти</button>
+    <div class="login-err" id="login-err">Невірний пароль. Спробуй ще раз — демо-пароль написано на картці користувача.</div>
+  </div>
+</div>
+
+<!-- ============ APP ============ -->
+<div id="app">
+  <div class="shell">
+    <nav class="sidebar">
+      <div class="brand">
+        <div class="brand-mark">Ю</div>
+        <div><h1>Юнітекс OS</h1></div>
+      </div>
+      <div id="nav"></div>
+      <div class="spacer"></div>
+      <div class="foot">Демо-макет · дані вигадані</div>
+    </nav>
+    <div class="main">
+      <div class="topbar">
+        <h2 id="page-title"></h2>
+        <div class="user-chip">
+          <div class="avatar" id="u-avatar"></div>
+          <div class="who"><b id="u-name"></b><span class="role-badge" id="u-role"></span></div>
+        </div>
+        <button class="btn ghost" id="logout">Вийти</button>
+      </div>
+      <div class="content" id="content"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+"use strict";
+/* ---------------- дані демо ---------------- */
+const USERS = {
+  iryna: { name:"Ірина",  role:"owner",   roleLabel:"Власниця",     pass:"1111" },
+  oleh:  { name:"Олег",   role:"manager", roleLabel:"Диспетчер",    pass:"2222" },
+  maria: { name:"Марія",  role:"staff",   roleLabel:"Співробітниця",pass:"3333" },
+};
+
+const MODULES = [
+  { id:"dashboard", label:"Дашборд",         ico:"📊", roles:["owner","manager"] },
+  { id:"dispatch",  label:"Диспетчеризація", ico:"📋", roles:["owner","manager"] },
+  { id:"clients",   label:"Клієнти",         ico:"👥", roles:["owner","manager"] },
+  { id:"finance",   label:"Фінанси",         ico:"💰", roles:["owner"] },
+  { id:"tasks",     label:"Задачі",          ico:"✅", roles:["owner","manager","staff"] },
+  { id:"sop",       label:"Інструкції",      ico:"📚", roles:["owner","manager","staff"] },
+  { id:"users",     label:"Користувачі",     ico:"🔐", roles:["owner"] },
+];
+
+const ST = { new:["new","Нова"], work:["work","В роботі"], done:["done","Виконано"], late:["late","Прострочено"] };
+const DISPATCH = [
+  { n:341, date:"16.07", client:"ТОВ «Мрія»",      what:"Доставка замовлення №88", who:"Олег",  st:"work", note:"авто о 14:00" },
+  { n:340, date:"16.07", client:"ФОП Коваленко",   what:"Заміри на об'єкті",       who:"Марія", st:"new",  note:"" },
+  { n:339, date:"15.07", client:"«Затишок»",       what:"Монтаж, 2-й поверх",      who:"Марія", st:"late", note:"клієнт переніс, узгодити нову дату" },
+  { n:338, date:"15.07", client:"ТОВ «Мрія»",      what:"Рахунок і документи",     who:"Олег",  st:"done", note:"" },
+  { n:337, date:"14.07", client:"Готель «Дніпро»", what:"Комерційна пропозиція",   who:"Олег",  st:"done", note:"чекаємо відповідь" },
+  { n:336, date:"14.07", client:"ФОП Ткачук",      what:"Рекламація — перевірити", who:"Марія", st:"work", note:"фото у чаті" },
+  { n:335, date:"13.07", client:"«Промтекс»",      what:"Відвантаження зі складу", who:"Олег",  st:"done", note:"" },
+  { n:334, date:"12.07", client:"Готель «Дніпро»", what:"Зустріч, презентація",    who:"Ірина", st:"done", note:"" },
+];
+
+const CLIENTS = [
+  { name:"ТОВ «Мрія»",       contact:"Оксана, +380 67 000 00 01", orders:14, sum:"318 400 ₴", last:"16.07" },
+  { name:"Готель «Дніпро»",  contact:"Андрій, +380 50 000 00 02", orders:6,  sum:"152 700 ₴", last:"14.07" },
+  { name:"«Промтекс»",       contact:"Ігор, +380 63 000 00 03",  orders:9,  sum:"141 950 ₴", last:"13.07" },
+  { name:"ФОП Коваленко",    contact:"Сергій, +380 96 000 00 04", orders:3,  sum:"48 300 ₴",  last:"16.07" },
+  { name:"«Затишок»",        contact:"Олена, +380 98 000 00 05",  orders:5,  sum:"77 250 ₴",  last:"15.07" },
+  { name:"ФОП Ткачук",       contact:"Віта, +380 66 000 00 06",   orders:2,  sum:"21 600 ₴",  last:"14.07" },
+];
+
+const TASKS = [
+  { who:"Марія", what:"Передзвонити «Затишок» щодо нової дати монтажу", due:"сьогодні",  st:"work" },
+  { who:"Марія", what:"Заміри для ФОП Коваленко — заявка №340",         due:"завтра",    st:"new"  },
+  { who:"Олег",  what:"Підтвердити авто на доставку №341",              due:"сьогодні",  st:"work" },
+  { who:"Олег",  what:"Надіслати акт «Промтекс»",                       due:"18.07",     st:"new"  },
+  { who:"Ірина", what:"Погодити прайс на серпень",                      due:"21.07",     st:"new"  },
+  { who:"Марія", what:"Звіт по рекламації ФОП Ткачук",                  due:"17.07",     st:"new"  },
+];
+
+const WEEK = [ ["Пн",6],["Вт",9],["Ср",7],["Чт",11],["Пт",8],["Сб",4],["Нд",1] ];
+const FIN = [
+  ["Лют", 512, 388],["Бер", 548, 402],["Кві", 471, 415],
+  ["Тра", 603, 447],["Чер", 641, 462],["Лип", 358, 240],
+];
+
+const SOPS = [
+  { t:"Як прийняти нову заявку", body:["Зафіксувати заявку в диспетчеризації (статус «Нова»).","Уточнити у клієнта адресу, терміни, контактну особу.","Призначити відповідального і повідомити його в Telegram.","Після підтвердження перевести у статус «В роботі»."] },
+  { t:"Скрипт розмови з новим клієнтом", body:["Привітатись, назвати компанію та своє ім'я.","З'ясувати потребу: що, куди, коли.","Озвучити орієнтовні терміни та вартість.","Домовитись про наступний крок і зафіксувати його в системі."] },
+  { t:"Що робити з рекламацією", body:["Подякувати за звернення, не сперечатись.","Попросити фото/опис проблеми.","Створити запис у диспетчеризації з позначкою «Рекламація».","Дати відповідь клієнту не пізніше наступного робочого дня."] },
+  { t:"Закриття робочого дня", body:["Перевірити, що всі сьогоднішні заявки мають актуальний статус.","Прострочені — прокоментувати причину.","Задачі на завтра — переглянути та підтвердити."] },
+];
+
+/* ---------------- стан ---------------- */
+let currentUser = null, currentPage = null, selAcct = "iryna";
+
+/* ---------------- логін ---------------- */
+const $ = id => document.getElementById(id);
+function esc(s){ return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+
+function renderAccts(){
+  $("acct-row").innerHTML = Object.entries(USERS).map(([id,u]) =>
+    `<button class="acct-chip ${id===selAcct?"sel":""}" data-id="${id}">
+       <b>${esc(u.name)}</b><span>${esc(u.roleLabel)}</span><br><code>пароль: ${u.pass}</code>
+     </button>`).join("");
+  $("acct-row").querySelectorAll(".acct-chip").forEach(b =>
+    b.addEventListener("click", () => { selAcct = b.dataset.id; $("pw").value=""; $("login-err").style.display="none"; renderAccts(); $("pw").focus(); }));
+}
+function tryLogin(){
+  const u = USERS[selAcct];
+  if ($("pw").value === u.pass){
+    currentUser = { id:selAcct, ...u };
+    $("login-screen").style.display="none"; $("app").style.display="block";
+    $("u-name").textContent = u.name; $("u-role").textContent = u.roleLabel;
+    $("u-avatar").textContent = u.name[0];
+    const first = MODULES.find(m => m.roles.includes(u.role));
+    buildNav(); go(first.id);
+  } else { $("login-err").style.display="block"; }
+}
+$("login-btn").addEventListener("click", tryLogin);
+$("pw").addEventListener("keydown", e => { if (e.key==="Enter") tryLogin(); });
+$("logout").addEventListener("click", () => {
+  currentUser=null; $("app").style.display="none"; $("login-screen").style.display="flex";
+  $("pw").value=""; $("login-err").style.display="none";
+});
+
+/* ---------------- навігація ---------------- */
+function buildNav(){
+  $("nav").innerHTML = MODULES.filter(m => m.roles.includes(currentUser.role)).map(m =>
+    `<button class="nav-item" data-page="${m.id}"><span class="ico">${m.ico}</span>${m.label}</button>`).join("");
+  $("nav").querySelectorAll(".nav-item").forEach(b => b.addEventListener("click", () => go(b.dataset.page)));
+}
+function go(page){
+  const mod = MODULES.find(m => m.id===page);
+  if (!mod.roles.includes(currentUser.role)){ renderLocked(mod); return; }
+  currentPage = page;
+  $("nav").querySelectorAll(".nav-item").forEach(b => b.classList.toggle("active", b.dataset.page===page));
+  $("page-title").textContent = mod.label;
+  PAGES[page]();
+}
+function renderLocked(mod){
+  $("content").innerHTML = `<div class="card lock"><div class="big">🔒</div>
+    <b>Розділ «${esc(mod.label)}» недоступний для ролі «${esc(currentUser.roleLabel)}»</b>
+    <span>Доступи налаштовує власник у розділі «Користувачі».</span></div>`;
+}
+
+/* ---------------- допоміжне ---------------- */
+const pill = st => `<span class="pill ${st}">${ST[st][1]}</span>`;
+
+function barChart(el, labels, series, names, unit){
+  const max = Math.max(...series.flat());
+  const groups = labels.map((lb,i) => `
+    <div class="bargroup" data-i="${i}">
+      ${series.map((s,k)=>`<div class="bar s${k+1}" style="height:${Math.max(2, s[i]/max*100)}%" data-v="${s[i]}" data-k="${k}"></div>`).join("")}
+    </div>`).join("");
+  el.innerHTML = `<div class="chart"><div class="bars">${groups}</div>
+    <div class="xlabels">${labels.map(l=>`<span>${l}</span>`).join("")}</div>
+    ${names.length>1?`<div class="legend">${names.map((n,k)=>`<span><i style="background:var(--s${k+1})"></i>${n}</span>`).join("")}</div>`:""}
+    <div class="tip"></div></div>`;
+  const tip = el.querySelector(".tip"), chart = el.querySelector(".chart");
+  el.querySelectorAll(".bar").forEach(b => {
+    b.addEventListener("mouseenter", () => {
+      const i = +b.parentElement.dataset.i, k = +b.dataset.k;
+      tip.textContent = `${labels[i]}: ${names[k]} — ${b.dataset.v}${unit}`;
+      const cb = chart.getBoundingClientRect(), bb = b.getBoundingClientRect();
+      tip.style.left = (bb.left - cb.left + bb.width/2) + "px";
+      tip.style.top  = (bb.top - cb.top) + "px";
+      tip.style.display = "block";
+    });
+    b.addEventListener("mouseleave", () => tip.style.display="none");
+  });
+}
+
+/* ---------------- сторінки ---------------- */
+const PAGES = {};
+
+PAGES.dashboard = () => {
+  const open = DISPATCH.filter(r=>r.st==="new"||r.st==="work").length;
+  const late = DISPATCH.filter(r=>r.st==="late").length;
+  const done = DISPATCH.filter(r=>r.st==="done").length;
+  const moneyTile = currentUser.role==="owner"
+    ? `<div class="tile"><div class="lbl">Дохід за липень</div><div class="val">358 000 ₴</div>
+       <div class="delta up">↑ план виконано на 56%</div></div>` : "";
+  $("content").innerHTML = `
+    <div class="tiles">
+      <div class="tile"><div class="lbl">Активні заявки</div><div class="val">${open}</div>
+        <div class="delta">з них сьогодні: 2</div></div>
+      <div class="tile"><div class="lbl">Прострочено</div><div class="val" style="color:var(--crit-text)">${late}</div>
+        <div class="delta down">потребує уваги</div></div>
+      <div class="tile"><div class="lbl">Виконано за тиждень</div><div class="val">${done}</div>
+        <div class="delta up">↑ +2 до минулого</div></div>
+      ${moneyTile}
+    </div>
+    <div class="card"><h3>Заявки за тиждень</h3><p class="sub">кількість нових заявок за день</p><div id="wk"></div></div>
+    <div class="card"><h3>Останні події</h3><p class="sub">що відбулось у системі</p>
+      <div class="tablewrap"><table><tbody>
+        <tr><td class="cell-muted">16.07 14:02</td><td>Олег перевів заявку №341 у статус ${pill("work")}</td></tr>
+        <tr><td class="cell-muted">16.07 11:30</td><td>Нова заявка №340 від ФОП Коваленко — призначено Марію</td></tr>
+        <tr><td class="cell-muted">15.07 18:15</td><td>Заявка №339 отримала статус ${pill("late")} — клієнт переніс монтаж</td></tr>
+        <tr><td class="cell-muted">15.07 16:40</td><td>Олег закрив заявку №338 ${pill("done")}</td></tr>
+      </tbody></table></div></div>`;
+  barChart($("wk"), WEEK.map(w=>w[0]), [WEEK.map(w=>w[1])], ["Заявки"], " шт");
+};
+
+PAGES.dispatch = () => {
+  $("content").innerHTML = `
+    <div class="card">
+      <h3>Таблиця диспетчеризації</h3><p class="sub">усі заявки компанії · фільтруй за статусом або шукай за текстом</p>
+      <div class="filters">
+        <input id="q" placeholder="Пошук: клієнт, роботи, відповідальний…">
+        <select id="stf"><option value="">Усі статуси</option>
+          ${Object.values(ST).map(([v,l])=>`<option value="${v}">${l}</option>`).join("")}</select>
+      </div>
+      <div class="tablewrap"><table>
+        <thead><tr><th class="num">№</th><th>Дата</th><th>Клієнт</th><th>Роботи</th><th>Відповідальний</th><th>Статус</th><th>Коментар</th></tr></thead>
+        <tbody id="drows"></tbody></table></div>
+    </div>
+    <div class="note">💡 У робочій версії: статуси змінюються прямо в таблиці, а про прострочення система сама нагадує в Telegram.</div>`;
+  const draw = () => {
+    const q = $("q").value.toLowerCase(), st = $("stf").value;
+    const rows = DISPATCH.filter(r =>
+      (!st || r.st===st) &&
+      (!q || [r.client,r.what,r.who,r.note].join(" ").toLowerCase().includes(q)));
+    $("drows").innerHTML = rows.length ? rows.map(r => `
+      <tr><td class="num">${r.n}</td><td>${r.date}</td><td>${esc(r.client)}</td><td>${esc(r.what)}</td>
+      <td>${esc(r.who)}</td><td>${pill(r.st)}</td><td class="cell-muted">${esc(r.note)||"—"}</td></tr>`).join("")
+      : `<tr><td colspan="7" class="cell-muted">Нічого не знайдено за цим фільтром.</td></tr>`;
+  };
+  $("q").addEventListener("input", draw); $("stf").addEventListener("change", draw); draw();
+};
+
+PAGES.clients = () => {
+  $("content").innerHTML = `
+    <div class="card">
+      <h3>Клієнти</h3><p class="sub">картка клієнта: контакти, кількість замовлень, сума за весь час</p>
+      <div class="tablewrap"><table>
+        <thead><tr><th>Клієнт</th><th>Контакт</th><th class="num">Замовлень</th><th class="num">Сума</th><th>Остання активність</th></tr></thead>
+        <tbody>${CLIENTS.map(c=>`<tr><td><b>${esc(c.name)}</b></td><td class="cell-muted">${esc(c.contact)}</td>
+          <td class="num">${c.orders}</td><td class="num">${c.sum}</td><td>${c.last}</td></tr>`).join("")}</tbody>
+      </table></div></div>
+    <div class="note">💡 У робочій версії тут відкривається картка з повною історією: заявки, оплати, листування.</div>`;
+};
+
+PAGES.finance = () => {
+  $("content").innerHTML = `
+    <div class="tiles">
+      <div class="tile"><div class="lbl">Дохід, липень</div><div class="val">358 000 ₴</div><div class="delta">станом на 16.07</div></div>
+      <div class="tile"><div class="lbl">Витрати, липень</div><div class="val">240 000 ₴</div><div class="delta">67% від доходу</div></div>
+      <div class="tile"><div class="lbl">Прибуток, липень</div><div class="val" style="color:var(--good-text)">118 000 ₴</div><div class="delta up">↑ маржа 33%</div></div>
+    </div>
+    <div class="card"><h3>Доходи та витрати за 6 місяців</h3><p class="sub">тис. ₴ на місяць</p><div id="fin"></div></div>
+    <div class="card"><h3>Таблиця по місяцях</h3><p class="sub">ті самі дані числами</p>
+      <div class="tablewrap"><table>
+        <thead><tr><th>Місяць</th><th class="num">Дохід</th><th class="num">Витрати</th><th class="num">Прибуток</th></tr></thead>
+        <tbody>${FIN.map(([m,d,v])=>`<tr><td>${m}</td><td class="num">${d} 000 ₴</td><td class="num">${v} 000 ₴</td>
+          <td class="num"><b>${d-v} 000 ₴</b></td></tr>`).join("")}</tbody>
+      </table></div></div>
+    <div class="note">💡 Розділ бачить лише власник. У робочій версії цифри підтягуються з того самого фінзвіту, який ми вже готуємо на Google Drive.</div>`;
+  barChart($("fin"), FIN.map(f=>f[0]), [FIN.map(f=>f[1]), FIN.map(f=>f[2])], ["Дохід","Витрати"], " тис ₴");
+};
+
+PAGES.tasks = () => {
+  const mine = currentUser.role==="staff";
+  const list = mine ? TASKS.filter(t=>t.who===currentUser.name) : TASKS;
+  $("content").innerHTML = `
+    <div class="card">
+      <h3>${mine ? "Мої задачі" : "Задачі команди"}</h3>
+      <p class="sub">${mine ? "співробітник бачить лише свої задачі — це і є рівень доступу"
+                            : "власник і диспетчер бачать задачі всієї команди"}</p>
+      <div class="tablewrap"><table>
+        <thead><tr>${mine?"":"<th>Кому</th>"}<th>Задача</th><th>Термін</th><th>Статус</th></tr></thead>
+        <tbody>${list.map(t=>`<tr>${mine?"":`<td><b>${esc(t.who)}</b></td>`}
+          <td>${esc(t.what)}</td><td>${esc(t.due)}</td><td>${pill(t.st)}</td></tr>`).join("")}</tbody>
+      </table></div></div>
+    <div class="note">💡 У робочій версії задачі приходять співробітнику в Telegram, а виконання відмічається одним дотиком.</div>`;
+};
+
+PAGES.sop = () => {
+  $("content").innerHTML = `
+    <div class="note">🤖 Ці самі інструкції зможе видавати наш Telegram-бот: співробітник питає своїми словами — Claude відповідає за правилами компанії.</div>
+    ${SOPS.map(s=>`<details class="sop"><summary>📄 ${esc(s.t)}</summary>
+      <div class="body"><ol>${s.body.map(x=>`<li>${esc(x)}</li>`).join("")}</ol></div></details>`).join("")}`;
+};
+
+PAGES.users = () => {
+  const mods = MODULES.filter(m=>m.id!=="users");
+  $("content").innerHTML = `
+    <div class="card">
+      <h3>Користувачі та рівні доступу</h3>
+      <p class="sub">хто який розділ бачить · налаштовує лише власник</p>
+      <div class="tablewrap"><table>
+        <thead><tr><th>Користувач</th><th>Роль</th>${mods.map(m=>`<th style="text-align:center">${m.label}</th>`).join("")}</tr></thead>
+        <tbody>${Object.values(USERS).map(u=>`<tr>
+          <td><b>${esc(u.name)}</b></td><td><span class="role-badge">${esc(u.roleLabel)}</span></td>
+          ${mods.map(m=>`<td style="text-align:center">${m.roles.includes(u.role)?'<span class="ok">✓</span>':'<span class="no">—</span>'}</td>`).join("")}
+        </tr>`).join("")}</tbody>
+      </table></div></div>
+    <div class="note">💡 У робочій версії тут можна додавати людей, міняти паролі та вмикати/вимикати розділи галочками. Спробуй вийти і зайти як Олег чи Марія — меню зліва зміниться.</div>`;
+};
+
+renderAccts();
+</script>
