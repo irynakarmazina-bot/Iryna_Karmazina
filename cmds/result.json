@@ -1,7 +1,7 @@
 {
-  "stdout": "repl header=1 tr=1 colspan=1\nPUT 200\nactivate ok\nverify new-cols: True | active: True\n",
+  "stdout": "PUT_status 200\ncondition_now: {\"id\": \"cond-complete\", \"leftValue\": \"={{ $('AI Agent').item.json.output }}\", \"rightValue\": \"Маршрут:\", \"operator\": {\"type\": \"string\", \"operation\": \"contains\"}}\nactive True\n",
   "stderr": "",
   "returncode": 0,
-  "id": "dash-cols-0707",
-  "ts": "2026-07-16T13:02:30Z"
+  "id": "fix-complete-20260716-1",
+  "ts": "2026-07-17T11:19:42Z"
 }
