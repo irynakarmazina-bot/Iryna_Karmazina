@@ -1,7 +1,7 @@
 {
-  "stdout": "прибрано meta-refresh: 1 | текст оновлено: True\nPUT 200\nactivate ok\nverify: refresh прибрано: True\n",
+  "stdout": "Назва: Довідка про транспортні витрати | active: True\n ТРИГЕР: Email Trigger (IMAP) | type: n8n-nodes-base.emailReadImap\n   постпроцес: None | mailbox: None | options: {}\n",
   "stderr": "",
   "returncode": 0,
-  "id": "dash-norefresh-0707",
-  "ts": "2026-07-20T09:24:20Z"
+  "id": "dovidka-check-0707",
+  "ts": "2026-07-20T09:25:40Z"
 }
