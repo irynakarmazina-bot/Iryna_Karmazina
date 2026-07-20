@@ -1,7 +1,7 @@
 {
-  "stdout": "ВИКОНАНЬ СЬОГОДНІ (у журналі n8n): 0 | сторінок 4\nстатуси: {}\n--- по воркфлоу ---\n",
+  "stdout": "знайдено воркфлоу цих родин: 4\n[off] GGnGKrjy | Дайджест новин ліній (Claude)\n[off] Zg8MJMYy | Monitor OEA0218983 — Email Alert\n[off] iJygxTPo | Monitor OEA0218983 — Email Alert\n[off] oVQAV2rB | Monitor OEA0218983 — Email Alert\n--- вимикаю активні ---\nвже off: GGnGKrjy Дайджест новин ліній (Claude)\nвже off: Zg8MJMYy Monitor OEA0218983 — Email Alert\nвже off: iJygxTPo Monitor OEA0218983 — Email Alert\nвже off: oVQAV2rB Monitor OEA0218983 — Email Alert\n--- ще активні з цих родин: НЕМАЄ ✓\n",
   "stderr": "",
   "returncode": 0,
-  "id": "exec-count-0707",
-  "ts": "2026-07-20T09:09:42Z"
+  "id": "deactivate-copies-0707",
+  "ts": "2026-07-20T09:23:09Z"
 }
