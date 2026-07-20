@@ -1,7 +1,7 @@
 {
-  "stdout": "ДАШБОРД: HTTP 200 | байт 0 | HTML: False\nостаннє викон дашборда: status error | помилка: {\"level\": \"info\", \"message\": \"<p style=\\\"font-style: normal\\\">Execution limit reached. Consider <a style=\\\"color: #ff6d5\n",
+  "stdout": "ДАШБОРД: HTTP 200 | байт 430388 | HTML: True\n",
   "stderr": "",
   "returncode": 0,
-  "id": "limit-check-0707",
-  "ts": "2026-07-20T09:27:32Z"
+  "id": "dash-alive-0707",
+  "ts": "2026-07-20T15:44:00Z"
 }
