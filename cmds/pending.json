@@ -1,1 +1,1 @@
-{"id": "n8n-dz-list-1784627180", "cmd": "cd /root/Iryna_Karmazina && (git pull -q 2>/dev/null || true) && python3 n8n_dz/deploy_wf.py list 2>&1"}
+{"id": "n8n-dz-create-1784627236", "cmd": "cd /root/Iryna_Karmazina && (git pull -q 2>/dev/null || true) && { python3 n8n_dz/deploy_wf.py create n8n_dz/dz_tracking_key.json; python3 n8n_dz/deploy_wf.py create n8n_dz/dz_switch_line.json; } 2>&1"}
