@@ -1,7 +1,7 @@
 {
-  "stdout": "CREATED HTTP 200 | id 4taPP7xaRXZVKQc5 | name ДЗ — обробка лідів (Manual, Set, IF, Switch) | active False\n",
+  "stdout": "CREATED HTTP 200 | id Iz77H1Al7RoHAbNp | name ДЗ — обробка лідів (Name/Country/Budget, IF, Switch) | active False\n",
   "stderr": "",
   "returncode": 0,
-  "id": "n8n-dz-leads-1784643223",
-  "ts": "2026-07-21T14:13:47Z"
+  "id": "n8n-dz-leadspec-1784643377",
+  "ts": "2026-07-21T14:16:27Z"
 }
