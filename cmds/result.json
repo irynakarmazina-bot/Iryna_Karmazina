@@ -1,7 +1,7 @@
 {
-  "stdout": "PUT 400\nERR_BODY: {\"message\":\"request/body/settings must NOT have additional properties\"}\nsticky ids: ['Нотатка:_огляд', 'Нотатка:_старт_і_дані', 'Нотатка:_IF', 'Нотатка:_результати']\nkeep names sample: ['Старт (Manual Trigger)', 'Дані перевезення (Set)', 'Чи є номер BL? (IF)']\n",
+  "stdout": "UPDATED 200 WuYZdxfzaRp3ezcO notes=4\nUPDATED 200 sIoffBehm6Sf6awF notes=3\n",
   "stderr": "",
   "returncode": 0,
-  "id": "dz-notes-diag",
-  "ts": "2026-07-21T13:33:13Z"
+  "id": "dz-notes-3",
+  "ts": "2026-07-21T13:34:56Z"
 }
