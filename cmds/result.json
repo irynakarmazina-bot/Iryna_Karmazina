@@ -1,7 +1,7 @@
 {
-  "stdout": "LIST ok count 19\nSKIP_EXISTS WuYZdxfzaRp3ezcO ДЗ — вибір ключа трекінгу (Manual, Set, IF, 3 гілки)\nSKIP_EXISTS sIoffBehm6Sf6awF ДЗ — маршрутизація по лінії (Manual, Set, IF, Switch, 4 гілки)\n",
+  "stdout": "UPDATED 200 WuYZdxfzaRp3ezcO notes=4 nodes=7\nUPDATED 200 sIoffBehm6Sf6awF notes=3 nodes=9\n",
   "stderr": "",
   "returncode": 0,
-  "id": "dz-deploy-1",
-  "ts": "2026-07-21T09:51:28Z"
+  "id": "dz-notes-1",
+  "ts": "2026-07-21T10:05:56Z"
 }
