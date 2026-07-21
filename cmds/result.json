@@ -1,7 +1,7 @@
 {
-  "stdout": "NAME: ДЗ — обробка лідів (Name/Country/Budget, IF, Switch) | active False\n--- NODES ---\nmanualTrigger | Старт (Manual Trigger)\nset | Дані ліда (Set)\n     field: Name = John Smith ( string )\n     field: Country = Germany ( string )\n     field: Budget = 1500 ( number )\nif | Бюджет > 1000? (IF)\n     cond: ={{ $json.Budget }} number gt -> 1000\nset | High Priority\n     field: Priority = High Priority ( string )\nset | Standard Lead\n     field: Priority = Standard Lead ( string )\nswitch | Країна клієнта (Switch)\n     rule out= Україна conds= [('={{ $json.Country }}', 'equals', 'Україна')]\n     rule out= Польща conds= [('={{ $json.Country }}', 'equals', 'Польща')]\n     fallbackOutput: extra\nset | Гілка: Україна\n     field: Сценарій = Україна: менеджер UA, договір UAH, дзвінок сьогодні ( string )\nset | Гілка: Польща\n     field: Сценарій = Польща: менеджер PL, документи польською, ПДВ ЄС ( string )\nset | Гілка: Інші країни\n     field: Сценарій = Інші країни: загальний відділ, уточнити напрямок ( string )\n--- CONNECTIONS ---\nСтарт (Manual Trigger) [out 0 ]-> ['Дані ліда (Set)']\nДані ліда (Set) [out 0 ]-> ['Бюджет > 1000? (IF)']\nБюджет > 1000? (IF) [out 0 ]-> ['High Priority']\nБюджет > 1000? (IF) [out 1 ]-> ['Standard Lead']\nHigh Priority [out 0 ]-> ['Країна клієнта (Switch)']\nКраїна клієнта (Switch) [out 0 ]-> ['Гілка: Україна']\nКраїна клієнта (Switch) [out 1 ]-> ['Гілка: Польща']\nКраїна клієнта (Switch) [out 2 ]-> ['Гілка: Інші країни']\n",
+  "stdout": "DISABLED: немає\nNOTE_ADDED 200\n",
   "stderr": "",
   "returncode": 0,
-  "id": "dz-leads-verify",
-  "ts": "2026-07-21T15:38:44Z"
+  "id": "dz-leads-note",
+  "ts": "2026-07-21T18:02:05Z"
 }
