@@ -2,22 +2,114 @@
   "name": "ДЗ — вибір ключа трекінгу (Manual, Set, IF, 3 гілки)",
   "nodes": [
     {
+      "parameters": {
+        "content": "## 📘 ДЗ — вибір ключа трекінгу\n\nВоркфлоу вирішує, ЯК відстежувати перевезення, залежно від наявних даних. Запуск — кнопкою **▶ Execute Workflow**.\n\n**Вузли:**\n• **Manual Trigger** — ручний старт\n• **Set** — задає тестові дані (BL, контейнер, лінія)\n• **IF** — умова: два виходи — **true** (верхній) / **false** (нижній)\n\n👉 Зміни значення у вузлі «Дані перевезення» і запусти — підеш іншою гілкою.",
+        "height": 150,
+        "width": 1100,
+        "color": 5
+      },
+      "id": "Нотатка:_огляд",
+      "name": "Нотатка: огляд",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        180,
+        20
+      ]
+    },
+    {
+      "parameters": {
+        "content": "### 1–2. Старт і дані\n**Manual Trigger** запускає вручну.\n**Set** створює тестовий об'єкт з полями `bl`, `container`, `line` — саме їх перевіряють умови далі.",
+        "height": 150,
+        "width": 240,
+        "color": 6
+      },
+      "id": "Нотатка:_старт_і_дані",
+      "name": "Нотатка: старт і дані",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        200,
+        640
+      ]
+    },
+    {
+      "parameters": {
+        "content": "### 3. Умови (вкладені IF)\n**Чи є номер BL?**\n✅ так → «Трекається по BL»\n❌ ні → друга умова ↓\n\n**Є контейнер і лінія?**\n✅ так → «Тимчасово по контейнеру»\n❌ ні → «Не трекається»",
+        "height": 170,
+        "width": 320,
+        "color": 4
+      },
+      "id": "Нотатка:_IF",
+      "name": "Нотатка: IF",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        620,
+        640
+      ]
+    },
+    {
+      "parameters": {
+        "content": "### 4. Три результати\nКожна гілка — вузол **Set** зі своїм підсумковим статусом трекінгу.\nВідкрий вивід кожного, щоб побачити різницю.",
+        "height": 150,
+        "width": 260,
+        "color": 7
+      },
+      "id": "Нотатка:_результати",
+      "name": "Нотатка: результати",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1100,
+        640
+      ]
+    },
+    {
       "parameters": {},
       "id": "manual-trigger",
       "name": "Старт (Manual Trigger)",
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
-      "position": [240, 340]
+      "position": [
+        240,
+        340
+      ]
     },
     {
       "parameters": {
         "assignments": {
           "assignments": [
-            { "id": "f1", "name": "dealNumber", "value": "UT-1024", "type": "string" },
-            { "id": "f2", "name": "direction", "value": "Імпорт", "type": "string" },
-            { "id": "f3", "name": "line", "value": "Maersk", "type": "string" },
-            { "id": "f4", "name": "bl", "value": "240001234", "type": "string" },
-            { "id": "f5", "name": "container", "value": "MRKU1234567", "type": "string" }
+            {
+              "id": "f1",
+              "name": "dealNumber",
+              "value": "UT-1024",
+              "type": "string"
+            },
+            {
+              "id": "f2",
+              "name": "direction",
+              "value": "Імпорт",
+              "type": "string"
+            },
+            {
+              "id": "f3",
+              "name": "line",
+              "value": "Maersk",
+              "type": "string"
+            },
+            {
+              "id": "f4",
+              "name": "bl",
+              "value": "240001234",
+              "type": "string"
+            },
+            {
+              "id": "f5",
+              "name": "container",
+              "value": "MRKU1234567",
+              "type": "string"
+            }
           ]
         },
         "options": {}
@@ -26,14 +118,31 @@
       "name": "Дані перевезення (Set)",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
-      "position": [460, 340]
+      "position": [
+        460,
+        340
+      ]
     },
     {
       "parameters": {
         "conditions": {
-          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 2 },
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
           "conditions": [
-            { "id": "c1", "leftValue": "={{ $json.bl }}", "rightValue": "", "operator": { "type": "string", "operation": "notEmpty", "singleValue": true } }
+            {
+              "id": "c1",
+              "leftValue": "={{ $json.bl }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
           ],
           "combinator": "and"
         },
@@ -43,15 +152,41 @@
       "name": "Чи є номер BL? (IF)",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
-      "position": [680, 340]
+      "position": [
+        680,
+        340
+      ]
     },
     {
       "parameters": {
         "conditions": {
-          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 2 },
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
           "conditions": [
-            { "id": "c2", "leftValue": "={{ $json.container }}", "rightValue": "", "operator": { "type": "string", "operation": "notEmpty", "singleValue": true } },
-            { "id": "c3", "leftValue": "={{ $json.line }}", "rightValue": "", "operator": { "type": "string", "operation": "notEmpty", "singleValue": true } }
+            {
+              "id": "c2",
+              "leftValue": "={{ $json.container }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "c3",
+              "leftValue": "={{ $json.line }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
           ],
           "combinator": "and"
         },
@@ -61,11 +196,23 @@
       "name": "Є контейнер і лінія? (IF)",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
-      "position": [900, 460]
+      "position": [
+        900,
+        460
+      ]
     },
     {
       "parameters": {
-        "assignments": { "assignments": [ { "id": "r1", "name": "Результат трекінгу", "value": "Трекається автоматично по BL (Maersk API)", "type": "string" } ] },
+        "assignments": {
+          "assignments": [
+            {
+              "id": "r1",
+              "name": "Результат трекінгу",
+              "value": "Трекається автоматично по BL (Maersk API)",
+              "type": "string"
+            }
+          ]
+        },
         "includeOtherFields": true,
         "options": {}
       },
@@ -73,11 +220,23 @@
       "name": "Трекається по BL",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
-      "position": [1140, 220]
+      "position": [
+        1140,
+        220
+      ]
     },
     {
       "parameters": {
-        "assignments": { "assignments": [ { "id": "r2", "name": "Результат трекінгу", "value": "Тимчасово по контейнеру — позначка «уточнити»", "type": "string" } ] },
+        "assignments": {
+          "assignments": [
+            {
+              "id": "r2",
+              "name": "Результат трекінгу",
+              "value": "Тимчасово по контейнеру — позначка «уточнити»",
+              "type": "string"
+            }
+          ]
+        },
         "includeOtherFields": true,
         "options": {}
       },
@@ -85,11 +244,23 @@
       "name": "Тимчасово по контейнеру",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
-      "position": [1140, 400]
+      "position": [
+        1140,
+        400
+      ]
     },
     {
       "parameters": {
-        "assignments": { "assignments": [ { "id": "r3", "name": "Результат трекінгу", "value": "Не трекається — потребує перевірки", "type": "string" } ] },
+        "assignments": {
+          "assignments": [
+            {
+              "id": "r3",
+              "name": "Результат трекінгу",
+              "value": "Не трекається — потребує перевірки",
+              "type": "string"
+            }
+          ]
+        },
         "includeOtherFields": true,
         "options": {}
       },
@@ -97,19 +268,70 @@
       "name": "Не трекається",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
-      "position": [1140, 560]
+      "position": [
+        1140,
+        560
+      ]
     }
   ],
   "connections": {
-    "Старт (Manual Trigger)": { "main": [ [ { "node": "Дані перевезення (Set)", "type": "main", "index": 0 } ] ] },
-    "Дані перевезення (Set)": { "main": [ [ { "node": "Чи є номер BL? (IF)", "type": "main", "index": 0 } ] ] },
-    "Чи є номер BL? (IF)": { "main": [
-      [ { "node": "Трекається по BL", "type": "main", "index": 0 } ],
-      [ { "node": "Є контейнер і лінія? (IF)", "type": "main", "index": 0 } ]
-    ] },
-    "Є контейнер і лінія? (IF)": { "main": [
-      [ { "node": "Тимчасово по контейнеру", "type": "main", "index": 0 } ],
-      [ { "node": "Не трекається", "type": "main", "index": 0 } ]
-    ] }
+    "Старт (Manual Trigger)": {
+      "main": [
+        [
+          {
+            "node": "Дані перевезення (Set)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Дані перевезення (Set)": {
+      "main": [
+        [
+          {
+            "node": "Чи є номер BL? (IF)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Чи є номер BL? (IF)": {
+      "main": [
+        [
+          {
+            "node": "Трекається по BL",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Є контейнер і лінія? (IF)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Є контейнер і лінія? (IF)": {
+      "main": [
+        [
+          {
+            "node": "Тимчасово по контейнеру",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Не трекається",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
   }
 }

@@ -2,22 +2,98 @@
   "name": "ДЗ — маршрутизація по лінії (Manual, Set, IF, Switch, 4 гілки)",
   "nodes": [
     {
+      "parameters": {
+        "content": "## 📘 ДЗ — маршрутизація по лінії\n\nВоркфлоу направляє перевезення різними шляхами залежно від морської лінії. Запуск — **▶ Execute Workflow**.\n\n**Вузли:**\n• **Manual Trigger** — ручний старт\n• **Set** — тестові дані (лінія, готовність)\n• **IF** — готове до трекінгу? (так/ні)\n• **Switch** — розгалуження на багато шляхів за значенням поля",
+        "height": 175,
+        "width": 720,
+        "color": 5
+      },
+      "id": "Нотатка:_огляд",
+      "name": "Нотатка: огляд",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        150,
+        20
+      ]
+    },
+    {
+      "parameters": {
+        "content": "### IF — «шлагбаум»\n**Готове до трекінгу?**\n✅ так → далі у **Switch**\n❌ ні → «Повернути менеджеру»\n\nIF завжди має рівно 2 виходи.",
+        "height": 150,
+        "width": 260,
+        "color": 4
+      },
+      "id": "Нотатка:_IF-шлагбаум",
+      "name": "Нотатка: IF-шлагбаум",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        620,
+        680
+      ]
+    },
+    {
+      "parameters": {
+        "content": "### Switch — багато шляхів\nНа відміну від IF (2 виходи), **Switch** дивиться на поле `line` і направляє в ОДИН вихід:\n• **Maersk** → автотрекінг\n• **MSC** → вручну (паблік)\n• **CMA CGM** → напівручний\n• **інші** → вручну (fallback)\n\n👉 Зміни `line` у Set і запусти — підеш іншим виходом.",
+        "height": 210,
+        "width": 340,
+        "color": 6
+      },
+      "id": "Нотатка:_Switch",
+      "name": "Нотатка: Switch",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1090,
+        620
+      ]
+    },
+    {
       "parameters": {},
       "id": "manual-trigger",
       "name": "Старт (Manual Trigger)",
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
-      "position": [240, 360]
+      "position": [
+        240,
+        360
+      ]
     },
     {
       "parameters": {
         "assignments": {
           "assignments": [
-            { "id": "f1", "name": "dealNumber", "value": "UT-1024", "type": "string" },
-            { "id": "f2", "name": "direction", "value": "Імпорт", "type": "string" },
-            { "id": "f3", "name": "line", "value": "Maersk", "type": "string" },
-            { "id": "f4", "name": "bl", "value": "240001234", "type": "string" },
-            { "id": "f5", "name": "container", "value": "MRKU1234567", "type": "string" }
+            {
+              "id": "f1",
+              "name": "dealNumber",
+              "value": "UT-1024",
+              "type": "string"
+            },
+            {
+              "id": "f2",
+              "name": "direction",
+              "value": "Імпорт",
+              "type": "string"
+            },
+            {
+              "id": "f3",
+              "name": "line",
+              "value": "Maersk",
+              "type": "string"
+            },
+            {
+              "id": "f4",
+              "name": "bl",
+              "value": "240001234",
+              "type": "string"
+            },
+            {
+              "id": "f5",
+              "name": "container",
+              "value": "MRKU1234567",
+              "type": "string"
+            }
           ]
         },
         "options": {}
@@ -26,15 +102,41 @@
       "name": "Дані перевезення (Set)",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
-      "position": [460, 360]
+      "position": [
+        460,
+        360
+      ]
     },
     {
       "parameters": {
         "conditions": {
-          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 2 },
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
           "conditions": [
-            { "id": "c1", "leftValue": "={{ $json.dealNumber }}", "rightValue": "", "operator": { "type": "string", "operation": "notEmpty", "singleValue": true } },
-            { "id": "c2", "leftValue": "={{ $json.line }}", "rightValue": "", "operator": { "type": "string", "operation": "notEmpty", "singleValue": true } }
+            {
+              "id": "c1",
+              "leftValue": "={{ $json.dealNumber }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "c2",
+              "leftValue": "={{ $json.line }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
           ],
           "combinator": "and"
         },
@@ -44,7 +146,10 @@
       "name": "Готове до трекінгу? (IF)",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
-      "position": [680, 360]
+      "position": [
+        680,
+        360
+      ]
     },
     {
       "parameters": {
@@ -52,8 +157,23 @@
           "values": [
             {
               "conditions": {
-                "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 2 },
-                "conditions": [ { "id": "s1", "leftValue": "={{ $json.line }}", "rightValue": "Maersk", "operator": { "type": "string", "operation": "equals" } } ],
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "s1",
+                    "leftValue": "={{ $json.line }}",
+                    "rightValue": "Maersk",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
                 "combinator": "and"
               },
               "renameOutput": true,
@@ -61,8 +181,23 @@
             },
             {
               "conditions": {
-                "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 2 },
-                "conditions": [ { "id": "s2", "leftValue": "={{ $json.line }}", "rightValue": "MSC", "operator": { "type": "string", "operation": "equals" } } ],
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "s2",
+                    "leftValue": "={{ $json.line }}",
+                    "rightValue": "MSC",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
                 "combinator": "and"
               },
               "renameOutput": true,
@@ -70,8 +205,23 @@
             },
             {
               "conditions": {
-                "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 2 },
-                "conditions": [ { "id": "s3", "leftValue": "={{ $json.line }}", "rightValue": "CMA CGM", "operator": { "type": "string", "operation": "equals" } } ],
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "s3",
+                    "leftValue": "={{ $json.line }}",
+                    "rightValue": "CMA CGM",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
                 "combinator": "and"
               },
               "renameOutput": true,
@@ -79,17 +229,31 @@
             }
           ]
         },
-        "options": { "fallbackOutput": "extra" }
+        "options": {
+          "fallbackOutput": "extra"
+        }
       },
       "id": "switch-line",
       "name": "Лінія (Switch)",
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.2,
-      "position": [900, 300]
+      "position": [
+        900,
+        300
+      ]
     },
     {
       "parameters": {
-        "assignments": { "assignments": [ { "id": "r0", "name": "Сценарій", "value": "Повернути менеджеру — немає ключових даних", "type": "string" } ] },
+        "assignments": {
+          "assignments": [
+            {
+              "id": "r0",
+              "name": "Сценарій",
+              "value": "Повернути менеджеру — немає ключових даних",
+              "type": "string"
+            }
+          ]
+        },
         "includeOtherFields": true,
         "options": {}
       },
@@ -97,11 +261,23 @@
       "name": "Повернути менеджеру",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
-      "position": [900, 540]
+      "position": [
+        900,
+        540
+      ]
     },
     {
       "parameters": {
-        "assignments": { "assignments": [ { "id": "r1", "name": "Сценарій", "value": "Автотрекінг по BL через API, щодня о 07:00", "type": "string" } ] },
+        "assignments": {
+          "assignments": [
+            {
+              "id": "r1",
+              "name": "Сценарій",
+              "value": "Автотрекінг по BL через API, щодня о 07:00",
+              "type": "string"
+            }
+          ]
+        },
         "includeOtherFields": true,
         "options": {}
       },
@@ -109,11 +285,23 @@
       "name": "Maersk — автотрекінг",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
-      "position": [1140, 140]
+      "position": [
+        1140,
+        140
+      ]
     },
     {
       "parameters": {
-        "assignments": { "assignments": [ { "id": "r2", "name": "Сценарій", "value": "Ручний трекінг з публічного сайту MSC", "type": "string" } ] },
+        "assignments": {
+          "assignments": [
+            {
+              "id": "r2",
+              "name": "Сценарій",
+              "value": "Ручний трекінг з публічного сайту MSC",
+              "type": "string"
+            }
+          ]
+        },
         "includeOtherFields": true,
         "options": {}
       },
@@ -121,11 +309,23 @@
       "name": "MSC — вручну (паблік)",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
-      "position": [1140, 260]
+      "position": [
+        1140,
+        260
+      ]
     },
     {
       "parameters": {
-        "assignments": { "assignments": [ { "id": "r3", "name": "Сценарій", "value": "Напівручний: кабінет CMA або публічний трекінг", "type": "string" } ] },
+        "assignments": {
+          "assignments": [
+            {
+              "id": "r3",
+              "name": "Сценарій",
+              "value": "Напівручний: кабінет CMA або публічний трекінг",
+              "type": "string"
+            }
+          ]
+        },
         "includeOtherFields": true,
         "options": {}
       },
@@ -133,11 +333,23 @@
       "name": "CMA CGM — напівручний",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
-      "position": [1140, 380]
+      "position": [
+        1140,
+        380
+      ]
     },
     {
       "parameters": {
-        "assignments": { "assignments": [ { "id": "r4", "name": "Сценарій", "value": "Трекінг вручну — уточнити лінію", "type": "string" } ] },
+        "assignments": {
+          "assignments": [
+            {
+              "id": "r4",
+              "name": "Сценарій",
+              "value": "Трекінг вручну — уточнити лінію",
+              "type": "string"
+            }
+          ]
+        },
         "includeOtherFields": true,
         "options": {}
       },
@@ -145,21 +357,84 @@
       "name": "Інші — вручну",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
-      "position": [1140, 500]
+      "position": [
+        1140,
+        500
+      ]
     }
   ],
   "connections": {
-    "Старт (Manual Trigger)": { "main": [ [ { "node": "Дані перевезення (Set)", "type": "main", "index": 0 } ] ] },
-    "Дані перевезення (Set)": { "main": [ [ { "node": "Готове до трекінгу? (IF)", "type": "main", "index": 0 } ] ] },
-    "Готове до трекінгу? (IF)": { "main": [
-      [ { "node": "Лінія (Switch)", "type": "main", "index": 0 } ],
-      [ { "node": "Повернути менеджеру", "type": "main", "index": 0 } ]
-    ] },
-    "Лінія (Switch)": { "main": [
-      [ { "node": "Maersk — автотрекінг", "type": "main", "index": 0 } ],
-      [ { "node": "MSC — вручну (паблік)", "type": "main", "index": 0 } ],
-      [ { "node": "CMA CGM — напівручний", "type": "main", "index": 0 } ],
-      [ { "node": "Інші — вручну", "type": "main", "index": 0 } ]
-    ] }
+    "Старт (Manual Trigger)": {
+      "main": [
+        [
+          {
+            "node": "Дані перевезення (Set)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Дані перевезення (Set)": {
+      "main": [
+        [
+          {
+            "node": "Готове до трекінгу? (IF)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Готове до трекінгу? (IF)": {
+      "main": [
+        [
+          {
+            "node": "Лінія (Switch)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Повернути менеджеру",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Лінія (Switch)": {
+      "main": [
+        [
+          {
+            "node": "Maersk — автотрекінг",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "MSC — вручну (паблік)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "CMA CGM — напівручний",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Інші — вручну",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
   }
 }
