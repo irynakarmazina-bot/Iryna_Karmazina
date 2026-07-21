@@ -1,7 +1,7 @@
 {
-  "stdout": "DISABLED: немає\nNOTE_ADDED 200\n",
+  "stdout": "ЧЕРНЕТКА 4taPP7 | деактивовані: ['Польща']\nФІНАЛ Iz77H1 | деактивовані: немає\n",
   "stderr": "",
   "returncode": 0,
-  "id": "dz-leads-note",
-  "ts": "2026-07-21T18:02:05Z"
+  "id": "dz-check-disabled",
+  "ts": "2026-07-21T18:03:36Z"
 }
