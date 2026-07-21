@@ -1,7 +1,7 @@
 {
-  "stdout": "LIST HTTP 200 | count 17\n- 1YdXnLFOXI85IsWv | CRM Дашборд (web) | active True\n- 9TYcb0FgtNfQn1EQ | Container Tracking — Maersk | active False\n- FC3qzaxp5M89LpI7 | UNITEX Telegram Bot | active True\n- GGnGKrjyuCU3nrcC | Дайджест новин ліній (Claude) | active False\n- GIhQk0ETziCTYgTB | Довідка про транспортні витрати | active True\n- JQKA35haUsXU4XqE | Container Tracking — Maersk (CRM) | active True\n- NkGnkXJYqXXLohtF | AI Health Assistant | active False\n- VGi9phda7zLZC9eD | CRM Клієнтська вітрина (web) | active True\n- Zg8MJMYycdHUQJ98 | Monitor OEA0218983 — Email Alert | active False\n- bB1o1593vdzL1Diy | Контроль прибуття — пошта (Claude) | active False\n- iJygxTPoeyRNijnQ | Monitor OEA0218983 — Email Alert | active False\n- kcZKDbsNXgYpCrkx | My workflow 4 | active False\n- mVC0K0ymEiB6DuiT | CMR draft — автоматизація Unitex | active False\n- oVQAV2rB5l0kuBXO | Monitor OEA0218983 — Email Alert | active False\n- rEfN8GCZnDxpTmJ0 | My workflow | active False\n- rGwJHfUdDtX59Nvl | My workflow 3 | active False\n- zVlHFJCe0Afy0kMU | finrep-sheets-proxy | active True\n",
+  "stdout": "CREATED HTTP 200 | id WuYZdxfzaRp3ezcO | name ДЗ — вибір ключа трекінгу (Manual, Set, IF, 3 гілки) | active False\nCREATED HTTP 200 | id sIoffBehm6Sf6awF | name ДЗ — маршрутизація по лінії (Manual, Set, IF, Switch, 4 гілки) | active False\n",
   "stderr": "",
   "returncode": 0,
-  "id": "n8n-dz-list-1784627180",
-  "ts": "2026-07-21T09:46:29Z"
+  "id": "n8n-dz-create-1784627236",
+  "ts": "2026-07-21T09:47:19Z"
 }
