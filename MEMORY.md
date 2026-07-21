@@ -639,3 +639,8 @@ last_memory_cleanup: 2026-07-05
 - ✅ ДОРОБЛЕНО за проханням: додав пояснювальні Sticky Notes (4 і 3). Обережно: GET поточних вузлів з n8n → лишив їх як є → тільки замінив/додав нотатки → PUT. Нічого не перетерто/видалено. JSON у репо (n8n_dz/) в синхроні.
 - deploy_wf.py (в n8n_dz/) — безпечний: лише list/create з whitelist name/nodes/connections/settings, без delete.
 - last_memory_cleanup: 2026-07-05 (без змін)
+
+## 2026-07-21 (2) — Нотатки ДЗ переписано + готча n8n PUT settings
+- Нотатки в обох ДЗ-воркфлоу (WuYZdxfzaRp3ezcO, sIoffBehm6Sf6awF) переписано простою людською мовою — без markdown (**, ##), без галочок/хрестиків/емодзі (за проханням користувачки). JSON у n8n_dz/ в синхроні.
+- ⚙️ ГОТЧА n8n public API (важливо на майбутнє): при PUT /workflows не можна віддавати `settings`, отримане з GET як є — API відхиляє «request/body/settings must NOT have additional properties» (GET повертає більше ключів, ніж дозволяє PUT-схема). Рішення: слати settings з БІЛИМ СПИСКОМ, напр. лише {"executionOrder": <з cur або "v1">}. Так само на POST — тіло лише {name,nodes,connections,settings}.
+- last_memory_cleanup: 2026-07-05 (без змін)
