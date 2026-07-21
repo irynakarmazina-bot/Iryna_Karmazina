@@ -1,7 +1,7 @@
 {
-  "stdout": "UPDATED 200 sIoffBehm6Sf6awF nodes=12\n",
+  "stdout": "CREATED HTTP 200 | id 4taPP7xaRXZVKQc5 | name ДЗ — обробка лідів (Manual, Set, IF, Switch) | active False\n",
   "stderr": "",
   "returncode": 0,
-  "id": "dz-api-1",
-  "ts": "2026-07-21T13:39:37Z"
+  "id": "n8n-dz-leads-1784643223",
+  "ts": "2026-07-21T14:13:47Z"
 }
