@@ -1,0 +1,163 @@
+{
+  "name": "ДЗ — обробка лідів (Manual, Set, IF, Switch)",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "manual-trigger",
+      "name": "Старт (Manual Trigger)",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [220, 360]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            { "id": "f1", "name": "name", "value": "ТОВ Ромашка", "type": "string" },
+            { "id": "f2", "name": "country", "value": "Україна", "type": "string" },
+            { "id": "f3", "name": "requestType", "value": "Нова заявка", "type": "string" },
+            { "id": "f4", "name": "budget", "value": 5000, "type": "number" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "set-lead",
+      "name": "Дані ліда (Set)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [440, 360]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 2 },
+          "conditions": [
+            { "id": "c1", "leftValue": "={{ $json.budget }}", "rightValue": 1000, "operator": { "type": "number", "operation": "gte" } }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-budget",
+      "name": "Бюджет достатній? (IF)",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [660, 360]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 2 },
+                "conditions": [ { "id": "s1", "leftValue": "={{ $json.country }}", "rightValue": "Україна", "operator": { "type": "string", "operation": "equals" } } ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Україна"
+            },
+            {
+              "conditions": {
+                "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 2 },
+                "conditions": [ { "id": "s2", "leftValue": "={{ $json.country }}", "rightValue": "Польща", "operator": { "type": "string", "operation": "equals" } } ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Польща"
+            },
+            {
+              "conditions": {
+                "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 2 },
+                "conditions": [ { "id": "s3", "leftValue": "={{ $json.country }}", "rightValue": "Німеччина", "operator": { "type": "string", "operation": "equals" } } ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Німеччина"
+            }
+          ]
+        },
+        "options": { "fallbackOutput": "extra" }
+      },
+      "id": "switch-country",
+      "name": "Країна клієнта (Switch)",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [900, 280]
+    },
+    {
+      "parameters": {
+        "assignments": { "assignments": [ { "id": "r0", "name": "Сценарій", "value": "Бюджет нижче порогу (1000) — у чергу на прогрів, без менеджера", "type": "string" } ] },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "set-low",
+      "name": "Малий бюджет — прогрів",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [900, 560]
+    },
+    {
+      "parameters": {
+        "assignments": { "assignments": [ { "id": "r1", "name": "Сценарій", "value": "Менеджер по Україні: завести в CRM, дзвінок сьогодні, договір UAH", "type": "string" } ] },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "set-ua",
+      "name": "Україна — CRM",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [1160, 120]
+    },
+    {
+      "parameters": {
+        "assignments": { "assignments": [ { "id": "r2", "name": "Сценарій", "value": "Менеджер по Польщі: відповідь польською, розрахунок з ПДВ ЄС", "type": "string" } ] },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "set-pl",
+      "name": "Польща — ЄС",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [1160, 240]
+    },
+    {
+      "parameters": {
+        "assignments": { "assignments": [ { "id": "r3", "name": "Сценарій", "value": "Менеджер по Німеччині: відповідь німецькою, договір DE", "type": "string" } ] },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "set-de",
+      "name": "Німеччина — DE",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [1160, 360]
+    },
+    {
+      "parameters": {
+        "assignments": { "assignments": [ { "id": "r4", "name": "Сценарій", "value": "Загальний відділ: уточнити країну і напрямок", "type": "string" } ] },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "set-other",
+      "name": "Інші країни",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [1160, 480]
+    }
+  ],
+  "connections": {
+    "Старт (Manual Trigger)": { "main": [ [ { "node": "Дані ліда (Set)", "type": "main", "index": 0 } ] ] },
+    "Дані ліда (Set)": { "main": [ [ { "node": "Бюджет достатній? (IF)", "type": "main", "index": 0 } ] ] },
+    "Бюджет достатній? (IF)": { "main": [
+      [ { "node": "Країна клієнта (Switch)", "type": "main", "index": 0 } ],
+      [ { "node": "Малий бюджет — прогрів", "type": "main", "index": 0 } ]
+    ] },
+    "Країна клієнта (Switch)": { "main": [
+      [ { "node": "Україна — CRM", "type": "main", "index": 0 } ],
+      [ { "node": "Польща — ЄС", "type": "main", "index": 0 } ],
+      [ { "node": "Німеччина — DE", "type": "main", "index": 0 } ],
+      [ { "node": "Інші країни", "type": "main", "index": 0 } ]
+    ] }
+  }
+}
