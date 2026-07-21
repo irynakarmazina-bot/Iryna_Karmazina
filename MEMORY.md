@@ -632,3 +632,10 @@ last_memory_cleanup: 2026-07-05
 - local main у контейнері був сильно розійшовся (ahead 50/behind 112) — вирівняно git reset --hard origin/main (untracked файли вижили). Origin/main — джерело правди, його тягне autodeploy
 - СТВОРЕНО 2 воркфлоу (inactive): WuYZdxfzaRp3ezcO «ДЗ — вибір ключа трекінгу (IF, 3 гілки)», sIoffBehm6Sf6awF «ДЗ — маршрутизація по лінії (Switch, 4 гілки)». Файли: n8n_dz/dz_tracking_key.json, n8n_dz/dz_switch_line.json (на main)
 - Наживо в n8n 17 воркфлоу (list HTTP 200). Дублікатів назв не було — тільки створення
+
+## 2026-07-21 — Навчальні n8n-воркфлоу (ДЗ) + нотатки
+- Координація двох сесій: інша сесія (n8n-learning-helper) поклала в main `n8n_dz/` — два навчальні воркфлоу (IF та Switch) + deploy_wf.py. Ця сесія (з relay-доступом) їх обробила.
+- Наявні в n8n (створила інша сесія раніше): `WuYZdxfzaRp3ezcO` «ДЗ — вибір ключа трекінгу (Manual/Set/IF, 3 гілки)», `sIoffBehm6Sf6awF` «ДЗ — маршрутизація по лінії (Manual/Set/IF/Switch, 4 гілки)». Idempotent-деплой (перевірка назви) НЕ створив дублів.
+- ✅ ДОРОБЛЕНО за проханням: додав пояснювальні Sticky Notes (4 і 3). Обережно: GET поточних вузлів з n8n → лишив їх як є → тільки замінив/додав нотатки → PUT. Нічого не перетерто/видалено. JSON у репо (n8n_dz/) в синхроні.
+- deploy_wf.py (в n8n_dz/) — безпечний: лише list/create з whitelist name/nodes/connections/settings, без delete.
+- last_memory_cleanup: 2026-07-05 (без змін)
