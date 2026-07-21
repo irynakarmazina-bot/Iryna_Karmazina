@@ -1,0 +1,115 @@
+{
+  "name": "ДЗ — вибір ключа трекінгу (Manual, Set, IF, 3 гілки)",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "manual-trigger",
+      "name": "Старт (Manual Trigger)",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [240, 340]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            { "id": "f1", "name": "dealNumber", "value": "UT-1024", "type": "string" },
+            { "id": "f2", "name": "direction", "value": "Імпорт", "type": "string" },
+            { "id": "f3", "name": "line", "value": "Maersk", "type": "string" },
+            { "id": "f4", "name": "bl", "value": "240001234", "type": "string" },
+            { "id": "f5", "name": "container", "value": "MRKU1234567", "type": "string" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "set-data",
+      "name": "Дані перевезення (Set)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [460, 340]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 2 },
+          "conditions": [
+            { "id": "c1", "leftValue": "={{ $json.bl }}", "rightValue": "", "operator": { "type": "string", "operation": "notEmpty", "singleValue": true } }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-bl",
+      "name": "Чи є номер BL? (IF)",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [680, 340]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 2 },
+          "conditions": [
+            { "id": "c2", "leftValue": "={{ $json.container }}", "rightValue": "", "operator": { "type": "string", "operation": "notEmpty", "singleValue": true } },
+            { "id": "c3", "leftValue": "={{ $json.line }}", "rightValue": "", "operator": { "type": "string", "operation": "notEmpty", "singleValue": true } }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-container",
+      "name": "Є контейнер і лінія? (IF)",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [900, 460]
+    },
+    {
+      "parameters": {
+        "assignments": { "assignments": [ { "id": "r1", "name": "Результат трекінгу", "value": "Трекається автоматично по BL (Maersk API)", "type": "string" } ] },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "set-bl",
+      "name": "Трекається по BL",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [1140, 220]
+    },
+    {
+      "parameters": {
+        "assignments": { "assignments": [ { "id": "r2", "name": "Результат трекінгу", "value": "Тимчасово по контейнеру — позначка «уточнити»", "type": "string" } ] },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "set-container",
+      "name": "Тимчасово по контейнеру",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [1140, 400]
+    },
+    {
+      "parameters": {
+        "assignments": { "assignments": [ { "id": "r3", "name": "Результат трекінгу", "value": "Не трекається — потребує перевірки", "type": "string" } ] },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "set-none",
+      "name": "Не трекається",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [1140, 560]
+    }
+  ],
+  "connections": {
+    "Старт (Manual Trigger)": { "main": [ [ { "node": "Дані перевезення (Set)", "type": "main", "index": 0 } ] ] },
+    "Дані перевезення (Set)": { "main": [ [ { "node": "Чи є номер BL? (IF)", "type": "main", "index": 0 } ] ] },
+    "Чи є номер BL? (IF)": { "main": [
+      [ { "node": "Трекається по BL", "type": "main", "index": 0 } ],
+      [ { "node": "Є контейнер і лінія? (IF)", "type": "main", "index": 0 } ]
+    ] },
+    "Є контейнер і лінія? (IF)": { "main": [
+      [ { "node": "Тимчасово по контейнеру", "type": "main", "index": 0 } ],
+      [ { "node": "Не трекається", "type": "main", "index": 0 } ]
+    ] }
+  }
+}
