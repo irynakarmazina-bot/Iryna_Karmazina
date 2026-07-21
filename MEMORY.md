@@ -644,3 +644,9 @@ last_memory_cleanup: 2026-07-05
 - Нотатки в обох ДЗ-воркфлоу (WuYZdxfzaRp3ezcO, sIoffBehm6Sf6awF) переписано простою людською мовою — без markdown (**, ##), без галочок/хрестиків/емодзі (за проханням користувачки). JSON у n8n_dz/ в синхроні.
 - ⚙️ ГОТЧА n8n public API (важливо на майбутнє): при PUT /workflows не можна віддавати `settings`, отримане з GET як є — API відхиляє «request/body/settings must NOT have additional properties» (GET повертає більше ключів, ніж дозволяє PUT-схема). Рішення: слати settings з БІЛИМ СПИСКОМ, напр. лише {"executionOrder": <з cur або "v1">}. Так само на POST — тіло лише {name,nodes,connections,settings}.
 - last_memory_cleanup: 2026-07-05 (без змін)
+
+## 2026-07-21 (2) — n8n ДЗ «обробка лідів»: точна умова vs слайди
+- УРОК: документ ДЗ (docs.superhuman.com) НЕ відкривається з сесії (403, треба логін). Двічі будувала «зі слайдів» замість точного тексту — користувачка справедливо дорікнула. Правило: якщо джерело умови недоступне — ОДРАЗУ сказати і попросити текст, не відновлювати по пам'яті
+- Точна умова ДЗ (зі скріна користувачки): Manual Trigger + Set + IF(або Filter) + Switch; поля Set: Name/Country/Budget (приклад John Smith/Germany/1500); IF: Budget>1000→High Priority, <=1000→Standard Lead; Switch по країні мінімум 3 гілки: Україна/Польща/Інші країни, кожна — окрема гілка
+- СТВОРЕНО точно за умовою (inactive): Iz77H1Al7RoHAbNp «ДЗ — обробка лідів (Name/Country/Budget, IF, Switch)». Файл n8n_dz/dz_leads_spec.json
+- Раніше цієї ж сесії створено НАБЛИЖЕНІ (не точно за умовою, лишаю недоторканими): WuYZdxfzaRp3ezcO (трекінг IF), sIoffBehm6Sf6awF (маршрутизація Switch), 4taPP7xaRXZVKQc5 (обробка лідів чернетка — була Німеччина+«≥1000»). Прибирати лише за явним «так» користувачки і за конкретним ID
