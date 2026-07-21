@@ -1,1 +1,1 @@
-{"id": "n8n-dz-leads-1784643223", "cmd": "cd /root/Iryna_Karmazina && (git pull -q 2>/dev/null || true) && python3 n8n_dz/deploy_wf.py create n8n_dz/dz_leads.json 2>&1"}
+{"id": "n8n-dz-leadspec-1784643377", "cmd": "cd /root/Iryna_Karmazina && (git pull -q 2>/dev/null || true) && python3 n8n_dz/deploy_wf.py create n8n_dz/dz_leads_spec.json 2>&1"}

@@ -1,0 +1,153 @@
+{
+  "name": "ДЗ — обробка лідів (Name/Country/Budget, IF, Switch)",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "manual-trigger",
+      "name": "Старт (Manual Trigger)",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [220, 380]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            { "id": "f1", "name": "Name", "value": "John Smith", "type": "string" },
+            { "id": "f2", "name": "Country", "value": "Germany", "type": "string" },
+            { "id": "f3", "name": "Budget", "value": 1500, "type": "number" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "set-lead",
+      "name": "Дані ліда (Set)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [440, 380]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 2 },
+          "conditions": [
+            { "id": "c1", "leftValue": "={{ $json.Budget }}", "rightValue": 1000, "operator": { "type": "number", "operation": "gt" } }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-budget",
+      "name": "Бюджет > 1000? (IF)",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [660, 380]
+    },
+    {
+      "parameters": {
+        "assignments": { "assignments": [ { "id": "p1", "name": "Priority", "value": "High Priority", "type": "string" } ] },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "set-high",
+      "name": "High Priority",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [880, 260]
+    },
+    {
+      "parameters": {
+        "assignments": { "assignments": [ { "id": "p2", "name": "Priority", "value": "Standard Lead", "type": "string" } ] },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "set-standard",
+      "name": "Standard Lead",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [880, 560]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 2 },
+                "conditions": [ { "id": "s1", "leftValue": "={{ $json.Country }}", "rightValue": "Україна", "operator": { "type": "string", "operation": "equals" } } ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Україна"
+            },
+            {
+              "conditions": {
+                "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 2 },
+                "conditions": [ { "id": "s2", "leftValue": "={{ $json.Country }}", "rightValue": "Польща", "operator": { "type": "string", "operation": "equals" } } ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Польща"
+            }
+          ]
+        },
+        "options": { "fallbackOutput": "extra", "renameFallbackOutput": "Інші країни" }
+      },
+      "id": "switch-country",
+      "name": "Країна клієнта (Switch)",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [1120, 260]
+    },
+    {
+      "parameters": {
+        "assignments": { "assignments": [ { "id": "r1", "name": "Сценарій", "value": "Україна: менеджер UA, договір UAH, дзвінок сьогодні", "type": "string" } ] },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "set-ua",
+      "name": "Гілка: Україна",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [1360, 140]
+    },
+    {
+      "parameters": {
+        "assignments": { "assignments": [ { "id": "r2", "name": "Сценарій", "value": "Польща: менеджер PL, документи польською, ПДВ ЄС", "type": "string" } ] },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "set-pl",
+      "name": "Гілка: Польща",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [1360, 260]
+    },
+    {
+      "parameters": {
+        "assignments": { "assignments": [ { "id": "r3", "name": "Сценарій", "value": "Інші країни: загальний відділ, уточнити напрямок", "type": "string" } ] },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "set-other",
+      "name": "Гілка: Інші країни",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [1360, 380]
+    }
+  ],
+  "connections": {
+    "Старт (Manual Trigger)": { "main": [ [ { "node": "Дані ліда (Set)", "type": "main", "index": 0 } ] ] },
+    "Дані ліда (Set)": { "main": [ [ { "node": "Бюджет > 1000? (IF)", "type": "main", "index": 0 } ] ] },
+    "Бюджет > 1000? (IF)": { "main": [
+      [ { "node": "High Priority", "type": "main", "index": 0 } ],
+      [ { "node": "Standard Lead", "type": "main", "index": 0 } ]
+    ] },
+    "High Priority": { "main": [ [ { "node": "Країна клієнта (Switch)", "type": "main", "index": 0 } ] ] },
+    "Країна клієнта (Switch)": { "main": [
+      [ { "node": "Гілка: Україна", "type": "main", "index": 0 } ],
+      [ { "node": "Гілка: Польща", "type": "main", "index": 0 } ],
+      [ { "node": "Гілка: Інші країни", "type": "main", "index": 0 } ]
+    ] }
+  }
+}
