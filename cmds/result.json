@@ -1,7 +1,7 @@
 {
-  "stdout": "UPDATED 200 WuYZdxfzaRp3ezcO notes=4 nodes=7\nUPDATED 200 sIoffBehm6Sf6awF notes=3 nodes=9\n",
+  "stdout": "FAIL 400 WuYZdxfzaRp3ezcO notes=4 nodes=7\nUPDATED 200 sIoffBehm6Sf6awF notes=3 nodes=9\n",
   "stderr": "",
   "returncode": 0,
-  "id": "dz-notes-1",
-  "ts": "2026-07-21T10:05:56Z"
+  "id": "dz-notes-2",
+  "ts": "2026-07-21T13:32:02Z"
 }
