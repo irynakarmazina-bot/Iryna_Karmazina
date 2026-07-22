@@ -1,7 +1,7 @@
 {
-  "stdout": "created SvzH9GrI59Yjw7tW\nRESULT: \ndeleted\n",
-  "stderr": "/bin/sh: 2: BuildDV: not found\n/bin/sh: 2: BuildDV: not found\n",
+  "stdout": "created 5mm0c29SdXwQpNaJ\nRESULT: \ndeleted\n",
+  "stderr": "",
   "returncode": 0,
-  "id": "status-dropdown-0707",
-  "ts": "2026-07-22T09:41:36Z"
+  "id": "status-dropdown2-0707",
+  "ts": "2026-07-22T09:42:54Z"
 }
