@@ -1,7 +1,7 @@
 {
-  "stdout": "ЧЕРНЕТКА 4taPP7 | деактивовані: ['Польща']\nФІНАЛ Iz77H1 | деактивовані: немає\n",
+  "stdout": "Maersk Розбір patched: True | PUT 200\nдашборд кольори patched: 0 | PUT skip\nвітрина кольори patched: 0 | PUT skip\nготово\n",
   "stderr": "",
   "returncode": 0,
-  "id": "dz-check-disabled",
-  "ts": "2026-07-21T18:03:36Z"
+  "id": "split-status-0707",
+  "ts": "2026-07-22T09:29:36Z"
 }
