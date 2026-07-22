@@ -1,7 +1,7 @@
 {
-  "stdout": "Maersk Розбір patched: True | PUT 200\nдашборд кольори patched: 0 | PUT skip\nвітрина кольори patched: 0 | PUT skip\nготово\n",
-  "stderr": "",
+  "stdout": "created SvzH9GrI59Yjw7tW\nRESULT: \ndeleted\n",
+  "stderr": "/bin/sh: 2: BuildDV: not found\n/bin/sh: 2: BuildDV: not found\n",
   "returncode": 0,
-  "id": "split-status-0707",
-  "ts": "2026-07-22T09:29:36Z"
+  "id": "status-dropdown-0707",
+  "ts": "2026-07-22T09:41:36Z"
 }
