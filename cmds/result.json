@@ -1,7 +1,7 @@
 {
-  "stdout": "created 5mm0c29SdXwQpNaJ\nRESULT: \ndeleted\n",
+  "stdout": "created 66CNRuUB9nvQSZ4W\nRESULT: {\"dropdownsFound\":14,\"details\":[{\"col\":2,\"count\":7,\"hasPotyag\":false,\"hasAvto\":false,\"sample\":[\"Море + авто\",\"Море + залізниця\",\"Залізниця\",\"Море\",\"Авто\",\"Збірний\",\"Авіа\"]},{\"col\":3,\"count\":6,\"hasPotyag\":false,\"hasAvto\":false,\"sample\":[\"Maersk\",\"MSC\",\"CMA CGM\",\"Hapag-Lloyd\",\"COSCO\",\"Інша\"]},{\"col\":4,\"count\":6,\"hasPotyag\":false,\"hasAvto\":false,\"sample\":[\"Levada Cargo\",\"WCT\",\"UGL\",\"Bit Vantage\",\"Imtrex\",\"Ugrain\"]},{\"col\":5,\"count\":5,\"hasPotyag\":false,\"hasAvto\":false,\"sample\":[\"Genext Logistics\",\"SR Shipping\",\"Cool World\",\"Betterway\",\"AAA\"]},{\"col\":9,\"count\":2,\"hasPotyag\":false,\"hasAvto\":false,\"sample\":[\"N'Unit (TrakIT)\",\"Лінія — пошта\"]},{\"col\":10,\"count\":11,\"hasPotyag\":true,\"hasAvto\":true,\"sample\":[\"Стафіровка\",\"Завантажений на авто\",\"Завантажений на потяг\",\"На кордоні\",\"Зданий в порт\",\"Зав\ndeleted\n",
   "stderr": "",
   "returncode": 0,
-  "id": "status-dropdown2-0707",
-  "ts": "2026-07-22T09:42:54Z"
+  "id": "dv-check-0707",
+  "ts": "2026-07-22T09:44:20Z"
 }
