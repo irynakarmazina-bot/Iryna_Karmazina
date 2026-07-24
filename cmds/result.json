@@ -1,7 +1,7 @@
 {
-  "stdout": "--- .env variable names (no values):\nTELEGRAM_BOT_TOKEN\nANTHROPIC_API_KEY\nGITHUB_TOKEN\nRDP_PASSWORD\nN8N_API_KEY\n--- /root files:\nIryna_Karmazina\nautodeploy.sh\ndash_current.js\neks_run\nmk-backup-JQKA35haUsXU4XqE.json\nmk-backup-split.json\nnano.2560.save\nsetup.sh\nsheet-uhody-backup.json\nwf-backup-1YdXnLFOXI85IsWv.json\nwf-backup-VGi9phda7zLZC9eD.json\nwf-backup-dash-cols.js\nwf-backup-dash-refresh.js\nwf-backup-dash-sticky.json\n--- repo scripts with imap/smtp/draft:\n/root/Iryna_Karmazina/venv/lib/python3.12/site-packages/telegram/_bot.py\n",
+  "stdout": "--- RAM:\n               total        used        free      shared  buff/cache   available\nMem:           961Mi       376Mi       255Mi       4.1Mi       494Mi       585Mi\nSwap:             0B          0B          0B\n--- DISK:\nFilesystem      Size  Used Avail Use% Mounted on\n/dev/vda1        24G  6.3G   17G  27% /\n--- CPU:\n1\nmodel name\t: DO-Regular\n--- DOCKER:\n/bin/sh: 1: docker: not found\n/bin/sh: 1: docker: not found\ninactive\n--- PORTS 80/443:\nвільні\n--- LOAD:\n 16:13:52 up 78 days, 20:46,  0 user,  load average: 0.00, 0.00, 0.00\n",
   "stderr": "",
   "returncode": 0,
-  "id": "mail-env-check-0723",
-  "ts": "2026-07-23T09:54:12Z"
+  "id": "vps-resources-0724",
+  "ts": "2026-07-24T13:13:52Z"
 }
