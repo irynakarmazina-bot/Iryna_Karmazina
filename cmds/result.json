@@ -1,7 +1,7 @@
 {
-  "stdout": "nocodb Up About a minute\nNC_REQUEST_BODY_SIZE=20971520\nhealth 302\n",
+  "stdout": "trigger 200\ntotalRows\":0\n",
   "stderr": "",
   "returncode": 0,
-  "id": "verify-nocodb-0725",
-  "ts": "2026-07-25T06:53:06Z"
+  "id": "sync-rerun-0725",
+  "ts": "2026-07-25T06:54:24Z"
 }
