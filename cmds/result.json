@@ -1,7 +1,7 @@
 {
-  "stdout": "SIGNIN_FAILED 400\n",
+  "stdout": "TOKEN_OK\nBASE_OK pbhr1qkpvx09z8m\nTABLE ??????????????? 200\nTABLE ??????? 200\nTABLE ?????? 200\nSETUP_COMPLETE\n",
   "stderr": "",
   "returncode": 0,
-  "id": "nc-setup-0725",
-  "ts": "2026-07-25T06:00:12Z"
+  "id": "nc-setup2-0725",
+  "ts": "2026-07-25T06:08:38Z"
 }
