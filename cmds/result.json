@@ -1,7 +1,7 @@
 {
-  "stdout": "BACKGROUND_STARTED\n",
+  "stdout": "================================================================================\n\nINSTALL_DONE\nDocker version 29.6.2, build dfc4efb\nactive\n",
   "stderr": "",
   "returncode": 0,
-  "id": "docker-install-0725",
-  "ts": "2026-07-25T05:34:31Z"
+  "id": "docker-verify-0725",
+  "ts": "2026-07-25T05:36:23Z"
 }
