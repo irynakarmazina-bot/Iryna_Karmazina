@@ -114,6 +114,7 @@
   button{font:inherit}
   :focus-visible{outline:2px solid var(--accent); outline-offset:2px; border-radius:4px}
   @media (prefers-reduced-motion: reduce){ *{transition:none!important;animation:none!important} }
+  .pal-mini,.pal-row{display:none!important}
 
   /* ---------- LOGIN ---------- */
   #login-screen{min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:20px; padding:24px}
@@ -193,7 +194,7 @@
   .user-chip .who b{display:block;font-size:13.5px;line-height:1.2}
   .role-badge{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;
     color:var(--accent-ink);background:var(--accent-soft);border-radius:20px;padding:1px 8px}
-  .content{padding:24px; max-width:1160px; width:100%; margin:0 auto; display:flex;flex-direction:column;gap:20px}
+  .content{padding:24px; max-width:1820px; width:100%; margin:0 auto; display:flex;flex-direction:column;gap:20px}
 
   .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
     box-shadow:var(--shadow); padding:18px 20px}
@@ -427,6 +428,7 @@ const MODULES = [
   { id:"dashboard", label:"Дашборд", ico:"📊" },
   { id:"dispatch",  label:"Диспетчеризація", ico:"🚢" },
   { id:"clients",   label:"Клієнти", ico:"👥" },
+  { id:"finance",   label:"Фінанси", ico:"💰" },
   { id:"tasks",     label:"Задачі", ico:"✅" },
 ];
 function buildNav(){
@@ -457,25 +459,35 @@ let DISP_CACHE = null;
 
 PAGES.dashboard = async () => {
   const rows = DISP_CACHE || (DISP_CACHE = await loadAll(T.disp));
-  const act = rows.filter(r=>r["Статус"]!=="Вантаж доставлено").length;
-  const sea = rows.filter(r=>r["Статус"]==="В морі").length;
-  const week = rows.filter(r=>{ if(!r["ETA"]) return false; const d=new Date(r["ETA"]); const n=new Date(); const diff=(d-n)/86400000; return diff>=-1 && diff<=7; }).length;
-  const chg = rows.filter(r=>String(r["Зміни ETA (історія)"]||"").trim()).length;
-  const recent = rows.filter(r=>r["Остання зміна"]).sort((a,b)=>String(b["Остання зміна"]).localeCompare(String(a["Остання зміна"]))).slice(0,6);
+  const active = rows.filter(r=>r["Статус"]!=="Вантаж доставлено");
+  const today = new Date(); today.setHours(0,0,0,0);
+  const d = v => { const m=/(\d{4})-(\d{2})-(\d{2})/.exec(String(v||"")); return m? new Date(+m[1],+m[2]-1,+m[3]) : null; };
+  const sea = active.filter(r=>r["Статус"]==="В морі").length;
+  const week = active.filter(r=>{ const e=d(r["ETA"]); return e && (e-today)/86400000>=0 && (e-today)/86400000<=7; }).length;
+  const noBL = active.filter(r=>!String(r["BL"]||"").trim()).length;
+  const fmtRow = r => `<tr><td class="mono"><b>${esc(r["Угода"])}</b></td><td>${esc(r["Клієнт"]||"—")}</td>
+    <td>${esc(r["Судно"]||"—")}</td><td>${stPill(r["Статус"])}</td><td class="mono">${esc(r["ETA"]||"—")}</td></tr>`;
+  const upcoming = active.filter(r=>{ const e=d(r["ETA"]); return e && e>=today; })
+    .sort((a,b)=>String(a["ETA"]).localeCompare(String(b["ETA"]))).slice(0,8);
+  const overdue = active.filter(r=>{ const e=d(r["ETA"]); return e && e<today; })
+    .sort((a,b)=>String(a["ETA"]).localeCompare(String(b["ETA"]))).slice(0,8);
   $("content").innerHTML = `
     <div class="tiles">
-      <div class="tile"><div class="lbl">📦 Активні перевезення</div><div class="val">${act}</div><div class="delta">з ${rows.length} угод у базі</div></div>
+      <div class="tile"><div class="lbl">📦 Активні перевезення</div><div class="val">${active.length}</div><div class="delta">з ${rows.length} угод у базі</div></div>
       <div class="tile"><div class="lbl">🌊 В морі зараз</div><div class="val">${sea}</div></div>
       <div class="tile"><div class="lbl">📅 Прибуття за 7 днів</div><div class="val">${week}</div></div>
-      <div class="tile warn"><div class="lbl">⚠️ Були зміни ETA</div><div class="val">${chg}</div><div class="delta">переглянь історію</div></div>
+      <div class="tile warn"><div class="lbl">🚫 Без BL (не трекаються)</div><div class="val">${noBL}</div><div class="delta">впиши BL — трекінг увімкнеться</div></div>
     </div>
-    <div class="card"><h3>🕒 Останні зміни ETA (від трекінгу)</h3><p class="sub">за датою останньої зміни</p>
-      <div class="tablewrap"><table><tbody>
-        ${recent.map(r=>`<tr><td class="cell-muted mono">${esc(r["Остання зміна"])}</td>
-          <td><b>${esc(r["Угода"])}</b> · ${esc(r["Клієнт"]||"")}</td>
-          <td>${stPill(r["Статус"])}</td><td class="mono">ETA ${esc(r["ETA"]||"—")}</td></tr>`).join("") || '<tr><td class="cell-muted">Поки що змін немає.</td></tr>'}
-      </tbody></table></div></div>
-    <div class="note">💡 Дані живі: те саме, що в диспетчеризації. Кнопка «⟳ Оновити з Експедитора» — у розділі Диспетчеризація.</div>`;
+    <div class="card"><h3>📅 Найближчі прибуття</h3><p class="sub">активні угоди за датою ETA, від найближчої</p>
+      <div class="tablewrap"><table>
+        <thead><tr><th>Угода</th><th>Клієнт</th><th>Судно</th><th>Статус</th><th>ETA</th></tr></thead>
+        <tbody>${upcoming.map(fmtRow).join("") || '<tr><td colspan="5" class="cell-muted">Немає активних угод з майбутнім ETA.</td></tr>'}</tbody>
+      </table></div></div>
+    <div class="card"><h3>⚠️ ETA минуло — перевірити</h3><p class="sub">дата прибуття вже позаду, а угода ще не закрита: оновити статус або дати</p>
+      <div class="tablewrap"><table>
+        <thead><tr><th>Угода</th><th>Клієнт</th><th>Судно</th><th>Статус</th><th>ETA</th></tr></thead>
+        <tbody>${overdue.map(fmtRow).join("") || '<tr><td colspan="5" class="cell-muted">Таких немає — все під контролем ✅</td></tr>'}</tbody>
+      </table></div></div>`;
 };
 
 const FLAGS = ["Телекс","Т1","ДО","Документи","SI","Замитнення","Реліз"];
@@ -583,6 +595,35 @@ PAGES.tasks = async () => {
           <td class="mono">${esc(t["Термін"]||"—")}</td><td>${esc(t["Статус"]||"—")}</td><td class="mono">${esc(t["Угода"]||"—")}</td></tr>`).join("")
           : '<tr><td colspan="5" class="cell-muted">Задач поки немає — додай першу в базі.</td></tr>'}</tbody>
       </table></div></div>`;
+};
+
+
+PAGES.finance = async () => {
+  $("content").innerHTML = `
+    <div class="card"><h3>💰 Оперативний фінансовий звіт</h3>
+      <p class="sub">джерело — Експедитор (прямий доступ): ліквідність по касах, дебіторка/кредиторка, платіжний календар, кешфлоу, клієнти</p>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:6px">
+        <button class="btn" id="finrep-btn">⚙️ Сформувати (свіжі дані з Експедитора)</button>
+        <button class="btn ghost" id="finrep-open">📊 Відкрити звіт (Google Sheets)</button>
+      </div>
+      <p class="sub" id="finrep-status" style="margin-top:12px"></p>
+    </div>
+    <div class="note">💡 «Сформувати» тягне актуальні дані з Експедитора і перебудовує всі аркуші звіту — це триває ~2 хвилини. Потім відкривай звіт. Доступ до таблиці — з твого Google-акаунта.</div>`;
+  $("finrep-open").addEventListener("click", ()=>window.open("https://docs.google.com/spreadsheets/d/1SK0AXKt0BpEaLpax49lWy3ucjpLKrD_4Yi7Stdw9qMo","_blank"));
+  $("finrep-btn").addEventListener("click", async ()=>{
+    $("finrep-btn").disabled = true; $("finrep-btn").textContent = "⏳ Формується…";
+    $("finrep-status").textContent = "Звіт перебудовується з живих даних Експедитора — зачекай ~2 хвилини і відкрий звіт.";
+    try{
+      const r = await fetch("/finrep-run"); const js = await r.json();
+      if (js.status !== "started") throw new Error("bad");
+      toast("✅ Формування запущено — за ~2 хвилини звіт буде свіжий");
+      setTimeout(()=>{ $("finrep-btn").disabled=false; $("finrep-btn").textContent="⚙️ Сформувати (свіжі дані з Експедитора)"; $("finrep-status").textContent="Готово! Відкривай звіт — дані актуальні."; }, 120000);
+    } catch(e){
+      toast("⚠ Не вдалося запустити формування");
+      $("finrep-btn").disabled=false; $("finrep-btn").textContent="⚙️ Сформувати (свіжі дані з Експедитора)";
+      $("finrep-status").textContent="";
+    }
+  });
 };
 
 /* ===== старт ===== */
