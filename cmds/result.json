@@ -1,7 +1,7 @@
 {
-  "stdout": "=ODATA=\nENTITY_FOUND True\nSELECT_OK Number,Posted,DeletionMark\nTraceback (most recent call last):\n  File \"/root/odata_check2.py\", line 24, in <module>\n    for r in rows:\n  File \"/root/unitex-finrep/engine/odata_client.py\", line 99, in list\n    data = self._get(\"/\" + quote(entity) + \"?\" + q)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/root/unitex-finrep/engine/odata_client.py\", line 72, in _get\n    with urllib.request.urlopen(req, timeout=120, context=self._ctx) as r:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/urllib/request.py\", line 215, in urlopen\n    return opener.open(url, data, timeout)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/urllib/request.py\", line 521, in open\n=DEPLOY=\nWF_CREATED qqaf7vK45cSXCA8S\nACTIVATE 200\nFIRST_RUN_TRIGGER 200\nNOCODB_ROWS 265\nEXEC success 2026-07-25T14:42:51\n",
+  "stdout": "=ODATA3=\nITER_HTTP 400 {\n\"odata.error\": {\n\"code\": \"6\",\n\"message\": {\n\"lang\": \"uk\",\n\"value\": \"??????? ????? N ?? ????????!\"\n}\n}\n}\nGOT_ROWS 0\n=LOADERS=\n27:def _d10(x):\n32:def _dt_str(iso):\n41:def _month_end(iso):\n49:def _num(x):\n56:def _debt(row):\n62:def _name_map(c, entity):\n74:def build_caches(c):\n95:def deal_string(d):\n=APPEND_CHECK=\n?????? ?????? 1\n????? ? ????????? 1\n??????? ???????????? 254\n???? ??? ??????? 11\n????????? ? ??????? 11\n",
   "stderr": "",
   "returncode": 0,
-  "id": "newdeals-odata-0725",
-  "ts": "2026-07-25T14:43:33Z"
+  "id": "odata3-append-0725",
+  "ts": "2026-07-25T14:44:28Z"
 }
