@@ -1,7 +1,7 @@
 {
-  "stdout": "WF: ДЗ — обробка замовлень для CRM (Set, Split Out, Expressions, Filter, Code) | nodes: 8\n- Опис | stickyNote v 1 \n- Старт (Manual Trigger) | manualTrigger v 1 \n- Замовлення — масив (Set) | set v 3.4 \n- Розбити масив (Split Out) | splitOut v 1 \n- Трансформація (Expressions) | set v 3.4 \n- Paid або Amount>100 (Filter) | filter v 2.2 | {\"conditions\": {\"options\": {\"caseSensitive\": true, \"leftValue\": \"\", \"typeValidation\": \"strict\", \"version\": 2}, \"conditions\": [{\"id\": \"c1\", \"leftValue\": \"={{ $json.Status }}\", \"rightValue\": \"Paid\", \"op\n- Групування по країнах (Code) | code v 2 \n- Відфільтровані замовлення (No Op) | noOp v 1 \nCONNECTIONS:\n   Старт (Manual Trigger) -[out0]-> Замовлення — масив (Set)\n   Замовлення — масив (Set) -[out0]-> Розбити масив (Split Out)\n   Розбити масив (Split Out) -[out0]-> Трансформація (Expressions)\n   Трансформація (Expressions) -[out0]-> Paid або Amount>100 (Filter)\n   Paid або Amount>100 (Filter) -[out0]-> Групування по країнах (Code)\n   Paid або Amount>100 (Filter) -[out0]-> Відфільтровані замовлення (No Op)\n",
+  "stdout": "base64: invalid input\n",
   "stderr": "",
   "returncode": 0,
-  "id": "n8n-dz-get-1785002610",
-  "ts": "2026-07-25T18:03:37Z"
+  "id": "facade-deploy-0725",
+  "ts": "2026-07-25T18:10:31Z"
 }
