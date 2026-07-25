@@ -129,8 +129,19 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1200,
-        300
+        1220,
+        200
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "noop",
+      "name": "Відфільтровані замовлення (No Op)",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        1220,
+        420
       ]
     }
   ],
@@ -184,6 +195,11 @@
         [
           {
             "node": "Групування по країнах (Code)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Відфільтровані замовлення (No Op)",
             "type": "main",
             "index": 0
           }

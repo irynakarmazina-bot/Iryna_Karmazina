@@ -63,6 +63,23 @@ def main():
         get_exec(sys.argv[2])
         return 0
 
+    if action == "update":
+        wid = sys.argv[2]; path = sys.argv[3]
+        with open(path, encoding="utf-8") as f:
+            wf = json.load(f)
+        settings = wf.get("settings") or {"executionOrder": "v1"}
+        payload = {"name": wf["name"], "nodes": wf["nodes"], "connections": wf["connections"], "settings": settings}
+        status, body = req("PUT", "/workflows/" + wid, payload)
+        try:
+            d = json.loads(body)
+            if status in (200, 201):
+                print("UPDATED HTTP", status, "| id", d.get("id"), "| name", d.get("name"))
+            else:
+                print("UPDATE FAIL HTTP", status, "|", body[:800])
+        except Exception:
+            print("UPDATE HTTP", status, body[:800])
+        return 0
+
     print("unknown action:", action)
     return 1
 
