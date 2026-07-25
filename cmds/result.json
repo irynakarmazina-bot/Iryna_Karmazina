@@ -1,7 +1,7 @@
 {
-  "stdout": "Created symlink /etc/systemd/system/multi-user.target.wants/nocodb-deals-poller.service → /etc/systemd/system/nocodb-deals-poller.service.\nactive\n2026-07-25 10:04 deals=264 existing=254 inserted=11(+0err) filled=253(+0err)\n2026-07-25 17:59:53 [poller] poller started\n",
+  "stdout": "POLLER_DISABLED\nCreated symlink /etc/systemd/system/multi-user.target.wants/deals-sync-trigger.service → /etc/systemd/system/deals-sync-trigger.service.\nactive\n=TEST_RUN=\n{\"status\": \"ok\", \"result\": \"SYNC_DONE deals=264 new=0 filled=0\"}\n",
   "stderr": "",
   "returncode": 0,
-  "id": "poller-install-0725",
-  "ts": "2026-07-25T15:00:00Z"
+  "id": "ondemand-install-0725",
+  "ts": "2026-07-25T15:01:08Z"
 }
