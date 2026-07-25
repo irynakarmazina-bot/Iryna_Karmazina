@@ -360,17 +360,30 @@
     <button class="btn ghost full" id="row-close" style="margin-top:12px">Закрити</button>
   </div>
 </div>
+<div class="overlay" id="set-overlay">
+  <div class="modal" style="max-width:440px">
+    <h3>⚙️ Налаштування</h3>
+    <p class="sub">особисті налаштування — зберігаються у твоєму браузері</p>
+    <div style="margin:10px 0 4px;font-weight:600;font-size:13.5px">Оформлення</div>
+    <div id="pal-settings" style="display:flex;gap:10px;align-items:center;margin:8px 0 4px"></div>
+    <p class="sub" id="pal-name"></p>
+    <button class="btn ghost full" id="set-close" style="margin-top:10px">Закрити</button>
+  </div>
+</div>
 <div class="toast" id="toast"></div>
 
 <script>
 "use strict";
 /* ===== стиль/палітри ===== */
-let palette = "finrep";
+let palette = localStorage.getItem("palette") || "finrep";
 const PALETTES = [ ["finrep","Фінзвіт (фірмовий)"],["warm","Теплий"],["ocean","Океан"],["indigo","Індиго"],["emerald","Смарагд"] ];
-function setPalette(p){ palette=p; if(p==="finrep") delete document.documentElement.dataset.palette; else document.documentElement.dataset.palette=p; renderPals(); }
+function setPalette(p){ palette=p; localStorage.setItem("palette", p); if(p==="finrep") delete document.documentElement.dataset.palette; else document.documentElement.dataset.palette=p; renderPals(); }
+if (palette !== "finrep") document.documentElement.dataset.palette = palette;
 function renderPals(){
   const html = PALETTES.map(([p,n])=>`<button class="pal-dot ${p===palette?"sel":""}" data-pal="${p}" title="${n}"></button>`).join("");
   document.getElementById("pal-login").innerHTML=html; document.getElementById("pal-top").innerHTML=html;
+  const ps = document.getElementById("pal-settings"); if (ps) ps.innerHTML = html;
+  const pn = document.getElementById("pal-name"); if (pn) pn.textContent = "Обрано: " + (PALETTES.find(x=>x[0]===palette)||["",""])[1];
   document.querySelectorAll(".pal-dot").forEach(b=>b.addEventListener("click",()=>setPalette(b.dataset.pal)));
 }
 const $ = id => document.getElementById(id);
@@ -422,6 +435,11 @@ function enter(){
 $("login-btn").addEventListener("click", doLogin);
 $("pw").addEventListener("keydown", e=>{ if(e.key==="Enter") doLogin(); });
 $("logout").addEventListener("click", doLogout);
+document.querySelector(".user-chip").style.cursor = "pointer";
+document.querySelector(".user-chip").title = "Налаштування";
+document.querySelector(".user-chip").addEventListener("click", ()=>{ renderPals(); $("set-overlay").classList.add("open"); });
+$("set-close").addEventListener("click", ()=>$("set-overlay").classList.remove("open"));
+$("set-overlay").addEventListener("click", e=>{ if(e.target===$("set-overlay")) $("set-overlay").classList.remove("open"); });
 
 /* ===== навігація ===== */
 const MODULES = [
