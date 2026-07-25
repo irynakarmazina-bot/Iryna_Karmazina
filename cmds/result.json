@@ -1,7 +1,7 @@
 {
-  "stdout": "TOKEN_OK\nBASE_OK pbhr1qkpvx09z8m\nTABLE ??????????????? 200\nTABLE ??????? 200\nTABLE ?????? 200\nSETUP_COMPLETE\n",
+  "stdout": "T_DISP m58xsjo6at01ohl\nT_CLI mgik03ijqyyct6v\nT_TASK mfo372vhs3fbbw7\nNAPR_PATCH 200\nCRED_ID wrIjmSE5YG7jStH5\nPREP_DONE\n",
   "stderr": "",
   "returncode": 0,
-  "id": "nc-setup2-0725",
-  "ts": "2026-07-25T06:08:38Z"
+  "id": "nc-prep-0725",
+  "ts": "2026-07-25T06:45:54Z"
 }
