@@ -1,7 +1,7 @@
 {
-  "stdout": "trigger 200\ntotalRows\":0\n",
+  "stdout": "status: error | lastNode: Вставка нових\nerrNode: Вставка нових\nerrMsg: Your request is invalid or could not be processed by the service\nerrDesc: ERR_MAX_PAYLOAD_LIMIT_EXCEEDED\nNODE ?????? ?????? (??????) | success | items: 1 \nNODE ??????? ???????????? | success | items: 254 \nNODE ?????? ? NocoDB | success | items: 254 \nNODE ?????? | success | items: 1 \nNODE ??????? ????? | error | items: 0 | ERR: Your request is invalid or could not be processed by the service\n",
   "stderr": "",
   "returncode": 0,
-  "id": "sync-rerun-0725",
-  "ts": "2026-07-25T06:54:24Z"
+  "id": "exec-err2-0725",
+  "ts": "2026-07-25T06:55:07Z"
 }
