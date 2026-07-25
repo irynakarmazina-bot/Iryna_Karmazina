@@ -1,7 +1,7 @@
 {
-  "stdout": "c2d05ac3b2f249ec2a7d95fdfe627512a1a9da32c508ab908eff8976b732b033\nDEPLOY_DONE\nnocodb Up About a minute\nHTTP 302\nMem:           1.9Gi       1.1Gi        84Mi       4.1Mi       964Mi       853Mi\n",
+  "stdout": "SIGNIN_FAILED 400\n",
   "stderr": "",
   "returncode": 0,
-  "id": "nocodb-verify-0725",
-  "ts": "2026-07-25T05:39:02Z"
+  "id": "nc-setup-0725",
+  "ts": "2026-07-25T06:00:12Z"
 }
