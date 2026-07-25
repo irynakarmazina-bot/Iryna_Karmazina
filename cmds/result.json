@@ -1,7 +1,7 @@
 {
-  "stdout": "ATTEMPT 0 Button -> 200 \nBUTTON_CREATED_VIA 0\n",
+  "stdout": "UPDATED HTTP 200 | id 6unlfVPKqc2Z16CR | name ДЗ — обробка замовлень для CRM (Set, Split Out, Expressions, Filter, Code)\n",
   "stderr": "",
   "returncode": 0,
-  "id": "nc-button-0725",
-  "ts": "2026-07-25T15:03:49Z"
+  "id": "n8n-dz-note-1784992440",
+  "ts": "2026-07-25T15:14:03Z"
 }
