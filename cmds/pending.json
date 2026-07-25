@@ -1,1 +1,1 @@
-{"id": "docker-install-0725", "cmd": "nohup sh -c 'export DEBIAN_FRONTEND=noninteractive; curl -fsSL https://get.docker.com | sh > /root/docker-install.log 2>&1 && echo INSTALL_DONE >> /root/docker-install.log || echo INSTALL_FAIL >> /root/docker-install.log' >/dev/null 2>&1 & echo BACKGROUND_STARTED"}
+{"id": "docker-verify-0725", "cmd": "sleep 90; tail -3 /root/docker-install.log 2>&1; docker --version 2>&1; systemctl is-active docker 2>&1"}
