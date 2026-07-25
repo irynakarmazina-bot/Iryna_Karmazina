@@ -2,6 +2,22 @@
   "name": "ДЗ — обробка замовлень для CRM (Set, Split Out, Expressions, Filter, Code)",
   "nodes": [
     {
+      "parameters": {
+        "content": "## Обробка списку замовлень для CRM\n\n1. Manual Trigger — ручний запуск.\n2. Set — масив із 5 замовлень (Order ID, Customer Name, Country, Amount, Status).\n3. Split Out — розбиває масив на окремі записи.\n4. Трансформація (Expressions) — Full Description = Order ID + Customer Name; Country -> верхній регістр; Priority = Amount > 100 ? High : Standard.\n5. Filter — лишає лише Paid або Amount > 100 (верхній вихід — залишені, нижній — відкинуті).\n6. Code — кількість і сума замовлень по країнах + TOTAL.\n7. No Op — список залишених замовлень.\n\nРезультат: з 5 замовлень лишається 4 (відсіюється Pending на 50), загальна сума 550.",
+        "height": 300,
+        "width": 1260,
+        "color": 4
+      },
+      "id": "note",
+      "name": "Опис",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        160,
+        560
+      ]
+    },
+    {
       "parameters": {},
       "id": "manual",
       "name": "Старт (Manual Trigger)",
