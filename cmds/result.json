@@ -1,7 +1,7 @@
 {
-  "stdout": "=ODATA3=\nITER_HTTP 400 {\n\"odata.error\": {\n\"code\": \"6\",\n\"message\": {\n\"lang\": \"uk\",\n\"value\": \"??????? ????? N ?? ????????!\"\n}\n}\n}\nGOT_ROWS 0\n=LOADERS=\n27:def _d10(x):\n32:def _dt_str(iso):\n41:def _month_end(iso):\n49:def _num(x):\n56:def _debt(row):\n62:def _name_map(c, entity):\n74:def build_caches(c):\n95:def deal_string(d):\n=APPEND_CHECK=\n?????? ?????? 1\n????? ? ????????? 1\n??????? ???????????? 254\n???? ??? ??????? 11\n????????? ? ??????? 11\n",
+  "stdout": "Traceback (most recent call last):\n  File \"/root/odata_check4.py\", line 4, in <module>\n    oi = importlib.import_module(\"engine.odata_ingest\")\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/importlib/__init__.py\", line 90, in import_module\n    return _bootstrap._gcd_import(name[level:], package, level)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"<frozen importlib._bootstrap>\", line 1387, in _gcd_import\n  File \"<frozen importlib._bootstrap>\", line 1360, in _find_and_load\n  File \"<frozen importlib._bootstrap>\", line 1331, in _find_and_load_unlocked\n  File \"<frozen importlib._bootstrap>\", line 935, in _load_unlocked\n  File \"<frozen importlib._bootstrap_external>\", line 995, in exec_module\n  File \"<frozen importlib._bootstrap>\", line 488, in _call_with_frames_removed\n  File \"/root/unitex-finrep/engine/odata_ingest.py\", line 18, in <module>\n    from odata_client import ODataClient\nModuleNotFoundError: No module named 'odata_client'\n",
   "stderr": "",
   "returncode": 0,
-  "id": "odata3-append-0725",
-  "ts": "2026-07-25T14:44:28Z"
+  "id": "odata4-0725",
+  "ts": "2026-07-25T14:45:21Z"
 }
