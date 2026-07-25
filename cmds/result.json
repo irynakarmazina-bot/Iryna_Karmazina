@@ -1,7 +1,7 @@
 {
-  "stdout": "POLLER_DISABLED\nCreated symlink /etc/systemd/system/multi-user.target.wants/deals-sync-trigger.service → /etc/systemd/system/deals-sync-trigger.service.\nactive\n=TEST_RUN=\n{\"status\": \"ok\", \"result\": \"SYNC_DONE deals=264 new=0 filled=0\"}\n",
+  "stdout": "UPDATED HTTP 200 | id 6unlfVPKqc2Z16CR | name ДЗ — обробка замовлень для CRM (Set, Split Out, Expressions, Filter, Code)\n",
   "stderr": "",
   "returncode": 0,
-  "id": "ondemand-install-0725",
-  "ts": "2026-07-25T15:01:08Z"
+  "id": "n8n-dz-update-1784991753",
+  "ts": "2026-07-25T15:02:39Z"
 }
