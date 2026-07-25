@@ -1,0 +1,194 @@
+{
+  "name": "ДЗ — обробка замовлень для CRM (Set, Split Out, Expressions, Filter, Code)",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "manual",
+      "name": "Старт (Manual Trigger)",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        200,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "{\n  \"orders\": [\n    {\n      \"Order ID\": 1001,\n      \"Customer Name\": \"John Smith\",\n      \"Country\": \"Germany\",\n      \"Amount\": 150,\n      \"Status\": \"Paid\"\n    },\n    {\n      \"Order ID\": 1002,\n      \"Customer Name\": \"Anna Kovalenko\",\n      \"Country\": \"Ukraine\",\n      \"Amount\": 80,\n      \"Status\": \"Paid\"\n    },\n    {\n      \"Order ID\": 1003,\n      \"Customer Name\": \"Piotr Nowak\",\n      \"Country\": \"Poland\",\n      \"Amount\": 200,\n      \"Status\": \"Pending\"\n    },\n    {\n      \"Order ID\": 1004,\n      \"Customer Name\": \"Hans Muller\",\n      \"Country\": \"Germany\",\n      \"Amount\": 50,\n      \"Status\": \"Pending\"\n    },\n    {\n      \"Order ID\": 1005,\n      \"Customer Name\": \"Maria Rossi\",\n      \"Country\": \"Italy\",\n      \"Amount\": 120,\n      \"Status\": \"Cancelled\"\n    }\n  ]\n}",
+        "options": {}
+      },
+      "id": "set-data",
+      "name": "Замовлення — масив (Set)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        400,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "orders",
+        "options": {}
+      },
+      "id": "split",
+      "name": "Розбити масив (Split Out)",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        600,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a1",
+              "name": "Full Description",
+              "value": "={{ $json['Order ID'] }} - {{ $json['Customer Name'] }}",
+              "type": "string"
+            },
+            {
+              "id": "a2",
+              "name": "Country",
+              "value": "={{ $json.Country.toUpperCase() }}",
+              "type": "string"
+            },
+            {
+              "id": "a3",
+              "name": "Priority",
+              "value": "={{ $json.Amount > 100 ? 'High' : 'Standard' }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "transform",
+      "name": "Трансформація (Expressions)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        800,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "c1",
+              "leftValue": "={{ $json.Status }}",
+              "rightValue": "Paid",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "c2",
+              "leftValue": "={{ $json.Amount }}",
+              "rightValue": 100,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "id": "filter",
+      "name": "Paid або Amount>100 (Filter)",
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [
+        1000,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const groups = {};\nlet total = 0;\nfor (const item of $input.all()) {\n  const country = item.json.Country || 'UNKNOWN';\n  const amount = Number(item.json.Amount) || 0;\n  total += amount;\n  if (!groups[country]) groups[country] = { Country: country, ordersCount: 0, totalAmount: 0 };\n  groups[country].ordersCount += 1;\n  groups[country].totalAmount += amount;\n}\nconst rows = Object.values(groups);\nrows.push({ Country: 'TOTAL', ordersCount: rows.reduce((a, g) => a + g.ordersCount, 0), totalAmount: total });\nreturn rows.map(json => ({ json }));"
+      },
+      "id": "code",
+      "name": "Групування по країнах (Code)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1200,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Старт (Manual Trigger)": {
+      "main": [
+        [
+          {
+            "node": "Замовлення — масив (Set)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Замовлення — масив (Set)": {
+      "main": [
+        [
+          {
+            "node": "Розбити масив (Split Out)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Розбити масив (Split Out)": {
+      "main": [
+        [
+          {
+            "node": "Трансформація (Expressions)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Трансформація (Expressions)": {
+      "main": [
+        [
+          {
+            "node": "Paid або Amount>100 (Filter)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Paid або Amount>100 (Filter)": {
+      "main": [
+        [
+          {
+            "node": "Групування по країнах (Code)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}
