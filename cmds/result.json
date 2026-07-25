@@ -1,7 +1,7 @@
 {
-  "stdout": "--- RAM:\n               total        used        free      shared  buff/cache   available\nMem:           1.9Gi       333Mi       1.6Gi       4.0Mi       195Mi       1.6Gi\nSwap:             0B          0B          0B\n--- DISK:\nFilesystem      Size  Used Avail Use% Mounted on\n/dev/vda1        24G  6.2G   17G  27% /\n--- CPU:\n1\nmodel name\t: DO-Regular\n--- DOCKER:\n/bin/sh: 1: docker: not found\n/bin/sh: 1: docker: not found\ninactive\n--- PORTS 80/443:\nвільні\n--- LOAD:\n 08:32:54 up 0 min,  0 user,  load average: 1.63, 0.36, 0.12\n",
+  "stdout": "--- RAM:\n               total        used        free      shared  buff/cache   available\nMem:           1.9Gi       349Mi       1.4Gi       4.0Mi       292Mi       1.6Gi\n--- CPU:\n1\n--- DISK:\n/dev/vda1        24G  6.2G   17G  27% /\n--- SERVICES:\nactive\nactive\n--- UPTIME:\n 08:33:53 up 1 min,  0 user,  load average: 0.72, 0.35, 0.13\n--- UFW:\nStatus: inactive\n--- DOCKER:\n/bin/sh: 1: docker: not found\n",
   "stderr": "",
-  "returncode": 0,
-  "id": "vps-resources-0724",
-  "ts": "2026-07-25T05:32:54Z"
+  "returncode": 127,
+  "id": "post-resize-check-0724",
+  "ts": "2026-07-25T05:33:54Z"
 }
