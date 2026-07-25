@@ -59,8 +59,33 @@ def main():
             print("CREATE HTTP", status, body[:800])
         return 0
 
+    if action == "exec":
+        get_exec(sys.argv[2])
+        return 0
+
     print("unknown action:", action)
     return 1
+
+
+
+def get_exec(wid):
+    status, body = req("GET", "/executions?workflowId=%s&limit=1&includeData=true" % wid)
+    try:
+        data = json.loads(body)
+    except Exception:
+        print("EXEC HTTP", status, body[:400]); return
+    execs = data.get("data", [])
+    if not execs:
+        print("NO saved executions for", wid, "(manual runs may not be saved)"); return
+    ex = execs[0]
+    print("exec", ex.get("id"), "status", ex.get("status"), "finished", ex.get("finished"))
+    run = ex.get("data", {}).get("resultData", {}).get("runData", {})
+    for node, runs in run.items():
+        cnt = 0
+        for r in (runs or []):
+            for out in (r.get("data", {}) or {}).get("main", []) or []:
+                if out: cnt += len(out)
+        print("-", node, ":", cnt, "items")
 
 
 if __name__ == "__main__":
