@@ -1,7 +1,7 @@
 {
-  "stdout": "Created symlink /etc/systemd/system/timers.target.wants/nocodb-deals-sync.timer → /etc/systemd/system/nocodb-deals-sync.timer.\nTIMER_INSTALLED\nREAD_FAIL 0 {'err': \"'ascii' codec can't encode characters in position 72-76: ordinal not in range(128)\"}\n",
+  "stdout": "=ACCESSES=\n/root/claude-archive/memory/reference_accesses.md\n=REFRESH=\n{\"status\": \"started\"}\n",
   "stderr": "",
   "returncode": 0,
-  "id": "deals-sync-install-0725",
-  "ts": "2026-07-25T07:01:44Z"
+  "id": "refresh-fix-0725",
+  "ts": "2026-07-25T07:02:48Z"
 }
