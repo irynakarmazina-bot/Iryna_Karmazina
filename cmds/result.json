@@ -1,7 +1,7 @@
 {
-  "stdout": "base64: invalid input\n",
+  "stdout": "Digest: sha256:5f5c8640aae01df9654968d946d8f1a56c497f1dd5c5cda4cf95ab7c14d58648\nStatus: Downloaded newer image for caddy:2-alpine\nUI: 200\nAPI proxy: 401\nSYNC: {\"status\": \"ok\", \"result\": \"SYNC_DONE deals=264 new=0 filled=0\"}\n",
   "stderr": "",
   "returncode": 0,
-  "id": "facade-deploy-0725",
-  "ts": "2026-07-25T18:10:31Z"
+  "id": "facade-deploy2-0725",
+  "ts": "2026-07-25T18:11:16Z"
 }
