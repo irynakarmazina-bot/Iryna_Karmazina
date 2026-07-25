@@ -1,7 +1,7 @@
 {
-  "stdout": "  довідники… контрагентів 1881, валют 3, ліній 26, фізосіб 27, угод 264\nCACHE_DEALS 264\nFIELDS: Date,Number,Posted,Ref_Key,???,??????????????,??????_Key,?????_Key,????????_Key,???????????,??????\nTOTAL 264 MAX 269 JOURNAL 264\nABSENT_IN_ODATA: [16, 102, 103, 190, 242]\n",
+  "stdout": "CREATED HTTP 200 | id 6unlfVPKqc2Z16CR | name ДЗ — обробка замовлень для CRM (Set, Split Out, Expressions, Filter, Code) | active False\n",
   "stderr": "",
   "returncode": 0,
-  "id": "odata5-0725",
-  "ts": "2026-07-25T14:45:51Z"
+  "id": "n8n-dz-orders-1784990927",
+  "ts": "2026-07-25T14:48:51Z"
 }
