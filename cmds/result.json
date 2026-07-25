@@ -1,7 +1,7 @@
 {
-  "stdout": "--- RAM:\n               total        used        free      shared  buff/cache   available\nMem:           1.9Gi       349Mi       1.4Gi       4.0Mi       292Mi       1.6Gi\n--- CPU:\n1\n--- DISK:\n/dev/vda1        24G  6.2G   17G  27% /\n--- SERVICES:\nactive\nactive\n--- UPTIME:\n 08:33:53 up 1 min,  0 user,  load average: 0.72, 0.35, 0.13\n--- UFW:\nStatus: inactive\n--- DOCKER:\n/bin/sh: 1: docker: not found\n",
+  "stdout": "BACKGROUND_STARTED\n",
   "stderr": "",
-  "returncode": 127,
-  "id": "post-resize-check-0724",
-  "ts": "2026-07-25T05:33:54Z"
+  "returncode": 0,
+  "id": "docker-install-0725",
+  "ts": "2026-07-25T05:34:31Z"
 }
