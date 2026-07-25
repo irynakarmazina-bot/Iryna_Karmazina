@@ -81,11 +81,18 @@ def get_exec(wid):
     print("exec", ex.get("id"), "status", ex.get("status"), "finished", ex.get("finished"))
     run = ex.get("data", {}).get("resultData", {}).get("runData", {})
     for node, runs in run.items():
-        cnt = 0
         for r in (runs or []):
-            for out in (r.get("data", {}) or {}).get("main", []) or []:
-                if out: cnt += len(out)
-        print("-", node, ":", cnt, "items")
+            main = (r.get("data", {}) or {}).get("main", []) or []
+            for oi, out in enumerate(main):
+                ids = []
+                for it in (out or []):
+                    j = it.get("json", {}) if isinstance(it, dict) else {}
+                    tag = j.get("Order ID", j.get("Country", "?"))
+                    extra = ""
+                    if "Status" in j or "Amount" in j:
+                        extra = "(%s/%s)" % (j.get("Status"), j.get("Amount"))
+                    ids.append("%s%s" % (tag, extra))
+                print("-", node, "| out", oi, "| n=", len(out or []), "|", ", ".join(str(x) for x in ids))
 
 
 if __name__ == "__main__":
