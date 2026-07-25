@@ -1,7 +1,7 @@
 {
-  "stdout": "=DEALS_HEAD=\nnumber,date,manager,kind,type,status,client,pol,pod,fd,line,bill_of_lading,eta,planned_profit,profit,cargo,completed_date\n1,2025-09-29,Ірина Кармазіна,Імпорт,,Завершена,ГРАНД МАРИН ООО,,,,MSC,,,300.0,,,2025-12-31\n\n=DEALS_COUNT=\n265 /root/unitex-finrep/normalized/deals_all.csv\n\n=DOCS=\nODATA-REQUIRED.md\n# Що має бути опубліковано в 1С OData (контракт з розробником)\n\nФінансовий звіт Юнітекс читає з Експедитора через OData саме ці об'єкти.\n**Цей склад не можна зменшувати без узгодження** — від нього прямо залежить звіт.\n\nПеревірити поточний стан будь-коли:\n```\npython3 engine/check_odata.py\n```\n(зелено — все на місці; червоно — покаже, чого бракує, і що написати розробнику)\n\n=RUNSH=\n#!/bin/bash\ncd /root/unitex-finrep\ngit pull -q origin main 2>/dev/null\necho \"=== $(date \"+%Y-%m-%d %H:%M\") старт ===\" >> /root/finrep.log\n.venv/bin/python engine/update_all_api.py --skip-parse >> /root/finrep.log 2>&1\necho \"=== $(date \"+%H:%M\") готово ===\" >> /root/finrep.log\n=SCHED=\n",
+  "stdout": "Created symlink /etc/systemd/system/timers.target.wants/nocodb-deals-sync.timer → /etc/systemd/system/nocodb-deals-sync.timer.\nTIMER_INSTALLED\nREAD_FAIL 0 {'err': \"'ascii' codec can't encode characters in position 72-76: ordinal not in range(128)\"}\n",
   "stderr": "",
   "returncode": 0,
-  "id": "deals-head-0725",
-  "ts": "2026-07-25T07:00:29Z"
+  "id": "deals-sync-install-0725",
+  "ts": "2026-07-25T07:01:44Z"
 }
