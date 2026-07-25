@@ -1,7 +1,7 @@
 {
-  "stdout": "exec 5974 status success finished True\n- Старт (Manual Trigger) : 1 items\n- Замовлення — масив (Set) : 1 items\n- Розбити масив (Split Out) : 5 items\n- Трансформація (Expressions) : 5 items\n- Paid або Amount>100 (Filter) : 5 items\n- Групування по країнах (Code) : 5 items\n",
+  "stdout": "exec 5974 status success finished True\n- Старт (Manual Trigger) | out 0 | n= 1 | ?\n- Замовлення — масив (Set) | out 0 | n= 1 | ?\n- Розбити масив (Split Out) | out 0 | n= 5 | 1001(Paid/150), 1002(Paid/80), 1003(Pending/200), 1004(Pending/50), 1005(Cancelled/120)\n- Трансформація (Expressions) | out 0 | n= 5 | 1001(Paid/150), 1002(Paid/80), 1003(Pending/200), 1004(Pending/50), 1005(Cancelled/120)\n- Paid або Amount>100 (Filter) | out 0 | n= 4 | 1001(Paid/150), 1002(Paid/80), 1003(Pending/200), 1005(Cancelled/120)\n- Paid або Amount>100 (Filter) | out 1 | n= 1 | 1004(Pending/50)\n- Групування по країнах (Code) | out 0 | n= 5 | GERMANY, UKRAINE, POLAND, ITALY, TOTAL\n",
   "stderr": "",
   "returncode": 0,
-  "id": "n8n-dz-exec-1784991328",
-  "ts": "2026-07-25T14:55:35Z"
+  "id": "n8n-dz-execd-1784991421",
+  "ts": "2026-07-25T14:57:06Z"
 }
