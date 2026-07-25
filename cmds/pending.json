@@ -1,1 +1,1 @@
-{"id": "finrep-part2b-0725", "cmd": "awk '/=TRIGGER_HEAD=/{f=1} f' /root/finrep_inspect.out | head -55"}
+{"id": "deals-head-0725", "cmd": "awk '/=DEALS_HEAD=/{f=1} f' /root/finrep_inspect.out | head -20; echo =RUNSH=; head -25 /root/unitex-finrep/run.sh 2>/dev/null; echo =SCHED=; grep -rn 8787 /root/unitex-finrep/README.md 2>/dev/null | head -3"}
