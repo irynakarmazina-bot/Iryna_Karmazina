@@ -1,1 +1,1 @@
-{"id": "n8n-dz-execd-1784991421", "cmd": "cd /root/Iryna_Karmazina && (git pull -q 2>/dev/null || true) && python3 n8n_dz/deploy_wf.py exec 6unlfVPKqc2Z16CR 2>&1"}
+{"id": "caches-src-0725", "cmd": "echo =BUILD_CACHES=; sed -n \"62,95p\" /root/unitex-finrep/engine/odata_ingest.py; echo =CLIENT_LIST=; sed -n \"80,115p\" /root/unitex-finrep/engine/odata_client.py"}
