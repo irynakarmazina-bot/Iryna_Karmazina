@@ -80,6 +80,10 @@ def main():
             print("UPDATE HTTP", status, body[:800])
         return 0
 
+    if action == "get":
+        get_wf(sys.argv[2])
+        return 0
+
     print("unknown action:", action)
     return 1
 
@@ -110,6 +114,35 @@ def get_exec(wid):
                         extra = "(%s/%s)" % (j.get("Status"), j.get("Amount"))
                     ids.append("%s%s" % (tag, extra))
                 print("-", node, "| out", oi, "| n=", len(out or []), "|", ", ".join(str(x) for x in ids))
+
+
+
+def get_wf(wid):
+    status, body = req("GET", "/workflows/" + wid)
+    try:
+        data = json.loads(body)
+    except Exception:
+        print("GET HTTP", status, body[:400]); return
+    nodes = data.get("nodes", [])
+    print("WF:", data.get("name"), "| nodes:", len(nodes))
+    for n in nodes:
+        t = n.get("type", "").replace("n8n-nodes-base.", "")
+        extra = ""
+        pr = n.get("parameters", {}) or {}
+        if t == "summarize":
+            extra = "fields=" + json.dumps(pr.get("fieldsToSummarize", pr.get("fieldsToSplitBy", "")), ensure_ascii=False)[:200]
+        elif t == "aggregate":
+            extra = json.dumps(pr.get("fieldsToAggregate", pr.get("aggregate", "")), ensure_ascii=False)[:200]
+        elif t == "merge":
+            extra = "mode=" + str(pr.get("mode")) + " " + str(pr.get("combineBy", pr.get("joinMode", "")))
+        elif t in ("filter", "sort", "removeDuplicates", "itemLists"):
+            extra = json.dumps(pr, ensure_ascii=False)[:200]
+        print("-", n.get("name"), "|", t, "v", n.get("typeVersion"), ("| " + extra) if extra else "")
+    print("CONNECTIONS:")
+    for src, outs in (data.get("connections", {}) or {}).items():
+        for oi, branch in enumerate((outs.get("main", []) or [])):
+            for c in (branch or []):
+                print("  ", src, "-[out%d]->" % oi, c.get("node"))
 
 
 if __name__ == "__main__":
