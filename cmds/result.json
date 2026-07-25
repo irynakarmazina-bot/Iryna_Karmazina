@@ -1,7 +1,7 @@
 {
-  "stdout": "status: error | lastNode: Вставка нових\nerrNode: Вставка нових\nerrMsg: Your request is invalid or could not be processed by the service\nerrDesc: ERR_MAX_PAYLOAD_LIMIT_EXCEEDED\nNODE ?????? ?????? (??????) | success | items: 1 \nNODE ??????? ???????????? | success | items: 254 \nNODE ?????? ? NocoDB | success | items: 254 \nNODE ?????? | success | items: 1 \nNODE ??????? ????? | error | items: 0 | ERR: Your request is invalid or could not be processed by the service\n",
+  "stdout": "WF_UPDATED 200 TZDlz5rms2ev6b5f\nACTIVATE 200\nFIRST_RUN_TRIGGER 200\nNOCODB_ROWS 254\nEXEC success 2026-07-25T06:56:46\n",
   "stderr": "",
   "returncode": 0,
-  "id": "exec-err2-0725",
-  "ts": "2026-07-25T06:55:07Z"
+  "id": "nc-sync-v2-0725",
+  "ts": "2026-07-25T06:57:28Z"
 }
