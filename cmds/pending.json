@@ -1,1 +1,1 @@
-{"id": "finrep-part2-0725", "cmd": "sed -n \"/=TRIGGER_HEAD=/,\$p\" /root/finrep_inspect.out | head -55"}
+{"id": "finrep-part2b-0725", "cmd": "awk '/=TRIGGER_HEAD=/{f=1} f' /root/finrep_inspect.out | head -55"}
