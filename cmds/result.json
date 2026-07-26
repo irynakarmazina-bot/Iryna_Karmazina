@@ -1,7 +1,7 @@
 {
-  "stdout": "Останні 40 виконань (найсвіжіші зверху):\n  2026-07-26T08:51 | success | finrep-sheets-proxy\n  2026-07-26T08:51 | success | finrep-sheets-proxy\n  2026-07-26T04:50 | success | Нові угоди → майстер-таблиця (для Maersk-трекінгу)\n  2026-07-26T04:30 | success | NocoDB Sync — Диспетчеризація (Sheets → платформа)\n  2026-07-26T04:00 | success | Container Tracking — Maersk (CRM)\n  2026-07-25T18:34 | success | finrep-sheets-proxy\n  2026-07-25T18:34 | success | finrep-sheets-proxy\n  2026-07-25T15:18 | success | NocoDB Sync — Диспетчеризація (Sheets → платформа)\n  2026-07-25T15:17 | success | ДЗ — обробка замовлень для CRM (Set, Split Out, Expressions, Filter, Code)\n  2026-07-25T15:07 | success | ДЗ — обробка замовлень для CRM (Set, Split Out, Expressions, Filter, Code)\n  2026-07-25T14:50 | success | ДЗ — обробка замовлень для CRM (Set, Split Out, Expressions, Filter, Code)\n  2026-07-25T14:42 | success | Нові угоди → майстер-таблиця (для Maersk-трекінгу)\n  2026-07-25T07:59 | success | NocoDB Sync — Диспетчеризація (Sheets → платформа)\n  2026-07-25T07:57 | success | NocoDB Sync — Диспетчеризація (Sheets → платформа)\n  2026-07-25T07:02 | success | finrep-sheets-proxy\n  2026-07-25T07:02 | success | finrep-sheets-proxy\n  2026-07-25T06:56 | success | NocoDB Sync — Диспетчеризація (Sheets → платформа)\n  2026-07-25T06:53 | error | NocoDB Sync — Диспетчеризація (Sheets → платформа)\n  2026-07-25T06:51 | error | NocoDB Sync — Диспетчеризація (Sheets → платформа)\n  2026-07-25T06:48 | error | NocoDB Sync — Диспетчеризація (Sheets → платформа)\n--- по днях (усього / з помилкою) ---\n  2026-07-26 : 5 / 0 err\n  2026-07-25 : 18 / 3 err\n  2026-07-24 : 3 / 0 err\n  2026-07-23 : 9 / 0 err\n  2026-07-22 : 5 / 0 err\n",
-  "stderr": "",
+  "stdout": "STARTED\n",
+  "stderr": "chmod: cannot access '/root/Iryna_Karmazina/server/install_docgen.sh': No such file or directory\n",
   "returncode": 0,
-  "id": "n8n-recent-1",
-  "ts": "2026-07-26T14:59:08Z"
+  "id": "docgen-install-0726",
+  "ts": "2026-07-26T15:11:07Z"
 }
