@@ -1,7 +1,7 @@
 {
-  "stdout": "SIZE: 82066\nACTF: 0\nUI 200\n",
+  "stdout": "FILES_COL 200 \nDL_ROUTE_ADDED\nSIZE: 86399\nDOCS_MARK: 2\nUI 200\n",
   "stderr": "",
   "returncode": 0,
-  "id": "ui-v7-0726",
-  "ts": "2026-07-26T14:29:41Z"
+  "id": "docs-stage1-0726",
+  "ts": "2026-07-26T14:33:47Z"
 }
