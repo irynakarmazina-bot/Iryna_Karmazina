@@ -1,7 +1,7 @@
 {
-  "stdout": "DISPLAY_COL: \\u041d\\u0430\\u0437\\u0432\\u0430\nEXISTING: ['CreatedAt', 'Email', 'Id', 'UpdatedAt', '__nc_deleted', 'nc_created_by', 'nc_order', 'nc_updated_by', '\\u041a\\u043e\\u043c\\u0435\\u043d\\u0442\\u0430\\u0440', '\\u041a\\u043e\\u043d\\u0442\\u0430\\u043a\\u0442\\u043d\\u0430 \\u043e\\u0441\\u043e\\u0431\\u0430', '\\u041d\\u0430\\u0437\\u0432\\u0430', '\\u0422\\u0435\\u043b\\u0435\\u0444\\u043e\\u043d']\nCOLS_ADDED: 8\nCLIENTS_DISTINCT: 21 HAD: 0 INSERTED: 21\n",
+  "stdout": "SIZE: 97404\nERPM: 1\nGENW: 2\nUI 000\n",
   "stderr": "",
   "returncode": 0,
-  "id": "clients-cols-0726",
-  "ts": "2026-07-26T15:13:18Z"
+  "id": "ui-v9-0726",
+  "ts": "2026-07-26T15:13:45Z"
 }
