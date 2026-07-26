@@ -224,6 +224,31 @@ def fill_t1(fields):
                     set_cell(cells[i+1], fields["date_txt"])
     buf = io.BytesIO(); d.save(buf); return buf.getvalue()
 
+# ── Maersk POA / LOI (вивіз: ми або інший експедитор — компанія задається полем) ──
+MPOA_MAP = [
+  ("15.07.2026", "date_txt"),
+  ("MRKU2438561", "container"),
+  ("270859899for", "!{bl} for"),
+  ("270859899", "bl"),
+  ("LLC UNITEX HD (65076, ODESSA REGION, ODESSA, UKRAINE, OFFICE 56 RADISNA STR. 3)", "agent"),
+]
+def fill_mpoa(fields):
+    if fields.get("date") and not fields.get("date_txt"):
+        fields["date_txt"] = date_dot(fields["date"])
+    return fill_map("maersk_poa.docx", MPOA_MAP, fields)
+
+MLOI_MAP = [
+  ("15.07.2026", "date_txt"),
+  ("270859899", "booking"),
+  ("WIKING / 627N", "vessel_voyage"),
+  ("CELLULOSE ETHER", "goods"),
+  ("MRKU2438561", "containers"),
+]
+def fill_mloi(fields):
+    if fields.get("date") and not fields.get("date_txt"):
+        fields["date_txt"] = date_dot(fields["date"])
+    return fill_map("maersk_loi.docx", MLOI_MAP, fields)
+
 # ── Інформаційний лист для страхування (ТДВ «Альянс Україна») ──
 INS_MAP = [
   ("BULIDING MATERIALS / БУДІВЕЛЬНІ МАТЕРІАЛИ", "cargo"),
@@ -250,6 +275,8 @@ TYPES = {
   "kkk":         (fill_kkk, lambda f: "Заявка ККК №%s" % f.get("num", "")),
   "t1":          (fill_t1,  lambda f: "Заявка Т1 %s" % f.get("truck", "")),
   "insurance":   (fill_ins, lambda f: "Лист страхування %s" % f.get("container", "")),
+  "maersk_poa":  (fill_mpoa, lambda f: "POA Maersk %s" % f.get("bl", "")),
+  "maersk_loi":  (fill_mloi, lambda f: "LOI Maersk %s" % f.get("booking", "")),
 }
 
 def get_role(jwt):
