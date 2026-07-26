@@ -1,7 +1,7 @@
 {
-  "stdout": "CADDY_VER: v2.11.4 h1:XKxkMTgNSizEvKG6QHue6cAsFOteU\nVALIDATE_OK\nHTTPS_CHECK 200\nCERT: issuer=C = US, O = Let's Encrypt, CN = YE1 notAfter=Aug  1 23:23:36 2026 GMT \n",
+  "stdout": "    line = str(self.fp.readline(_MAXLINE + 1), \"iso-8859-1\")\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/socket.py\", line 707, in readinto\n    return self._sock.recv_into(b)\n           ^^^^^^^^^^^^^^^^^^^^^^^\nTimeoutError: timed out\n",
   "stderr": "",
   "returncode": 0,
-  "id": "https-try3-0725",
-  "ts": "2026-07-26T08:22:24Z"
+  "id": "roles-db-0726",
+  "ts": "2026-07-26T08:49:14Z"
 }
