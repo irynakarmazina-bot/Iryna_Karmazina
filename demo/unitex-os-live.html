@@ -366,6 +366,20 @@
     <button class="btn ghost full" id="row-close" style="margin-top:12px">Закрити</button>
   </div>
 </div>
+<div class="overlay" id="doc-overlay">
+  <div class="modal" style="max-width:560px;max-height:85vh;overflow-y:auto">
+    <h3 id="doc-title"></h3>
+    <p class="sub">прикріплені файли угоди · зберігаються в платформі</p>
+    <div id="doc-list" style="display:flex;flex-direction:column;gap:8px"></div>
+    <div style="margin-top:12px" id="doc-upload-wrap">
+      <button class="btn" id="doc-upload-btn">➕ Прикріпити файл</button>
+      <input type="file" id="doc-file" multiple style="display:none">
+    </div>
+    <p class="sub" id="doc-status" style="margin-top:8px"></p>
+    <div class="note" style="margin-top:10px;font-size:12.5px">⚙ «Сформувати документ» за вашими бланками — наступний етап. Видалення файлів — лише адміністратор (теж наступним етапом).</div>
+    <button class="btn ghost full" id="doc-close" style="margin-top:12px">Закрити</button>
+  </div>
+</div>
 <div class="overlay" id="set-overlay">
   <div class="modal" style="max-width:440px">
     <h3>⚙️ Налаштування</h3>
@@ -555,8 +569,8 @@ PAGES.dispatch = async () => {
   const logist = cfg().cols === "logist";
   const syncBtn = cfg().sync ? '<button class="btn" id="sync-btn">⟳ Оновити з Експедитора</button>' : "";
   const head = logist
-    ? "<th>Угода</th><th>Клієнт</th><th>Контейнер</th><th>Статус</th><th>Номер авто</th><th>Водій</th><th>Телефон</th><th>Перетин кордону</th>"
-    : "<th>Угода</th><th></th><th>Клієнт</th><th>Лінія</th><th>BL / Контейнер</th><th>Судно</th><th>ETA</th><th>Статус</th><th>Позначки</th><th>Коментар</th>";
+    ? "<th>Угода</th><th>Клієнт</th><th>Контейнер</th><th>Статус</th><th>Номер авто</th><th>Водій</th><th>Телефон</th><th>Перетин кордону</th><th></th>"
+    : "<th>Угода</th><th></th><th>Клієнт</th><th>Лінія</th><th>BL / Контейнер</th><th>Судно</th><th>ETA</th><th>Статус</th><th>Позначки</th><th>Коментар</th><th></th>";
   $("content").innerHTML = `
     <div class="card">
       <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
@@ -588,6 +602,7 @@ PAGES.dispatch = async () => {
         <td class="mono">${esc(r["Контейнер"]||"—")}</td><td>${stPill(r["Статус"])}</td>
         <td class="mono">${esc(r["Номер авто"]||"—")}</td><td>${esc(r["Водій (ПІБ)"]||"—")}</td>
         <td class="mono">${esc(r["Водій (телефон)"]||"—")}</td><td class="mono">${esc(r["Перетин кордону (факт)"]||"—")}</td>
+        <td>${docBtn(r)}</td>
       </tr>` : `
       <tr data-id="${r.Id}" style="cursor:pointer">
         <td class="mono"><b>${esc(r["Угода"])}</b></td>
@@ -600,8 +615,10 @@ PAGES.dispatch = async () => {
         <td>${stPill(r["Статус"])}</td>
         <td>${FLAGS.filter(f=>r[f]).map(f=>`<span class="flag on">${f} ✓</span>`).join("")||'<span class="cell-muted">—</span>'}</td>
         <td class="cell-muted" style="max-width:220px">${esc(r["Коментар"]||"")}</td>
+        <td>${docBtn(r)}</td>
       </tr>`).join("") : `<tr><td colspan="10" class="cell-muted">Нічого не знайдено.</td></tr>`;
     $("drows").querySelectorAll("tr[data-id]").forEach(tr=>tr.addEventListener("click",()=>openRow(all.find(x=>String(x.Id)===tr.dataset.id))));
+    $("drows").querySelectorAll(".docs-btn").forEach(b=>b.addEventListener("click",(e)=>{ e.stopPropagation(); openDocs(all.find(x=>String(x.Id)===b.dataset.doc)); }));
   };
   ["q","dirf","stf","linef","clif"].forEach(id=>$(id).addEventListener(id==="q"?"input":"change",draw));
   draw();
@@ -617,6 +634,68 @@ PAGES.dispatch = async () => {
     finally{ sb.disabled=false; sb.textContent="⟳ Оновити з Експедитора"; }
   });
 };
+
+function attList(r){
+  let f = r["Файли"];
+  if (typeof f === "string"){ try{ f = JSON.parse(f); }catch(e){ f = []; } }
+  return Array.isArray(f) ? f : [];
+}
+function docBtn(r){
+  const n = attList(r).length;
+  return `<button class="btn ghost docs-btn" data-doc="${r.Id}" style="padding:3px 10px" title="Документи">📄${n||""}</button>`;
+}
+function fileUrl(a){
+  let u = a.signedUrl || a.url || "";
+  if (u && u.startsWith("http")){ try{ const p = new URL(u); u = p.pathname + p.search; }catch(e){} }
+  if (!u){ u = "/" + String(a.signedPath || a.path || "").replace(/^\/+/, ""); }
+  return u;
+}
+let DOC_ROW = null;
+function renderDocList(){
+  const files = attList(DOC_ROW);
+  $("doc-list").innerHTML = files.length ? files.map(a=>{
+    const kb = a.size ? Math.round(a.size/1024) + " КБ" : "";
+    return `<div class="acct-chip" style="flex:none;display:flex;align-items:center;gap:10px;cursor:default">
+      <span style="flex:1"><b>${esc(a.title||"файл")}</b> <span class="cell-muted">${kb}</span></span>
+      <a class="btn ghost" style="padding:4px 12px;text-decoration:none" target="_blank" href="${esc(fileUrl(a))}">Відкрити</a></div>`;
+  }).join("") : '<p class="sub">Поки нічого не прикріплено.</p>';
+}
+function openDocs(r){
+  DOC_ROW = r;
+  $("doc-title").textContent = `📄 Документи угоди №${r["Угода"]} · ${r["Клієнт"]||""}`;
+  $("doc-upload-wrap").style.display = (ROLE === "Перегляд") ? "none" : "block";
+  $("doc-status").textContent = "";
+  renderDocList();
+  $("doc-overlay").classList.add("open");
+}
+$("doc-close").addEventListener("click", ()=>$("doc-overlay").classList.remove("open"));
+$("doc-overlay").addEventListener("click", e=>{ if(e.target===$("doc-overlay")) $("doc-overlay").classList.remove("open"); });
+$("doc-upload-btn").addEventListener("click", ()=>$("doc-file").click());
+$("doc-file").addEventListener("change", async ()=>{
+  const files = [...$("doc-file").files];
+  if (!files.length || !DOC_ROW) return;
+  $("doc-status").textContent = "⏳ Завантажую " + files.length + " файл(и)…";
+  try{
+    let added = [];
+    for (const f of files){
+      const fd = new FormData(); fd.append("file", f);
+      const r = await fetch("/api/v2/storage/upload", {method:"POST", headers:{"xc-auth": JWT||""}, body: fd});
+      const js = await r.json();
+      if (!r.ok) throw new Error((js && js.msg) || "upload");
+      added = added.concat(Array.isArray(js) ? js : [js]);
+    }
+    const merged = attList(DOC_ROW).concat(added);
+    await api(`/api/v2/tables/${T["Диспетчеризація"]}/records`, {method:"PATCH",
+      body: JSON.stringify([{Id: DOC_ROW.Id, "Файли": merged}])});
+    DOC_ROW["Файли"] = merged;
+    renderDocList();
+    $("doc-status").textContent = "";
+    toast("✅ Прикріплено: " + files.length);
+  } catch(e){
+    $("doc-status").textContent = "⚠ Не вдалося завантажити (" + e.message + ")";
+  }
+  $("doc-file").value = "";
+});
 
 const CARD_GROUPS = [
   ["Основне", ["Угода","Напрямок","Клієнт","Лінія","Тип","Перевізник","Агент","Маршрут","BL","Контейнер","Тип обладнання","Кількість","Вивіз (Carrier/Merchant)","Сухий порт","Адреса розмитнення"]],
