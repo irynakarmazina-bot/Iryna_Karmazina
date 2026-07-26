@@ -1,7 +1,7 @@
 {
-  "stdout": "Created symlink /etc/systemd/system/multi-user.target.wants/findata.service → /etc/systemd/system/findata.service.\nactive\nUI: 200\nFINDATA_NOAUTH: 403\n",
+  "stdout": "=FILE_CHECK=\n0\n-rw-r--r-- 1 root root 61898 12:22 /root/unitex-os-www/index.html\n=NOCACHE=\nPATCHED\nUI 000\nUI 200\n",
   "stderr": "",
   "returncode": 0,
-  "id": "findata-deploy-0726",
-  "ts": "2026-07-26T09:22:51Z"
+  "id": "nocache-0726",
+  "ts": "2026-07-26T09:49:01Z"
 }
