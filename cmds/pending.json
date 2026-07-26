@@ -1,1 +1,1 @@
-{"id": "docgen-install-0726", "cmd": "chmod +x /root/Iryna_Karmazina/server/install_docgen.sh; nohup bash /root/Iryna_Karmazina/server/install_docgen.sh > /root/docgen-install.log 2>&1 & echo STARTED"}
+{"id": "docgen-install-0726b", "cmd": "cd /root/Iryna_Karmazina && git pull -q origin main; ls -la server/install_docgen.sh && nohup bash server/install_docgen.sh > /root/docgen-install.log 2>&1 & echo STARTED"}
