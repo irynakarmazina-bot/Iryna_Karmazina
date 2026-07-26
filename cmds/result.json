@@ -1,7 +1,7 @@
 {
-  "stdout": "ROLE_ROW_EMAIL 200\nSIGNUP 200 \nBASE_INVITE 200 \nVITALII_DONE\n",
+  "stdout": "RETAINED executions: 159 | pages 1 | ще є далі: False\nвікно: 2026-07-19T09:15:00 -> 2026-07-26T08:51:35\n--- по воркфлоу (кількість | активний | помилок | назва) ---\n96 | off | err 96 | Monitor OEA0218983 — Email Alert\n25 | ON  | err 0 | finrep-sheets-proxy\n10 | ON  | err 7 | CRM Дашборд (web)\n8 | ON  | err 3 | NocoDB Sync — Диспетчеризація (Sheets → платформа)\n7 | ON  | err 1 | Container Tracking — Maersk (CRM)\n3 | off | err 0 | ДЗ — обробка замовлень для CRM (Set, Split Out, Expressions, Filter, Code)\n2 | ON  | err 0 | Нові угоди → майстер-таблиця (для Maersk-трекінгу)\n2 | off | err 0 | ДЗ — обробка лідів (Name/Country/Budget, IF, Switch)\n2 | off | err 0 | ДЗ — вибір ключа трекінгу (Manual, Set, IF, 3 гілки)\n2 | off | err 2 | Дайджест новин ліній (Claude)\n1 | off | err 0 | ДЗ — обробка лідів (Manual, Set, IF, Switch)\n1 | ON  | err 1 | CRM Клієнтська вітрина (web)\nактивні без виконань у вибірці: ['UNITEX Telegram Bot', 'Довідка про транспортні витрати']\n",
   "stderr": "",
   "returncode": 0,
-  "id": "vitalii-0726",
-  "ts": "2026-07-26T09:11:35Z"
+  "id": "n8n-usage-1",
+  "ts": "2026-07-26T09:12:39Z"
 }
