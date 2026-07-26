@@ -1,7 +1,7 @@
 {
-  "stdout": "STARTED\n",
-  "stderr": "chmod: cannot access '/root/Iryna_Karmazina/server/install_docgen.sh': No such file or directory\n",
+  "stdout": "STARTED\n-rw-r--r-- 1 root root 2552 Jul 26 18:11 server/install_docgen.sh\n",
+  "stderr": "",
   "returncode": 0,
-  "id": "docgen-install-0726",
-  "ts": "2026-07-26T15:11:07Z"
+  "id": "docgen-install-0726b",
+  "ts": "2026-07-26T15:12:01Z"
 }
