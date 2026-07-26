@@ -1,7 +1,7 @@
 {
-  "stdout": "    line = str(self.fp.readline(_MAXLINE + 1), \"iso-8859-1\")\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/socket.py\", line 707, in readinto\n    return self._sock.recv_into(b)\n           ^^^^^^^^^^^^^^^^^^^^^^^\nTimeoutError: timed out\n",
+  "stdout": "=ROLES=\nOPMGR_TO_TEXT 200\nUSERS_TABLE_CREATED 200\nUSERS_ID meqpi0r197bz14n\nSEEDED 200 2\nROLES_DB_DONE\n=INSTR=\nINSTR_TABLE 200\nINSTR_ID mvm5xu2mcidt1j3\nINSERTED 200 6\nINSTR_DONE\n",
   "stderr": "",
   "returncode": 0,
-  "id": "roles-db-0726",
-  "ts": "2026-07-26T08:49:14Z"
+  "id": "roles-instr-0726",
+  "ts": "2026-07-26T08:53:29Z"
 }
