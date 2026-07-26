@@ -658,51 +658,174 @@ PAGES.clients = async () => {
 PAGES.finance = async () => {
   const mode = cfg().fin;
   if (mode === "personal"){
-    $("content").innerHTML = `
-      <div class="card"><h3>💰 Мій фінзвіт (сейлз-менеджер)</h3>
-        <p class="sub">дебіторка/кредиторка по твоїх угодах, прибуток за період, план/факт</p>
-        <div class="note">🛠 Персональний фінзвіт менеджера — у розробці: дані вже збираються з Експедитора, готуємо зріз по менеджеру. Скоро тут з'являться твої цифри.</div></div>`;
+    $("content").innerHTML = `<div class="card"><h3>💰 Мій фінзвіт (сейлз-менеджер)</h3>
+      <p class="sub">дебіторка/кредиторка по твоїх угодах, прибуток за період</p>
+      <div class="note">🛠 Персональний фінзвіт — у розробці: дані вже збираються, готуємо зріз по менеджеру.</div></div>`;
     return;
   }
-  if (mode === "blur"){
-    $("content").innerHTML = `
-      <div class="card"><h3>💰 Фінанси</h3>
-        <div class="note">🔒 Для ролі «Перегляд» фінансові показники (залишки грошей, робочий капітал, кешфлоу) приховані. Звіти формуються, але цифри доступні лише фінансовим ролям.</div>
-        <div class="tiles" style="margin-top:12px">
-          <div class="tile"><div class="lbl">Залишки грошей</div><div class="val" style="filter:blur(9px)">000 000</div></div>
-          <div class="tile"><div class="lbl">Робочий капітал</div><div class="val" style="filter:blur(9px)">000 000</div></div>
-          <div class="tile"><div class="lbl">Кешфлоу</div><div class="val" style="filter:blur(9px)">000 000</div></div>
-        </div></div>`;
+  if (mode === "blur" || mode === "none"){
+    $("content").innerHTML = `<div class="card"><h3>💰 Фінанси</h3>
+      <div class="note">🔒 Фінансові показники доступні лише фінансовим ролям (Адміністратор, Фінансист, Бухгалтер).</div></div>`;
     return;
   }
-  const acctNote = mode === "acct" ? '<div class="note">🧾 Бухгалтерський фінзвіт — зміст погоджуємо; виставлення рахунків (цикл БАФ) — наступний модуль.</div>' : "";
   $("content").innerHTML = `
-    <div class="card"><h3>💰 Оперативний фінансовий звіт</h3>
-      <p class="sub">джерело — Експедитор (прямий доступ): ліквідність по касах, дебіторка/кредиторка, платіжний календар, кешфлоу, клієнти</p>
+    <div class="card"><h3>💰 Фінансова звітність</h3>
+      <p class="sub">джерело — Експедитор напряму · таблиця Google лишається окремим інструментом</p>
       <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:6px">
-        <button class="btn" id="finrep-btn">⚙️ Сформувати (свіжі дані з Експедитора)</button>
-        <button class="btn ghost" id="finrep-open">📊 Відкрити звіт (Google Sheets)</button>
+        <button class="btn" id="rep-oper">⚡ Оперативний фінансовий звіт</button>
+        <button class="btn" id="rep-period">📆 Фінансовий звіт за період</button>
       </div>
-      <p class="sub" id="finrep-status" style="margin-top:12px"></p>
+      <p class="sub" id="fin-status" style="margin-top:10px"></p>
     </div>
-    ${acctNote}
-    <div class="note">💡 «Сформувати» тягне актуальні дані з Експедитора і перебудовує всі аркуші звіту (~2 хв). Доступ до таблиці — з твого Google-акаунта.</div>`;
-  $("finrep-open").addEventListener("click", ()=>window.open("https://docs.google.com/spreadsheets/d/1SK0AXKt0BpEaLpax49lWy3ucjpLKrD_4Yi7Stdw9qMo","_blank"));
-  $("finrep-btn").addEventListener("click", async ()=>{
-    $("finrep-btn").disabled = true; $("finrep-btn").textContent = "⏳ Формується…";
-    $("finrep-status").textContent = "Звіт перебудовується з живих даних Експедитора — зачекай ~2 хвилини і відкрий звіт.";
-    try{
-      const r = await fetch("/finrep-run"); const js = await r.json();
-      if (js.status !== "started") throw new Error("bad");
-      toast("✅ Формування запущено — за ~2 хвилини звіт буде свіжий");
-      setTimeout(()=>{ $("finrep-btn").disabled=false; $("finrep-btn").textContent="⚙️ Сформувати (свіжі дані з Експедитора)"; $("finrep-status").textContent="Готово! Відкривай звіт — дані актуальні."; }, 120000);
-    } catch(e){
-      toast("⚠ Не вдалося запустити формування");
-      $("finrep-btn").disabled=false; $("finrep-btn").textContent="⚙️ Сформувати (свіжі дані з Експедитора)";
-      $("finrep-status").textContent="";
-    }
-  });
+    <div id="rep-body"></div>`;
+  $("rep-oper").addEventListener("click", ()=>renderOper());
+  $("rep-period").addEventListener("click", ()=>renderPeriod());
+  renderOper();
 };
+
+const fmtN = (v, dec=0) => {
+  const n = Number(v)||0;
+  const s = n.toLocaleString("uk-UA", {minimumFractionDigits:dec, maximumFractionDigits:dec});
+  return n < 0 ? `<span class="neg" style="color:var(--crit-text);font-weight:600">${s}</span>` : s;
+};
+async function fetchFin(name){
+  const r = await fetch("/finrep-data?name="+name, {headers:{"xc-auth": JWT||""}});
+  const js = await r.json();
+  if (r.status === 403) throw new Error("доступ лише фінансовим ролям");
+  if (!r.ok) throw new Error(js.error||"помилка даних");
+  return js;
+}
+function refreshBar(mtime, onFresh){
+  const dt = new Date(mtime*1000);
+  const stamp = dt.toLocaleString("uk-UA",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"});
+  setTimeout(()=>{
+    const b = $("fin-refresh");
+    if (!b) return;
+    b.addEventListener("click", async ()=>{
+      b.disabled = true; b.textContent = "⏳ Тягну з Експедитора (~2 хв)…";
+      try{
+        await fetch("/finrep-run");
+        const t0 = mtime;
+        const poll = setInterval(async ()=>{
+          try{
+            const js = await fetchFin("dashboard");
+            if (js.mtime > t0 + 5){ clearInterval(poll); toast("✅ Дані оновлено з Експедитора"); onFresh(); }
+          }catch(e){}
+        }, 15000);
+        setTimeout(()=>clearInterval(poll), 240000);
+      }catch(e){ b.disabled=false; b.textContent="⟳ Підтягнути свіжі дані з Експедитора"; toast("⚠ Не вдалося запустити"); }
+    });
+  }, 0);
+  return `<div class="note" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+    📊 Дані станом на <b>${stamp}</b>
+    <button class="btn" id="fin-refresh" style="padding:6px 12px;font-size:13px">⟳ Підтягнути свіжі дані з Експедитора</button>
+  </div>`;
+}
+function finTable(headers, rows){
+  return `<div class="tablewrap"><table><thead><tr>${headers.map(h=>`<th>${h}</th>`).join("")}</tr></thead>
+    <tbody>${rows.join("")}</tbody></table></div>`;
+}
+
+async function renderOper(){
+  $("rep-body").innerHTML = '<div class="card"><p class="sub">Завантаження звіту…</p></div>';
+  let js;
+  try{ js = await fetchFin("dashboard"); }
+  catch(e){ $("rep-body").innerHTML = `<div class="note">⚠ ${esc(e.message)}</div>`; return; }
+  const D = js.data;
+  const sig = (D.signals||[]).map(s=>`<div class="note" style="${s[0]==="warn"?"background:var(--warn-bg);color:var(--warn-text)":""}">⚠️ ${esc(s[1])}: <b>${esc(s[2])}</b></div>`).join("");
+  const cashRows = (D.cashReal||[]).map(r=>`<tr><td>${esc(r[0])}</td><td class="num">${esc(r[1])}</td><td>${esc(r[2])}</td></tr>`);
+  const fro = D.frozen||{};
+  const cf = (D.cashflowWeekly||[]).map(r=>`<tr><td>${esc(r[0])}</td><td class="num">${fmtN(r[1])}</td><td class="num">${fmtN(r[2])}</td><td class="num">${fmtN(r[3])}</td><td class="num">${fmtN(r[5])}</td></tr>`);
+  const arA = (D.arAging||[]).map(r=>`<tr><td>${esc(r[0])}</td><td class="num">${fmtN(r[1],2)}</td><td class="num">${r[2]}</td></tr>`);
+  const apA = (D.apAging||[]).map(r=>`<tr><td>${esc(r[0])}</td><td class="num">${fmtN(r[1],2)}</td><td class="num">${r[2]}</td></tr>`);
+  const arD = (D.arDetail||[]).slice(0,10).map(c=>`<tr><td><b>${esc(c.name)}</b></td><td class="num">${fmtN(c.total,2)}</td><td class="num">${c.count}</td><td class="num">${c.maxOverdue||0} дн</td></tr>`);
+  const apD = (D.apDetail||[]).slice(0,10).map(c=>`<tr><td><b>${esc(c.name)}</b></td><td class="num">${fmtN(c.total,2)}</td><td class="num">${c.count}</td><td class="num">${c.maxAge||0} дн</td></tr>`);
+  const cal = (D.calendar||[]).map(r=>`<tr><td>${esc(r[0])}</td><td class="num">${fmtN(r[1],2)}</td><td class="num">${fmtN(r[2],2)}</td><td class="num">${fmtN(r[3],2)}</td><td>${esc(r[4]||"")}</td></tr>`);
+  const wip = (D.wipTop||[]).slice(0,10).map(r=>`<tr><td class="mono">${esc(r[0])}</td><td>${esc(r[1])}</td><td class="num">${fmtN(r[3],2)}</td></tr>`);
+  const eq = (D.equity||[]).map(r=>`<tr><td>${esc(r[0])}</td><td class="num">${fmtN(r[1],2)}</td><td class="num">${fmtN(r[2],2)}</td><td class="num">${fmtN(r[3],2)}</td></tr>`);
+  $("rep-body").innerHTML = `
+    ${refreshBar(js.mtime, renderOper)}
+    ${sig}
+    <div class="tiles">
+      <div class="tile"><div class="lbl">💳 Дебіторка (нам винні)</div><div class="val">${fmtN((D.frozen||{}).ar,0)}</div><div class="delta">DSO ${D.dso||"—"} дн</div></div>
+      <div class="tile"><div class="lbl">📤 Кредиторка (ми винні)</div><div class="val">${fmtN(fro.ap,0)}</div></div>
+      <div class="tile"><div class="lbl">🧊 В угодах (WIP)</div><div class="val">${fmtN(fro.wip,0)}</div></div>
+      <div class="tile warn"><div class="lbl">🧮 Заморожено разом (нетто)</div><div class="val">${fmtN(fro.net,0)}</div></div>
+    </div>
+    <div class="card"><h3>💵 Ліквідність по касах</h3><p class="sub">фактичні залишки</p>${finTable(["Каса","Залишок","Валюта"], cashRows)}</div>
+    <div class="card"><h3>📆 Платіжний календар (У.О.)</h3>${finTable(["Період","Прогноз надходжень","Планові оплати","Прогн. залишок","Розрив"], cal)}</div>
+    <div class="card"><h3>🌊 Кешфлоу по тижнях (У.О.)</h3>${finTable(["Тиждень","Надходження","Виплати","Чистий потік","Залишок"], cf)}</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+      <div class="card"><h3>💳 Дебіторка за віком</h3>${finTable(["Кошик","Сума У.О.","Рахунків"], arA)}
+        <h3 style="margin-top:14px">Топ боржників</h3>${finTable(["Клієнт","Борг У.О.","Рах.","Макс. протерм."], arD)}</div>
+      <div class="card"><h3>📤 Кредиторка за віком</h3>${finTable(["Кошик","Сума У.О.","Рахунків"], apA)}
+        <h3 style="margin-top:14px">Топ постачальників</h3>${finTable(["Постачальник","Борг У.О.","Рах.","Макс. вік"], apD)}</div>
+    </div>
+    <div class="card"><h3>🧊 Топ угод із замороженими коштами (WIP)</h3>${finTable(["Угода","Клієнт","Сума У.О."], wip)}</div>
+    <div class="card"><h3>🏦 Капітал власників (У.О.)</h3>${finTable(["Учасник","Внесено","Вилучено","Разом"], eq)}</div>
+    <div class="note">💡 Той самий розрахунок, що й у таблиці звіту — Google-таблиця лишається паралельним інструментом.</div>`;
+  window.scrollTo(0,0);
+}
+
+async function renderPeriod(){
+  $("rep-body").innerHTML = '<div class="card"><p class="sub">Завантаження даних періоду…</p></div>';
+  let js;
+  try{ js = await fetchFin("period"); }
+  catch(e){ $("rep-body").innerHTML = `<div class="note">⚠ ${esc(e.message)}</div>`; return; }
+  const D = js.data;
+  const months = [...new Set((D.deals||[]).map(d=>d.month).filter(Boolean))].sort();
+  const selOpts = months.map(m=>`<option>${m}</option>`).join("");
+  $("rep-body").innerHTML = `
+    ${refreshBar(js.mtime, renderPeriod)}
+    <div class="card"><h3>📆 Фінансовий звіт за період</h3>
+      <div class="filters" style="margin-top:8px">
+        <label style="font-size:13px;color:var(--ink-2)">З місяця <select id="pfrom">${selOpts}</select></label>
+        <label style="font-size:13px;color:var(--ink-2)">По місяць <select id="pto">${selOpts}</select></label>
+      </div>
+      <div id="p-out"></div>
+    </div>`;
+  $("pfrom").value = months[Math.max(0, months.length-3)] || months[0];
+  $("pto").value = months[months.length-1];
+  const draw = () => {
+    const a = $("pfrom").value, b = $("pto").value;
+    const deals = (D.deals||[]).filter(d=>d.month >= a && d.month <= b);
+    const rev = deals.reduce((s,d)=>s+(+d.revenue||0),0);
+    const cost = deals.reduce((s,d)=>s+(+d.cost||0),0);
+    const prof = deals.reduce((s,d)=>s+(+d.profit||0),0);
+    let opex = 0; const opexCat = {};
+    Object.entries(D.opexByMonth||{}).forEach(([m,v])=>{ if(m>=a&&m<=b) opex += (+v||0); });
+    Object.entries(D.opexByMonthCat||{}).forEach(([m,cats])=>{ if(m>=a&&m<=b) Object.entries(cats).forEach(([c,v])=>{ opexCat[c]=(opexCat[c]||0)+(+v||0); }); });
+    const byMgr = {};
+    deals.forEach(d=>{ const k=d.manager||"—"; byMgr[k]=byMgr[k]||{r:0,p:0,n:0}; byMgr[k].r+=+d.revenue||0; byMgr[k].p+=+d.profit||0; byMgr[k].n++; });
+    const byCli = {};
+    deals.forEach(d=>{ const k=d.client||"—"; byCli[k]=byCli[k]||{r:0,p:0,n:0}; byCli[k].r+=+d.revenue||0; byCli[k].p+=+d.profit||0; byCli[k].n++; });
+    const topCli = Object.entries(byCli).sort((x,y)=>y[1].r-x[1].r).slice(0,12);
+    $("p-out").innerHTML = `
+      <div class="tiles" style="margin-top:12px">
+        <div class="tile"><div class="lbl">Дохід</div><div class="val">${fmtN(rev)}</div><div class="delta">У.О. · угод: ${deals.length}</div></div>
+        <div class="tile"><div class="lbl">Собівартість угод</div><div class="val">${fmtN(cost)}</div></div>
+        <div class="tile"><div class="lbl">Прибуток по угодах</div><div class="val" style="color:var(--good-text)">${fmtN(prof)}</div><div class="delta">маржа ${rev? Math.round(prof/rev*100):0}%</div></div>
+        <div class="tile"><div class="lbl">Опер. витрати (OPEX)</div><div class="val">${fmtN(opex)}</div><div class="delta">чистий: ${fmtN(prof-opex)}</div></div>
+      </div>
+      <h3 style="margin-top:16px">По менеджерах</h3>
+      ${finTable(["Менеджер","Угод","Дохід","Прибуток"], Object.entries(byMgr).sort((x,y)=>y[1].p-x[1].p).map(([m,v])=>`<tr><td><b>${esc(m)}</b></td><td class="num">${v.n}</td><td class="num">${fmtN(v.r)}</td><td class="num">${fmtN(v.p)}</td></tr>`))}
+      <h3 style="margin-top:16px">Топ клієнтів за доходом</h3>
+      ${finTable(["Клієнт","Угод","Дохід","Прибуток"], topCli.map(([c,v])=>`<tr><td><b>${esc(c)}</b></td><td class="num">${v.n}</td><td class="num">${fmtN(v.r)}</td><td class="num">${fmtN(v.p)}</td></tr>`))}
+      <h3 style="margin-top:16px">Операційні витрати по категоріях</h3>
+      ${finTable(["Категорія","Сума У.О."], Object.entries(opexCat).sort((x,y)=>y[1]-x[1]).map(([c,v])=>`<tr><td>${esc(c)}</td><td class="num">${fmtN(v,2)}</td></tr>`))}
+      <h3 style="margin-top:16px">Угоди періоду</h3>
+      ${finTable(["Угода","Місяць","Менеджер","Клієнт","Напрямок","Дохід","Витрати","Прибуток"],
+        deals.sort((x,y)=>String(y.month).localeCompare(String(x.month)) || (+y.num)-(+x.num)).map(d=>`<tr>
+          <td class="mono"><b>${esc(d.num)}</b></td><td class="mono">${esc(d.month)}</td><td>${esc(d.manager||"—")}</td>
+          <td>${esc(d.client||"—")}</td><td>${esc(d.kind||"—")}</td>
+          <td class="num">${fmtN(d.revenue,2)}</td><td class="num">${fmtN(d.cost,2)}</td><td class="num">${fmtN(d.profit,2)}</td></tr>`))}`;
+  };
+  $("pfrom").addEventListener("change", draw);
+  $("pto").addEventListener("change", draw);
+  draw();
+  window.scrollTo(0,0);
+}
+
 
 PAGES.tasks = async () => {
   const rows = await loadAll(T["Задачі"]);
