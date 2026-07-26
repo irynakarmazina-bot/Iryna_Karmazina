@@ -1,7 +1,7 @@
 {
-  "stdout": "SIZE: 81498\nMARKERS: 2\nUI 200\n",
+  "stdout": "SIZE: 82336\nCLIF: 3\nUI 200\n",
   "stderr": "",
   "returncode": 0,
-  "id": "ui-v5-fix-0726",
-  "ts": "2026-07-26T13:20:18Z"
+  "id": "ui-v6-0726",
+  "ts": "2026-07-26T14:27:26Z"
 }
