@@ -1,7 +1,7 @@
 {
-  "stdout": "UI_UPDATED\n200\n",
+  "stdout": "VALIDATE_FAIL\n{\"level\":\"info\",\"ts\":1785054080.0658953,\"msg\":\"using config from file\",\"file\":\"/etc/caddy/Caddyfile\"}\nError: adapting config using caddyfile: parsing caddyfile tokens for 'tls': unknown subdirective: profile, at /etc/caddy/Caddyfile:7\n",
   "stderr": "",
   "returncode": 0,
-  "id": "facade-v3-0725",
-  "ts": "2026-07-25T18:37:38Z"
+  "id": "https-try2-0725",
+  "ts": "2026-07-26T08:21:20Z"
 }
