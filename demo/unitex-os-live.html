@@ -323,7 +323,7 @@
   <div class="login-card">
     <div class="brand">
       <img class="brand-logo" id="logo-login" alt="UNITEX">
-      <div><h1>Юнітекс OS<small>операційна система компанії</small></h1></div>
+      <div><h1>Юнітекс OS<small>ERP-система компанії</small></h1></div>
     </div>
     <p class="hint">Вхід для співробітників.</p>
     <div class="field"><label for="em">Email</label>
@@ -376,7 +376,22 @@
       <input type="file" id="doc-file" multiple style="display:none">
     </div>
     <p class="sub" id="doc-status" style="margin-top:8px"></p>
-    <div class="note" style="margin-top:10px;font-size:12.5px">⚙ «Сформувати документ» за вашими бланками — наступний етап. Видалення файлів — лише адміністратор (теж наступним етапом).</div>
+    <div id="gen-wrap" style="margin-top:14px;border-top:1px solid var(--line);padding-top:12px">
+      <div style="font-weight:600;font-size:13.5px;margin-bottom:6px">📝 Сформувати документ</div>
+      <select id="gen-type" class="inp" style="width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--paper);color:var(--ink);font-size:13.5px">
+        <option value="">— оберіть бланк —</option>
+        <option value="zayavka">Заявка на перевезення (додаток до договору)</option>
+        <option value="zayavka_cma">Заявка CMA (agency haulage)</option>
+        <option value="loi">LOI CMA (export)</option>
+        <option value="kkk">Заявка Кампус Коттон Клаб</option>
+        <option value="t1">Заявка на Т1 (ВІМГАРАНТ)</option>
+        <option value="insurance">Лист страхування (Альянс)</option>
+      </select>
+      <div id="gen-form" style="display:none;margin-top:10px;max-height:40vh;overflow-y:auto;grid-template-columns:1fr 1fr;gap:8px"></div>
+      <button class="btn full" id="gen-btn" style="display:none;margin-top:10px">Сформувати та прикріпити</button>
+      <p class="sub" id="gen-status" style="margin-top:6px"></p>
+    </div>
+    <div class="note" style="margin-top:10px;font-size:12.5px">Видалення файлів — лише адміністратор (наступним етапом).</div>
     <button class="btn ghost full" id="doc-close" style="margin-top:12px">Закрити</button>
   </div>
 </div>
@@ -664,6 +679,9 @@ function openDocs(r){
   DOC_ROW = r;
   $("doc-title").textContent = `📄 Документи угоди №${r["Угода"]} · ${r["Клієнт"]||""}`;
   $("doc-upload-wrap").style.display = (ROLE === "Перегляд") ? "none" : "block";
+  $("gen-wrap").style.display = GEN_DENY.has(ROLE) ? "none" : "block";
+  $("gen-type").value = ""; $("gen-form").style.display = "none"; $("gen-form").innerHTML = "";
+  $("gen-btn").style.display = "none"; $("gen-status").textContent = "";
   $("doc-status").textContent = "";
   renderDocList();
   $("doc-overlay").classList.add("open");
@@ -695,6 +713,158 @@ $("doc-file").addEventListener("change", async ()=>{
     $("doc-status").textContent = "⚠ Не вдалося завантажити (" + e.message + ")";
   }
   $("doc-file").value = "";
+});
+
+/* ===== формування документів за бланками ===== */
+const GEN_DENY = new Set(["Перегляд","Логіст"]);
+let CLIENTS_CACHE = null;
+async function clientRec(name){
+  if (!name) return {};
+  if (!CLIENTS_CACHE){
+    try{ const js = await api(`/api/v2/tables/${T["Клієнти"]}/records?limit=200`); CLIENTS_CACHE = js.list || []; }
+    catch(e){ CLIENTS_CACHE = []; }
+  }
+  const n = String(name).trim();
+  return CLIENTS_CACHE.find(c=>Object.values(c).some(v=>typeof v==="string" && v.trim()===n)) || {};
+}
+const todayISO = ()=> new Date().toISOString().slice(0,10);
+const dDot = ()=>{ const d=new Date(); return `${String(d.getDate()).padStart(2,"0")}.${String(d.getMonth()+1).padStart(2,"0")}.${d.getFullYear()}`; };
+const cntEq = r => { const q=(r["Кількість"]||"1"), t=(r["Тип обладнання"]||""); return t? q+"х"+t : ""; };
+const joinNZ = (...a)=> a.filter(x=>x&&String(x).trim()).join(", ");
+const GEN_FORMS = {
+ zayavka: [
+  {k:"num",label:"№ заявки"}, {k:"date",label:"Дата",d:1,v:()=>todayISO()},
+  {k:"contract",label:"Договір (№ і дата)",v:(r,c)=>c["Договір"]},
+  {k:"client_full",label:"Клієнт (повна назва)",v:(r,c)=>c["Повна назва"]||r["Клієнт"]},
+  {k:"client_short",label:"Клієнт (коротка назва)",v:r=>r["Клієнт"]},
+  {k:"client_edrpou",label:"ЄДРПОУ клієнта",v:(r,c)=>c["ЄДРПОУ"]},
+  {k:"client_dir_gen",label:"Директор клієнта (род. відмінок)",v:(r,c)=>c["Директор (род. відмінок)"]},
+  {k:"client_dir_short",label:"Директор (ініціали)",v:(r,c)=>c["Директор (ініціали)"]},
+  {k:"services",label:"Узгоджений об'єм послуг",ta:1},
+  {k:"route",label:"Маршрут",v:r=>r["Маршрут"]},
+  {k:"container",label:"Тип та кількість контейнерів",v:cntEq},
+  {k:"con_bl",label:"Номер контейнера / BL",v:r=>joinNZ(r["Контейнер"],r["BL"]).replace(", "," / ")},
+  {k:"uktzed",label:"Код УКТЗЕД"},
+  {k:"shipper",label:"Відправник (назва, адреса)",ta:1},
+  {k:"consignee",label:"Одержувач (назва, адреса)",ta:1,v:(r,c)=>joinNZ(c["Повна назва"]||r["Клієнт"],c["Адреса"])},
+  {k:"incoterms",label:"Умови поставки (Інкотермс)"},
+  {k:"eta",label:"Дата судозаходу"},
+  {k:"pol",label:"Порт завантаження"},
+  {k:"pod",label:"Порт розвантаження"},
+  {k:"customs_addr",label:"Адреса митного оформлення",v:r=>r["Адреса розмитнення"]},
+  {k:"unload_addr",label:"Адреса розвантаження"},
+  {k:"price",label:"Вартість послуг",ta:1},
+  {k:"other",label:"Інші умови"},
+ ],
+ zayavka_cma: [
+  {k:"req_no",label:"№ заявки"}, {k:"date",label:"Дата (дд.мм.рррр)",v:()=>dDot()},
+  {k:"booking",label:"Букінг",v:r=>r["BL"]},
+  {k:"route",label:"Маршрут",v:r=>r["Маршрут"]},
+  {k:"container",label:"Контейнер (1х40НС)",v:cntEq},
+  {k:"weight",label:"Вага"},
+  {k:"shipper_name",label:"Відправник (назва)",v:r=>r["Клієнт"]},
+  {k:"shipper_edrpou",label:"ЄДРПОУ відправника",v:(r,c)=>c["ЄДРПОУ"]},
+  {k:"shipper_addr",label:"Адреса відправника",v:(r,c)=>c["Адреса"]},
+  {k:"consignee_name",label:"Отримувач (назва)"},
+  {k:"consignee_addr",label:"Адреса отримувача"},
+  {k:"loading_addr",label:"Адреса завантаження",ta:1,v:(r,c)=>c["Адреса завантаження"]},
+  {k:"loading_contact",label:"Контакт на завантаженні",v:(r,c)=>c["Контакт завантаження"]},
+  {k:"loading_dt",label:"Дата і час завантаження"},
+  {k:"customs_addr",label:"Адреса замитнення",v:r=>r["Адреса розмитнення"]},
+  {k:"customs_note",label:"Примітка по митниці"},
+  {k:"load_method",label:"Спосіб завантаження"},
+  {k:"goods1",label:"Вантаж 1 (код + назва)"},
+  {k:"goods2",label:"Вантаж 2"},
+  {k:"goods3",label:"Вантаж 3"},
+  {k:"packing",label:"Пакування"},
+  {k:"rate",label:"Ставка"},
+ ],
+ loi: [
+  {k:"booking",label:"Букінг",v:r=>r["BL"]},
+  {k:"voyage",label:"Вояж",v:r=>r["Вояж"]},
+  {k:"place_receipt",label:"Place of Receipt"},
+  {k:"place_delivery",label:"Place of Delivery"},
+  {k:"container",label:"Контейнер (1x40HC)",v:cntEq},
+  {k:"goods",label:"Вантаж (англ.)"},
+  {k:"shipper",label:"Shipper (назва, код, адреса)",ta:1},
+  {k:"consignee",label:"Consignee (назва, адреса)",ta:1},
+  {k:"date",label:"Дата (дд.мм.рр)",v:()=>dDot()},
+ ],
+ kkk: [
+  {k:"num",label:"№ заявки"}, {k:"date",label:"Дата",d:1,v:()=>todayISO()},
+  {k:"order_no",label:"Номер замовлення",v:()=>"б/н"},
+  {k:"pickup",label:"Пункт відправлення"},
+  {k:"ready_date",label:"Готовність вантажу"},
+  {k:"destination",label:"Пункт прибуття"},
+  {k:"transport_route",label:"Тип транспорту та маршрут",ta:1,v:r=>r["Маршрут"]},
+  {k:"customs_from",label:"Митниця в країні відправлення"},
+  {k:"border",label:"Пункт перетину кордону"},
+  {k:"customs_to",label:"Митниця в країні прибуття"},
+  {k:"final_addr",label:"Кінцевий пункт доставки"},
+  {k:"truck_type",label:"Тип авто"},
+  {k:"weight_cargo",label:"Вага (брутто) + тип вантажу",ta:1},
+  {k:"price_text",label:"Загальна вартість (текст)",ta:1},
+ ],
+ t1: [
+  {k:"truck",label:"Держ. номер тягача",v:r=>r["Номер авто"]},
+  {k:"trailer",label:"Держ. номер причепа"},
+  {k:"border",label:"Прикордонний перехід"},
+  {k:"eta",label:"Дата і час прибуття на кордон"},
+  {k:"driver_phone",label:"Телефон водія",v:r=>r["Водій (телефон)"]},
+  {k:"broker",label:"Брокер (розмитнення) + контакти"},
+  {k:"submitter",label:"Відповідальний за подачу + контакти"},
+  {k:"invoice_value",label:"Вартість вантажу за інвойсом, EUR"},
+  {k:"codes_count",label:"Кількість кодів УКТЗЕД"},
+  {k:"open_place",label:"Місце відкриття Т1"},
+  {k:"cargo_nature",label:"Характер вантажу"},
+  {k:"route",label:"Маршрут (звідки – куди)",v:r=>r["Маршрут"]},
+  {k:"date",label:"Дата заявки",d:1,v:()=>todayISO()},
+ ],
+ insurance: [
+  {k:"cargo",label:"Вантаж (англ. / укр.)"},
+  {k:"container",label:"Контейнер(и)",v:r=>r["Контейнер"]},
+  {k:"invoice_no",label:"№ інвойсу"},
+  {k:"invoice_date",label:"Дата інвойсу (дд.мм.рррр)"},
+  {k:"bl",label:"Коносамент / B/L",v:r=>r["BL"]},
+  {k:"port",label:"Порт завантаження (напр. Нагоя, Японія)"},
+  {k:"date",label:"Дата листа",d:1,v:()=>todayISO()},
+ ],
+};
+const GEN_INP_S = 'style="padding:7px 9px;border:1px solid var(--line);border-radius:7px;background:var(--paper);color:var(--ink);font-size:13px;width:100%;box-sizing:border-box;font-family:inherit"';
+async function renderGenForm(){
+  const typ = $("gen-type").value, wrap = $("gen-form"), btn = $("gen-btn");
+  if (!typ || !DOC_ROW){ wrap.style.display="none"; btn.style.display="none"; return; }
+  const c = await clientRec(DOC_ROW["Клієнт"]);
+  wrap.innerHTML = GEN_FORMS[typ].map(f=>{
+    let v = ""; try{ v = f.v ? (f.v(DOC_ROW, c) || "") : ""; }catch(e){}
+    const inp = f.ta
+      ? `<textarea data-k="${f.k}" rows="2" class="gen-inp" ${GEN_INP_S}>${esc(v)}</textarea>`
+      : `<input data-k="${f.k}" class="gen-inp" type="${f.d?"date":"text"}" value="${esc(v)}" ${GEN_INP_S}>`;
+    return `<label style="${f.ta?"grid-column:1/-1;":""}font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:3px">${esc(f.label)}${inp}</label>`;
+  }).join("");
+  wrap.style.display = "grid"; btn.style.display = "block"; $("gen-status").textContent = "";
+}
+$("gen-type").addEventListener("change", renderGenForm);
+$("gen-btn").addEventListener("click", async ()=>{
+  const typ = $("gen-type").value;
+  if (!typ || !DOC_ROW) return;
+  const fields = {};
+  $("gen-form").querySelectorAll(".gen-inp").forEach(i=>{ fields[i.dataset.k] = i.value; });
+  $("gen-status").textContent = "⏳ Формую документ…"; $("gen-btn").disabled = true;
+  try{
+    const r = await fetch("/gen-doc", {method:"POST",
+      headers:{"Content-Type":"application/json","xc-auth": JWT||""},
+      body: JSON.stringify({type: typ, dealId: DOC_ROW.Id, fields})});
+    const js = await r.json().catch(()=>({}));
+    if (!r.ok) throw new Error(js.error || ("HTTP " + r.status));
+    DOC_ROW["Файли"] = js.files;
+    renderDocList();
+    $("gen-status").textContent = "";
+    toast("✅ Сформовано та прикріплено: " + js.title);
+  } catch(e){
+    $("gen-status").textContent = "⚠ Не вдалося сформувати (" + e.message + ")";
+  }
+  $("gen-btn").disabled = false;
 });
 
 const CARD_GROUPS = [
