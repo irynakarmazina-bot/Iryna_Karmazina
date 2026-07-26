@@ -386,6 +386,8 @@
         <option value="kkk">Заявка Кампус Коттон Клаб</option>
         <option value="t1">Заявка на Т1 (ВІМГАРАНТ)</option>
         <option value="insurance">Лист страхування (Альянс)</option>
+        <option value="maersk_poa">POA Maersk (release контейнера)</option>
+        <option value="maersk_loi">LOI Maersk (Україна)</option>
       </select>
       <div id="gen-form" style="display:none;margin-top:10px;max-height:40vh;overflow-y:auto;grid-template-columns:1fr 1fr;gap:8px"></div>
       <button class="btn full" id="gen-btn" style="display:none;margin-top:10px">Сформувати та прикріпити</button>
@@ -819,6 +821,19 @@ const GEN_FORMS = {
   {k:"cargo_nature",label:"Характер вантажу"},
   {k:"route",label:"Маршрут (звідки – куди)",v:r=>r["Маршрут"]},
   {k:"date",label:"Дата заявки",d:1,v:()=>todayISO()},
+ ],
+ maersk_poa: [
+  {k:"bl",label:"Bill of Lading",v:r=>r["BL"]},
+  {k:"container",label:"Контейнер(и)",v:r=>r["Контейнер"]},
+  {k:"agent",label:"Компанія (release + оплата THC)",ta:1,v:()=>"LLC UNITEX HD (65076, ODESSA REGION, ODESSA, UKRAINE, OFFICE 56 RADISNA STR. 3)"},
+  {k:"date",label:"Дата",d:1,v:()=>todayISO()},
+ ],
+ maersk_loi: [
+  {k:"booking",label:"Букінг Maersk",v:r=>r["BL"]},
+  {k:"vessel_voyage",label:"Судно / Вояж",v:r=>joinNZ(r["Судно"],r["Вояж"]).replace(", "," / ")},
+  {k:"goods",label:"Вантаж (англ.)"},
+  {k:"containers",label:"Контейнер(и)",v:r=>r["Контейнер"]},
+  {k:"date",label:"Дата",d:1,v:()=>todayISO()},
  ],
  insurance: [
   {k:"cargo",label:"Вантаж (англ. / укр.)"},
