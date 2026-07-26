@@ -1,0 +1,1167 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Юнітекс OS</title>
+<style>
+  :root{
+    color-scheme: light;
+    /* Фірмовий стиль UNITEX — як оперативний фінансовий звіт */
+    --paper:#f9f9f7; --surface:#ffffff; --surface-2:#f4f4f0;
+    --ink:#0b0b0b; --ink-2:#52514e; --muted:#898781;
+    --line:#e1e0d9; --line-soft:#eeede8;
+    --accent:#2a78d6; --accent-soft:#e7f0fb; --accent-ink:#1c5cab;
+    --side-bg:#ffffff; --side-ink:var(--ink); --side-muted:var(--ink-2);
+    --side-active-bg:var(--accent-soft); --side-active-ink:var(--accent-ink); --side-line:var(--line-soft);
+    --tile-bg:var(--surface); --tile-warn-bg:var(--surface); --tile-warn-ink:#d03b3b;
+    --th-bg:#2a78d6; --th-ink:#ffffff;
+    --chart-surface:#fcfcfb;
+    --s1:#2a78d6; --s2:#eb6834;
+    --good:#0ca30c; --good-text:#006300; --warn:#fab219; --warn-text:#854F0B;
+    --crit:#d03b3b; --crit-text:#d03b3b; --info-text:#1c5cab; --vio-text:#3C3489;
+    --good-bg:#E1F5EE; --warn-bg:#FAEEDA; --crit-bg:#FBEAE8; --info-bg:#E6F1FB; --vio-bg:#EEEDFE; --neutral-bg:#f1efe8;
+    --del-bg:#e6e5df; --del-text:#5f5e5a;
+    --shadow:0 1px 2px rgba(11,11,11,.05),0 4px 14px rgba(11,11,11,.05);
+    --radius:10px;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:where(:not([data-theme="light"])){
+      color-scheme: dark;
+      --paper:#0e1319; --surface:#171e26; --surface-2:#1c242e;
+      --ink:#f2f5f7; --ink-2:#aeb9c2; --muted:#7d8893;
+      --line:#2a333d; --line-soft:#222b34;
+      --accent:#4fa3bd; --accent-soft:#173341; --accent-ink:#8ecadd;
+      --chart-surface:#1a1a19;
+      --s1:#3987e5; --s2:#008300;
+      --good-text:#4ec24e; --warn-text:#fab219; --crit:#e66767; --crit-text:#e66767; --info-text:#6da7ec; --vio-text:#b197f5;
+      --good-bg:#12301a; --warn-bg:#33290e; --crit-bg:#391717; --info-bg:#14273d; --vio-bg:#241a3d; --neutral-bg:#232c36;
+      --del-bg:#232c36; --del-text:#9b9a94;
+      --side-bg:#171e26; --tile-bg:#1c242e; --tile-warn-bg:#1c242e; --tile-warn-ink:#e66767;
+      --th-bg:#1c2836; --th-ink:#9ec5f4; --s2:#d95926;
+      --shadow:0 1px 2px rgba(0,0,0,.4),0 4px 16px rgba(0,0,0,.35);
+    }
+  }
+  :root[data-theme="dark"]{
+    color-scheme: dark;
+    --paper:#0e1319; --surface:#171e26; --surface-2:#1c242e;
+    --ink:#f2f5f7; --ink-2:#aeb9c2; --muted:#7d8893;
+    --line:#2a333d; --line-soft:#222b34;
+    --accent:#4fa3bd; --accent-soft:#173341; --accent-ink:#8ecadd;
+    --chart-surface:#1a1a19;
+    --s1:#3987e5; --s2:#008300;
+    --good-text:#4ec24e; --warn-text:#fab219; --crit:#e66767; --crit-text:#e66767; --info-text:#6da7ec; --vio-text:#b197f5;
+    --good-bg:#12301a; --warn-bg:#33290e; --crit-bg:#391717; --info-bg:#14273d; --vio-bg:#241a3d; --neutral-bg:#232c36;
+    --del-bg:#232c36; --del-text:#9b9a94;
+    --side-bg:#171e26; --tile-bg:#1c242e; --tile-warn-bg:#1c242e; --tile-warn-ink:#e66767;
+    --th-bg:#1c2836; --th-ink:#9ec5f4; --s2:#d95926;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 4px 16px rgba(0,0,0,.35);
+  }
+  :root[data-theme="light"]{
+    color-scheme: light;
+    --paper:#f9f9f7; --surface:#ffffff; --surface-2:#f4f4f0;
+    --ink:#0b0b0b; --ink-2:#52514e; --muted:#898781;
+    --line:#e1e0d9; --line-soft:#eeede8;
+    --accent:#2a78d6; --accent-soft:#e7f0fb; --accent-ink:#1c5cab;
+    --side-bg:#ffffff;
+    --tile-bg:var(--surface); --tile-warn-bg:var(--surface); --tile-warn-ink:#d03b3b;
+    --th-bg:#2a78d6; --th-ink:#ffffff;
+    --chart-surface:#fcfcfb;
+    --s1:#2a78d6; --s2:#eb6834;
+    --good-text:#006300; --warn-text:#854F0B; --crit:#d03b3b; --crit-text:#d03b3b; --info-text:#1c5cab; --vio-text:#3C3489;
+    --good-bg:#E1F5EE; --warn-bg:#FAEEDA; --crit-bg:#FBEAE8; --info-bg:#E6F1FB; --vio-bg:#EEEDFE; --neutral-bg:#f1efe8;
+    --del-bg:#e6e5df; --del-text:#5f5e5a;
+    --shadow:0 1px 2px rgba(11,11,11,.05),0 4px 14px rgba(11,11,11,.05);
+  }
+
+  /* ---- ВАРІАНТИ ОФОРМЛЕННЯ (палітри) ---- */
+  :root[data-palette="warm"]{
+    --paper:#f7f6f1; --surface-2:#f4f2ea; --line:#e3e1d7; --line-soft:#eceae1;
+    --ink:#2b2b28; --ink-2:#6b6a64; --muted:#9b9a94;
+    --accent:#0C447C; --accent-soft:#EEF1FB; --accent-ink:#0C447C;
+    --side-bg:#fbfaf5; --tile-bg:#F1EFE8; --tile-warn-bg:#FAEEDA; --tile-warn-ink:#854F0B;
+    --th-bg:transparent; --th-ink:var(--muted); --s2:#008300;
+  }
+  :root[data-palette="ocean"]{
+    --accent:#0284c7; --accent-ink:#0369a1; --accent-soft:color-mix(in srgb, #0284c7 14%, transparent);
+    --side-bg:linear-gradient(180deg,#07395f 0%,#0b5b8f 100%);
+    --side-ink:#ffffff; --side-muted:rgba(255,255,255,.68);
+    --side-active-bg:rgba(255,255,255,.17); --side-active-ink:#ffffff; --side-line:rgba(255,255,255,.16);
+  }
+  :root[data-palette="indigo"]{
+    --accent:#f97316; --accent-ink:#c2410c; --accent-soft:color-mix(in srgb, #f97316 15%, transparent);
+    --side-bg:linear-gradient(180deg,#1e1b4b 0%,#372f8c 100%);
+    --side-ink:#ffffff; --side-muted:rgba(255,255,255,.66);
+    --side-active-bg:rgba(249,115,22,.28); --side-active-ink:#ffd9bd; --side-line:rgba(255,255,255,.15);
+  }
+  :root[data-palette="emerald"]{
+    --accent:#059669; --accent-ink:#047857; --accent-soft:color-mix(in srgb, #059669 14%, transparent);
+    --side-bg:linear-gradient(180deg,#064e3b 0%,#0e7460 100%);
+    --side-ink:#ffffff; --side-muted:rgba(255,255,255,.68);
+    --side-active-bg:rgba(255,255,255,.17); --side-active-ink:#ffffff; --side-line:rgba(255,255,255,.16);
+  }
+  :root[data-theme="dark"][data-palette="indigo"]{ --accent-ink:#fdba74 }
+  :root[data-theme="dark"][data-palette="ocean"]{ --accent-ink:#7dd3fc }
+  :root[data-theme="dark"][data-palette="emerald"]{ --accent-ink:#6ee7b7 }
+
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:system-ui,-apple-system,"Segoe UI",sans-serif;
+    background:var(--paper); color:var(--ink);
+    font-size:15px; line-height:1.5; min-height:100vh;
+  }
+  button{font:inherit}
+  :focus-visible{outline:2px solid var(--accent); outline-offset:2px; border-radius:4px}
+  @media (prefers-reduced-motion: reduce){ *{transition:none!important;animation:none!important} }
+  .article h2{font-size:15px;color:var(--accent-ink);margin:18px 0 6px}
+  .article h3{font-size:14px;margin:14px 0 6px;color:var(--ink);text-transform:none;letter-spacing:0}
+  .article p,.article li{font-size:14px;color:var(--ink)}
+  .article ul,.article ol{padding-left:22px;margin:6px 0}
+  .article table{margin:8px 0;font-size:13.5px}
+  .article th{background:var(--th-bg);color:var(--th-ink);padding:6px 10px;text-align:left}
+  .article td{padding:6px 10px;border-bottom:1px solid var(--line-soft)}
+  .article pre{background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:10px 12px;font-size:12.5px;overflow-x:auto;white-space:pre-wrap}
+  .article .note{margin:10px 0}
+
+  /* ---------- LOGIN ---------- */
+  #login-screen{min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:20px; padding:24px}
+  .demo-banner{max-width:460px; width:100%; background:var(--warn-bg); color:var(--warn-text);
+    border:1px solid color-mix(in srgb, var(--warn) 40%, transparent);
+    border-radius:var(--radius); padding:10px 14px; font-size:13.5px}
+  .login-card{width:100%; max-width:460px; background:var(--surface);
+    border:1px solid var(--line); border-radius:14px; box-shadow:var(--shadow); padding:32px 28px}
+  .brand{display:flex; align-items:center; gap:12px; margin-bottom:6px}
+  .brand-logo{height:34px;width:auto;display:block;background:#fff;padding:4px 8px;border-radius:8px}
+  .brand-mark{width:40px;height:40px;border-radius:9px;background:var(--accent);
+    color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px}
+  .brand h1{font-size:20px;margin:0;letter-spacing:-.2px}
+  .brand small{display:block;color:var(--muted);font-weight:400;font-size:12.5px}
+  .login-card p.hint{color:var(--ink-2);font-size:13.5px;margin:14px 0 18px}
+  .acct-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+  .acct-chip{flex:1 1 120px; text-align:left; cursor:pointer;
+    background:var(--surface-2); border:1px solid var(--line); border-radius:10px;
+    padding:10px 12px; color:var(--ink); transition:border-color .12s}
+  .acct-chip:hover{border-color:var(--accent)}
+  .acct-chip.sel{border-color:var(--accent); background:var(--accent-soft)}
+  .acct-chip b{display:block;font-size:14px}
+  .acct-chip span{font-size:12px;color:var(--ink-2)}
+  .acct-chip code{font-size:11.5px;color:var(--muted)}
+  .field label{display:block;font-size:12.5px;font-weight:600;color:var(--ink-2);
+    text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
+  .field input{width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:9px;
+    background:var(--surface); color:var(--ink); font:inherit}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;
+    border:none;border-radius:9px;padding:10px 18px;cursor:pointer;
+    background:var(--accent);color:#fff;font-weight:600}
+  .btn:hover{filter:brightness(1.08)}
+  .btn.full{width:100%;margin-top:16px}
+  .btn.ghost{background:transparent;color:var(--ink-2);border:1px solid var(--line);font-weight:500}
+  .btn.ghost:hover{color:var(--ink);border-color:var(--muted);filter:none}
+  .login-err{display:none;margin-top:12px;background:var(--crit-bg);color:var(--crit-text);
+    border-radius:8px;padding:9px 12px;font-size:13.5px}
+
+  /* палітро-перемикач */
+  .pal-row{display:flex;align-items:center;gap:10px;margin-top:18px;padding-top:14px;border-top:1px solid var(--line-soft)}
+  .pal-row .lbl{font-size:12.5px;color:var(--muted)}
+  .pal-dot{width:26px;height:26px;border-radius:50%;cursor:pointer;border:2px solid transparent;padding:0}
+  .pal-dot.sel{border-color:var(--ink); box-shadow:0 0 0 2px var(--surface) inset}
+  .pal-dot[data-pal="finrep"]{background:linear-gradient(135deg,#ffffff 50%,#2a78d6 50%);border:1px solid #c9c8c1}
+  .pal-dot[data-pal="warm"]{background:linear-gradient(135deg,#F1EFE8 50%,#0C447C 50%)}
+  .pal-dot[data-pal="ocean"]{background:linear-gradient(135deg,#07395f,#0284c7)}
+  .pal-dot[data-pal="indigo"]{background:linear-gradient(135deg,#1e1b4b 55%,#f97316 55%)}
+  .pal-dot[data-pal="emerald"]{background:linear-gradient(135deg,#064e3b,#059669)}
+
+  /* ---------- APP SHELL ---------- */
+  #app{display:none; min-height:100vh}
+  .shell{display:flex; min-height:100vh}
+  .sidebar{width:228px; flex-shrink:0; background:var(--side-bg); color:var(--side-ink);
+    border-right:1px solid var(--line); padding:18px 12px; display:flex; flex-direction:column; gap:4px}
+  .sidebar .brand{padding:0 8px 14px; border-bottom:1px solid var(--side-line); margin-bottom:10px}
+  .sidebar .brand-mark{width:32px;height:32px;font-size:14px;border-radius:7px}
+  .sidebar .brand h1{font-size:15px;color:var(--side-ink)}
+  .sidebar .brand small{color:var(--side-muted)}
+  .nav-item{display:flex;align-items:center;gap:10px; width:100%; text-align:left;
+    background:none;border:none; padding:9px 10px; border-radius:8px;
+    color:var(--side-muted); cursor:pointer; font-size:14px; font-weight:500}
+  .nav-item:hover{background:var(--side-active-bg); color:var(--side-ink)}
+  .nav-item.active{background:var(--side-active-bg); color:var(--side-active-ink); font-weight:600}
+  .nav-item .ico{width:20px;text-align:center}
+  .sidebar .spacer{flex:1}
+  .sidebar .foot{font-size:11.5px;color:var(--side-muted);padding:8px 10px;border-top:1px solid var(--side-line)}
+
+  .main{flex:1; display:flex; flex-direction:column; min-width:0}
+  .topbar{display:flex; align-items:center; gap:14px;
+    padding:12px 24px; background:var(--surface); border-bottom:1px solid var(--line)}
+  .topbar h2{font-size:17px;margin:0;flex:1;letter-spacing:-.2px}
+  .topbar .pal-mini{display:flex;gap:6px;align-items:center}
+  .topbar .pal-mini .pal-dot{width:20px;height:20px}
+  .user-chip{display:flex;align-items:center;gap:10px}
+  .avatar{width:32px;height:32px;border-radius:50%;background:var(--accent);color:#fff;
+    display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px}
+  .user-chip .who b{display:block;font-size:13.5px;line-height:1.2}
+  .role-badge{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;
+    color:var(--accent-ink);background:var(--accent-soft);border-radius:20px;padding:1px 8px}
+  .content{padding:24px; max-width:1820px; width:100%; margin:0 auto; display:flex;flex-direction:column;gap:20px}
+
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+    box-shadow:var(--shadow); padding:18px 20px}
+  .card h3{margin:0 0 4px;font-size:13px;color:var(--accent-ink);text-transform:uppercase;letter-spacing:.05em}
+  .card .sub{color:var(--muted);font-size:12.5px;margin:0 0 14px}
+
+  .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px}
+  .tile{background:var(--tile-bg);border:1px solid var(--line);border-radius:var(--radius);padding:12px 16px;box-shadow:var(--shadow)}
+  .tile.warn .val{color:var(--tile-warn-ink)}
+  .tile .lbl{font-size:12px;color:var(--ink-2)}
+  .tile .val{font-size:24px;font-weight:700;letter-spacing:-.3px;margin-top:3px}
+  .tile .delta{font-size:12.5px;margin-top:2px}
+  .delta.up{color:var(--good-text)} .delta.down{color:var(--crit-text)}
+
+  /* pills */
+  .pill{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;
+    border-radius:20px;padding:2px 9px;white-space:nowrap}
+  .pill::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor;flex-shrink:0}
+  .pill.t-neutral{background:var(--neutral-bg);color:var(--ink-2)}
+  .pill.t-info{background:var(--info-bg);color:var(--info-text)}
+  .pill.t-vio{background:var(--vio-bg);color:var(--vio-text)}
+  .pill.t-warn{background:var(--warn-bg);color:var(--warn-text)}
+  .pill.t-good{background:var(--good-bg);color:var(--good-text)}
+  .pill.t-crit{background:var(--crit-bg);color:var(--crit-text)}
+  .pill.t-del{background:var(--del-bg);color:var(--del-text)}
+  .dirchip{font-size:11px;font-weight:700;letter-spacing:.04em;border-radius:5px;padding:1px 6px}
+  .dirchip.imp{background:var(--info-bg);color:var(--info-text)}
+  .dirchip.exp{background:var(--vio-bg);color:var(--vio-text)}
+  .flag{display:inline-block;font-size:11.5px;font-weight:600;border-radius:5px;padding:1px 6px;margin:1px 2px 1px 0;white-space:nowrap}
+  .flag.on{background:var(--good-bg);color:var(--good-text)}
+  .flag.off{background:var(--neutral-bg);color:var(--muted);text-decoration:line-through;text-decoration-thickness:1px}
+  .remind{color:var(--crit-text);font-size:12.5px}
+
+  /* table */
+  .tablewrap{overflow-x:auto}
+  table{border-collapse:collapse;width:100%;font-size:13.5px}
+  th{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--th-ink);
+    background:var(--th-bg);text-align:left;font-weight:700;padding:8px 10px;white-space:nowrap}
+  thead th:first-child{border-radius:6px 0 0 6px} thead th:last-child{border-radius:0 6px 6px 0}
+  td{padding:9px 10px;border-bottom:1px solid var(--line-soft);vertical-align:top}
+  tr:last-child td{border-bottom:none}
+  td.num,th.num{font-variant-numeric:tabular-nums;text-align:right}
+  tbody tr:hover{background:var(--surface-2)}
+  .cell-muted{color:var(--muted);font-size:12.5px}
+  .mono{font-variant-numeric:tabular-nums; white-space:nowrap}
+
+  .filters{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+  .filters input,.filters select{padding:8px 10px;border:1px solid var(--line);border-radius:8px;
+    background:var(--surface);color:var(--ink);font:inherit;font-size:13.5px}
+  .filters input{flex:1;min-width:150px}
+
+  .docbtn{background:var(--accent-soft);color:var(--accent-ink);border:none;border-radius:7px;
+    padding:4px 9px;cursor:pointer;font-size:12.5px;font-weight:600;white-space:nowrap}
+  .docbtn:hover{filter:brightness(1.05)}
+
+  /* chart */
+  .chart{background:var(--chart-surface);border:1px solid var(--line-soft);border-radius:8px;
+    padding:16px 14px 8px; position:relative}
+  .bars{display:flex;align-items:flex-end;gap:14px;height:150px;border-bottom:1px solid var(--line); padding:0 4px}
+  .bargroup{flex:1;display:flex;align-items:flex-end;justify-content:center;gap:2px;height:100%;position:relative}
+  .bar{width:22px;max-width:40%;border-radius:4px 4px 0 0;cursor:default;min-height:2px}
+  .bar.s1{background:var(--s1)} .bar.s2{background:var(--s2)}
+  .xlabels{display:flex;gap:14px;padding:6px 4px 4px}
+  .xlabels span{flex:1;text-align:center;font-size:11.5px;color:var(--muted)}
+  .legend{display:flex;gap:16px;margin-top:8px;padding:0 4px 6px;font-size:12.5px;color:var(--ink-2)}
+  .legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+  .tip{position:absolute;pointer-events:none;background:var(--ink);color:var(--paper);
+    font-size:12px;padding:5px 9px;border-radius:6px;transform:translate(-50%,-110%);
+    white-space:nowrap;display:none;z-index:5}
+
+  /* SOP */
+  details.sop{border:1px solid var(--line);border-radius:var(--radius);background:var(--surface);
+    box-shadow:var(--shadow); overflow:hidden}
+  details.sop summary{cursor:pointer;padding:14px 18px;font-weight:600;list-style:none;display:flex;align-items:center;gap:10px}
+  details.sop summary::-webkit-details-marker{display:none}
+  details.sop summary::after{content:"▾";margin-left:auto;color:var(--muted);transition:transform .15s}
+  details.sop[open] summary::after{transform:rotate(180deg)}
+  details.sop .body{padding:0 18px 16px;color:var(--ink-2);font-size:14px}
+  details.sop .body ol{margin:6px 0;padding-left:20px}
+
+  .note{background:var(--accent-soft);color:var(--accent-ink);border-radius:var(--radius);padding:12px 16px;font-size:13.5px}
+  .ok{color:var(--good-text);font-weight:700}
+  .no{color:var(--muted)}
+
+  /* modal документів */
+  .overlay{position:fixed;inset:0;background:rgba(10,16,22,.55);display:none;
+    align-items:center;justify-content:center;z-index:50;padding:20px}
+  .overlay.open{display:flex}
+  .modal{background:var(--surface);border-radius:14px;box-shadow:var(--shadow);
+    max-width:480px;width:100%;padding:22px 24px;border:1px solid var(--line)}
+  .modal h3{margin:0 0 2px;font-size:16px}
+  .modal .sub{color:var(--muted);font-size:12.5px;margin:0 0 14px}
+  .doclist{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
+  .docitem{display:flex;align-items:center;gap:10px;border:1px solid var(--line);
+    border-radius:9px;padding:10px 12px}
+  .docitem .t{flex:1}
+  .docitem .t b{display:block;font-size:14px}
+  .docitem .t span{font-size:12px;color:var(--muted)}
+  .toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);
+    background:var(--ink);color:var(--paper);border-radius:9px;padding:10px 16px;
+    font-size:13.5px;display:none;z-index:60;max-width:90vw;text-align:center}
+
+  @media (max-width:760px){
+    .shell{flex-direction:column}
+    .sidebar{width:100%;flex-direction:row;flex-wrap:wrap;align-items:center;
+      border-right:none;border-bottom:1px solid var(--line);padding:10px}
+    .sidebar .brand{border:none;margin:0;padding:0 10px 0 4px}
+    .sidebar .spacer,.sidebar .foot{display:none}
+    .nav-item{width:auto;padding:7px 10px}
+    .content{padding:16px}
+    .topbar .pal-mini{display:none}
+  }
+</style>
+</head>
+<body>
+<!-- ============ ВХІД ============ -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="brand">
+      <img class="brand-logo" id="logo-login" alt="UNITEX">
+      <div><h1>Юнітекс OS<small>ERP-система компанії</small></h1></div>
+    </div>
+    <p class="hint">Вхід для співробітників.</p>
+    <div class="field"><label for="em">Email</label>
+      <input id="em" type="email" autocomplete="username" placeholder="name@unitex.od.ua"></div>
+    <div class="field" style="margin-top:10px"><label for="pw">Пароль</label>
+      <input id="pw" type="password" autocomplete="current-password"></div>
+    <button class="btn full" id="login-btn">Увійти</button>
+    <div class="login-err" id="login-err">Не вдалося увійти. Перевір email і пароль.</div>
+  </div>
+</div>
+
+<!-- ============ ЗАСТОСУНОК ============ -->
+<div id="app">
+  <div class="shell">
+    <nav class="sidebar">
+      <div class="brand"><img class="brand-logo" id="logo-side" alt="UNITEX" style="height:28px"></div>
+      <div id="nav"></div>
+      <div class="spacer"></div>
+      <div class="foot">Юнітекс OS · жива система</div>
+    </nav>
+    <div class="main">
+      <div class="topbar">
+        <h2 id="page-title"></h2>
+        <div class="user-chip">
+          <div class="avatar" id="u-avatar"></div>
+          <div class="who"><b id="u-name"></b><span class="role-badge" id="u-role">…</span></div>
+        </div>
+        <button class="btn ghost" id="logout">Вийти</button>
+      </div>
+      <div class="content" id="content"></div>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="row-overlay">
+  <div class="modal" style="max-width:640px;max-height:85vh;overflow-y:auto">
+    <h3 id="row-title"></h3>
+    <p class="sub">повна картка угоди · дані живі з бази</p>
+    <div id="row-body"></div>
+    <button class="btn ghost full" id="row-close" style="margin-top:12px">Закрити</button>
+  </div>
+</div>
+<div class="overlay" id="doc-overlay">
+  <div class="modal" style="max-width:560px;max-height:85vh;overflow-y:auto">
+    <h3 id="doc-title"></h3>
+    <p class="sub">прикріплені файли угоди · зберігаються в платформі</p>
+    <div id="doc-list" style="display:flex;flex-direction:column;gap:8px"></div>
+    <div style="margin-top:12px" id="doc-upload-wrap">
+      <button class="btn" id="doc-upload-btn">➕ Прикріпити файл</button>
+      <input type="file" id="doc-file" multiple style="display:none">
+    </div>
+    <p class="sub" id="doc-status" style="margin-top:8px"></p>
+    <div id="gen-wrap" style="margin-top:14px;border-top:1px solid var(--line);padding-top:12px">
+      <div style="font-weight:600;font-size:13.5px;margin-bottom:6px">📝 Сформувати документ</div>
+      <select id="gen-type" class="inp" style="width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--paper);color:var(--ink);font-size:13.5px">
+        <option value="">— оберіть бланк —</option>
+        <option value="zayavka">Заявка на перевезення (додаток до договору)</option>
+        <option value="zayavka_cma">Заявка CMA (agency haulage)</option>
+        <option value="loi">LOI CMA (export)</option>
+        <option value="kkk">Заявка Кампус Коттон Клаб</option>
+        <option value="t1">Заявка на Т1 (ВІМГАРАНТ)</option>
+        <option value="insurance">Лист страхування (Альянс)</option>
+        <option value="maersk_poa">POA Maersk (release контейнера)</option>
+        <option value="maersk_loi">LOI Maersk (Україна)</option>
+      </select>
+      <div id="gen-form" style="display:none;margin-top:10px;max-height:40vh;overflow-y:auto;grid-template-columns:1fr 1fr;gap:8px"></div>
+      <button class="btn full" id="gen-btn" style="display:none;margin-top:10px">Сформувати та прикріпити</button>
+      <p class="sub" id="gen-status" style="margin-top:6px"></p>
+    </div>
+    <div class="note" style="margin-top:10px;font-size:12.5px">Видалення файлів — лише адміністратор (наступним етапом).</div>
+    <button class="btn ghost full" id="doc-close" style="margin-top:12px">Закрити</button>
+  </div>
+</div>
+<div class="overlay" id="set-overlay">
+  <div class="modal" style="max-width:440px">
+    <h3>⚙️ Налаштування</h3>
+    <p class="sub">особисті налаштування — зберігаються у твоєму браузері</p>
+    <div style="margin:10px 0 4px;font-weight:600;font-size:13.5px">Оформлення</div>
+    <div id="pal-settings" style="display:flex;gap:10px;align-items:center;margin:8px 0 4px"></div>
+    <p class="sub" id="pal-name"></p>
+    <button class="btn ghost full" id="set-close" style="margin-top:10px">Закрити</button>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+const $ = id => document.getElementById(id);
+function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+
+/* ===== оформлення (в налаштуваннях користувача) ===== */
+let palette = localStorage.getItem("palette") || "finrep";
+const PALETTES = [ ["finrep","Фінзвіт (фірмовий)"],["warm","Теплий"],["ocean","Океан"],["indigo","Індиго"],["emerald","Смарагд"] ];
+function setPalette(p){ palette=p; localStorage.setItem("palette",p); if(p==="finrep") delete document.documentElement.dataset.palette; else document.documentElement.dataset.palette=p; renderPals(); }
+if (palette !== "finrep") document.documentElement.dataset.palette = palette;
+function renderPals(){
+  const html = PALETTES.map(([p,n])=>`<button class="pal-dot ${p===palette?"sel":""}" data-pal="${p}" title="${n}"></button>`).join("");
+  const ps = $("pal-settings"); if (ps) ps.innerHTML = html;
+  const pn = $("pal-name"); if (pn) pn.textContent = "Обрано: " + (PALETTES.find(x=>x[0]===palette)||["",""])[1];
+  document.querySelectorAll(".pal-dot").forEach(b=>b.addEventListener("click",()=>setPalette(b.dataset.pal)));
+}
+
+/* ===== API ===== */
+const BASE_ID = "pbhr1qkpvx09z8m";
+let T = {};            // назва таблиці -> id
+let JWT = sessionStorage.getItem("jwt") || null;
+let ROLE = "Перегляд", UNAME = "";
+async function api(path, opts={}){
+  const h = Object.assign({"Content-Type":"application/json"}, opts.headers||{});
+  if (JWT) h["xc-auth"] = JWT;
+  const r = await fetch(path, Object.assign({}, opts, {headers:h}));
+  if (r.status === 401){ doLogout(); throw new Error("401"); }
+  return r.json();
+}
+async function loadAll(table){
+  let out = [], offset = 0;
+  while (true){
+    const js = await api(`/api/v2/tables/${table}/records?limit=200&offset=${offset}`);
+    out = out.concat(js.list||[]);
+    if ((js.list||[]).length < 200) break;
+    offset += 200;
+  }
+  return out;
+}
+
+/* ===== ролі ===== */
+const RC = {
+  "Адміністратор":        { nav:["dashboard","dispatch","clients","finance","tasks","instr","users"], scope:"all", fin:"full", sync:true },
+  "Сейлз-менеджер":       { nav:["dashboard","dispatch","clients","finance","tasks","instr"], scope:"mgr", fin:"personal", sync:false },
+  "Бухгалтер":            { nav:["dashboard","dispatch","clients","finance","tasks","instr"], scope:"all", fin:"acct", sync:true },
+  "Фінансист":            { nav:["dashboard","dispatch","clients","finance","tasks","instr"], scope:"all", fin:"full", sync:true },
+  "Операційний менеджер": { nav:["dashboard","dispatch","clients","tasks","instr"], scope:"ops", fin:"none", sync:true },
+  "Логіст":               { nav:["dispatch","instr"], scope:"all", cols:"logist", fin:"none", sync:false },
+  "Перегляд":             { nav:["dashboard","dispatch","clients","finance","tasks","instr"], scope:"all", fin:"blur", sync:false },
+};
+function cfg(){ return RC[ROLE] || RC["Перегляд"]; }
+function scoped(rows){
+  const c = cfg();
+  if (c.scope === "mgr") return rows.filter(r=>String(r["Менеджер"]||"").trim() === UNAME);
+  if (c.scope === "ops") return rows.filter(r=>String(r["Оп. менеджер"]||"").trim() === UNAME);
+  return rows;
+}
+
+/* ===== вхід/вихід ===== */
+async function doLogin(){
+  $("login-err").style.display="none";
+  try{
+    const r = await fetch("/api/v1/auth/user/signin", {method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({email: $("em").value.trim(), password: $("pw").value})});
+    const js = await r.json();
+    if (!r.ok || !js.token) throw new Error("bad");
+    JWT = js.token; sessionStorage.setItem("jwt", JWT);
+    sessionStorage.setItem("email", $("em").value.trim().toLowerCase());
+    enter();
+  } catch(e){ $("login-err").style.display="block"; }
+}
+function doLogout(){ JWT=null; sessionStorage.clear(); $("app").style.display="none"; $("login-screen").style.display="flex"; }
+async function enter(){
+  $("login-screen").style.display="none"; $("app").style.display="block";
+  const em = sessionStorage.getItem("email")||"";
+  $("u-name").textContent = em.split("@")[0];
+  $("u-avatar").textContent = (em[0]||"?").toUpperCase();
+  try{
+    const meta = await api(`/api/v2/meta/bases/${BASE_ID}/tables`);
+    (meta.list||[]).forEach(t=>{ T[t.title] = t.id; });
+    if (T["Користувачі"]){
+      const u = await api(`/api/v2/tables/${T["Користувачі"]}/records?limit=100`);
+      const me = (u.list||[]).find(x=>String(x["Email"]||"").toLowerCase() === em && x["Активний"] !== false);
+      if (me){ ROLE = me["Роль"] || "Перегляд"; UNAME = me["Ім'я"] || $("u-name").textContent; }
+      else ROLE = "Перегляд";
+    }
+  } catch(e){ ROLE = "Перегляд"; }
+  $("u-role").textContent = ROLE;
+  buildNav(); go(cfg().nav[0]);
+}
+$("login-btn").addEventListener("click", doLogin);
+$("pw").addEventListener("keydown", e=>{ if(e.key==="Enter") doLogin(); });
+$("logout").addEventListener("click", doLogout);
+document.querySelector(".user-chip").style.cursor = "pointer";
+document.querySelector(".user-chip").title = "Налаштування";
+document.querySelector(".user-chip").addEventListener("click", ()=>{ renderPals(); $("set-overlay").classList.add("open"); });
+$("set-close").addEventListener("click", ()=>$("set-overlay").classList.remove("open"));
+$("set-overlay").addEventListener("click", e=>{ if(e.target===$("set-overlay")) $("set-overlay").classList.remove("open"); });
+
+/* ===== навігація ===== */
+const MODMAP = {
+  dashboard:{label:"Дашборд",ico:"📊"}, dispatch:{label:"Диспетчеризація",ico:"🚢"},
+  clients:{label:"Клієнти",ico:"👥"}, finance:{label:"Фінанси",ico:"💰"},
+  tasks:{label:"Задачі",ico:"✅"}, instr:{label:"Інструкції",ico:"📚"}, users:{label:"Користувачі",ico:"🔐"},
+};
+function buildNav(){
+  $("nav").innerHTML = cfg().nav.map(id=>`<button class="nav-item" data-page="${id}"><span class="ico">${MODMAP[id].ico}</span>${MODMAP[id].label}</button>`).join("");
+  $("nav").querySelectorAll(".nav-item").forEach(b=>b.addEventListener("click",()=>go(b.dataset.page)));
+}
+function go(page){
+  if (!cfg().nav.includes(page)) page = cfg().nav[0];
+  $("nav").querySelectorAll(".nav-item").forEach(b=>b.classList.toggle("active", b.dataset.page===page));
+  $("page-title").textContent = MODMAP[page].label;
+  $("content").innerHTML = '<div class="card"><p class="sub">Завантаження…</p></div>';
+  PAGES[page]().catch(e=>{ $("content").innerHTML = '<div class="note">⚠ Не вдалося завантажити дані ('+esc(e.message)+'). Спробуй оновити сторінку.</div>'; });
+}
+
+/* ===== статуси ===== */
+const STATUSES = {
+  "Букінг":"t-neutral","Стафіровка":"t-info","В порту відправлення":"t-info",
+  "Завантажений на судно":"t-info","В морі":"t-info",
+  "Вивантажений в порту прибуття":"t-vio","Завантажений на авто/потяг":"t-good",
+  "Вантаж доставлено":"t-del",
+};
+const stPill = st => st ? `<span class="pill ${STATUSES[st]||"t-neutral"}">${esc(st)}</span>` : '<span class="cell-muted">—</span>';
+let toastTimer=null;
+function toast(m){ const t=$("toast"); t.textContent=m; t.style.display="block"; clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.style.display="none",4000); }
+
+/* ===== сторінки ===== */
+const PAGES = {};
+let DISP_CACHE = null;
+async function dispRows(){ return DISP_CACHE || (DISP_CACHE = await loadAll(T["Диспетчеризація"])); }
+
+PAGES.dashboard = async () => {
+  const rows = scoped(await dispRows());
+  const active = rows.filter(r=>r["Статус"]!=="Вантаж доставлено");
+  const today = new Date(); today.setHours(0,0,0,0);
+  const d = v => { const m=/(\d{4})-(\d{2})-(\d{2})/.exec(String(v||"")); return m? new Date(+m[1],+m[2]-1,+m[3]) : null; };
+  const sea = active.filter(r=>r["Статус"]==="В морі").length;
+  const week = active.filter(r=>{ const e=d(r["ETA"]); return e && (e-today)/86400000>=0 && (e-today)/86400000<=7; }).length;
+  const noBL = active.filter(r=>!String(r["BL"]||"").trim()).length;
+  const fmtRow = r => `<tr><td class="mono"><b>${esc(r["Угода"])}</b></td><td>${esc(r["Клієнт"]||"—")}</td>
+    <td>${esc(r["Судно"]||"—")}</td><td>${stPill(r["Статус"])}</td><td class="mono">${esc(r["ETA"]||"—")}</td></tr>`;
+  const upcoming = active.filter(r=>{ const e=d(r["ETA"]); return e && e>=today; })
+    .sort((a,b)=>String(a["ETA"]).localeCompare(String(b["ETA"]))).slice(0,8);
+  const overdue = active.filter(r=>{ const e=d(r["ETA"]); return e && e<today; })
+    .sort((a,b)=>String(a["ETA"]).localeCompare(String(b["ETA"]))).slice(0,8);
+  const scopeNote = cfg().scope!=="all" ? `<div class="note">👤 Показано лише твої угоди (${esc(UNAME)}).</div>` : "";
+  $("content").innerHTML = `
+    ${scopeNote}
+    <div class="tiles">
+      <div class="tile"><div class="lbl">📦 Активні перевезення</div><div class="val">${active.length}</div><div class="delta">з ${rows.length} угод</div></div>
+      <div class="tile"><div class="lbl">🌊 В морі зараз</div><div class="val">${sea}</div></div>
+      <div class="tile"><div class="lbl">📅 Прибуття за 7 днів</div><div class="val">${week}</div></div>
+      <div class="tile warn"><div class="lbl">🚫 Без BL (не трекаються)</div><div class="val">${noBL}</div><div class="delta">впиши BL — трекінг увімкнеться</div></div>
+    </div>
+    <div class="card"><h3>📅 Найближчі прибуття</h3><p class="sub">активні угоди за датою ETA, від найближчої</p>
+      <div class="tablewrap"><table>
+        <thead><tr><th>Угода</th><th>Клієнт</th><th>Судно</th><th>Статус</th><th>ETA</th></tr></thead>
+        <tbody>${upcoming.map(fmtRow).join("") || '<tr><td colspan="5" class="cell-muted">Немає активних угод з майбутнім ETA.</td></tr>'}</tbody>
+      </table></div></div>
+    <div class="card"><h3>⚠️ ETA минуло — перевірити</h3><p class="sub">дата прибуття вже позаду, а угода не закрита: оновити статус або дати</p>
+      <div class="tablewrap"><table>
+        <thead><tr><th>Угода</th><th>Клієнт</th><th>Судно</th><th>Статус</th><th>ETA</th></tr></thead>
+        <tbody>${overdue.map(fmtRow).join("") || '<tr><td colspan="5" class="cell-muted">Таких немає — все під контролем ✅</td></tr>'}</tbody>
+      </table></div></div>`;
+};
+
+const FLAGS = ["Телекс","Т1","ДО","Документи","SI","Замитнення","Реліз"];
+PAGES.dispatch = async () => {
+  DISP_CACHE = null;
+  const all = scoped(await dispRows());
+  all.sort((a,b)=> (parseInt(b["Угода"])||0) - (parseInt(a["Угода"])||0));
+  const logist = cfg().cols === "logist";
+  const syncBtn = cfg().sync ? '<button class="btn" id="sync-btn">⟳ Оновити з Експедитора</button>' : "";
+  const head = logist
+    ? "<th>Угода</th><th>Клієнт</th><th>Контейнер</th><th>Статус</th><th>Номер авто</th><th>Водій</th><th>Телефон</th><th>Перетин кордону</th><th></th>"
+    : "<th>Угода</th><th></th><th>Клієнт</th><th>Лінія</th><th>BL / Контейнер</th><th>Судно</th><th>ETA</th><th>Статус</th><th>Позначки</th><th>Коментар</th><th></th>";
+  $("content").innerHTML = `
+    <div class="card">
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+        <h3 style="margin:0">🚢 Диспетчеризація</h3>
+        <span class="sub" style="margin:0">угод: ${all.length}${cfg().scope!=="all"?" (лише твої)":""} · клік по рядку — картка</span>
+        <span style="flex:1"></span>${syncBtn}
+      </div>
+      <div class="filters" style="margin-top:12px">
+        <input id="q" placeholder="Пошук: угода, клієнт, BL, контейнер, судно…">
+        <select id="dirf"><option value="">Імпорт + експорт</option><option>Імпорт</option><option>Експорт</option><option>Транзит</option></select>
+        <select id="stf"><option value="">Усі статуси</option>${Object.keys(STATUSES).map(s=>`<option>${s}</option>`).join("")}</select>
+        <select id="linef"><option value="">Усі лінії</option><option>Maersk</option><option>MSC</option><option>CMA CGM</option><option>Інша</option></select>
+        <select id="clif"><option value="">Усі клієнти</option>${[...new Set(all.map(r=>String(r["Клієнт"]||"").trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"uk")).map(c=>`<option>${esc(c)}</option>`).join("")}</select>
+      </div>
+      <div class="tablewrap"><table>
+        <thead><tr>${head}</tr></thead>
+        <tbody id="drows"></tbody></table></div>
+    </div>`;
+  const draw = () => {
+    const q=$("q").value.toLowerCase(), st=$("stf").value;
+    const dir=$("dirf").value, line=$("linef").value, cli=$("clif").value;
+    const list = all.filter(r =>
+      (!st || r["Статус"]===st) &&
+      (!dir || r["Напрямок"]===dir) && (!line || r["Лінія"]===line) && (!cli || String(r["Клієнт"]||"").trim()===cli) &&
+      (!q || [r["Угода"],r["Клієнт"],r["BL"],r["Контейнер"],r["Судно"],r["Номер авто"],r["Водій (ПІБ)"]].join(" ").toLowerCase().includes(q)));
+    $("drows").innerHTML = list.length ? list.map(r=> logist ? `
+      <tr data-id="${r.Id}" style="cursor:pointer">
+        <td class="mono"><b>${esc(r["Угода"])}</b></td><td>${esc(r["Клієнт"]||"—")}</td>
+        <td class="mono">${esc(r["Контейнер"]||"—")}</td><td>${stPill(r["Статус"])}</td>
+        <td class="mono">${esc(r["Номер авто"]||"—")}</td><td>${esc(r["Водій (ПІБ)"]||"—")}</td>
+        <td class="mono">${esc(r["Водій (телефон)"]||"—")}</td><td class="mono">${esc(r["Перетин кордону (факт)"]||"—")}</td>
+        <td>${docBtn(r)}</td>
+      </tr>` : `
+      <tr data-id="${r.Id}" style="cursor:pointer">
+        <td class="mono"><b>${esc(r["Угода"])}</b></td>
+        <td>${r["Напрямок"]?`<span class="dirchip ${r["Напрямок"]==="Імпорт"?"imp":"exp"}">${r["Напрямок"]==="Імпорт"?"ІМП":(r["Напрямок"]==="Експорт"?"ЕКС":"ТРН")}</span>`:""}</td>
+        <td>${esc(r["Клієнт"]||"—")}</td>
+        <td>${esc(r["Лінія"]||"—")}</td>
+        <td class="mono">${esc(r["BL"]||"—")}<br><span class="cell-muted">${esc(r["Контейнер"]||"")}</span></td>
+        <td>${esc(r["Судно"]||"—")}</td>
+        <td class="mono">${esc(r["ETA"]||"—")}</td>
+        <td>${stPill(r["Статус"])}</td>
+        <td>${FLAGS.filter(f=>r[f]).map(f=>`<span class="flag on">${f} ✓</span>`).join("")||'<span class="cell-muted">—</span>'}</td>
+        <td class="cell-muted" style="max-width:220px">${esc(r["Коментар"]||"")}</td>
+        <td>${docBtn(r)}</td>
+      </tr>`).join("") : `<tr><td colspan="10" class="cell-muted">Нічого не знайдено.</td></tr>`;
+    $("drows").querySelectorAll("tr[data-id]").forEach(tr=>tr.addEventListener("click",()=>openRow(all.find(x=>String(x.Id)===tr.dataset.id))));
+    $("drows").querySelectorAll(".docs-btn").forEach(b=>b.addEventListener("click",(e)=>{ e.stopPropagation(); openDocs(all.find(x=>String(x.Id)===b.dataset.doc)); }));
+  };
+  ["q","dirf","stf","linef","clif"].forEach(id=>$(id).addEventListener(id==="q"?"input":"change",draw));
+  draw();
+  const sb = $("sync-btn");
+  if (sb) sb.addEventListener("click", async ()=>{
+    sb.disabled=true; sb.textContent="⏳ Оновлюю…";
+    try{
+      const r = await fetch("/sync"); const js = await r.json();
+      const m = /new=(\d+)/.exec(js.result||"");
+      toast(m && m[1]!=="0" ? `✅ Додано нових угод: ${m[1]}` : "✅ Синхронізовано, нових угод немає");
+      DISP_CACHE=null; go("dispatch");
+    } catch(e){ toast("⚠ Не вдалося оновити — спробуй ще раз"); }
+    finally{ sb.disabled=false; sb.textContent="⟳ Оновити з Експедитора"; }
+  });
+};
+
+function attList(r){
+  let f = r["Файли"];
+  if (typeof f === "string"){ try{ f = JSON.parse(f); }catch(e){ f = []; } }
+  return Array.isArray(f) ? f : [];
+}
+function docBtn(r){
+  const n = attList(r).length;
+  return `<button class="btn ghost docs-btn" data-doc="${r.Id}" style="padding:3px 10px" title="Документи">📄${n||""}</button>`;
+}
+function fileUrl(a){
+  let u = a.signedUrl || a.url || "";
+  if (u && u.startsWith("http")){ try{ const p = new URL(u); u = p.pathname + p.search; }catch(e){} }
+  if (!u){ u = "/" + String(a.signedPath || a.path || "").replace(/^\/+/, ""); }
+  return u;
+}
+let DOC_ROW = null;
+function renderDocList(){
+  const files = attList(DOC_ROW);
+  $("doc-list").innerHTML = files.length ? files.map(a=>{
+    const kb = a.size ? Math.round(a.size/1024) + " КБ" : "";
+    return `<div class="acct-chip" style="flex:none;display:flex;align-items:center;gap:10px;cursor:default">
+      <span style="flex:1"><b>${esc(a.title||"файл")}</b> <span class="cell-muted">${kb}</span></span>
+      <a class="btn ghost" style="padding:4px 12px;text-decoration:none" target="_blank" href="${esc(fileUrl(a))}">Відкрити</a></div>`;
+  }).join("") : '<p class="sub">Поки нічого не прикріплено.</p>';
+}
+function openDocs(r){
+  DOC_ROW = r;
+  $("doc-title").textContent = `📄 Документи угоди №${r["Угода"]} · ${r["Клієнт"]||""}`;
+  $("doc-upload-wrap").style.display = (ROLE === "Перегляд") ? "none" : "block";
+  $("gen-wrap").style.display = GEN_DENY.has(ROLE) ? "none" : "block";
+  $("gen-type").value = ""; $("gen-form").style.display = "none"; $("gen-form").innerHTML = "";
+  $("gen-btn").style.display = "none"; $("gen-status").textContent = "";
+  $("doc-status").textContent = "";
+  renderDocList();
+  $("doc-overlay").classList.add("open");
+}
+$("doc-close").addEventListener("click", ()=>$("doc-overlay").classList.remove("open"));
+$("doc-overlay").addEventListener("click", e=>{ if(e.target===$("doc-overlay")) $("doc-overlay").classList.remove("open"); });
+$("doc-upload-btn").addEventListener("click", ()=>$("doc-file").click());
+$("doc-file").addEventListener("change", async ()=>{
+  const files = [...$("doc-file").files];
+  if (!files.length || !DOC_ROW) return;
+  $("doc-status").textContent = "⏳ Завантажую " + files.length + " файл(и)…";
+  try{
+    let added = [];
+    for (const f of files){
+      const fd = new FormData(); fd.append("file", f);
+      const r = await fetch("/api/v2/storage/upload", {method:"POST", headers:{"xc-auth": JWT||""}, body: fd});
+      const js = await r.json();
+      if (!r.ok) throw new Error((js && js.msg) || "upload");
+      added = added.concat(Array.isArray(js) ? js : [js]);
+    }
+    const merged = attList(DOC_ROW).concat(added);
+    await api(`/api/v2/tables/${T["Диспетчеризація"]}/records`, {method:"PATCH",
+      body: JSON.stringify([{Id: DOC_ROW.Id, "Файли": merged}])});
+    DOC_ROW["Файли"] = merged;
+    renderDocList();
+    $("doc-status").textContent = "";
+    toast("✅ Прикріплено: " + files.length);
+  } catch(e){
+    $("doc-status").textContent = "⚠ Не вдалося завантажити (" + e.message + ")";
+  }
+  $("doc-file").value = "";
+});
+
+/* ===== формування документів за бланками ===== */
+const GEN_DENY = new Set(["Перегляд","Логіст"]);
+let CLIENTS_CACHE = null;
+async function clientRec(name){
+  if (!name) return {};
+  if (!CLIENTS_CACHE){
+    try{ const js = await api(`/api/v2/tables/${T["Клієнти"]}/records?limit=200`); CLIENTS_CACHE = js.list || []; }
+    catch(e){ CLIENTS_CACHE = []; }
+  }
+  const n = String(name).trim();
+  return CLIENTS_CACHE.find(c=>Object.values(c).some(v=>typeof v==="string" && v.trim()===n)) || {};
+}
+const todayISO = ()=> new Date().toISOString().slice(0,10);
+const dDot = ()=>{ const d=new Date(); return `${String(d.getDate()).padStart(2,"0")}.${String(d.getMonth()+1).padStart(2,"0")}.${d.getFullYear()}`; };
+const cntEq = r => { const q=(r["Кількість"]||"1"), t=(r["Тип обладнання"]||""); return t? q+"х"+t : ""; };
+const joinNZ = (...a)=> a.filter(x=>x&&String(x).trim()).join(", ");
+const GEN_FORMS = {
+ zayavka: [
+  {k:"num",label:"№ заявки"}, {k:"date",label:"Дата",d:1,v:()=>todayISO()},
+  {k:"contract",label:"Договір (№ і дата)",v:(r,c)=>c["Договір"]},
+  {k:"client_full",label:"Клієнт (повна назва)",v:(r,c)=>c["Повна назва"]||r["Клієнт"]},
+  {k:"client_short",label:"Клієнт (коротка назва)",v:r=>r["Клієнт"]},
+  {k:"client_edrpou",label:"ЄДРПОУ клієнта",v:(r,c)=>c["ЄДРПОУ"]},
+  {k:"client_dir_gen",label:"Директор клієнта (род. відмінок)",v:(r,c)=>c["Директор (род. відмінок)"]},
+  {k:"client_dir_short",label:"Директор (ініціали)",v:(r,c)=>c["Директор (ініціали)"]},
+  {k:"services",label:"Узгоджений об'єм послуг",ta:1},
+  {k:"route",label:"Маршрут",v:r=>r["Маршрут"]},
+  {k:"container",label:"Тип та кількість контейнерів",v:cntEq},
+  {k:"con_bl",label:"Номер контейнера / BL",v:r=>joinNZ(r["Контейнер"],r["BL"]).replace(", "," / ")},
+  {k:"uktzed",label:"Код УКТЗЕД"},
+  {k:"shipper",label:"Відправник (назва, адреса)",ta:1},
+  {k:"consignee",label:"Одержувач (назва, адреса)",ta:1,v:(r,c)=>joinNZ(c["Повна назва"]||r["Клієнт"],c["Адреса"])},
+  {k:"incoterms",label:"Умови поставки (Інкотермс)"},
+  {k:"eta",label:"Дата судозаходу"},
+  {k:"pol",label:"Порт завантаження"},
+  {k:"pod",label:"Порт розвантаження"},
+  {k:"customs_addr",label:"Адреса митного оформлення",v:r=>r["Адреса розмитнення"]},
+  {k:"unload_addr",label:"Адреса розвантаження"},
+  {k:"price",label:"Вартість послуг",ta:1},
+  {k:"other",label:"Інші умови"},
+ ],
+ zayavka_cma: [
+  {k:"req_no",label:"№ заявки"}, {k:"date",label:"Дата (дд.мм.рррр)",v:()=>dDot()},
+  {k:"booking",label:"Букінг",v:r=>r["BL"]},
+  {k:"route",label:"Маршрут",v:r=>r["Маршрут"]},
+  {k:"container",label:"Контейнер (1х40НС)",v:cntEq},
+  {k:"weight",label:"Вага"},
+  {k:"shipper_name",label:"Відправник (назва)",v:r=>r["Клієнт"]},
+  {k:"shipper_edrpou",label:"ЄДРПОУ відправника",v:(r,c)=>c["ЄДРПОУ"]},
+  {k:"shipper_addr",label:"Адреса відправника",v:(r,c)=>c["Адреса"]},
+  {k:"consignee_name",label:"Отримувач (назва)"},
+  {k:"consignee_addr",label:"Адреса отримувача"},
+  {k:"loading_addr",label:"Адреса завантаження",ta:1,v:(r,c)=>c["Адреса завантаження"]},
+  {k:"loading_contact",label:"Контакт на завантаженні",v:(r,c)=>c["Контакт завантаження"]},
+  {k:"loading_dt",label:"Дата і час завантаження"},
+  {k:"customs_addr",label:"Адреса замитнення",v:r=>r["Адреса розмитнення"]},
+  {k:"customs_note",label:"Примітка по митниці"},
+  {k:"load_method",label:"Спосіб завантаження"},
+  {k:"goods1",label:"Вантаж 1 (код + назва)"},
+  {k:"goods2",label:"Вантаж 2"},
+  {k:"goods3",label:"Вантаж 3"},
+  {k:"packing",label:"Пакування"},
+  {k:"rate",label:"Ставка"},
+ ],
+ loi: [
+  {k:"booking",label:"Букінг",v:r=>r["BL"]},
+  {k:"voyage",label:"Вояж",v:r=>r["Вояж"]},
+  {k:"place_receipt",label:"Place of Receipt"},
+  {k:"place_delivery",label:"Place of Delivery"},
+  {k:"container",label:"Контейнер (1x40HC)",v:cntEq},
+  {k:"goods",label:"Вантаж (англ.)"},
+  {k:"shipper",label:"Shipper (назва, код, адреса)",ta:1},
+  {k:"consignee",label:"Consignee (назва, адреса)",ta:1},
+  {k:"date",label:"Дата (дд.мм.рр)",v:()=>dDot()},
+ ],
+ kkk: [
+  {k:"num",label:"№ заявки"}, {k:"date",label:"Дата",d:1,v:()=>todayISO()},
+  {k:"order_no",label:"Номер замовлення",v:()=>"б/н"},
+  {k:"pickup",label:"Пункт відправлення"},
+  {k:"ready_date",label:"Готовність вантажу"},
+  {k:"destination",label:"Пункт прибуття"},
+  {k:"transport_route",label:"Тип транспорту та маршрут",ta:1,v:r=>r["Маршрут"]},
+  {k:"customs_from",label:"Митниця в країні відправлення"},
+  {k:"border",label:"Пункт перетину кордону"},
+  {k:"customs_to",label:"Митниця в країні прибуття"},
+  {k:"final_addr",label:"Кінцевий пункт доставки"},
+  {k:"truck_type",label:"Тип авто"},
+  {k:"weight_cargo",label:"Вага (брутто) + тип вантажу",ta:1},
+  {k:"price_text",label:"Загальна вартість (текст)",ta:1},
+ ],
+ t1: [
+  {k:"truck",label:"Держ. номер тягача",v:r=>r["Номер авто"]},
+  {k:"trailer",label:"Держ. номер причепа"},
+  {k:"border",label:"Прикордонний перехід"},
+  {k:"eta",label:"Дата і час прибуття на кордон"},
+  {k:"driver_phone",label:"Телефон водія",v:r=>r["Водій (телефон)"]},
+  {k:"broker",label:"Брокер (розмитнення) + контакти"},
+  {k:"submitter",label:"Відповідальний за подачу + контакти"},
+  {k:"invoice_value",label:"Вартість вантажу за інвойсом, EUR"},
+  {k:"codes_count",label:"Кількість кодів УКТЗЕД"},
+  {k:"open_place",label:"Місце відкриття Т1"},
+  {k:"cargo_nature",label:"Характер вантажу"},
+  {k:"route",label:"Маршрут (звідки – куди)",v:r=>r["Маршрут"]},
+  {k:"date",label:"Дата заявки",d:1,v:()=>todayISO()},
+ ],
+ maersk_poa: [
+  {k:"bl",label:"Bill of Lading",v:r=>r["BL"]},
+  {k:"container",label:"Контейнер(и)",v:r=>r["Контейнер"]},
+  {k:"agent",label:"Компанія (release + оплата THC)",ta:1,v:()=>"LLC UNITEX HD (65076, ODESSA REGION, ODESSA, UKRAINE, OFFICE 56 RADISNA STR. 3)"},
+  {k:"date",label:"Дата",d:1,v:()=>todayISO()},
+ ],
+ maersk_loi: [
+  {k:"booking",label:"Букінг Maersk",v:r=>r["BL"]},
+  {k:"vessel_voyage",label:"Судно / Вояж",v:r=>joinNZ(r["Судно"],r["Вояж"]).replace(", "," / ")},
+  {k:"goods",label:"Вантаж (англ.)"},
+  {k:"containers",label:"Контейнер(и)",v:r=>r["Контейнер"]},
+  {k:"date",label:"Дата",d:1,v:()=>todayISO()},
+ ],
+ insurance: [
+  {k:"cargo",label:"Вантаж (англ. / укр.)"},
+  {k:"container",label:"Контейнер(и)",v:r=>r["Контейнер"]},
+  {k:"invoice_no",label:"№ інвойсу"},
+  {k:"invoice_date",label:"Дата інвойсу (дд.мм.рррр)"},
+  {k:"bl",label:"Коносамент / B/L",v:r=>r["BL"]},
+  {k:"port",label:"Порт завантаження (напр. Нагоя, Японія)"},
+  {k:"date",label:"Дата листа",d:1,v:()=>todayISO()},
+ ],
+};
+const GEN_INP_S = 'style="padding:7px 9px;border:1px solid var(--line);border-radius:7px;background:var(--paper);color:var(--ink);font-size:13px;width:100%;box-sizing:border-box;font-family:inherit"';
+async function renderGenForm(){
+  const typ = $("gen-type").value, wrap = $("gen-form"), btn = $("gen-btn");
+  if (!typ || !DOC_ROW){ wrap.style.display="none"; btn.style.display="none"; return; }
+  const c = await clientRec(DOC_ROW["Клієнт"]);
+  wrap.innerHTML = GEN_FORMS[typ].map(f=>{
+    let v = ""; try{ v = f.v ? (f.v(DOC_ROW, c) || "") : ""; }catch(e){}
+    const inp = f.ta
+      ? `<textarea data-k="${f.k}" rows="2" class="gen-inp" ${GEN_INP_S}>${esc(v)}</textarea>`
+      : `<input data-k="${f.k}" class="gen-inp" type="${f.d?"date":"text"}" value="${esc(v)}" ${GEN_INP_S}>`;
+    return `<label style="${f.ta?"grid-column:1/-1;":""}font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:3px">${esc(f.label)}${inp}</label>`;
+  }).join("");
+  wrap.style.display = "grid"; btn.style.display = "block"; $("gen-status").textContent = "";
+}
+$("gen-type").addEventListener("change", renderGenForm);
+$("gen-btn").addEventListener("click", async ()=>{
+  const typ = $("gen-type").value;
+  if (!typ || !DOC_ROW) return;
+  const fields = {};
+  $("gen-form").querySelectorAll(".gen-inp").forEach(i=>{ fields[i.dataset.k] = i.value; });
+  $("gen-status").textContent = "⏳ Формую документ…"; $("gen-btn").disabled = true;
+  try{
+    const r = await fetch("/gen-doc", {method:"POST",
+      headers:{"Content-Type":"application/json","xc-auth": JWT||""},
+      body: JSON.stringify({type: typ, dealId: DOC_ROW.Id, fields})});
+    const js = await r.json().catch(()=>({}));
+    if (!r.ok) throw new Error(js.error || ("HTTP " + r.status));
+    DOC_ROW["Файли"] = js.files;
+    renderDocList();
+    $("gen-status").textContent = "";
+    toast("✅ Сформовано та прикріплено: " + js.title);
+  } catch(e){
+    $("gen-status").textContent = "⚠ Не вдалося сформувати (" + e.message + ")";
+  }
+  $("gen-btn").disabled = false;
+});
+
+const CARD_GROUPS = [
+  ["Основне", ["Угода","Напрямок","Клієнт","Лінія","Тип","Перевізник","Агент","Маршрут","BL","Контейнер","Тип обладнання","Кількість","Вивіз (Carrier/Merchant)","Сухий порт","Адреса розмитнення"]],
+  ["Море", ["Судно","Вояж","Контейнер (лінія)","Звірка","Статус","ETA","ETD (план)","ETD (факт)","ETA порт (план)","ETA порт (факт)","Зміни ETA (історія)","Остання зміна","Останнє оновлення"]],
+  ["Дати на землі", ["Подача авто (план)","Подача авто (факт)","Port Cut Off","Гейт ін","Вивантаження в порту (факт)","Постановка/завантаження (план)","Постановка/завантаження (факт)","Перетин кордону (факт)","Планова до клієнта (план)","Планова до клієнта (факт)","Вивантаження у отримувача (факт)"]],
+  ["Авто і документи", ["Номер авто","Номер ЦМР","Водій (ПІБ)","Водій (телефон)","Телекс","Т1","ДО","Документи","SI","Замитнення","Реліз"]],
+  ["Команда і коментарі", ["Менеджер","Оп. менеджер","Лист (джерело)","Нагадування","Коментар","Коментар клієнту"]],
+];
+const LOGIST_GROUPS = [
+  ["Основне", ["Угода","Клієнт","Контейнер","Статус","Маршрут","Сухий порт"]],
+  ["Авто", ["Номер авто","Номер ЦМР","Водій (ПІБ)","Водій (телефон)","Перетин кордону (факт)","Постановка/завантаження (план)","Постановка/завантаження (факт)"]],
+];
+function openRow(r){
+  const groups = cfg().cols === "logist" ? LOGIST_GROUPS : CARD_GROUPS;
+  $("row-title").textContent = `Угода №${r["Угода"]} · ${r["Клієнт"]||""}`;
+  $("row-body").innerHTML = groups.map(([g,fields])=>{
+    const items = fields.map(f=>{
+      let v = r[f];
+      if (typeof v === "boolean" || FLAGS.includes(f)) v = r[f] ? "✓ так" : "—";
+      if (v===null || v===undefined || v==="") v = "—";
+      return `<tr><td class="cell-muted" style="width:45%">${esc(f)}</td><td>${f==="Статус"?stPill(r["Статус"]):esc(v)}</td></tr>`;
+    }).join("");
+    return `<h3 style="margin-top:14px">${g}</h3><div class="tablewrap"><table><tbody>${items}</tbody></table></div>`;
+  }).join("");
+  $("row-overlay").classList.add("open");
+}
+$("row-close").addEventListener("click",()=>$("row-overlay").classList.remove("open"));
+$("row-overlay").addEventListener("click",e=>{ if(e.target===$("row-overlay")) $("row-overlay").classList.remove("open"); });
+
+PAGES.clients = async () => {
+  const disp = scoped(await dispRows());
+  const cnt = {};
+  disp.forEach(r=>{ const k=(r["Клієнт"]||"").trim(); if(!k) return; cnt[k]=cnt[k]||{all:0,act:0}; cnt[k].all++; if(r["Статус"]!=="Вантаж доставлено") cnt[k].act++; });
+  const names = Object.keys(cnt).sort((a,b)=>cnt[b].act-cnt[a].act || cnt[b].all-cnt[a].all);
+  $("content").innerHTML = `
+    <div class="card"><h3>👥 Клієнти${cfg().scope!=="all"?" (твої)":""}</h3><p class="sub">з угод диспетчеризації</p>
+      <div class="tablewrap"><table>
+        <thead><tr><th>Клієнт</th><th class="num">Угод всього</th><th class="num">Активних</th></tr></thead>
+        <tbody>${names.map(n=>`<tr><td><b>${esc(n)}</b></td><td class="num">${cnt[n].all}</td><td class="num">${cnt[n].act}</td></tr>`).join("")}</tbody>
+      </table></div></div>`;
+};
+
+PAGES.finance = async () => {
+  const mode = cfg().fin;
+  if (mode === "personal"){
+    $("content").innerHTML = `<div class="card"><h3>💰 Мій фінзвіт (сейлз-менеджер)</h3>
+      <p class="sub">дебіторка/кредиторка по твоїх угодах, прибуток за період</p>
+      <div class="note">🛠 Персональний фінзвіт — у розробці: дані вже збираються, готуємо зріз по менеджеру.</div></div>`;
+    return;
+  }
+  if (mode === "blur" || mode === "none"){
+    $("content").innerHTML = `<div class="card"><h3>💰 Фінанси</h3>
+      <div class="note">🔒 Фінансові показники доступні лише фінансовим ролям (Адміністратор, Фінансист, Бухгалтер).</div></div>`;
+    return;
+  }
+  $("content").innerHTML = `
+    <div class="card"><h3>💰 Фінансова звітність</h3>
+      <p class="sub">джерело — Експедитор напряму · таблиця Google лишається окремим інструментом</p>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:6px">
+        <button class="btn" id="rep-oper">⚡ Оперативний фінансовий звіт</button>
+        <button class="btn" id="rep-period">📆 Фінансовий звіт за період</button>
+      </div>
+      <p class="sub" id="fin-status" style="margin-top:10px"></p>
+    </div>
+    <div id="rep-body"></div>`;
+  $("rep-oper").addEventListener("click", ()=>renderOper());
+  $("rep-period").addEventListener("click", ()=>renderPeriod());
+  renderOper();
+};
+
+const fmtN = (v, dec=0) => {
+  const n = Number(v)||0;
+  const s = n.toLocaleString("uk-UA", {minimumFractionDigits:dec, maximumFractionDigits:dec});
+  return n < 0 ? `<span class="neg" style="color:var(--crit-text);font-weight:600">${s}</span>` : s;
+};
+async function fetchFin(name){
+  const r = await fetch("/finrep-data?name="+name, {headers:{"xc-auth": JWT||""}});
+  const js = await r.json();
+  if (r.status === 403) throw new Error("доступ лише фінансовим ролям");
+  if (!r.ok) throw new Error(js.error||"помилка даних");
+  return js;
+}
+function refreshBar(mtime, onFresh){
+  const dt = new Date(mtime*1000);
+  const stamp = dt.toLocaleString("uk-UA",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"});
+  setTimeout(()=>{
+    const b = $("fin-refresh");
+    if (!b) return;
+    b.addEventListener("click", async ()=>{
+      b.disabled = true; b.textContent = "⏳ Тягну з Експедитора (~2 хв)…";
+      try{
+        await fetch("/finrep-run");
+        const t0 = mtime;
+        const poll = setInterval(async ()=>{
+          try{
+            const js = await fetchFin("dashboard");
+            if (js.mtime > t0 + 5){ clearInterval(poll); toast("✅ Дані оновлено з Експедитора"); onFresh(); }
+          }catch(e){}
+        }, 15000);
+        setTimeout(()=>clearInterval(poll), 240000);
+      }catch(e){ b.disabled=false; b.textContent="⟳ Підтягнути свіжі дані з Експедитора"; toast("⚠ Не вдалося запустити"); }
+    });
+  }, 0);
+  return `<div class="note" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+    📊 Дані станом на <b>${stamp}</b>
+    <button class="btn" id="fin-refresh" style="padding:6px 12px;font-size:13px">⟳ Підтягнути свіжі дані з Експедитора</button>
+  </div>`;
+}
+function finTable(headers, rows){
+  return `<div class="tablewrap"><table><thead><tr>${headers.map(h=>`<th>${h}</th>`).join("")}</tr></thead>
+    <tbody>${rows.join("")}</tbody></table></div>`;
+}
+
+async function renderOper(){
+  $("rep-body").innerHTML = '<div class="card"><p class="sub">Завантаження звіту…</p></div>';
+  let js;
+  try{ js = await fetchFin("dashboard"); }
+  catch(e){ $("rep-body").innerHTML = `<div class="note">⚠ ${esc(e.message)}</div>`; return; }
+  const D = js.data;
+  const sig = (D.signals||[]).map(s=>`<div class="note" style="${s[0]==="warn"?"background:var(--warn-bg);color:var(--warn-text)":""}">⚠️ ${esc(s[1])}: <b>${esc(s[2])}</b></div>`).join("");
+  const cashRows = (D.cashReal||[]).map(r=>`<tr><td>${esc(r[0])}</td><td class="num">${esc(r[1])}</td><td>${esc(r[2])}</td></tr>`);
+  const fro = D.frozen||{};
+  const cf = (D.cashflowWeekly||[]).map(r=>`<tr><td>${esc(r[0])}</td><td class="num">${fmtN(r[1])}</td><td class="num">${fmtN(r[2])}</td><td class="num">${fmtN(r[3])}</td><td class="num">${fmtN(r[5])}</td></tr>`);
+  const arA = (D.arAging||[]).map(r=>`<tr><td>${esc(r[0])}</td><td class="num">${fmtN(r[1],2)}</td><td class="num">${r[2]}</td></tr>`);
+  const apA = (D.apAging||[]).map(r=>`<tr><td>${esc(r[0])}</td><td class="num">${fmtN(r[1],2)}</td><td class="num">${r[2]}</td></tr>`);
+  const arD = (D.arDetail||[]).slice(0,10).map(c=>`<tr><td><b>${esc(c.name)}</b></td><td class="num">${fmtN(c.total,2)}</td><td class="num">${c.count}</td><td class="num">${c.maxOverdue||0} дн</td></tr>`);
+  const apD = (D.apDetail||[]).slice(0,10).map(c=>`<tr><td><b>${esc(c.name)}</b></td><td class="num">${fmtN(c.total,2)}</td><td class="num">${c.count}</td><td class="num">${c.maxAge||0} дн</td></tr>`);
+  const cal = (D.calendar||[]).map(r=>`<tr><td>${esc(r[0])}</td><td class="num">${fmtN(r[1],2)}</td><td class="num">${fmtN(r[2],2)}</td><td class="num">${fmtN(r[3],2)}</td><td>${esc(r[4]||"")}</td></tr>`);
+  const wip = (D.wipTop||[]).slice(0,10).map(r=>`<tr><td class="mono">${esc(r[0])}</td><td>${esc(r[1])}</td><td class="num">${fmtN(r[3],2)}</td></tr>`);
+  const eq = (D.equity||[]).map(r=>`<tr><td>${esc(r[0])}</td><td class="num">${fmtN(r[1],2)}</td><td class="num">${fmtN(r[2],2)}</td><td class="num">${fmtN(r[3],2)}</td></tr>`);
+  $("rep-body").innerHTML = `
+    ${refreshBar(js.mtime, renderOper)}
+    ${sig}
+    <div class="tiles">
+      <div class="tile"><div class="lbl">💳 Дебіторка (нам винні)</div><div class="val">${fmtN((D.frozen||{}).ar,0)}</div><div class="delta">DSO ${D.dso||"—"} дн</div></div>
+      <div class="tile"><div class="lbl">📤 Кредиторка (ми винні)</div><div class="val">${fmtN(fro.ap,0)}</div></div>
+      <div class="tile"><div class="lbl">🧊 В угодах (WIP)</div><div class="val">${fmtN(fro.wip,0)}</div></div>
+      <div class="tile warn"><div class="lbl">🧮 Заморожено разом (нетто)</div><div class="val">${fmtN(fro.net,0)}</div></div>
+    </div>
+    <div class="card"><h3>💵 Ліквідність по касах</h3><p class="sub">фактичні залишки</p>${finTable(["Каса","Залишок","Валюта"], cashRows)}</div>
+    <div class="card"><h3>📆 Платіжний календар (У.О.)</h3>${finTable(["Період","Прогноз надходжень","Планові оплати","Прогн. залишок","Розрив"], cal)}</div>
+    <div class="card"><h3>🌊 Кешфлоу по тижнях (У.О.)</h3>${finTable(["Тиждень","Надходження","Виплати","Чистий потік","Залишок"], cf)}</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+      <div class="card"><h3>💳 Дебіторка за віком</h3>${finTable(["Кошик","Сума У.О.","Рахунків"], arA)}
+        <h3 style="margin-top:14px">Топ боржників</h3>${finTable(["Клієнт","Борг У.О.","Рах.","Макс. протерм."], arD)}</div>
+      <div class="card"><h3>📤 Кредиторка за віком</h3>${finTable(["Кошик","Сума У.О.","Рахунків"], apA)}
+        <h3 style="margin-top:14px">Топ постачальників</h3>${finTable(["Постачальник","Борг У.О.","Рах.","Макс. вік"], apD)}</div>
+    </div>
+    <div class="card"><h3>🧊 Топ угод із замороженими коштами (WIP)</h3>${finTable(["Угода","Клієнт","Сума У.О."], wip)}</div>
+    <div class="card"><h3>🏦 Капітал власників (У.О.)</h3>${finTable(["Учасник","Внесено","Вилучено","Разом"], eq)}</div>
+    <div class="note">💡 Той самий розрахунок, що й у таблиці звіту — Google-таблиця лишається паралельним інструментом.</div>`;
+  window.scrollTo(0,0);
+}
+
+async function renderPeriod(){
+  $("rep-body").innerHTML = '<div class="card"><p class="sub">Завантаження даних періоду…</p></div>';
+  let js;
+  try{ js = await fetchFin("period"); }
+  catch(e){ $("rep-body").innerHTML = `<div class="note">⚠ ${esc(e.message)}</div>`; return; }
+  const D = js.data;
+  const months = [...new Set((D.deals||[]).map(d=>d.month).filter(Boolean))].sort();
+  const selOpts = months.map(m=>`<option>${m}</option>`).join("");
+  $("rep-body").innerHTML = `
+    ${refreshBar(js.mtime, renderPeriod)}
+    <div class="card"><h3>📆 Фінансовий звіт за період</h3>
+      <div class="filters" style="margin-top:8px">
+        <label style="font-size:13px;color:var(--ink-2)">З місяця <select id="pfrom">${selOpts}</select></label>
+        <label style="font-size:13px;color:var(--ink-2)">По місяць <select id="pto">${selOpts}</select></label>
+      </div>
+      <div id="p-out"></div>
+    </div>`;
+  $("pfrom").value = months[Math.max(0, months.length-3)] || months[0];
+  $("pto").value = months[months.length-1];
+  const draw = () => {
+    const a = $("pfrom").value, b = $("pto").value;
+    const deals = (D.deals||[]).filter(d=>d.month >= a && d.month <= b);
+    const rev = deals.reduce((s,d)=>s+(+d.revenue||0),0);
+    const cost = deals.reduce((s,d)=>s+(+d.cost||0),0);
+    const prof = deals.reduce((s,d)=>s+(+d.profit||0),0);
+    let opex = 0; const opexCat = {};
+    Object.entries(D.opexByMonth||{}).forEach(([m,v])=>{ if(m>=a&&m<=b) opex += (+v||0); });
+    Object.entries(D.opexByMonthCat||{}).forEach(([m,cats])=>{ if(m>=a&&m<=b) Object.entries(cats).forEach(([c,v])=>{ opexCat[c]=(opexCat[c]||0)+(+v||0); }); });
+    const byMgr = {};
+    deals.forEach(d=>{ const k=d.manager||"—"; byMgr[k]=byMgr[k]||{r:0,p:0,n:0}; byMgr[k].r+=+d.revenue||0; byMgr[k].p+=+d.profit||0; byMgr[k].n++; });
+    const byCli = {};
+    deals.forEach(d=>{ const k=d.client||"—"; byCli[k]=byCli[k]||{r:0,p:0,n:0}; byCli[k].r+=+d.revenue||0; byCli[k].p+=+d.profit||0; byCli[k].n++; });
+    const topCli = Object.entries(byCli).sort((x,y)=>y[1].r-x[1].r).slice(0,12);
+    $("p-out").innerHTML = `
+      <div class="tiles" style="margin-top:12px">
+        <div class="tile"><div class="lbl">Дохід</div><div class="val">${fmtN(rev)}</div><div class="delta">У.О. · угод: ${deals.length}</div></div>
+        <div class="tile"><div class="lbl">Собівартість угод</div><div class="val">${fmtN(cost)}</div></div>
+        <div class="tile"><div class="lbl">Прибуток по угодах</div><div class="val" style="color:var(--good-text)">${fmtN(prof)}</div><div class="delta">маржа ${rev? Math.round(prof/rev*100):0}%</div></div>
+        <div class="tile"><div class="lbl">Опер. витрати (OPEX)</div><div class="val">${fmtN(opex)}</div><div class="delta">чистий: ${fmtN(prof-opex)}</div></div>
+      </div>
+      <h3 style="margin-top:16px">По менеджерах</h3>
+      ${finTable(["Менеджер","Угод","Дохід","Прибуток"], Object.entries(byMgr).sort((x,y)=>y[1].p-x[1].p).map(([m,v])=>`<tr><td><b>${esc(m)}</b></td><td class="num">${v.n}</td><td class="num">${fmtN(v.r)}</td><td class="num">${fmtN(v.p)}</td></tr>`))}
+      <h3 style="margin-top:16px">Топ клієнтів за доходом</h3>
+      ${finTable(["Клієнт","Угод","Дохід","Прибуток"], topCli.map(([c,v])=>`<tr><td><b>${esc(c)}</b></td><td class="num">${v.n}</td><td class="num">${fmtN(v.r)}</td><td class="num">${fmtN(v.p)}</td></tr>`))}
+      <h3 style="margin-top:16px">Операційні витрати по категоріях</h3>
+      ${finTable(["Категорія","Сума У.О."], Object.entries(opexCat).sort((x,y)=>y[1]-x[1]).map(([c,v])=>`<tr><td>${esc(c)}</td><td class="num">${fmtN(v,2)}</td></tr>`))}
+      <h3 style="margin-top:16px">Угоди періоду</h3>
+      ${finTable(["Угода","Місяць","Менеджер","Клієнт","Напрямок","Дохід","Витрати","Прибуток"],
+        deals.sort((x,y)=>String(y.month).localeCompare(String(x.month)) || (+y.num)-(+x.num)).map(d=>`<tr>
+          <td class="mono"><b>${esc(d.num)}</b></td><td class="mono">${esc(d.month)}</td><td>${esc(d.manager||"—")}</td>
+          <td>${esc(d.client||"—")}</td><td>${esc(d.kind||"—")}</td>
+          <td class="num">${fmtN(d.revenue,2)}</td><td class="num">${fmtN(d.cost,2)}</td><td class="num">${fmtN(d.profit,2)}</td></tr>`))}`;
+  };
+  $("pfrom").addEventListener("change", draw);
+  $("pto").addEventListener("change", draw);
+  draw();
+  window.scrollTo(0,0);
+}
+
+
+PAGES.tasks = async () => {
+  const rows = await loadAll(T["Задачі"]);
+  $("content").innerHTML = `
+    <div class="card"><h3>✅ Задачі</h3><p class="sub">ведуться в базі · створення звідси — наступна ітерація</p>
+      <div class="tablewrap"><table>
+        <thead><tr><th>Задача</th><th>Кому</th><th>Термін</th><th>Статус</th><th>Угода</th></tr></thead>
+        <tbody>${rows.length ? rows.map(t=>`<tr><td>${esc(t["Задача"]||"")}</td><td>${esc(t["Кому"]||"—")}</td>
+          <td class="mono">${esc(t["Термін"]||"—")}</td><td>${esc(t["Статус"]||"—")}</td><td class="mono">${esc(t["Угода"]||"—")}</td></tr>`).join("")
+          : '<tr><td colspan="5" class="cell-muted">Задач поки немає.</td></tr>'}</tbody>
+      </table></div></div>`;
+};
+
+let INSTR_CACHE = null;
+PAGES.instr = async () => {
+  const arts = INSTR_CACHE || (INSTR_CACHE = await loadAll(T["Інструкції"]));
+  const cats = {};
+  arts.forEach(a=>{ const c=a["Категорія"]||"Інше"; (cats[c]=cats[c]||[]).push(a); });
+  $("content").innerHTML = Object.keys(cats).map(c=>`
+    <div class="card"><h3>📚 ${esc(c)}</h3>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-top:8px">
+        ${cats[c].map(a=>`<button class="acct-chip" data-art="${a.Id}" style="flex:none;text-align:left">
+          <b>${esc(a["Іконка"]||"📄")} ${esc(a["Назва"])}</b></button>`).join("")}
+      </div></div>`).join("") +
+    '<div class="note">💡 Статті перенесені з Notion. Оновлення статей — поки в Notion, скажи Клоду «онови інструкції» після змін.</div>';
+  document.querySelectorAll("[data-art]").forEach(b=>b.addEventListener("click",()=>{
+    const a = arts.find(x=>String(x.Id)===b.dataset.art);
+    $("content").innerHTML = `
+      <div class="card">
+        <button class="btn ghost" id="back-instr">← До списку</button>
+        <h3 style="margin-top:14px;font-size:16px;text-transform:none;letter-spacing:0">${esc(a["Іконка"]||"")} ${esc(a["Назва"])}</h3>
+        <div class="article">${a["Зміст"]||""}</div>
+        ${a["Джерело"]?`<p class="sub" style="margin-top:14px"><a href="${esc(a["Джерело"])}" target="_blank">Джерело в Notion ↗</a></p>`:""}
+      </div>`;
+    $("back-instr").addEventListener("click",()=>go("instr"));
+    window.scrollTo(0,0);
+  }));
+};
+
+PAGES.users = async () => {
+  const rows = await loadAll(T["Користувачі"]);
+  $("content").innerHTML = `
+    <div class="card"><h3>🔐 Користувачі та ролі</h3>
+      <p class="sub">роль визначає, що людина бачить у платформі</p>
+      <div class="tablewrap"><table>
+        <thead><tr><th>Ім'я</th><th>Email</th><th>Роль</th><th>Активний</th></tr></thead>
+        <tbody>${rows.map(u=>`<tr><td><b>${esc(u["Ім'я"]||"—")}</b></td><td>${esc(u["Email"]||"—")}</td>
+          <td><span class="role-badge">${esc(u["Роль"]||"—")}</span></td><td>${u["Активний"]?'✓':'—'}</td></tr>`).join("")}</tbody>
+      </table></div></div>
+    <div class="card"><h3>Ролі (довідка)</h3>
+      <div class="tablewrap"><table><tbody>
+        <tr><td><b>Адміністратор</b></td><td>повний доступ до всього</td></tr>
+        <tr><td><b>Сейлз-менеджер</b></td><td>свої угоди і клієнти, свій фінзвіт, документи по своїх угодах</td></tr>
+        <tr><td><b>Бухгалтер</b></td><td>всі угоди, виставлення рахунків, бухгалтерський фінзвіт</td></tr>
+        <tr><td><b>Фінансист</b></td><td>як бухгалтер + всі фінансові дані компанії</td></tr>
+        <tr><td><b>Операційний менеджер</b></td><td>свої угоди (де він оп. менеджер), всі дані перевезення, документи</td></tr>
+        <tr><td><b>Логіст</b></td><td>диспетчеризація: авто, водій, статус, пункт перетину</td></tr>
+        <tr><td><b>Перегляд</b></td><td>тільки перегляд, фінансові цифри приховані</td></tr>
+      </tbody></table></div></div>
+    <div class="note">➕ Щоб додати користувача: 1) скажи Клоду — він створить акаунт для входу; 2) додай рядок з email, ім'ям і роллю в таблицю «Користувачі» (через службову базу). Зміна ролі — просто зміни значення в рядку.</div>`;
+};
+
+/* ===== старт ===== */
+const LOGO_SRC = "data:image/png;base64,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";
+document.querySelectorAll("#logo-login, #logo-side").forEach(el=>el.src=LOGO_SRC);
+renderPals();
+if (JWT) enter();
+</script>
+
+</body>
+</html>
