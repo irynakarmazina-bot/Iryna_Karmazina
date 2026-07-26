@@ -1,7 +1,7 @@
 {
-  "stdout": "",
-  "stderr": "[Errno 7] Argument list too long: '/bin/sh'",
-  "returncode": -1,
-  "id": "ui-v10-0726",
-  "ts": "2026-07-26T15:17:30Z"
+  "stdout": "SIZE: 98295\nMPOA: 2\nUI 200\n",
+  "stderr": "",
+  "returncode": 0,
+  "id": "ui-v10b-0726",
+  "ts": "2026-07-26T15:18:09Z"
 }
