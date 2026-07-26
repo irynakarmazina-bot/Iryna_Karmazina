@@ -114,7 +114,15 @@
   button{font:inherit}
   :focus-visible{outline:2px solid var(--accent); outline-offset:2px; border-radius:4px}
   @media (prefers-reduced-motion: reduce){ *{transition:none!important;animation:none!important} }
-  .pal-mini,.pal-row{display:none!important}
+  .article h2{font-size:15px;color:var(--accent-ink);margin:18px 0 6px}
+  .article h3{font-size:14px;margin:14px 0 6px;color:var(--ink);text-transform:none;letter-spacing:0}
+  .article p,.article li{font-size:14px;color:var(--ink)}
+  .article ul,.article ol{padding-left:22px;margin:6px 0}
+  .article table{margin:8px 0;font-size:13.5px}
+  .article th{background:var(--th-bg);color:var(--th-ink);padding:6px 10px;text-align:left}
+  .article td{padding:6px 10px;border-bottom:1px solid var(--line-soft)}
+  .article pre{background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:10px 12px;font-size:12.5px;overflow-x:auto;white-space:pre-wrap}
+  .article .note{margin:10px 0}
 
   /* ---------- LOGIN ---------- */
   #login-screen{min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:20px; padding:24px}
@@ -317,14 +325,13 @@
       <img class="brand-logo" id="logo-login" alt="UNITEX">
       <div><h1>Юнітекс OS<small>операційна система компанії</small></h1></div>
     </div>
-    <p class="hint">Вхід для співробітників. Email і пароль — ті самі, що для службової бази.</p>
+    <p class="hint">Вхід для співробітників.</p>
     <div class="field"><label for="em">Email</label>
       <input id="em" type="email" autocomplete="username" placeholder="name@unitex.od.ua"></div>
     <div class="field" style="margin-top:10px"><label for="pw">Пароль</label>
       <input id="pw" type="password" autocomplete="current-password"></div>
     <button class="btn full" id="login-btn">Увійти</button>
     <div class="login-err" id="login-err">Не вдалося увійти. Перевір email і пароль.</div>
-    <div class="pal-row"><span class="lbl">🎨 Оформлення:</span><span id="pal-login" style="display:flex;gap:8px"></span></div>
   </div>
 </div>
 
@@ -340,10 +347,9 @@
     <div class="main">
       <div class="topbar">
         <h2 id="page-title"></h2>
-        <div class="pal-mini" id="pal-top" title="Оформлення"></div>
         <div class="user-chip">
           <div class="avatar" id="u-avatar"></div>
-          <div class="who"><b id="u-name"></b><span class="role-badge">Співробітник</span></div>
+          <div class="who"><b id="u-name"></b><span class="role-badge" id="u-role">…</span></div>
         </div>
         <button class="btn ghost" id="logout">Вийти</button>
       </div>
@@ -374,24 +380,26 @@
 
 <script>
 "use strict";
-/* ===== стиль/палітри ===== */
-let palette = localStorage.getItem("palette") || "finrep";
-const PALETTES = [ ["finrep","Фінзвіт (фірмовий)"],["warm","Теплий"],["ocean","Океан"],["indigo","Індиго"],["emerald","Смарагд"] ];
-function setPalette(p){ palette=p; localStorage.setItem("palette", p); if(p==="finrep") delete document.documentElement.dataset.palette; else document.documentElement.dataset.palette=p; renderPals(); }
-if (palette !== "finrep") document.documentElement.dataset.palette = palette;
-function renderPals(){
-  const html = PALETTES.map(([p,n])=>`<button class="pal-dot ${p===palette?"sel":""}" data-pal="${p}" title="${n}"></button>`).join("");
-  document.getElementById("pal-login").innerHTML=html; document.getElementById("pal-top").innerHTML=html;
-  const ps = document.getElementById("pal-settings"); if (ps) ps.innerHTML = html;
-  const pn = document.getElementById("pal-name"); if (pn) pn.textContent = "Обрано: " + (PALETTES.find(x=>x[0]===palette)||["",""])[1];
-  document.querySelectorAll(".pal-dot").forEach(b=>b.addEventListener("click",()=>setPalette(b.dataset.pal)));
-}
 const $ = id => document.getElementById(id);
 function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
 
+/* ===== оформлення (в налаштуваннях користувача) ===== */
+let palette = localStorage.getItem("palette") || "finrep";
+const PALETTES = [ ["finrep","Фінзвіт (фірмовий)"],["warm","Теплий"],["ocean","Океан"],["indigo","Індиго"],["emerald","Смарагд"] ];
+function setPalette(p){ palette=p; localStorage.setItem("palette",p); if(p==="finrep") delete document.documentElement.dataset.palette; else document.documentElement.dataset.palette=p; renderPals(); }
+if (palette !== "finrep") document.documentElement.dataset.palette = palette;
+function renderPals(){
+  const html = PALETTES.map(([p,n])=>`<button class="pal-dot ${p===palette?"sel":""}" data-pal="${p}" title="${n}"></button>`).join("");
+  const ps = $("pal-settings"); if (ps) ps.innerHTML = html;
+  const pn = $("pal-name"); if (pn) pn.textContent = "Обрано: " + (PALETTES.find(x=>x[0]===palette)||["",""])[1];
+  document.querySelectorAll(".pal-dot").forEach(b=>b.addEventListener("click",()=>setPalette(b.dataset.pal)));
+}
+
 /* ===== API ===== */
-const T = { disp:"m58xsjo6at01ohl", cli:"mgik03ijqyyct6v", task:"mfo372vhs3fbbw7" };
+const BASE_ID = "pbhr1qkpvx09z8m";
+let T = {};            // назва таблиці -> id
 let JWT = sessionStorage.getItem("jwt") || null;
+let ROLE = "Перегляд", UNAME = "";
 async function api(path, opts={}){
   const h = Object.assign({"Content-Type":"application/json"}, opts.headers||{});
   if (JWT) h["xc-auth"] = JWT;
@@ -410,6 +418,24 @@ async function loadAll(table){
   return out;
 }
 
+/* ===== ролі ===== */
+const RC = {
+  "Адміністратор":        { nav:["dashboard","dispatch","clients","finance","tasks","instr","users"], scope:"all", fin:"full", sync:true },
+  "Сейлз-менеджер":       { nav:["dashboard","dispatch","clients","finance","tasks","instr"], scope:"mgr", fin:"personal", sync:false },
+  "Бухгалтер":            { nav:["dashboard","dispatch","clients","finance","tasks","instr"], scope:"all", fin:"acct", sync:true },
+  "Фінансист":            { nav:["dashboard","dispatch","clients","finance","tasks","instr"], scope:"all", fin:"full", sync:true },
+  "Операційний менеджер": { nav:["dashboard","dispatch","clients","tasks","instr"], scope:"ops", fin:"none", sync:true },
+  "Логіст":               { nav:["dispatch","instr"], scope:"all", cols:"logist", fin:"none", sync:false },
+  "Перегляд":             { nav:["dashboard","dispatch","clients","finance","tasks","instr"], scope:"all", fin:"blur", sync:false },
+};
+function cfg(){ return RC[ROLE] || RC["Перегляд"]; }
+function scoped(rows){
+  const c = cfg();
+  if (c.scope === "mgr") return rows.filter(r=>String(r["Менеджер"]||"").trim() === UNAME);
+  if (c.scope === "ops") return rows.filter(r=>String(r["Оп. менеджер"]||"").trim() === UNAME);
+  return rows;
+}
+
 /* ===== вхід/вихід ===== */
 async function doLogin(){
   $("login-err").style.display="none";
@@ -420,17 +446,28 @@ async function doLogin(){
     const js = await r.json();
     if (!r.ok || !js.token) throw new Error("bad");
     JWT = js.token; sessionStorage.setItem("jwt", JWT);
-    sessionStorage.setItem("email", $("em").value.trim());
+    sessionStorage.setItem("email", $("em").value.trim().toLowerCase());
     enter();
   } catch(e){ $("login-err").style.display="block"; }
 }
 function doLogout(){ JWT=null; sessionStorage.clear(); $("app").style.display="none"; $("login-screen").style.display="flex"; }
-function enter(){
+async function enter(){
   $("login-screen").style.display="none"; $("app").style.display="block";
   const em = sessionStorage.getItem("email")||"";
   $("u-name").textContent = em.split("@")[0];
   $("u-avatar").textContent = (em[0]||"?").toUpperCase();
-  buildNav(); go("dashboard");
+  try{
+    const meta = await api(`/api/v2/meta/bases/${BASE_ID}/tables`);
+    (meta.list||[]).forEach(t=>{ T[t.title] = t.id; });
+    if (T["Користувачі"]){
+      const u = await api(`/api/v2/tables/${T["Користувачі"]}/records?limit=100`);
+      const me = (u.list||[]).find(x=>String(x["Email"]||"").toLowerCase() === em && x["Активний"] !== false);
+      if (me){ ROLE = me["Роль"] || "Перегляд"; UNAME = me["Ім'я"] || $("u-name").textContent; }
+      else ROLE = "Перегляд";
+    }
+  } catch(e){ ROLE = "Перегляд"; }
+  $("u-role").textContent = ROLE;
+  buildNav(); go(cfg().nav[0]);
 }
 $("login-btn").addEventListener("click", doLogin);
 $("pw").addEventListener("keydown", e=>{ if(e.key==="Enter") doLogin(); });
@@ -442,20 +479,19 @@ $("set-close").addEventListener("click", ()=>$("set-overlay").classList.remove("
 $("set-overlay").addEventListener("click", e=>{ if(e.target===$("set-overlay")) $("set-overlay").classList.remove("open"); });
 
 /* ===== навігація ===== */
-const MODULES = [
-  { id:"dashboard", label:"Дашборд", ico:"📊" },
-  { id:"dispatch",  label:"Диспетчеризація", ico:"🚢" },
-  { id:"clients",   label:"Клієнти", ico:"👥" },
-  { id:"finance",   label:"Фінанси", ico:"💰" },
-  { id:"tasks",     label:"Задачі", ico:"✅" },
-];
+const MODMAP = {
+  dashboard:{label:"Дашборд",ico:"📊"}, dispatch:{label:"Диспетчеризація",ico:"🚢"},
+  clients:{label:"Клієнти",ico:"👥"}, finance:{label:"Фінанси",ico:"💰"},
+  tasks:{label:"Задачі",ico:"✅"}, instr:{label:"Інструкції",ico:"📚"}, users:{label:"Користувачі",ico:"🔐"},
+};
 function buildNav(){
-  $("nav").innerHTML = MODULES.map(m=>`<button class="nav-item" data-page="${m.id}"><span class="ico">${m.ico}</span>${m.label}</button>`).join("");
+  $("nav").innerHTML = cfg().nav.map(id=>`<button class="nav-item" data-page="${id}"><span class="ico">${MODMAP[id].ico}</span>${MODMAP[id].label}</button>`).join("");
   $("nav").querySelectorAll(".nav-item").forEach(b=>b.addEventListener("click",()=>go(b.dataset.page)));
 }
 function go(page){
+  if (!cfg().nav.includes(page)) page = cfg().nav[0];
   $("nav").querySelectorAll(".nav-item").forEach(b=>b.classList.toggle("active", b.dataset.page===page));
-  $("page-title").textContent = MODULES.find(m=>m.id===page).label;
+  $("page-title").textContent = MODMAP[page].label;
   $("content").innerHTML = '<div class="card"><p class="sub">Завантаження…</p></div>';
   PAGES[page]().catch(e=>{ $("content").innerHTML = '<div class="note">⚠ Не вдалося завантажити дані ('+esc(e.message)+'). Спробуй оновити сторінку.</div>'; });
 }
@@ -474,9 +510,10 @@ function toast(m){ const t=$("toast"); t.textContent=m; t.style.display="block";
 /* ===== сторінки ===== */
 const PAGES = {};
 let DISP_CACHE = null;
+async function dispRows(){ return DISP_CACHE || (DISP_CACHE = await loadAll(T["Диспетчеризація"])); }
 
 PAGES.dashboard = async () => {
-  const rows = DISP_CACHE || (DISP_CACHE = await loadAll(T.disp));
+  const rows = scoped(await dispRows());
   const active = rows.filter(r=>r["Статус"]!=="Вантаж доставлено");
   const today = new Date(); today.setHours(0,0,0,0);
   const d = v => { const m=/(\d{4})-(\d{2})-(\d{2})/.exec(String(v||"")); return m? new Date(+m[1],+m[2]-1,+m[3]) : null; };
@@ -489,9 +526,11 @@ PAGES.dashboard = async () => {
     .sort((a,b)=>String(a["ETA"]).localeCompare(String(b["ETA"]))).slice(0,8);
   const overdue = active.filter(r=>{ const e=d(r["ETA"]); return e && e<today; })
     .sort((a,b)=>String(a["ETA"]).localeCompare(String(b["ETA"]))).slice(0,8);
+  const scopeNote = cfg().scope!=="all" ? `<div class="note">👤 Показано лише твої угоди (${esc(UNAME)}).</div>` : "";
   $("content").innerHTML = `
+    ${scopeNote}
     <div class="tiles">
-      <div class="tile"><div class="lbl">📦 Активні перевезення</div><div class="val">${active.length}</div><div class="delta">з ${rows.length} угод у базі</div></div>
+      <div class="tile"><div class="lbl">📦 Активні перевезення</div><div class="val">${active.length}</div><div class="delta">з ${rows.length} угод</div></div>
       <div class="tile"><div class="lbl">🌊 В морі зараз</div><div class="val">${sea}</div></div>
       <div class="tile"><div class="lbl">📅 Прибуття за 7 днів</div><div class="val">${week}</div></div>
       <div class="tile warn"><div class="lbl">🚫 Без BL (не трекаються)</div><div class="val">${noBL}</div><div class="delta">впиши BL — трекінг увімкнеться</div></div>
@@ -501,7 +540,7 @@ PAGES.dashboard = async () => {
         <thead><tr><th>Угода</th><th>Клієнт</th><th>Судно</th><th>Статус</th><th>ETA</th></tr></thead>
         <tbody>${upcoming.map(fmtRow).join("") || '<tr><td colspan="5" class="cell-muted">Немає активних угод з майбутнім ETA.</td></tr>'}</tbody>
       </table></div></div>
-    <div class="card"><h3>⚠️ ETA минуло — перевірити</h3><p class="sub">дата прибуття вже позаду, а угода ще не закрита: оновити статус або дати</p>
+    <div class="card"><h3>⚠️ ETA минуло — перевірити</h3><p class="sub">дата прибуття вже позаду, а угода не закрита: оновити статус або дати</p>
       <div class="tablewrap"><table>
         <thead><tr><th>Угода</th><th>Клієнт</th><th>Судно</th><th>Статус</th><th>ETA</th></tr></thead>
         <tbody>${overdue.map(fmtRow).join("") || '<tr><td colspan="5" class="cell-muted">Таких немає — все під контролем ✅</td></tr>'}</tbody>
@@ -510,34 +549,42 @@ PAGES.dashboard = async () => {
 
 const FLAGS = ["Телекс","Т1","ДО","Документи","SI","Замитнення","Реліз"];
 PAGES.dispatch = async () => {
-  const rows = DISP_CACHE = await loadAll(T.disp);
-  rows.sort((a,b)=> (parseInt(b["Угода"])||0) - (parseInt(a["Угода"])||0));
+  DISP_CACHE = null;
+  const all = scoped(await dispRows());
+  all.sort((a,b)=> (parseInt(b["Угода"])||0) - (parseInt(a["Угода"])||0));
+  const logist = cfg().cols === "logist";
+  const syncBtn = cfg().sync ? '<button class="btn" id="sync-btn">⟳ Оновити з Експедитора</button>' : "";
+  const head = logist
+    ? "<th>Угода</th><th>Клієнт</th><th>Контейнер</th><th>Статус</th><th>Номер авто</th><th>Водій</th><th>Телефон</th><th>Перетин кордону</th>"
+    : "<th>Угода</th><th></th><th>Клієнт</th><th>Лінія</th><th>BL / Контейнер</th><th>Судно</th><th>ETA</th><th>Статус</th><th>Позначки</th><th>Коментар</th>";
   $("content").innerHTML = `
     <div class="card">
       <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
         <h3 style="margin:0">🚢 Диспетчеризація</h3>
-        <span class="sub" style="margin:0">угод: ${rows.length} · клік по рядку — повна картка</span>
-        <span style="flex:1"></span>
-        <button class="btn" id="sync-btn">⟳ Оновити з Експедитора</button>
+        <span class="sub" style="margin:0">угод: ${all.length}${cfg().scope!=="all"?" (лише твої)":""} · клік по рядку — картка</span>
+        <span style="flex:1"></span>${syncBtn}
       </div>
       <div class="filters" style="margin-top:12px">
         <input id="q" placeholder="Пошук: угода, клієнт, BL, контейнер, судно…">
-        <select id="dirf"><option value="">Імпорт + експорт</option><option>Імпорт</option><option>Експорт</option><option>Транзит</option></select>
         <select id="stf"><option value="">Усі статуси</option>${Object.keys(STATUSES).map(s=>`<option>${s}</option>`).join("")}</select>
-        <select id="linef"><option value="">Усі лінії</option><option>Maersk</option><option>MSC</option><option>CMA CGM</option><option>Інша</option></select>
         <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--ink-2)"><input type="checkbox" id="actf" checked> лише активні</label>
       </div>
       <div class="tablewrap"><table>
-        <thead><tr><th>Угода</th><th></th><th>Клієнт</th><th>Лінія</th><th>BL / Контейнер</th><th>Судно</th><th>ETA</th><th>Статус</th><th>Позначки</th><th>Коментар</th></tr></thead>
+        <thead><tr>${head}</tr></thead>
         <tbody id="drows"></tbody></table></div>
     </div>`;
   const draw = () => {
-    const q=$("q").value.toLowerCase(), st=$("stf").value, dir=$("dirf").value, line=$("linef").value, act=$("actf").checked;
-    const list = rows.filter(r =>
-      (!st || r["Статус"]===st) && (!dir || r["Напрямок"]===dir) && (!line || r["Лінія"]===line) &&
-      (!act || r["Статус"]!=="Вантаж доставлено") &&
-      (!q || [r["Угода"],r["Клієнт"],r["BL"],r["Контейнер"],r["Судно"],r["Маршрут"]].join(" ").toLowerCase().includes(q)));
-    $("drows").innerHTML = list.length ? list.map(r=>`
+    const q=$("q").value.toLowerCase(), st=$("stf").value, act=$("actf").checked;
+    const list = all.filter(r =>
+      (!st || r["Статус"]===st) && (!act || r["Статус"]!=="Вантаж доставлено") &&
+      (!q || [r["Угода"],r["Клієнт"],r["BL"],r["Контейнер"],r["Судно"],r["Номер авто"],r["Водій (ПІБ)"]].join(" ").toLowerCase().includes(q)));
+    $("drows").innerHTML = list.length ? list.map(r=> logist ? `
+      <tr data-id="${r.Id}" style="cursor:pointer">
+        <td class="mono"><b>${esc(r["Угода"])}</b></td><td>${esc(r["Клієнт"]||"—")}</td>
+        <td class="mono">${esc(r["Контейнер"]||"—")}</td><td>${stPill(r["Статус"])}</td>
+        <td class="mono">${esc(r["Номер авто"]||"—")}</td><td>${esc(r["Водій (ПІБ)"]||"—")}</td>
+        <td class="mono">${esc(r["Водій (телефон)"]||"—")}</td><td class="mono">${esc(r["Перетин кордону (факт)"]||"—")}</td>
+      </tr>` : `
       <tr data-id="${r.Id}" style="cursor:pointer">
         <td class="mono"><b>${esc(r["Угода"])}</b></td>
         <td>${r["Напрямок"]?`<span class="dirchip ${r["Напрямок"]==="Імпорт"?"imp":"exp"}">${r["Напрямок"]==="Імпорт"?"ІМП":(r["Напрямок"]==="Експорт"?"ЕКС":"ТРН")}</span>`:""}</td>
@@ -550,19 +597,20 @@ PAGES.dispatch = async () => {
         <td>${FLAGS.filter(f=>r[f]).map(f=>`<span class="flag on">${f} ✓</span>`).join("")||'<span class="cell-muted">—</span>'}</td>
         <td class="cell-muted" style="max-width:220px">${esc(r["Коментар"]||"")}</td>
       </tr>`).join("") : `<tr><td colspan="10" class="cell-muted">Нічого не знайдено.</td></tr>`;
-    $("drows").querySelectorAll("tr[data-id]").forEach(tr=>tr.addEventListener("click",()=>openRow(rows.find(x=>String(x.Id)===tr.dataset.id))));
+    $("drows").querySelectorAll("tr[data-id]").forEach(tr=>tr.addEventListener("click",()=>openRow(all.find(x=>String(x.Id)===tr.dataset.id))));
   };
-  ["q","dirf","stf","linef","actf"].forEach(id=>$(id).addEventListener(id==="q"?"input":"change",draw));
+  ["q","stf","actf"].forEach(id=>$(id).addEventListener(id==="q"?"input":"change",draw));
   draw();
-  $("sync-btn").addEventListener("click", async ()=>{
-    $("sync-btn").disabled=true; $("sync-btn").textContent="⏳ Оновлюю…";
+  const sb = $("sync-btn");
+  if (sb) sb.addEventListener("click", async ()=>{
+    sb.disabled=true; sb.textContent="⏳ Оновлюю…";
     try{
       const r = await fetch("/sync"); const js = await r.json();
       const m = /new=(\d+)/.exec(js.result||"");
       toast(m && m[1]!=="0" ? `✅ Додано нових угод: ${m[1]}` : "✅ Синхронізовано, нових угод немає");
       DISP_CACHE=null; go("dispatch");
     } catch(e){ toast("⚠ Не вдалося оновити — спробуй ще раз"); }
-    finally{ $("sync-btn").disabled=false; $("sync-btn").textContent="⟳ Оновити з Експедитора"; }
+    finally{ sb.disabled=false; sb.textContent="⟳ Оновити з Експедитора"; }
   });
 };
 
@@ -573,9 +621,14 @@ const CARD_GROUPS = [
   ["Авто і документи", ["Номер авто","Номер ЦМР","Водій (ПІБ)","Водій (телефон)","Телекс","Т1","ДО","Документи","SI","Замитнення","Реліз"]],
   ["Команда і коментарі", ["Менеджер","Оп. менеджер","Лист (джерело)","Нагадування","Коментар","Коментар клієнту"]],
 ];
+const LOGIST_GROUPS = [
+  ["Основне", ["Угода","Клієнт","Контейнер","Статус","Маршрут","Сухий порт"]],
+  ["Авто", ["Номер авто","Номер ЦМР","Водій (ПІБ)","Водій (телефон)","Перетин кордону (факт)","Постановка/завантаження (план)","Постановка/завантаження (факт)"]],
+];
 function openRow(r){
+  const groups = cfg().cols === "logist" ? LOGIST_GROUPS : CARD_GROUPS;
   $("row-title").textContent = `Угода №${r["Угода"]} · ${r["Клієнт"]||""}`;
-  $("row-body").innerHTML = CARD_GROUPS.map(([g,fields])=>{
+  $("row-body").innerHTML = groups.map(([g,fields])=>{
     const items = fields.map(f=>{
       let v = r[f];
       if (typeof v === "boolean" || FLAGS.includes(f)) v = r[f] ? "✓ так" : "—";
@@ -590,33 +643,39 @@ $("row-close").addEventListener("click",()=>$("row-overlay").classList.remove("o
 $("row-overlay").addEventListener("click",e=>{ if(e.target===$("row-overlay")) $("row-overlay").classList.remove("open"); });
 
 PAGES.clients = async () => {
-  const rows = await loadAll(T.cli);
-  const disp = DISP_CACHE || (DISP_CACHE = await loadAll(T.disp));
+  const disp = scoped(await dispRows());
   const cnt = {};
   disp.forEach(r=>{ const k=(r["Клієнт"]||"").trim(); if(!k) return; cnt[k]=cnt[k]||{all:0,act:0}; cnt[k].all++; if(r["Статус"]!=="Вантаж доставлено") cnt[k].act++; });
   const names = Object.keys(cnt).sort((a,b)=>cnt[b].act-cnt[a].act || cnt[b].all-cnt[a].all);
   $("content").innerHTML = `
-    <div class="card"><h3>👥 Клієнти</h3><p class="sub">з угод диспетчеризації · довідник можна доповнювати контактами</p>
+    <div class="card"><h3>👥 Клієнти${cfg().scope!=="all"?" (твої)":""}</h3><p class="sub">з угод диспетчеризації</p>
       <div class="tablewrap"><table>
         <thead><tr><th>Клієнт</th><th class="num">Угод всього</th><th class="num">Активних</th></tr></thead>
         <tbody>${names.map(n=>`<tr><td><b>${esc(n)}</b></td><td class="num">${cnt[n].all}</td><td class="num">${cnt[n].act}</td></tr>`).join("")}</tbody>
       </table></div></div>`;
 };
 
-PAGES.tasks = async () => {
-  const rows = await loadAll(T.task);
-  $("content").innerHTML = `
-    <div class="card"><h3>✅ Задачі</h3><p class="sub">ведуться в базі · створення прямо звідси — наступна ітерація</p>
-      <div class="tablewrap"><table>
-        <thead><tr><th>Задача</th><th>Кому</th><th>Термін</th><th>Статус</th><th>Угода</th></tr></thead>
-        <tbody>${rows.length ? rows.map(t=>`<tr><td>${esc(t["Задача"]||"")}</td><td>${esc(t["Кому"]||"—")}</td>
-          <td class="mono">${esc(t["Термін"]||"—")}</td><td>${esc(t["Статус"]||"—")}</td><td class="mono">${esc(t["Угода"]||"—")}</td></tr>`).join("")
-          : '<tr><td colspan="5" class="cell-muted">Задач поки немає — додай першу в базі.</td></tr>'}</tbody>
-      </table></div></div>`;
-};
-
-
 PAGES.finance = async () => {
+  const mode = cfg().fin;
+  if (mode === "personal"){
+    $("content").innerHTML = `
+      <div class="card"><h3>💰 Мій фінзвіт (сейлз-менеджер)</h3>
+        <p class="sub">дебіторка/кредиторка по твоїх угодах, прибуток за період, план/факт</p>
+        <div class="note">🛠 Персональний фінзвіт менеджера — у розробці: дані вже збираються з Експедитора, готуємо зріз по менеджеру. Скоро тут з'являться твої цифри.</div></div>`;
+    return;
+  }
+  if (mode === "blur"){
+    $("content").innerHTML = `
+      <div class="card"><h3>💰 Фінанси</h3>
+        <div class="note">🔒 Для ролі «Перегляд» фінансові показники (залишки грошей, робочий капітал, кешфлоу) приховані. Звіти формуються, але цифри доступні лише фінансовим ролям.</div>
+        <div class="tiles" style="margin-top:12px">
+          <div class="tile"><div class="lbl">Залишки грошей</div><div class="val" style="filter:blur(9px)">000 000</div></div>
+          <div class="tile"><div class="lbl">Робочий капітал</div><div class="val" style="filter:blur(9px)">000 000</div></div>
+          <div class="tile"><div class="lbl">Кешфлоу</div><div class="val" style="filter:blur(9px)">000 000</div></div>
+        </div></div>`;
+    return;
+  }
+  const acctNote = mode === "acct" ? '<div class="note">🧾 Бухгалтерський фінзвіт — зміст погоджуємо; виставлення рахунків (цикл БАФ) — наступний модуль.</div>' : "";
   $("content").innerHTML = `
     <div class="card"><h3>💰 Оперативний фінансовий звіт</h3>
       <p class="sub">джерело — Експедитор (прямий доступ): ліквідність по касах, дебіторка/кредиторка, платіжний календар, кешфлоу, клієнти</p>
@@ -626,7 +685,8 @@ PAGES.finance = async () => {
       </div>
       <p class="sub" id="finrep-status" style="margin-top:12px"></p>
     </div>
-    <div class="note">💡 «Сформувати» тягне актуальні дані з Експедитора і перебудовує всі аркуші звіту — це триває ~2 хвилини. Потім відкривай звіт. Доступ до таблиці — з твого Google-акаунта.</div>`;
+    ${acctNote}
+    <div class="note">💡 «Сформувати» тягне актуальні дані з Експедитора і перебудовує всі аркуші звіту (~2 хв). Доступ до таблиці — з твого Google-акаунта.</div>`;
   $("finrep-open").addEventListener("click", ()=>window.open("https://docs.google.com/spreadsheets/d/1SK0AXKt0BpEaLpax49lWy3ucjpLKrD_4Yi7Stdw9qMo","_blank"));
   $("finrep-btn").addEventListener("click", async ()=>{
     $("finrep-btn").disabled = true; $("finrep-btn").textContent = "⏳ Формується…";
@@ -642,6 +702,67 @@ PAGES.finance = async () => {
       $("finrep-status").textContent="";
     }
   });
+};
+
+PAGES.tasks = async () => {
+  const rows = await loadAll(T["Задачі"]);
+  $("content").innerHTML = `
+    <div class="card"><h3>✅ Задачі</h3><p class="sub">ведуться в базі · створення звідси — наступна ітерація</p>
+      <div class="tablewrap"><table>
+        <thead><tr><th>Задача</th><th>Кому</th><th>Термін</th><th>Статус</th><th>Угода</th></tr></thead>
+        <tbody>${rows.length ? rows.map(t=>`<tr><td>${esc(t["Задача"]||"")}</td><td>${esc(t["Кому"]||"—")}</td>
+          <td class="mono">${esc(t["Термін"]||"—")}</td><td>${esc(t["Статус"]||"—")}</td><td class="mono">${esc(t["Угода"]||"—")}</td></tr>`).join("")
+          : '<tr><td colspan="5" class="cell-muted">Задач поки немає.</td></tr>'}</tbody>
+      </table></div></div>`;
+};
+
+let INSTR_CACHE = null;
+PAGES.instr = async () => {
+  const arts = INSTR_CACHE || (INSTR_CACHE = await loadAll(T["Інструкції"]));
+  const cats = {};
+  arts.forEach(a=>{ const c=a["Категорія"]||"Інше"; (cats[c]=cats[c]||[]).push(a); });
+  $("content").innerHTML = Object.keys(cats).map(c=>`
+    <div class="card"><h3>📚 ${esc(c)}</h3>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-top:8px">
+        ${cats[c].map(a=>`<button class="acct-chip" data-art="${a.Id}" style="flex:none;text-align:left">
+          <b>${esc(a["Іконка"]||"📄")} ${esc(a["Назва"])}</b></button>`).join("")}
+      </div></div>`).join("") +
+    '<div class="note">💡 Статті перенесені з Notion. Оновлення статей — поки в Notion, скажи Клоду «онови інструкції» після змін.</div>';
+  document.querySelectorAll("[data-art]").forEach(b=>b.addEventListener("click",()=>{
+    const a = arts.find(x=>String(x.Id)===b.dataset.art);
+    $("content").innerHTML = `
+      <div class="card">
+        <button class="btn ghost" id="back-instr">← До списку</button>
+        <h3 style="margin-top:14px;font-size:16px;text-transform:none;letter-spacing:0">${esc(a["Іконка"]||"")} ${esc(a["Назва"])}</h3>
+        <div class="article">${a["Зміст"]||""}</div>
+        ${a["Джерело"]?`<p class="sub" style="margin-top:14px"><a href="${esc(a["Джерело"])}" target="_blank">Джерело в Notion ↗</a></p>`:""}
+      </div>`;
+    $("back-instr").addEventListener("click",()=>go("instr"));
+    window.scrollTo(0,0);
+  }));
+};
+
+PAGES.users = async () => {
+  const rows = await loadAll(T["Користувачі"]);
+  $("content").innerHTML = `
+    <div class="card"><h3>🔐 Користувачі та ролі</h3>
+      <p class="sub">роль визначає, що людина бачить у платформі</p>
+      <div class="tablewrap"><table>
+        <thead><tr><th>Ім'я</th><th>Email</th><th>Роль</th><th>Активний</th></tr></thead>
+        <tbody>${rows.map(u=>`<tr><td><b>${esc(u["Ім'я"]||"—")}</b></td><td>${esc(u["Email"]||"—")}</td>
+          <td><span class="role-badge">${esc(u["Роль"]||"—")}</span></td><td>${u["Активний"]?'✓':'—'}</td></tr>`).join("")}</tbody>
+      </table></div></div>
+    <div class="card"><h3>Ролі (довідка)</h3>
+      <div class="tablewrap"><table><tbody>
+        <tr><td><b>Адміністратор</b></td><td>повний доступ до всього</td></tr>
+        <tr><td><b>Сейлз-менеджер</b></td><td>свої угоди і клієнти, свій фінзвіт, документи по своїх угодах</td></tr>
+        <tr><td><b>Бухгалтер</b></td><td>всі угоди, виставлення рахунків, бухгалтерський фінзвіт</td></tr>
+        <tr><td><b>Фінансист</b></td><td>як бухгалтер + всі фінансові дані компанії</td></tr>
+        <tr><td><b>Операційний менеджер</b></td><td>свої угоди (де він оп. менеджер), всі дані перевезення, документи</td></tr>
+        <tr><td><b>Логіст</b></td><td>диспетчеризація: авто, водій, статус, пункт перетину</td></tr>
+        <tr><td><b>Перегляд</b></td><td>тільки перегляд, фінансові цифри приховані</td></tr>
+      </tbody></table></div></div>
+    <div class="note">➕ Щоб додати користувача: 1) скажи Клоду — він створить акаунт для входу; 2) додай рядок з email, ім'ям і роллю в таблицю «Користувачі» (через службову базу). Зміна ролі — просто зміни значення в рядку.</div>`;
 };
 
 /* ===== старт ===== */
