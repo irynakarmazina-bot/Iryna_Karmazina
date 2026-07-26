@@ -1,7 +1,7 @@
 {
-  "stdout": "SVC: active\nCADDY: PATCHED\nUI: 200\nGENDOC_NOAUTH: 403\nFILL loi: 221500 bytes\nFILL zayavka_cma: 212417 bytes\nFILL zayavka: 255778 bytes\nFILL kkk: 128691 bytes\nFILL t1: 10999 bytes\nFILL insurance: 20854 bytes\nINSTALL_DONE\n---\nactive\n",
+  "stdout": "DISPLAY_COL: \\u041d\\u0430\\u0437\\u0432\\u0430\nEXISTING: ['CreatedAt', 'Email', 'Id', 'UpdatedAt', '__nc_deleted', 'nc_created_by', 'nc_order', 'nc_updated_by', '\\u041a\\u043e\\u043c\\u0435\\u043d\\u0442\\u0430\\u0440', '\\u041a\\u043e\\u043d\\u0442\\u0430\\u043a\\u0442\\u043d\\u0430 \\u043e\\u0441\\u043e\\u0431\\u0430', '\\u041d\\u0430\\u0437\\u0432\\u0430', '\\u0422\\u0435\\u043b\\u0435\\u0444\\u043e\\u043d']\nCOLS_ADDED: 8\nCLIENTS_DISTINCT: 21 HAD: 0 INSERTED: 21\n",
   "stderr": "",
   "returncode": 0,
-  "id": "docgen-log-0726",
-  "ts": "2026-07-26T15:12:44Z"
+  "id": "clients-cols-0726",
+  "ts": "2026-07-26T15:13:18Z"
 }
