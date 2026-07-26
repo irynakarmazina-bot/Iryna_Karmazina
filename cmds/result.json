@@ -1,7 +1,7 @@
 {
-  "stdout": "STARTED\n-rw-r--r-- 1 root root 2552 Jul 26 18:11 server/install_docgen.sh\n",
+  "stdout": "SVC: active\nCADDY: PATCHED\nUI: 200\nGENDOC_NOAUTH: 403\nFILL loi: 221500 bytes\nFILL zayavka_cma: 212417 bytes\nFILL zayavka: 255778 bytes\nFILL kkk: 128691 bytes\nFILL t1: 10999 bytes\nFILL insurance: 20854 bytes\nINSTALL_DONE\n---\nactive\n",
   "stderr": "",
   "returncode": 0,
-  "id": "docgen-install-0726b",
-  "ts": "2026-07-26T15:12:01Z"
+  "id": "docgen-log-0726",
+  "ts": "2026-07-26T15:12:44Z"
 }
