@@ -566,7 +566,10 @@ PAGES.dispatch = async () => {
       </div>
       <div class="filters" style="margin-top:12px">
         <input id="q" placeholder="Пошук: угода, клієнт, BL, контейнер, судно…">
+        <select id="dirf"><option value="">Імпорт + експорт</option><option>Імпорт</option><option>Експорт</option><option>Транзит</option></select>
         <select id="stf"><option value="">Усі статуси</option>${Object.keys(STATUSES).map(s=>`<option>${s}</option>`).join("")}</select>
+        <select id="linef"><option value="">Усі лінії</option><option>Maersk</option><option>MSC</option><option>CMA CGM</option><option>Інша</option></select>
+        <select id="clif"><option value="">Усі клієнти</option>${[...new Set(all.map(r=>String(r["Клієнт"]||"").trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"uk")).map(c=>`<option>${esc(c)}</option>`).join("")}</select>
         <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--ink-2)"><input type="checkbox" id="actf" checked> лише активні</label>
       </div>
       <div class="tablewrap"><table>
@@ -575,8 +578,10 @@ PAGES.dispatch = async () => {
     </div>`;
   const draw = () => {
     const q=$("q").value.toLowerCase(), st=$("stf").value, act=$("actf").checked;
+    const dir=$("dirf").value, line=$("linef").value, cli=$("clif").value;
     const list = all.filter(r =>
       (!st || r["Статус"]===st) && (!act || r["Статус"]!=="Вантаж доставлено") &&
+      (!dir || r["Напрямок"]===dir) && (!line || r["Лінія"]===line) && (!cli || String(r["Клієнт"]||"").trim()===cli) &&
       (!q || [r["Угода"],r["Клієнт"],r["BL"],r["Контейнер"],r["Судно"],r["Номер авто"],r["Водій (ПІБ)"]].join(" ").toLowerCase().includes(q)));
     $("drows").innerHTML = list.length ? list.map(r=> logist ? `
       <tr data-id="${r.Id}" style="cursor:pointer">
@@ -599,7 +604,7 @@ PAGES.dispatch = async () => {
       </tr>`).join("") : `<tr><td colspan="10" class="cell-muted">Нічого не знайдено.</td></tr>`;
     $("drows").querySelectorAll("tr[data-id]").forEach(tr=>tr.addEventListener("click",()=>openRow(all.find(x=>String(x.Id)===tr.dataset.id))));
   };
-  ["q","stf","actf"].forEach(id=>$(id).addEventListener(id==="q"?"input":"change",draw));
+  ["q","dirf","stf","linef","clif","actf"].forEach(id=>$(id).addEventListener(id==="q"?"input":"change",draw));
   draw();
   const sb = $("sync-btn");
   if (sb) sb.addEventListener("click", async ()=>{
