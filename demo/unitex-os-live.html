@@ -398,6 +398,20 @@
     <button class="btn ghost full" id="doc-close" style="margin-top:12px">Закрити</button>
   </div>
 </div>
+<div class="overlay" id="calc-overlay">
+  <div class="modal" style="max-width:820px;max-height:88vh;overflow-y:auto">
+    <h3 id="calc-title"></h3>
+    <p class="sub">калькуляція під запит клієнта · дані зберігаються в платформі</p>
+    <div id="calc-body"></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px">
+      <button class="btn" id="calc-save">💾 Зберегти</button>
+      <button class="btn ghost" id="calc-deal">🚢 Створити угоду</button>
+      <button class="btn ghost" id="calc-csv">⬇ Експорт для Експедитора</button>
+      <span style="flex:1"></span>
+      <button class="btn ghost" id="calc-close">Закрити</button>
+    </div>
+  </div>
+</div>
 <div class="overlay" id="set-overlay">
   <div class="modal" style="max-width:440px">
     <h3>⚙️ Налаштування</h3>
@@ -452,13 +466,13 @@ async function loadAll(table){
 
 /* ===== ролі ===== */
 const RC = {
-  "Адміністратор":        { nav:["dashboard","dispatch","clients","finance","tasks","instr","users"], scope:"all", fin:"full", sync:true },
-  "Сейлз-менеджер":       { nav:["dashboard","dispatch","clients","finance","tasks","instr"], scope:"mgr", fin:"personal", sync:false },
-  "Бухгалтер":            { nav:["dashboard","dispatch","clients","finance","tasks","instr"], scope:"all", fin:"acct", sync:true },
-  "Фінансист":            { nav:["dashboard","dispatch","clients","finance","tasks","instr"], scope:"all", fin:"full", sync:true },
-  "Операційний менеджер": { nav:["dashboard","dispatch","clients","tasks","instr"], scope:"ops", fin:"none", sync:true },
+  "Адміністратор":        { nav:["dashboard","calc","dispatch","clients","finance","tasks","instr","users"], scope:"all", fin:"full", sync:true },
+  "Сейлз-менеджер":       { nav:["dashboard","calc","dispatch","clients","finance","tasks","instr"], scope:"mgr", fin:"personal", sync:false },
+  "Бухгалтер":            { nav:["dashboard","calc","dispatch","clients","finance","tasks","instr"], scope:"all", fin:"acct", sync:true },
+  "Фінансист":            { nav:["dashboard","calc","dispatch","clients","finance","tasks","instr"], scope:"all", fin:"full", sync:true },
+  "Операційний менеджер": { nav:["dashboard","calc","dispatch","clients","tasks","instr"], scope:"ops", fin:"none", sync:true },
   "Логіст":               { nav:["dispatch","instr"], scope:"all", cols:"logist", fin:"none", sync:false },
-  "Перегляд":             { nav:["dashboard","dispatch","clients","finance","tasks","instr"], scope:"all", fin:"blur", sync:false },
+  "Перегляд":             { nav:["dashboard","calc","dispatch","clients","finance","tasks","instr"], scope:"all", fin:"blur", sync:false },
 };
 function cfg(){ return RC[ROLE] || RC["Перегляд"]; }
 function scoped(rows){
@@ -508,12 +522,15 @@ document.querySelector(".user-chip").style.cursor = "pointer";
 document.querySelector(".user-chip").title = "Налаштування";
 document.querySelector(".user-chip").addEventListener("click", ()=>{ renderPals(); $("set-overlay").classList.add("open"); });
 $("set-close").addEventListener("click", ()=>$("set-overlay").classList.remove("open"));
+$("calc-close").addEventListener("click", ()=>$("calc-overlay").classList.remove("open"));
+$("calc-overlay").addEventListener("click", e=>{ if(e.target===$("calc-overlay")) $("calc-overlay").classList.remove("open"); });
 $("set-overlay").addEventListener("click", e=>{ if(e.target===$("set-overlay")) $("set-overlay").classList.remove("open"); });
 
 /* ===== навігація ===== */
 const MODMAP = {
   dashboard:{label:"Дашборд",ico:"📊"}, dispatch:{label:"Диспетчеризація",ico:"🚢"},
   clients:{label:"Клієнти",ico:"👥"}, finance:{label:"Фінанси",ico:"💰"},
+  calc:{label:"Калькуляція",ico:"🧮"},
   tasks:{label:"Задачі",ico:"✅"}, instr:{label:"Інструкції",ico:"📚"}, users:{label:"Користувачі",ico:"🔐"},
 };
 function buildNav(){
@@ -1107,6 +1124,349 @@ async function renderPeriod(){
   window.scrollTo(0,0);
 }
 
+
+
+/* ===== КАЛЬКУЛЯЦІЯ ===== */
+const CALC_ST = ["Чернетка","Відправлено клієнту","Прийнято","Відхилено"];
+const CALC_ST_CLS = {"Чернетка":"t-neutral","Відправлено клієнту":"t-info","Прийнято":"t-good","Відхилено":"t-vio"};
+const CALC_SEED = [["Морський фрахт","",""],["Автовивіз / доставка","",""],["Винагорода експедитора","",""]];
+let CALC_ROWS = null, CALC_CUR = null;
+
+const num = v => { const n = parseFloat(String(v==null?"":v).replace(/\s/g,"").replace(",",".")); return isFinite(n)?n:0; };
+function calcLines(raw){
+  return String(raw||"").split("\n").map(l=>l.trim()).filter(Boolean).map(l=>{
+    const p = l.split("|").map(x=>x.trim());
+    return [p[0]||"", p[1]||"", p[2]||""];
+  });
+}
+const linesToRaw = arr => arr.map(x=>x.join(" | ")).join("\n");
+function calcTotals(arr){
+  let cost=0, sell=0;
+  arr.forEach(([,c,s])=>{ cost+=num(c); sell+=num(s); });
+  return {cost, sell, profit: sell-cost};
+}
+const money = (n,cur) => (Math.round(n*100)/100).toLocaleString("uk-UA") + " " + (cur||"USD");
+
+/* --- розбір тексту запиту клієнта --- */
+function parseRequest(text){
+  const t = String(text||"").replace(/\u00a0/g," ");
+  const out = {};
+  const find = (re, g) => { const m = re.exec(t); if (!m) return ""; const i = (g === undefined ? 1 : g); return (m[i]||"").trim(); };
+  const lbl = names => find(new RegExp("(?:"+names+")\\s*[:\\-\u2013]\\s*([^\\n]{2,80})","i"));
+  const clean = s => String(s||"").replace(/^[\s.,;:\-]+/,"").replace(/[\s.,;:\-\u2013]+$/,"").trim();
+
+  // напрямок (\b не працює з кирилицею — тому без нього)
+  if (/експорт|export/i.test(t)) out["Напрямок"] = "Експорт";
+  if (/імпорт|import/i.test(t)) out["Напрямок"] = "Імпорт";
+  if (/транзит|transit/i.test(t)) out["Напрямок"] = "Транзит";
+
+  // контейнер/транспорт — визначаємо першим, щоб прибрати токен із тексту для маршруту
+  let cm = /(\d{1,2})\s*[xх*]\s*(20|40|45)\s*['\u2019]?\s*(HC|HQ|DC|DV|RF|OT|FR|НС|ДС|GP)?/i.exec(t);
+  let qty = "", eq = "";
+  if (cm){ qty = cm[1]; eq = cm[2] + (cm[3] ? cm[3].toUpperCase() : ""); }
+  else {
+    cm = /(?:^|[\s(])(20|40|45)\s*['\u2019]?\s*(HC|HQ|DC|DV|RF|GP)(?![\wА-Яа-яЇїІіЄєҐґ])/i.exec(t);
+    if (cm){ qty = "1"; eq = cm[1] + cm[2].toUpperCase(); }
+  }
+  if (!eq && /LCL|збірн/i.test(t)) eq = "LCL";
+  if (!eq && /тент|тягач|truck|фур[аи]/i.test(t)) eq = "Авто";
+  if (qty) out["Кількість"] = qty;
+  if (eq) out["Тип обладнання"] = eq;
+  const rt = cm ? t.replace(cm[0], "  ") : t;
+
+  // маршрут: явна мітка -> «з X до Y» -> «X – Y»
+  const P1 = "[A-Za-zА-Яа-яЇїІіЄєҐґ'\u2019\\.\\- ]{2,32}";
+  const P2 = P1 + "(?:,\\s*[A-Za-zА-Яа-яЇїІіЄєҐґ'\u2019\\.\\- ]{2,24})?";
+  let pol = lbl("POL|порт завантаження|port of loading|звідки|відправлення");
+  let pod = lbl("POD|порт вивантаження|порт призначення|port of discharge|куди|призначення");
+  let route = lbl("маршрут|route");
+  if (!pol || !pod){
+    const m = new RegExp("(?:^|[\\s(])(?:з|із|від|from)\\s+("+P2+")\\s+(?:до|в|to)\\s+("+P2+")","i").exec(rt);
+    if (m){ pol = pol || clean(m[1]); pod = pod || clean(m[2]); }
+  }
+  if (!pol || !pod){
+    // назва міста — слова з великої літери поруч із тире (щоб не захопити «прорахуйте будь ласка»)
+    const big = w => w && w[0] === w[0].toLocaleUpperCase("uk") && /[A-Za-zА-ЯЇІЄҐ]/.test(w[0]);
+    const tail = s => { const p = clean(s).split(/\s+/); const r = []; for (let i=p.length-1;i>=0 && r.length<3;i--){ if(!big(p[i])) break; r.unshift(p[i]); } return r.join(" "); };
+    const head = s => { const p = clean(s).split(/\s+/); const r = []; for (let i=0;i<p.length && r.length<3;i++){ if(!big(p[i])) break; r.push(p[i]); } return r.join(" "); };
+    const m = new RegExp("("+P1+")\\s*(?:\u2014|\u2013|->|\u2192|-{1,2})\\s*("+P1+")").exec(rt);
+    if (m){ pol = pol || tail(m[1]); pod = pod || head(m[2]); }
+  }
+  if (pol) out["POL"] = pol;
+  if (pod) out["POD"] = pod;
+  if (!route && pol && pod) route = pol + " \u2013 " + pod;
+  if (route) out["Маршрут"] = route;
+
+  // вага — у класі символів немає \s, інакше захоплює перенос рядка
+  const w = /(\d[\d  .]{0,12}\d|\d)\s*(кг|kg|тонн\w*|тон|т(?![а-яїієґA-Za-z])|tons?|mt)/i.exec(t);
+  if (w) out["Вага"] = w[1].replace(/\s+/g," ").trim() + " " + w[2].toLowerCase();
+
+  // інкотермс — не перетинаємо рядок ([^\S\n] = пробіл, але не перенос)
+  const inc = /(?:^|[\s(])(EXW|FCA|FAS|FOB|CFR|CIF|CPT|CIP|DAP|DPU|DDP)(?![A-Za-z])[^\S\n]*([A-Za-zА-Яа-яЇїІіЄєҐґ'\u2019\-]+(?:[^\S\n]+[A-Za-zА-Яа-яЇїІіЄєҐґ'\u2019\-]+)?)?/i.exec(t);
+  if (inc) out["Інкотермс"] = clean(inc[1].toUpperCase() + " " + (inc[2]||""));
+
+  // код УКТЗЕД — лише цифри
+  const hs = find(/(?:УКТЗЕД|УКТ\s?ЗЕД|HS(?:\s*code)?)\s*[:\-\u2013]?\s*(\d{4,10})/i);
+  if (hs) out["УКТЗЕД"] = hs;
+
+  // вантаж — без хвоста з кодом
+  let cargo = lbl("вантаж|товар|cargo|commodity|груз");
+  if (cargo) cargo = clean(cargo.replace(/[,;]?\s*(?:УКТЗЕД|УКТ\s?ЗЕД|HS(?:\s*code)?)[\s:\-]*\d*.*$/i, ""));
+  if (cargo) out["Вантаж"] = cargo;
+
+  // готовність
+  const rd = lbl("готовність|дата готовності|readiness|ready date|ready") ||
+             find(/готов\w*[^\d\n]{0,20}(\d{1,2}[.\/\-]\d{1,2}[.\/\-]\d{2,4})/i);
+  if (rd) out["Готовність"] = rd;
+
+  // клієнт: назва в лапках після форми власності або латиною перед LLC/EHF
+  let cl = find(/(?:ТОВ|ТзОВ|ПрАТ|ПАТ|ПП|ФОП)\s*[«"'][^»"'\n]{2,40}[»"']/i, 0);
+  if (!cl) cl = find(/[A-Z][A-Za-z&.\-]{1,20}(?:\s+[A-Z][A-Za-z&.\-]{1,20}){0,3}\s+(?:LLC|LTD|Ltd|OU|EHF|ehf|GmbH|Inc)(?![A-Za-z])/, 0);
+  if (cl) out["Клієнт"] = clean(cl);
+
+  Object.keys(out).forEach(k=>{ if(!out[k]) delete out[k]; });
+  return out;
+}
+
+/* --- CSV для завантаження в Експедитор --- */
+function calcCsv(r){
+  const lines = calcLines(r["Позиції"]);
+  const head = ["Номер калькуляції","Дата","Клієнт","Напрямок","Маршрут","POL","POD","Тип обладнання",
+    "Кількість","Вантаж","Вага","Інкотермс","УКТЗЕД","Готовність","Собівартість","Продаж","Прибуток","Валюта","Менеджер"];
+  const row = [r["Номер"],r["Дата"],r["Клієнт"],r["Напрямок"],r["Маршрут"],r["POL"],r["POD"],r["Тип обладнання"],
+    r["Кількість"],r["Вантаж"],r["Вага"],r["Інкотермс"],r["УКТЗЕД"],r["Готовність"],r["Собівартість"],r["Продаж"],r["Прибуток"],r["Валюта"],r["Менеджер"]];
+  const esc2 = v => '"' + String(v==null?"":v).replace(/"/g,'""').replace(/\n/g," ") + '"';
+  let csv = head.map(esc2).join(";") + "\r\n" + row.map(esc2).join(";") + "\r\n";
+  if (lines.length){
+    csv += "\r\n" + ["Позиція","Собівартість","Продаж"].map(esc2).join(";") + "\r\n";
+    csv += lines.map(l=>l.map(esc2).join(";")).join("\r\n") + "\r\n";
+  }
+  const blob = new Blob(["﻿"+csv], {type:"text/csv;charset=utf-8"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "kalkulyatsiya-" + String(r["Номер"]||"nova").replace(/[^\wа-яїієґА-ЯЇІЄҐ.-]/gi,"_") + ".csv";
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href), 3000);
+}
+
+async function calcRows(force){
+  if (force) CALC_ROWS = null;
+  return CALC_ROWS || (CALC_ROWS = await loadAll(T["Калькуляції"]));
+}
+function calcScoped(rows){
+  return cfg().scope === "mgr" ? rows.filter(r=>String(r["Менеджер"]||"").trim() === UNAME) : rows;
+}
+function nextCalcNo(rows){
+  const y = new Date().getFullYear();
+  const nums = rows.map(r=>{ const m=new RegExp("^К-"+y+"-(\\d+)$").exec(String(r["Номер"]||"")); return m?+m[1]:0; });
+  return "К-" + y + "-" + String(Math.max(0, ...nums) + 1).padStart(3, "0");
+}
+
+PAGES.calc = async () => {
+  const all = calcScoped(await calcRows());
+  const ro = (ROLE === "Перегляд");
+  const sum = st => all.filter(r=>r["Статус"]===st).length;
+  $("content").innerHTML = `
+    <div class="card">
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+        <h3 style="margin:0">🧮 Калькуляції</h3>
+        <span class="sub" style="margin:0">усього: ${all.length} · прийнято: ${sum("Прийнято")} · чернеток: ${sum("Чернетка")}</span>
+        <span style="flex:1"></span>
+        ${ro?"":'<button class="btn" id="calc-new">＋ Нова калькуляція</button>'}
+      </div>
+      <div class="filters" style="margin-top:12px">
+        <input id="cq" placeholder="Пошук: номер, клієнт, маршрут…">
+        <select id="cst"><option value="">Усі статуси</option>${CALC_ST.map(s=>`<option>${s}</option>`).join("")}</select>
+      </div>
+      <div class="tablewrap" style="margin-top:10px"><table>
+        <thead><tr><th>Номер</th><th>Дата</th><th>Клієнт</th><th>Маршрут</th><th>Обладнання</th>
+          <th>Собівартість</th><th>Продаж</th><th>Прибуток</th><th>Статус</th><th>Угода</th><th></th></tr></thead>
+        <tbody id="crows"></tbody>
+      </table></div>
+    </div>
+    <div class="note">💡 Встав текст запиту клієнта у вікно — система рознесе дані по полях. Перевір їх перед збереженням: розбір автоматичний і може щось не впізнати.</div>`;
+
+  const render = () => {
+    const q = ($("cq").value||"").toLowerCase().trim();
+    const st = $("cst").value;
+    const rows = all.filter(r=>{
+      if (st && r["Статус"] !== st) return false;
+      if (!q) return true;
+      return ["Номер","Клієнт","Маршрут","Вантаж","Угода"].some(k=>String(r[k]||"").toLowerCase().includes(q));
+    }).sort((a,b)=>String(b["Номер"]||"").localeCompare(String(a["Номер"]||"")));
+    $("crows").innerHTML = rows.length ? rows.map(r=>{
+      const cur = r["Валюта"]||"USD";
+      return `<tr data-calc="${r.Id}">
+        <td class="mono"><b>${esc(r["Номер"]||"—")}</b></td>
+        <td class="mono">${esc(r["Дата"]||"—")}</td>
+        <td>${esc(r["Клієнт"]||"—")}</td>
+        <td>${esc(r["Маршрут"]||"—")}</td>
+        <td>${esc([r["Кількість"],r["Тип обладнання"]].filter(Boolean).join("×")||"—")}</td>
+        <td class="mono">${r["Собівартість"]?money(num(r["Собівартість"]),cur):"—"}</td>
+        <td class="mono">${r["Продаж"]?money(num(r["Продаж"]),cur):"—"}</td>
+        <td class="mono"><b>${r["Прибуток"]?money(num(r["Прибуток"]),cur):"—"}</b></td>
+        <td><span class="pill ${CALC_ST_CLS[r["Статус"]]||"t-neutral"}">${esc(r["Статус"]||"Чернетка")}</span></td>
+        <td class="mono">${esc(r["Угода"]||"—")}</td>
+        <td><button class="btn ghost calc-open" data-id="${r.Id}" style="padding:3px 10px">Відкрити</button></td>
+      </tr>`;
+    }).join("") : '<tr><td colspan="11" class="cell-muted">Калькуляцій поки немає.</td></tr>';
+    $("crows").querySelectorAll(".calc-open").forEach(b=>b.addEventListener("click",()=>openCalc(all.find(x=>String(x.Id)===b.dataset.id))));
+  };
+  $("cq").addEventListener("input", render);
+  $("cst").addEventListener("change", render);
+  render();
+  const nb = $("calc-new");
+  if (nb) nb.addEventListener("click", ()=>openCalc(null));
+};
+
+const CALC_FIELDS = [
+  {k:"Клієнт"}, {k:"Дата", d:1}, {k:"Напрямок", sel:["","Імпорт","Експорт","Транзит"]},
+  {k:"Маршрут"}, {k:"POL", label:"POL (порт завантаження)"}, {k:"POD", label:"POD (порт вивантаження)"},
+  {k:"Тип обладнання"}, {k:"Кількість"}, {k:"Вага"}, {k:"Інкотермс"},
+  {k:"УКТЗЕД"}, {k:"Готовність"}, {k:"Вантаж", ta:1},
+];
+const CINP = 'style="padding:7px 9px;border:1px solid var(--line);border-radius:7px;background:var(--paper);color:var(--ink);font-size:13px;width:100%;box-sizing:border-box;font-family:inherit"';
+
+function openCalc(r){
+  const isNew = !r;
+  const ro = (ROLE === "Перегляд");
+  CALC_CUR = r ? Object.assign({}, r) : {"Статус":"Чернетка","Валюта":"USD","Менеджер":UNAME,
+    "Дата": new Date().toISOString().slice(0,10), "Позиції": linesToRaw(CALC_SEED)};
+  const c = CALC_CUR;
+  $("calc-title").textContent = isNew ? "🧮 Нова калькуляція" : ("🧮 " + (c["Номер"]||"") + " · " + (c["Клієнт"]||""));
+  $("calc-body").innerHTML = `
+    <div style="margin-bottom:10px">
+      <div style="font-weight:600;font-size:13.5px;margin-bottom:5px">Запит клієнта</div>
+      <textarea id="c-req" rows="5" ${CINP} placeholder="Встав сюди лист/повідомлення клієнта — система рознесе дані по полях нижче">${esc(c["Запит"]||"")}</textarea>
+      <div style="display:flex;gap:8px;margin-top:8px;align-items:center">
+        ${ro?"":'<button class="btn" id="c-parse">🪄 Рознести по полях</button>'}
+        <span class="sub" id="c-parse-res" style="margin:0"></span>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      ${CALC_FIELDS.map(f=>{
+        const v = c[f.k]||"";
+        const inp = f.sel ? `<select data-c="${f.k}" ${CINP}>${f.sel.map(o=>`<option${o===v?" selected":""}>${o}</option>`).join("")}</select>`
+          : f.ta ? `<textarea data-c="${f.k}" rows="2" ${CINP}>${esc(v)}</textarea>`
+          : `<input data-c="${f.k}" type="${f.d?"date":"text"}" value="${esc(v)}" ${CINP}>`;
+        return `<label style="${f.ta?"grid-column:1/-1;":""}font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:3px">${esc(f.label||f.k)}${inp}</label>`;
+      }).join("")}
+    </div>
+    <div style="margin-top:14px;border-top:1px solid var(--line);padding-top:10px">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="font-weight:600;font-size:13.5px">Позиції калькуляції</div>
+        <span style="flex:1"></span>
+        <label style="font-size:12px;color:var(--muted);display:flex;align-items:center;gap:5px">Валюта
+          <select id="c-cur" style="padding:4px 7px;border:1px solid var(--line);border-radius:6px;background:var(--paper);color:var(--ink);font-size:12.5px">
+            ${["USD","EUR","UAH"].map(x=>`<option${x===(c["Валюта"]||"USD")?" selected":""}>${x}</option>`).join("")}</select></label>
+        ${ro?"":'<button class="btn ghost" id="c-add" style="padding:4px 10px">＋ рядок</button>'}
+      </div>
+      <table style="margin-top:8px"><thead><tr><th>Послуга</th><th style="width:120px">Собівартість</th><th style="width:120px">Продаж</th><th style="width:34px"></th></tr></thead>
+        <tbody id="c-lines"></tbody></table>
+      <div id="c-tot" class="sub" style="margin-top:8px;font-size:13px"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px">
+      <label style="font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:3px">Статус
+        <select data-c="Статус" ${CINP}>${CALC_ST.map(s=>`<option${s===(c["Статус"]||"Чернетка")?" selected":""}>${s}</option>`).join("")}</select></label>
+      <label style="font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:3px">№ угоди (після імпорту в Експедитор)
+        <input data-c="Угода" type="text" value="${esc(c["Угода"]||"")}" ${CINP}></label>
+      <label style="grid-column:1/-1;font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:3px">Коментар
+        <textarea data-c="Коментар" rows="2" ${CINP}>${esc(c["Коментар"]||"")}</textarea></label>
+    </div>
+    <p class="sub" id="c-status" style="margin-top:8px"></p>`;
+
+  const linesBody = $("c-lines");
+  let lines = calcLines(c["Позиції"]);
+  if (!lines.length) lines = CALC_SEED.map(x=>x.slice());
+  const drawTotals = () => {
+    const t = calcTotals(lines), cur = $("c-cur").value;
+    const marg = t.sell ? Math.round(t.profit/t.sell*1000)/10 : 0;
+    $("c-tot").innerHTML = `Собівартість: <b>${money(t.cost,cur)}</b> · Продаж: <b>${money(t.sell,cur)}</b> · Прибуток: <b style="color:${t.profit<0?"#b91c1c":"inherit"}">${money(t.profit,cur)}</b>${t.sell?` · маржа ${marg}%`:""}`;
+  };
+  const drawLines = () => {
+    linesBody.innerHTML = lines.map((l,i)=>`<tr>
+      <td><input data-l="${i}" data-f="0" value="${esc(l[0])}" ${CINP}></td>
+      <td><input data-l="${i}" data-f="1" value="${esc(l[1])}" inputmode="decimal" ${CINP}></td>
+      <td><input data-l="${i}" data-f="2" value="${esc(l[2])}" inputmode="decimal" ${CINP}></td>
+      <td>${ro?"":`<button class="btn ghost c-del" data-i="${i}" style="padding:3px 8px" title="Видалити рядок">✕</button>`}</td></tr>`).join("");
+    linesBody.querySelectorAll("input").forEach(inp=>{
+      if (ro) inp.disabled = true;
+      inp.addEventListener("input", ()=>{ lines[+inp.dataset.l][+inp.dataset.f] = inp.value; drawTotals(); });
+    });
+    linesBody.querySelectorAll(".c-del").forEach(b=>b.addEventListener("click", ()=>{ lines.splice(+b.dataset.i,1); drawLines(); }));
+    drawTotals();
+  };
+  drawLines();
+  $("c-cur").addEventListener("change", drawTotals);
+  const addb = $("c-add");
+  if (addb) addb.addEventListener("click", ()=>{ lines.push(["","",""]); drawLines(); });
+  const pb = $("c-parse");
+  if (pb) pb.addEventListener("click", ()=>{
+    const got = parseRequest($("c-req").value);
+    const keys = Object.keys(got);
+    keys.forEach(k=>{
+      const el = $("calc-body").querySelector(`[data-c="${k}"]`);
+      if (el){ el.value = got[k]; el.style.background = "rgba(37,99,235,.08)"; }
+    });
+    $("c-parse-res").textContent = keys.length
+      ? "Впізнано полів: " + keys.length + " (" + keys.join(", ") + ") — перевір значення"
+      : "Нічого не впізнала — заповни поля вручну";
+  });
+  if (ro) $("calc-body").querySelectorAll("input,select,textarea").forEach(el=>el.disabled = true);
+
+  $("calc-save").style.display = ro ? "none" : "block";
+  $("calc-deal").style.display = (ro || isNew) ? "none" : "block";
+  $("calc-csv").style.display = isNew ? "none" : "block";
+  $("calc-save").onclick = async () => {
+    const body = {};
+    $("calc-body").querySelectorAll("[data-c]").forEach(el=>{ body[el.dataset.c] = el.value; });
+    const t = calcTotals(lines);
+    Object.assign(body, {"Запит": $("c-req").value, "Позиції": linesToRaw(lines), "Валюта": $("c-cur").value,
+      "Собівартість": t.cost, "Продаж": t.sell, "Прибуток": t.profit, "Менеджер": c["Менеджер"]||UNAME});
+    $("c-status").textContent = "⏳ Зберігаю…";
+    try{
+      if (isNew){
+        body["Номер"] = nextCalcNo(await calcRows());
+        await api(`/api/v2/tables/${T["Калькуляції"]}/records`, {method:"POST", body: JSON.stringify([body])});
+      } else {
+        body["Id"] = c.Id;
+        await api(`/api/v2/tables/${T["Калькуляції"]}/records`, {method:"PATCH", body: JSON.stringify([body])});
+      }
+      await calcRows(true);
+      $("calc-overlay").classList.remove("open");
+      toast("✅ Калькуляцію збережено");
+      go("calc");
+    } catch(e){ $("c-status").textContent = "⚠ Не вдалося зберегти (" + e.message + ")"; }
+  };
+  $("calc-csv").onclick = () => {
+    const body = {};
+    $("calc-body").querySelectorAll("[data-c]").forEach(el=>{ body[el.dataset.c] = el.value; });
+    const t = calcTotals(lines);
+    calcCsv(Object.assign({}, c, body, {"Позиції": linesToRaw(lines), "Валюта": $("c-cur").value,
+      "Собівартість": t.cost, "Продаж": t.sell, "Прибуток": t.profit}));
+    toast("📄 Файл вивантажено — завантаж його в Експедитор");
+  };
+  $("calc-deal").onclick = async () => {
+    const g = k => { const el = $("calc-body").querySelector(`[data-c="${k}"]`); return el ? el.value : (c[k]||""); };
+    const dealNo = prompt("№ угоди для диспетчеризації (з Експедитора, якщо вже присвоєний):", c["Угода"] || c["Номер"] || "");
+    if (dealNo === null) return;
+    $("c-status").textContent = "⏳ Створюю угоду…";
+    try{
+      const deal = {"Угода": dealNo, "Клієнт": g("Клієнт"), "Напрямок": g("Напрямок"), "Маршрут": g("Маршрут"),
+        "Тип обладнання": g("Тип обладнання"), "Кількість": g("Кількість"), "Статус": "Букінг",
+        "Менеджер": c["Менеджер"]||UNAME, "Коментар": "Створено з калькуляції " + (c["Номер"]||"")};
+      await api(`/api/v2/tables/${T["Диспетчеризація"]}/records`, {method:"POST", body: JSON.stringify([deal])});
+      await api(`/api/v2/tables/${T["Калькуляції"]}/records`, {method:"PATCH",
+        body: JSON.stringify([{Id: c.Id, "Угода": dealNo, "Статус": "Прийнято"}])});
+      DISP_CACHE = null; await calcRows(true);
+      $("c-status").textContent = "";
+      $("calc-overlay").classList.remove("open");
+      toast("✅ Угоду " + dealNo + " створено в диспетчеризації");
+      go("calc");
+    } catch(e){ $("c-status").textContent = "⚠ Не вдалося створити угоду (" + e.message + ")"; }
+  };
+  $("calc-overlay").classList.add("open");
+}
 
 PAGES.tasks = async () => {
   const rows = await loadAll(T["Задачі"]);
