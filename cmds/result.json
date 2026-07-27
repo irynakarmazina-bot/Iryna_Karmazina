@@ -1,7 +1,7 @@
 {
-  "stdout": "SIZE: 98295\nMPOA: 2\nUI 200\n",
+  "stdout": "SVC: active\nUI_SIZE: 99448\nAKT_OPT: 1\nTYPES: 9\nAKT_FILL: 238715\nUI 200\n",
   "stderr": "",
   "returncode": 0,
-  "id": "ui-v10b-0726",
-  "ts": "2026-07-26T15:18:09Z"
+  "id": "akt-deploy-0727",
+  "ts": "2026-07-27T09:04:12Z"
 }
