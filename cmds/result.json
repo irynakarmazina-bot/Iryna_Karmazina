@@ -1,7 +1,7 @@
 {
-  "stdout": "записів у Калькуляціях: 0\nколонки: [('Id', 'ID'), ('Номер', 'SingleLineText'), ('Дата', 'Date'), ('Клієнт', 'SingleLineText'), ('Статус', 'SingleLineText'), ('Напрямок', 'SingleLineText'), ('Маршрут', 'SingleLineText'), ('POL', 'SingleLineText'), ('POD', 'SingleLineText'), ('Тип обладнання', 'SingleLineText'), ('Кількість', 'SingleLineText'), ('Вантаж', 'LongText'), ('Вага', 'SingleLineText'), ('Інкотермс', 'SingleLineText'), ('УКТЗЕД', 'SingleLineText'), ('Готовність', 'SingleLineText'), ('Запит', 'LongText'), ('Позиції', 'LongText'), ('Собівартість', 'Decimal'), ('Продаж', 'Decimal'), ('Прибуток', 'Decimal'), ('Валюта', 'SingleLineText'), ('Менеджер', 'SingleLineText'), ('Угода', 'SingleLineText'), ('Коментар', 'LongText')]\n",
+  "stdout": "--- /api/v2/meta/bases/pbhr1qkpvx09z8m/users -> 200\n   v.p***@unitex.od.ua      | роль у базі: editor       | статус: активний\n   iry***@gmail.com         | роль у базі: owner        | статус: активний\n--- /api/v1/db/meta/projects/pbhr1qkpvx09z8m/users -> 200\n   v.p***@unitex.od.ua      | роль у базі: editor       | статус: активний\n   iry***@gmail.com         | роль у базі: owner        | статус: активний\n",
   "stderr": "",
   "returncode": 0,
-  "id": "calc-check-0727",
-  "ts": "2026-07-27T18:05:01Z"
+  "id": "perm-check-0727",
+  "ts": "2026-07-27T18:06:06Z"
 }
