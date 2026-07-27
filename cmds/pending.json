@@ -1,1 +1,1 @@
-{"id": "daily-script-0727", "cmd": "echo '=== /root/nocodb_deals_sync.py ==='; cat /root/nocodb_deals_sync.py | head -70; echo '=== заголовок deals_all.csv ==='; head -2 /root/unitex-finrep/computed/deals_all.csv 2>/dev/null || find /root/unitex-finrep -name 'deals_all.csv' -exec head -2 {} \;"}
+{"id": "daily2-0727", "cmd": "echo '=== nocodb_deals_sync.py ==='; sed -n '1,75p' /root/nocodb_deals_sync.py; echo '=== CSV ==='; ls /root/unitex-finrep/computed/deals_all.csv 2>/dev/null && head -2 /root/unitex-finrep/computed/deals_all.csv"}
