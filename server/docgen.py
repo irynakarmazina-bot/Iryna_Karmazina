@@ -266,6 +266,92 @@ def fill_ins(fields):
         fields["date_txt"] = date_dot(fields["date"])
     return fill_map("insurance.docx", INS_MAP, fields)
 
+
+# ── Акт наданих послуг (Certificate of Services Rendered), двомовний бланк ──
+def _uniq_cells(row):
+    out, seen = [], []
+    for c in row.cells:
+        if any(c._tc is x for x in seen): continue
+        seen.append(c._tc); out.append(c)
+    return out
+
+def _set_cell(cell, text):
+    set_para(cell.paragraphs[0], text)
+    for p in cell.paragraphs[1:]:
+        for r in p.runs: r.text = ""
+
+def parse_items(raw):
+    """Рядки виду 'опис | к-ть | ціна | сума' -> список позицій."""
+    rows = []
+    for ln in str(raw or "").split("\n"):
+        ln = ln.strip()
+        if not ln: continue
+        parts = [x.strip() for x in ln.split("|")]
+        while len(parts) < 4: parts.append("")
+        rows.append(parts[:4])
+    return rows
+
+def fill_akt(fields):
+    import copy
+    from docx.text.paragraph import Paragraph
+    d = docx.Document(os.path.join(TPL_DIR, "akt.docx"))
+    if fields.get("act_date") and "-" in str(fields.get("act_date")):
+        try:
+            dt = datetime.date.fromisoformat(fields["act_date"])
+            fields["act_date"] = dt.strftime("%B %-d, %Y")
+        except Exception:
+            pass
+    # шапка
+    hdr = _uniq_cells(d.tables[0].rows[0])[-1]
+    for p in hdr.paragraphs:
+        t = p.text.strip()
+        if t.startswith("No.:") and fields.get("act_no"):
+            set_para(p, "No.: %s" % fields["act_no"])
+        elif t.startswith("Date:") and fields.get("act_date"):
+            set_para(p, "Date: %s" % fields["act_date"])
+    # замовник
+    if fields.get("customer_block"):
+        cust = _uniq_cells(d.tables[1].rows[1])[-1]
+        for p in cust.paragraphs[1:]:
+            p._p.getparent().remove(p._p)
+        set_para(cust.paragraphs[0], fields["customer_block"])
+    # рядки реквізитів
+    for p in d.paragraphs:
+        t = p.text.strip()
+        if t.startswith("CONTRACT No:") and fields.get("contract"):
+            set_para(p, "CONTRACT No: %s" % fields["contract"])
+        elif t.startswith("CONTAINER") and fields.get("container"):
+            set_para(p, "CONTAINER No: %s" % fields["container"])
+        elif t.startswith("TO THE INVOICE No:") and fields.get("invoice_no"):
+            set_para(p, "TO THE INVOICE No: %s dd %s" % (fields["invoice_no"], fields.get("invoice_date", "")))
+    # позиції послуг
+    items = parse_items(fields.get("items"))
+    if items:
+        t = d.tables[2]
+        proto_tr = t.rows[1]._tr
+        last_tr = t.rows[-1]._tr
+        while len(t.rows) - 1 < len(items):
+            last_tr.addprevious(copy.deepcopy(proto_tr))
+        while len(t.rows) - 1 > len(items):
+            t._tbl.remove(t.rows[-2]._tr)
+        for ri, it in enumerate(items, start=1):
+            cells = _uniq_cells(t.rows[ri])
+            vals = [str(ri) if ri < len(items) else "%d." % ri] + it
+            for ci, v in enumerate(vals):
+                if ci < len(cells): _set_cell(cells[ci], v)
+    if fields.get("total"):
+        for row in d.tables[3].rows:
+            _set_cell(_uniq_cells(row)[-1], fields["total"])
+    if fields.get("amount_words"):
+        for p in d.paragraphs:
+            if p.text.strip().startswith("Amount in words"):
+                set_para(p, "Amount in words: %s" % fields["amount_words"])
+    # підпис замовника
+    srow = _uniq_cells(d.tables[4].rows[0])
+    if len(srow) > 1 and fields.get("customer_short"):
+        set_para(srow[-1].paragraphs[0], "For and on behalf of %s:" % fields["customer_short"])
+    buf = io.BytesIO(); d.save(buf); return buf.getvalue()
+
 def clean_fn(s): return re.sub(r'[\\/:*?"<>|]', "", str(s)).strip()
 
 TYPES = {
@@ -277,6 +363,7 @@ TYPES = {
   "insurance":   (fill_ins, lambda f: "Лист страхування %s" % f.get("container", "")),
   "maersk_poa":  (fill_mpoa, lambda f: "POA Maersk %s" % f.get("bl", "")),
   "maersk_loi":  (fill_mloi, lambda f: "LOI Maersk %s" % f.get("booking", "")),
+  "akt":         (fill_akt,  lambda f: "Akt %s %s" % (f.get("act_no", ""), f.get("customer_short", ""))),
 }
 
 def get_role(jwt):
