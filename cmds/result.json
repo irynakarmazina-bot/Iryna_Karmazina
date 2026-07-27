@@ -1,7 +1,7 @@
 {
-  "stdout": "розподіл: {'CMA CGM': 10, 'Maersk': 204, 'EMC': 2, 'MSC': 20, '(порожньо)': 23, 'HLC': 3, 'COSCO': 3}\n[('259', 'Maersk'), ('260', 'Maersk'), ('261', 'Maersk'), ('262', 'Maersk')]\n=== чи авторитетна лінія у щоденному скрипті ===\n66:        # лінія приходить з Експедитора і є авторитетною: виправляємо, навіть якщо вже заповнено\n67-        if o.get(\"Лінія\") and str(ex.get(\"Лінія\") or \"\").strip() != o[\"Лінія\"]:\n68-            patch[\"Лінія\"] = o[\"Лінія\"]\n30:LINE_MAP = {\"MAE\": \"Maersk\", \"MSC\": \"MSC\", \"CMA\": \"CMA CGM\"}\n31:def map_line(v):\n34:    return LINE_MAP.get(v, v)\n57:        \"Лінія\": map_line(line),\n",
+  "stdout": "записів у Калькуляціях: 0\nколонки: [('Id', 'ID'), ('Номер', 'SingleLineText'), ('Дата', 'Date'), ('Клієнт', 'SingleLineText'), ('Статус', 'SingleLineText'), ('Напрямок', 'SingleLineText'), ('Маршрут', 'SingleLineText'), ('POL', 'SingleLineText'), ('POD', 'SingleLineText'), ('Тип обладнання', 'SingleLineText'), ('Кількість', 'SingleLineText'), ('Вантаж', 'LongText'), ('Вага', 'SingleLineText'), ('Інкотермс', 'SingleLineText'), ('УКТЗЕД', 'SingleLineText'), ('Готовність', 'SingleLineText'), ('Запит', 'LongText'), ('Позиції', 'LongText'), ('Собівартість', 'Decimal'), ('Продаж', 'Decimal'), ('Прибуток', 'Decimal'), ('Валюта', 'SingleLineText'), ('Менеджер', 'SingleLineText'), ('Угода', 'SingleLineText'), ('Коментар', 'LongText')]\n",
   "stderr": "",
   "returncode": 0,
-  "id": "verify-lines-0727",
-  "ts": "2026-07-27T18:00:16Z"
+  "id": "calc-check-0727",
+  "ts": "2026-07-27T18:05:01Z"
 }
