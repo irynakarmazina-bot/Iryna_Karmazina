@@ -988,9 +988,13 @@ const fmtN = (v, dec=0) => {
 };
 async function fetchFin(name){
   const r = await fetch("/finrep-data?name="+name, {headers:{"xc-auth": JWT||""}});
-  const js = await r.json();
-  if (r.status === 403) throw new Error("доступ лише фінансовим ролям");
-  if (!r.ok) throw new Error(js.error||"помилка даних");
+  let js = {};
+  try { js = await r.json(); } catch(e){ js = {}; }
+  if (r.status === 403){
+    const who = js.role ? (" · сервер побачив роль: " + js.role) : "";
+    throw new Error((js.error || "доступ заборонено") + who);
+  }
+  if (!r.ok) throw new Error((js.error||"помилка даних") + " (HTTP " + r.status + ")");
   return js;
 }
 function refreshBar(mtime, onFresh){
