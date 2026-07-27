@@ -380,6 +380,7 @@
       <div style="font-weight:600;font-size:13.5px;margin-bottom:6px">📝 Сформувати документ</div>
       <select id="gen-type" class="inp" style="width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--paper);color:var(--ink);font-size:13.5px">
         <option value="">— оберіть бланк —</option>
+        <option value="akt">Акт наданих послуг (до інвойсу)</option>
         <option value="zayavka">Заявка на перевезення (додаток до договору)</option>
         <option value="zayavka_cma">Заявка CMA (agency haulage)</option>
         <option value="loi">LOI CMA (export)</option>
@@ -821,6 +822,18 @@ const GEN_FORMS = {
   {k:"cargo_nature",label:"Характер вантажу"},
   {k:"route",label:"Маршрут (звідки – куди)",v:r=>r["Маршрут"]},
   {k:"date",label:"Дата заявки",d:1,v:()=>todayISO()},
+ ],
+ akt: [
+  {k:"act_no",label:"№ акта"}, {k:"act_date",label:"Дата акта",d:1,v:()=>todayISO()},
+  {k:"invoice_no",label:"№ інвойсу"}, {k:"invoice_date",label:"Дата інвойсу (напр. July 8, 2026)"},
+  {k:"contract",label:"Договір (номер і дата, англ.)",ta:1,v:(r,c)=>c["Договір"]},
+  {k:"container",label:"Контейнер / авто",v:r=>joinNZ(r["Контейнер"],r["Номер авто"])},
+  {k:"customer_short",label:"Замовник (коротка назва)",v:r=>r["Клієнт"]},
+  {k:"customer_block",label:"Реквізити замовника (кожен рядок з нового рядка)",ta:1,
+    v:(r,c)=>joinNZ(c["Повна назва"]||r["Клієнт"], c["Адреса"]).replace(", ","\n")},
+  {k:"items",label:"Позиції послуг — по рядку на позицію: опис | к-ть | ціна | сума",ta:1},
+  {k:"total",label:"Разом (напр. 2700 €)"},
+  {k:"amount_words",label:"Сума прописом (англ.)"},
  ],
  maersk_poa: [
   {k:"bl",label:"Bill of Lading",v:r=>r["BL"]},
