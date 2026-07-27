@@ -1,7 +1,7 @@
 {
-  "stdout": "PATCHED OK\nactive\nбез токена -> HTTP 403\n--- лог після тесту без токена ---\n",
+  "stdout": "SIZE: 123643\nUI 200\n",
   "stderr": "",
-  "returncode": 1,
-  "id": "findata-diaglog-0727",
-  "ts": "2026-07-27T17:05:31Z"
+  "returncode": 0,
+  "id": "ui-v13-0727",
+  "ts": "2026-07-27T17:06:15Z"
 }
