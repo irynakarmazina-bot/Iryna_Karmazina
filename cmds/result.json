@@ -1,7 +1,7 @@
 {
-  "stdout": "--- /api/v2/meta/bases/pbhr1qkpvx09z8m/users -> 200\n   v.p***@unitex.od.ua      | роль у базі: editor       | статус: активний\n   iry***@gmail.com         | роль у базі: owner        | статус: активний\n--- /api/v1/db/meta/projects/pbhr1qkpvx09z8m/users -> 200\n   v.p***@unitex.od.ua      | роль у базі: editor       | статус: активний\n   iry***@gmail.com         | роль у базі: owner        | статус: активний\n",
+  "stdout": "FINDATA ВИПРАВЛЕНО\nfindata: active\nUI_SIZE: 124343\nбез токена -> HTTP 403\nз поганим токеном -> HTTP 401\nUI 200\n",
   "stderr": "",
   "returncode": 0,
-  "id": "perm-check-0727",
-  "ts": "2026-07-27T18:06:06Z"
+  "id": "fix-session-0727",
+  "ts": "2026-07-27T18:08:57Z"
 }
