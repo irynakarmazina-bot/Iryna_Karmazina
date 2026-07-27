@@ -450,8 +450,14 @@ async function api(path, opts={}){
   const h = Object.assign({"Content-Type":"application/json"}, opts.headers||{});
   if (JWT) h["xc-auth"] = JWT;
   const r = await fetch(path, Object.assign({}, opts, {headers:h}));
-  if (r.status === 401){ doLogout(); throw new Error("401"); }
-  return r.json();
+  if (r.status === 401){ doLogout(); throw new Error("сесія завершилась — увійди знову"); }
+  let js = null;
+  try { js = await r.json(); } catch(e){ js = null; }
+  if (!r.ok){
+    const m = (js && (js.msg || js.message || js.error)) || "";
+    throw new Error((typeof m === "string" && m ? m : "помилка сервера") + " (HTTP " + r.status + ")");
+  }
+  return js || {};
 }
 async function loadAll(table){
   let out = [], offset = 0;
@@ -1427,6 +1433,7 @@ function openCalc(r){
     const t = calcTotals(lines);
     Object.assign(body, {"Запит": $("c-req").value, "Позиції": linesToRaw(lines), "Валюта": $("c-cur").value,
       "Собівартість": t.cost, "Продаж": t.sell, "Прибуток": t.profit, "Менеджер": c["Менеджер"]||UNAME});
+    Object.keys(body).forEach(k=>{ if (body[k] === "" || body[k] === undefined) body[k] = null; });
     $("c-status").textContent = "⏳ Зберігаю…";
     try{
       if (isNew){
@@ -1437,6 +1444,8 @@ function openCalc(r){
         await api(`/api/v2/tables/${T["Калькуляції"]}/records`, {method:"PATCH", body: JSON.stringify([body])});
       }
       await calcRows(true);
+      const saved = (await calcRows()).some(x => String(x["Номер"]||"") === String(body["Номер"]||c["Номер"]||""));
+      if (!saved) throw new Error("сервер не повернув помилку, але запис у базі не з'явився");
       $("calc-overlay").classList.remove("open");
       toast("✅ Калькуляцію збережено");
       go("calc");
