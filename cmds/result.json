@@ -1,7 +1,7 @@
 {
-  "stdout": "SIZE: 123476\nCALC: 1\nPARSE: 2\nUI 200\n",
-  "stderr": "",
+  "stdout": "=== виклики list( ===\n      2 list(\"Document_НакладныеРасходы\"\n      1 list(\"Document_Счет\"\n      1 list(\"Document_Сделка\"\n      1 list(\"Document_РасходнаяНакладная\"\n      1 list(\"Catalog_ВидыРасходов\"\n      1 list(\".,;:/-!?\"\n=== файли движка ===\n__pycache__\nbuild_dashboard_data.py\nbuild_period_report.py\ncalendar_inputs.py\ncheck_odata.py\ncommon.py\nconsolidate.py\nfill_dashboard_values.py\nmonthly_series.py\nodata_client.py\nodata_ingest.py\nodata_maps.py\noverhead.py\nparse.py\npnl_cf.py\nrebuild_dashboard.py\nregisters.py\nretro_nwc.py\nupdate_all.py\nupdate_all_api.py\n",
+  "stderr": "grep: Invalid collation character\n",
   "returncode": 0,
-  "id": "calc-ui-0727",
-  "ts": "2026-07-27T12:16:32Z"
+  "id": "odata-entities-0727",
+  "ts": "2026-07-27T13:50:09Z"
 }
