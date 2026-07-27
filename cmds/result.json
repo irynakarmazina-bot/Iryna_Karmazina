@@ -1,7 +1,7 @@
 {
-  "stdout": "/api/v1/auth/user/me             -> 200\n/api/v2/auth/user/me             -> 404\n/api/v1/db/meta/projects         -> 401\n/api/v1/auth/user/signin         -> 404\n=== з довільним xc-auth ===\nHTTP 401\n{\"error\":\"ERR_AUTHENTICATION_REQUIRED\",\"message\":\"Authentication required - Token Expired. Please login again.\"}\n=== версія NocoDB ===\ncaddy:2-alpine\nnocodb/nocodb:latest\n",
+  "stdout": "=== файл vs запуск сервісу ===\nfindata.py змінено: 2026-07-26 12:22:37.584758172 +0300\nсервіс запущено: Sun 2026-07-26 12:22:38 EEST\n=== перезапуск ===\nactive\n=== перевірка без токена (має бути 403) ===\nHTTP 403 {\"error\": \"фінансові дані доступні лише фінансовим ролям\", \"role\": \"невідома\"}\n=== файли даних ===\n-rw-r--r-- 1 root root 19176 Jul 26 11:51 /root/unitex-finrep/computed/dashboard_data.json\n-rw-r--r-- 1 root root 35611 Jul 26 11:51 /root/unitex-finrep/computed/period_report_data.json\n",
   "stderr": "",
   "returncode": 0,
-  "id": "me-endpoint-0727",
-  "ts": "2026-07-27T17:03:35Z"
+  "id": "findata-restart-0727",
+  "ts": "2026-07-27T17:04:25Z"
 }
