@@ -1,7 +1,7 @@
 {
-  "stdout": "тип колонки Лінія: SingleSelect\nнаявні варіанти: ['Maersk', 'MSC', 'CMA CGM', 'Інша']\nпотрібні значення: ['CMA CGM', 'COSCO', 'EMC', 'HLC', 'MSC', 'Maersk']\nбракує варіантів: ['COSCO', 'EMC', 'HLC']\nдодавання варіантів: 200 {'id': 'm58xsjo6at01ohl', 'source_id': 'b4015ks2gscph03', 'base_id': 'pbhr1qkpvx09z8m', 'table_name': 'nc_bpfs___Диспетчеризація', 'title': 'Диспетчеризація', 'type': 'table', 'meta': None, 'schema': \nдо оновлення: 17\nОНОВЛЕНО: 17 | НЕ ВДАЛОСЯ: 0\n",
+  "stdout": "розподіл: {'CMA CGM': 10, 'Maersk': 204, 'EMC': 2, 'MSC': 20, '(порожньо)': 23, 'HLC': 3, 'COSCO': 3}\n[('259', 'Maersk'), ('260', 'Maersk'), ('261', 'Maersk'), ('262', 'Maersk')]\n=== чи авторитетна лінія у щоденному скрипті ===\n66:        # лінія приходить з Експедитора і є авторитетною: виправляємо, навіть якщо вже заповнено\n67-        if o.get(\"Лінія\") and str(ex.get(\"Лінія\") or \"\").strip() != o[\"Лінія\"]:\n68-            patch[\"Лінія\"] = o[\"Лінія\"]\n30:LINE_MAP = {\"MAE\": \"Maersk\", \"MSC\": \"MSC\", \"CMA\": \"CMA CGM\"}\n31:def map_line(v):\n34:    return LINE_MAP.get(v, v)\n57:        \"Лінія\": map_line(line),\n",
   "stderr": "",
   "returncode": 0,
-  "id": "fix-lines2-0727",
-  "ts": "2026-07-27T17:59:33Z"
+  "id": "verify-lines-0727",
+  "ts": "2026-07-27T18:00:16Z"
 }
