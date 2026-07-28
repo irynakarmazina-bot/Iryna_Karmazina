@@ -1,7 +1,7 @@
 {
-  "stdout": "",
-  "stderr": "Traceback (most recent call last):\n  File \"/tmp/ff.py\", line 34, in <module>\n    assert src.count(old4) == 1\n           ^^^^^^^^^^^^^^^^^^^^\nAssertionError\n",
-  "returncode": 1,
-  "id": "fix-session-0727",
-  "ts": "2026-07-28T03:04:24Z"
+  "stdout": "=== коли оновлювалися дані фінзвіту ===\n2026-07-27 21:06 /root/unitex-finrep/computed/calendar-report.json\n2026-07-27 21:06 /root/unitex-finrep/computed/dashboard_data.json\n2026-07-27 21:06 /root/unitex-finrep/computed/period_report_data.json\n2026-07-27 21:06 /root/unitex-finrep/computed/pnl_cf-report.json\n2026-07-27 21:06 /root/unitex-finrep/computed/reconciliation.json\n2026-07-27 21:06 /root/unitex-finrep/computed/registers-report.json\n2026-07-27 21:06 /root/unitex-finrep/computed/retro-report.json\n=== таймери/крони збирача ===\nWed 2026-07-29 07:45:00 EEST      20h Tue 2026-07-28 07:45:19 EEST  3h 20min ago nocodb-deals-sync.timer        nocodb-deals-sync.service\n=== останні рядки логу збирача ===\n=== чи є новий файл із залишками ===\ntotal 504\ndrwxr-xr-x  2 root root   4096 07-23 20:22 .\ndrwxr-xr-x 11 root root   4096 07-24 16:36 ..\n-rw-r--r--  1 root root  85158 07-27 21:06 ap_register.csv\n-rw-r--r--  1 root root  31076 07-27 21:06 ar_register.csv\n-rw-r--r--  1 root root   3355 07-27 21:06 calendar-report.json\n-rw-r--r--  1 root root   2355 07-27 21:06 calendar_incoming.csv\n-rw-r--r--  1 root root   9904 07-27 21:06 calendar_outgoing.csv\n-rw-r--r--  1 root root    246 07-27 21:06 calendar_pipeline.csv\n-rw-r--r--  1 root root 200866 07-27 21:06 cash_daily.csv\n-rw-r--r--  1 root root   8763 07-27 21:06 cashflow_monthly.csv\n-rw-r--r--  1 root root   5239 07-27 21:06 cashflow_weekly.csv\n-rw-r--r--  1 root root   1086 07-27 21:06 client_behavior.csv\n-rw-r--r--  1 root root    126 07-27 21:06 cogs_mapping.csv\n-rw-r--r--  1 root root  19656 07-27 21:06 dashboard_data.json\n-rw-r--r--  1 root root    660 07-27 21:06 equity.csv\n-rw-r--r--  1 root root    135 07-27 21:06 equity_registered_capital.csv\n-rw-r--r--  1 root root   1107 07-27 21:06 nwc_monthly.csv\n-rw-r--r--  1 root root  35611 07-27 21:06 period_report_data.json\n-rw-r--r--  1 root root   3518 07-27 21:06 pipeline_undated.csv\n",
+  "stderr": "",
+  "returncode": 0,
+  "id": "finrep-fresh-0728",
+  "ts": "2026-07-28T08:05:39Z"
 }
