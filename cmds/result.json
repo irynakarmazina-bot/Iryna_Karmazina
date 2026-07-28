@@ -1,7 +1,7 @@
 {
-  "stdout": "FINDATA ВИПРАВЛЕНО\nfindata: active\nUI_SIZE: 124343\nбез токена -> HTTP 403\nз поганим токеном -> HTTP 401\nUI 200\n",
-  "stderr": "",
-  "returncode": 0,
+  "stdout": "",
+  "stderr": "Traceback (most recent call last):\n  File \"/tmp/ff.py\", line 34, in <module>\n    assert src.count(old4) == 1\n           ^^^^^^^^^^^^^^^^^^^^\nAssertionError\n",
+  "returncode": 1,
   "id": "fix-session-0727",
-  "ts": "2026-07-27T18:08:57Z"
+  "ts": "2026-07-28T03:04:24Z"
 }
