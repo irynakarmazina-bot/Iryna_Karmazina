@@ -209,12 +209,24 @@
   .card h3{margin:0 0 4px;font-size:13px;color:var(--accent-ink);text-transform:uppercase;letter-spacing:.05em}
   .card .sub{color:var(--muted);font-size:12.5px;margin:0 0 14px}
 
-  .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px}
-  .tile{background:var(--tile-bg);border:1px solid var(--line);border-radius:var(--radius);padding:12px 16px;box-shadow:var(--shadow)}
+  .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:16px}
+  .tile{background:var(--tile-bg);border:1px solid var(--line);border-radius:16px;padding:16px 18px;
+    box-shadow:0 1px 2px rgba(16,24,40,.04),0 4px 12px rgba(16,24,40,.05);transition:box-shadow .15s,transform .15s}
+  .tile:hover{box-shadow:0 2px 4px rgba(16,24,40,.06),0 10px 24px rgba(16,24,40,.08);transform:translateY(-1px)}
   .tile.warn .val{color:var(--tile-warn-ink)}
-  .tile .lbl{font-size:12px;color:var(--ink-2)}
-  .tile .val{font-size:24px;font-weight:700;letter-spacing:-.3px;margin-top:3px}
-  .tile .delta{font-size:12.5px;margin-top:2px}
+  .tile .lbl{font-size:12.5px;color:var(--ink-2);display:flex;align-items:center;gap:9px;line-height:1.3}
+  .tile .val{font-size:29px;font-weight:700;letter-spacing:-.6px;margin-top:11px}
+  .tile .delta{font-size:12.5px;margin-top:3px;color:var(--muted)}
+  .ic{width:32px;height:32px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;flex:none}
+  .ic svg{width:17px;height:17px;stroke-width:1.9;fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round}
+  .ic-blue{background:#eef4ff;color:#2563eb} .ic-green{background:#e9f9ef;color:#12924f}
+  .ic-violet{background:#f2eeff;color:#7c3aed} .ic-amber{background:#fff5e6;color:#b45309}
+  .ic-red{background:#fdeeee;color:#c22b2b}   .ic-slate{background:#eef1f6;color:#475467}
+  :root[data-theme="dark"] .ic-blue{background:#16233f} :root[data-theme="dark"] .ic-green{background:#12281d}
+  :root[data-theme="dark"] .ic-violet{background:#231b3d} :root[data-theme="dark"] .ic-amber{background:#2e2311}
+  :root[data-theme="dark"] .ic-red{background:#331717} :root[data-theme="dark"] .ic-slate{background:#1e232c}
+  .chartbox{position:relative;height:250px}
+  .chartgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px}
   .delta.up{color:var(--good-text)} .delta.down{color:var(--crit-text)}
 
   /* pills */
@@ -424,6 +436,7 @@
 </div>
 <div class="toast" id="toast"></div>
 
+<script src="/chart.min.js"></script>
 <script>
 "use strict";
 const $ = id => document.getElementById(id);
@@ -551,6 +564,58 @@ function go(page){
   PAGES[page]().catch(e=>{ $("content").innerHTML = '<div class="note">⚠ Не вдалося завантажити дані ('+esc(e.message)+'). Спробуй оновити сторінку.</div>'; });
 }
 
+
+/* ===== іконки (як у фінзвіті): емодзі в картках замінюються на лінійні значки ===== */
+const ICONS = {
+  wallet:'<rect x="2.5" y="5.5" width="19" height="14" rx="3"/><path d="M2.5 10h19"/><circle cx="17.5" cy="14.5" r="1.2"/>',
+  users:'<circle cx="9" cy="8" r="3.2"/><path d="M2.8 20c0-3.4 2.8-5.4 6.2-5.4S15.2 16.6 15.2 20"/><path d="M16.5 5.2a3.2 3.2 0 0 1 0 5.6M17.5 14.9c2.3.5 3.9 2.2 3.9 5.1"/>',
+  truck:'<rect x="2" y="6.5" width="12" height="9.5" rx="1.6"/><path d="M14 10h3.6l2.9 3.1V16H14z"/><circle cx="7" cy="18" r="1.9"/><circle cx="17.5" cy="18" r="1.9"/>',
+  ship:'<path d="M4 17.5 2.8 12l9.2-3 9.2 3-1.2 5.5"/><path d="M12 9V5.5M8.6 5.5h6.8"/><path d="M2.5 19.5c1.6 0 1.6 1.4 3.2 1.4s1.6-1.4 3.2-1.4 1.6 1.4 3.2 1.4 1.6-1.4 3.2-1.4 1.6 1.4 3.2 1.4"/>',
+  calendar:'<rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/>',
+  shield:'<path d="M12 3l7.5 3v6c0 4.4-3 7.8-7.5 9-4.5-1.2-7.5-4.6-7.5-9V6z"/>',
+  layers:'<path d="M12 3 3 7.5 12 12l9-4.5z"/><path d="m3 12.5 9 4.5 9-4.5M3 17l9 4.5 9-4.5"/>',
+  alert:'<path d="M12 4.5 2.8 20h18.4z"/><path d="M12 10v4.2M12 17.2v.1"/>',
+  box:'<path d="M21 8.5 12 3.5 3 8.5v7L12 20.5l9-5z"/><path d="M3 8.5 12 13.5l9-5M12 13.5V20.5"/>',
+  cash:'<circle cx="12" cy="12" r="8.5"/><path d="M12 7.2v9.6M14.6 9.4c-.6-.8-1.6-1.1-2.6-1.1-1.5 0-2.6.8-2.6 2s1.1 1.7 2.6 2 2.6.8 2.6 2-1.1 2-2.6 2c-1.1 0-2.1-.4-2.6-1.1"/>',
+  chart:'<path d="M3.5 20.5h17"/><rect x="5" y="11" width="3.4" height="7" rx="1"/><rect x="10.3" y="6.5" width="3.4" height="11.5" rx="1"/><rect x="15.6" y="9" width="3.4" height="9" rx="1"/>',
+  doc:'<path d="M14 3H7a2.5 2.5 0 0 0-2.5 2.5v13A2.5 2.5 0 0 0 7 21h10a2.5 2.5 0 0 0 2.5-2.5V8.5z"/><path d="M14 3v5.5h5.5M8.5 13h7M8.5 17h5"/>',
+  check:'<circle cx="12" cy="12" r="8.5"/><path d="m8.4 12.2 2.5 2.5 4.7-4.9"/>',
+};
+const EMOJI_ICON = {
+  "📦":["box","blue"], "🌊":["ship","blue"], "🚢":["ship","blue"], "📅":["calendar","violet"],
+  "🚫":["alert","red"], "⚠️":["alert","amber"], "⚠":["alert","amber"],
+  "💳":["wallet","blue"], "📤":["users","amber"], "🧊":["truck","violet"], "🧮":["layers","red"],
+  "💰":["cash","green"], "📊":["chart","blue"], "👥":["users","green"], "✅":["check","green"],
+  "📚":["doc","violet"], "🔐":["shield","slate"], "📄":["doc","slate"], "🛡":["shield","violet"],
+};
+const EMO_RE = /^([\u203C-\u3299\u{1F000}-\u{1FAFF}\u2600-\u27BF][\uFE0F\u200D]*)\s*/u;
+function enhanceTiles(root){
+  (root || document).querySelectorAll(".tile .lbl").forEach(l=>{
+    if (l.dataset.ico) return;
+    const m = EMO_RE.exec(l.textContent.trim());
+    const key = m ? m[1].replace(/\uFE0F/g,"") : null;
+    const def = key && (EMOJI_ICON[key] || EMOJI_ICON[m[1]]);
+    l.dataset.ico = "1";
+    if (!def) return;
+    const rest = l.textContent.trim().replace(EMO_RE, "");
+    l.innerHTML = '<span class="ic ic-'+def[1]+'"><svg viewBox="0 0 24 24">'+ICONS[def[0]]+'</svg></span><span>'+esc(rest)+'</span>';
+  });
+}
+new MutationObserver(()=>enhanceTiles()).observe(document.body, {childList:true, subtree:true});
+
+/* ===== графіки (Chart.js з нашого сервера) ===== */
+const CH = {blue:"#2563eb", green:"#12924f", amber:"#e8a33d", red:"#c22b2b", violet:"#7c3aed", slate:"#94a3b8"};
+const CHARTS = {};
+function drawChart(id, cfg){
+  const el = document.getElementById(id);
+  if (!el || typeof Chart === "undefined") return;
+  if (CHARTS[id]) CHARTS[id].destroy();
+  const dark = document.documentElement.dataset.theme === "dark";
+  Chart.defaults.font.family = getComputedStyle(document.body).fontFamily;
+  Chart.defaults.color = dark ? "#94a3b8" : "#667085";
+  CHARTS[id] = new Chart(el, cfg);
+}
+
 /* ===== статуси ===== */
 const STATUSES = {
   "Букінг":"t-neutral","Стафіровка":"t-info","В порту відправлення":"t-info",
@@ -582,14 +647,45 @@ PAGES.dashboard = async () => {
   const overdue = active.filter(r=>{ const e=d(r["ETA"]); return e && e<today; })
     .sort((a,b)=>String(a["ETA"]).localeCompare(String(b["ETA"]))).slice(0,8);
   const scopeNote = cfg().scope!=="all" ? `<div class="note">👤 Показано лише твої угоди (${esc(UNAME)}).</div>` : "";
+
+  // розподіл по лініях
+  const byLine = {};
+  rows.forEach(r=>{ const l = String(r["Лінія"]||"").trim() || "Без лінії"; byLine[l] = (byLine[l]||0)+1; });
+  const lineNames = Object.keys(byLine).sort((a,b)=>byLine[b]-byLine[a]);
+  // прибуття по місяцях (останні 6)
+  const MON = ["січ","лют","бер","кві","тра","чер","лип","сер","вер","жов","лис","гру"];
+  const months = [];
+  for (let k=5; k>=0; k--){ const dt=new Date(today.getFullYear(), today.getMonth()-k, 1); months.push([dt.getFullYear(), dt.getMonth()]); }
+  const byMonth = months.map(([y,m])=> rows.filter(r=>{ const e=d(r["ETA"]); return e && e.getFullYear()===y && e.getMonth()===m; }).length);
+  // статуси
+  const byStatus = {};
+  active.forEach(r=>{ const s = r["Статус"] || "Без статусу"; byStatus[s] = (byStatus[s]||0)+1; });
+  const stNames = Object.keys(byStatus).sort((a,b)=>byStatus[b]-byStatus[a]);
+  const maxSt = Math.max(1, ...stNames.map(s=>byStatus[s]));
+
   $("content").innerHTML = `
     ${scopeNote}
     <div class="tiles">
-      <div class="tile"><div class="lbl">📦 Активні перевезення</div><div class="val">${active.length}</div><div class="delta">з ${rows.length} угод</div></div>
-      <div class="tile"><div class="lbl">🌊 В морі зараз</div><div class="val">${sea}</div></div>
-      <div class="tile"><div class="lbl">📅 Прибуття за 7 днів</div><div class="val">${week}</div></div>
+      <div class="tile"><div class="lbl">📦 Активні перевезення</div><div class="val">${active.length}</div><div class="delta">з ${rows.length} угод усього</div></div>
+      <div class="tile"><div class="lbl">🌊 В морі зараз</div><div class="val">${sea}</div><div class="delta">${active.length? Math.round(sea/active.length*100):0}% активних</div></div>
+      <div class="tile"><div class="lbl">📅 Прибуття за 7 днів</div><div class="val">${week}</div><div class="delta">потребують уваги</div></div>
       <div class="tile warn"><div class="lbl">🚫 Без BL (не трекаються)</div><div class="val">${noBL}</div><div class="delta">впиши BL — трекінг увімкнеться</div></div>
     </div>
+    <div class="chartgrid" style="margin-top:16px">
+      <div class="card"><h3>📊 Прибуття по місяцях</h3><p class="sub">кількість угод за датою ETA</p>
+        <div class="chartbox"><canvas id="ch-months"></canvas></div></div>
+      <div class="card"><h3>🚢 Розподіл по лініях</h3><p class="sub">усі угоди${cfg().scope!=="all"?" (твої)":""}</p>
+        <div class="chartbox"><canvas id="ch-lines"></canvas></div></div>
+    </div>
+    <div class="card"><h3>📈 Статуси активних перевезень</h3><p class="sub">де зараз вантажі</p>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-top:12px">
+        ${stNames.map(s=>`<div style="display:flex;align-items:center;gap:12px">
+          <div style="min-width:190px;font-size:13.5px">${stPill(s)}</div>
+          <div style="flex:1;background:var(--neutral-bg);border-radius:8px;height:10px;overflow:hidden">
+            <div style="width:${Math.round(byStatus[s]/maxSt*100)}%;height:100%;background:var(--accent);border-radius:8px"></div></div>
+          <b style="min-width:34px;text-align:right;font-size:14px">${byStatus[s]}</b></div>`).join("") ||
+          '<p class="sub">Активних перевезень немає.</p>'}
+      </div></div>
     <div class="card"><h3>📅 Найближчі прибуття</h3><p class="sub">активні угоди за датою ETA, від найближчої</p>
       <div class="tablewrap"><table>
         <thead><tr><th>Угода</th><th>Клієнт</th><th>Судно</th><th>Статус</th><th>ETA</th></tr></thead>
@@ -600,6 +696,24 @@ PAGES.dashboard = async () => {
         <thead><tr><th>Угода</th><th>Клієнт</th><th>Судно</th><th>Статус</th><th>ETA</th></tr></thead>
         <tbody>${overdue.map(fmtRow).join("") || '<tr><td colspan="5" class="cell-muted">Таких немає — все під контролем ✅</td></tr>'}</tbody>
       </table></div></div>`;
+
+  drawChart("ch-months", {
+    type:"bar",
+    data:{ labels: months.map(([y,m])=>MON[m]), datasets:[{ data: byMonth, backgroundColor: CH.blue,
+      borderRadius:7, maxBarThickness:46 }] },
+    options:{ maintainAspectRatio:false, plugins:{legend:{display:false}},
+      scales:{ y:{beginAtZero:true, ticks:{precision:0}, grid:{color:"rgba(148,163,184,.18)"}},
+               x:{grid:{display:false}} } }
+  });
+  drawChart("ch-lines", {
+    type:"doughnut",
+    data:{ labels: lineNames, datasets:[{ data: lineNames.map(l=>byLine[l]),
+      backgroundColor:[CH.blue, CH.green, CH.amber, CH.violet, CH.red, CH.slate, "#0ea5e9", "#f472b6"],
+      borderWidth:0, hoverOffset:6 }] },
+    options:{ maintainAspectRatio:false, cutout:"62%",
+      plugins:{ legend:{position:"right", labels:{boxWidth:10, boxHeight:10, usePointStyle:true, pointStyle:"circle", padding:12}} } }
+  });
+  enhanceTiles();
 };
 
 const FLAGS = ["Телекс","Т1","ДО","Документи","SI","Замитнення","Реліз"];
