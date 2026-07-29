@@ -720,7 +720,12 @@ const FLAGS = ["Телекс","Т1","ДО","Документи","SI","Замит
 PAGES.dispatch = async () => {
   DISP_CACHE = null;
   const all = scoped(await dispRows());
-  all.sort((a,b)=> (parseInt(b["Угода"])||0) - (parseInt(a["Угода"])||0));
+  // порядок: спершу ті, що в роботі (найближче ETA — вгорі), доставлені — в кінці
+  const _eta = r => { const m=/(\d{4})-(\d{2})-(\d{2})/.exec(String(r["ETA"]||"")); return m? (m[1]+m[2]+m[3]) : "99999999"; };
+  const _done = r => r["Статус"] === "Вантаж доставлено" ? 1 : 0;
+  all.sort((a,b)=> _done(a) - _done(b)
+      || _eta(a).localeCompare(_eta(b))
+      || (parseInt(b["Угода"])||0) - (parseInt(a["Угода"])||0));
   const logist = cfg().cols === "logist";
   const syncBtn = cfg().sync ? '<button class="btn" id="sync-btn">⟳ Оновити з Експедитора</button>' : "";
   const head = logist
