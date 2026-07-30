@@ -1,7 +1,7 @@
 {
-  "stdout": "=== чи взагалі підтримується параметр «коносамент» (беремо ЗАВІДОМО видимий номер) ===\n  carrierBookingReference    200, подій 2\n  transportDocumentReference 200, подій 4\n  billOfLadingNumber         HTTP 400\n  transportDocumentID        HTTP 400\n  documentID                 HTTP 400\n  bookingReference           HTTP 400\n=== ті самі параметри на номерах зі скріншотів ===\n  269554674 carrierBookingReference    HTTP 404\n  269554674 transportDocumentReference HTTP 404\n  269554674 billOfLadingNumber         HTTP 400\n  270493375 carrierBookingReference    HTTP 404\n  270493375 transportDocumentReference HTTP 404\n  270493375 billOfLadingNumber         HTTP 400\n=== найновіші (статус Букінг) ===\n  274389708 booking HTTP 404\n  274085325 booking HTTP 404\n",
+  "stdout": "BL 264900732: по букінгу 2, по коносаменту 4, разом унікальних 4\n   букінг     : 2026-01-07/PENA, 2026-01-07/RELS\n   коносамент : 2026-01-07/PENA, 2026-01-07/RELS, 2026-01-07/PENA, 2026-01-07/RELS\nBL 266155609: по букінгу 26, по коносаменту 28, разом унікальних 28\n   букінг     : 2026-02-16/DEPA/TRUCK, 2026-02-17/ARRI/TRUCK, 2026-02-20/DEPA/VESSEL/SOFIA EXPRESS, 2026-02-23/ARRI/VESSEL/SOFIA EXPRESS, 2026-03-04/DEPA/VESSEL/MAERSK NUBA, 2026-03-10/DEPA/RAIL, \n   коносамент : 2026-02-16/DEPA/TRUCK, 2026-02-17/ARRI/TRUCK, 2026-02-20/DEPA/VESSEL/SOFIA EXPRESS, 2026-02-23/ARRI/VESSEL/SOFIA EXPRESS, 2026-03-04/DEPA/VESSEL/MAERSK NUBA, 2026-03-10/DEPA/RAIL, \nконтейнер зі скріншота BSIU8155990: 0 подій\n",
   "stderr": "",
   "returncode": 0,
-  "id": "param-test-0730",
-  "ts": "2026-07-30T11:16:01Z"
+  "id": "compare-keys-0730",
+  "ts": "2026-07-30T11:16:56Z"
 }
