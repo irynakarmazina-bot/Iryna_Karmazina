@@ -1,1 +1,1 @@
-{"id": "maersk-drysum-0730", "cmd": "grep -v '^DRY' /root/direct-sync/maersk_dry.out | cut -c1-400"}
+{"id": "maersk-drysum2-0730", "cmd": "python3 -c \"\nfor ln in open('/root/direct-sync/maersk_dry.out',encoding='utf-8'):\n    if not ln.startswith('DRY'): print(ln.rstrip()[:350])\""}
