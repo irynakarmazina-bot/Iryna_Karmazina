@@ -1,7 +1,7 @@
 {
-  "stdout": "Removed \"/etc/systemd/system/timers.target.wants/nocodb-deals-sync.timer\".\nСТАРИЙ ТАЙМЕР: enabled=disabled active=inactive\nФАЙЛИ ЛИШИЛИСЬ: /etc/systemd/system/nocodb-deals-sync.service /etc/systemd/system/nocodb-deals-sync.timer /root/nocodb_deals_sync.py \nНАШІ ТАЙМЕРИ: 2 з 2\nУгод для трекінгу: 34 (усього в платформі 267)\nТокен Maersk отримано\n",
-  "stderr": "",
-  "returncode": 0,
-  "id": "disable-old-0730",
-  "ts": "2026-07-30T11:20:07Z"
+  "stdout": "Угод для трекінгу: 34 (усього в платформі 267)\nТокен Maersk отримано\nОновити угод: 4; без даних: 15; помилки: 0\nЗміни по колонках: Статус=3, Контейнер (лінія)=1, Звірка=1\nЯк знайшлись дані: букінг=1, коносамент=18\nDONE tracked=34 updated=4 nodata=15 api_errors=0 write_fails=0\nMAERSK_OK tracked=34 updated=4 nodata=15 api_errors=0 write_fails=0\n=== чи бачить сайтовий (не-приватний) ендпойнт Maersk наші 15 ===\n",
+  "stderr": "/bin/sh: 9: Bad substitution\n",
+  "returncode": 2,
+  "id": "site-probe-0730",
+  "ts": "2026-07-30T11:21:07Z"
 }
