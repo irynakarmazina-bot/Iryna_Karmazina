@@ -138,9 +138,9 @@ def maersk_token(env):
     return tok
 
 
-def maersk_events(env, token, bl, url=EVENTS_URL):
-    """Події по букінгу. Повертає (events|None, note)."""
-    q = urllib.parse.urlencode({"carrierBookingReference": bl})
+def maersk_events(env, token, value, param="carrierBookingReference", url=EVENTS_URL):
+    """Події по букінгу або по номеру контейнера. Повертає (events|None, note)."""
+    q = urllib.parse.urlencode({param: value})
     req = urllib.request.Request(url + "?" + q, headers={
         "Consumer-Key": env["MAERSK_CONSUMER_KEY"],
         "Authorization": "Bearer " + token,
@@ -293,15 +293,27 @@ def main():
     log("%sТокен Maersk отримано" % tag)
 
     patches, no_data, errors, changed_cols = [], [], [], {}
+    by_container = []
     for i, (bl, row) in enumerate(todo):
         if i:
             time.sleep(THROTTLE)
         events, note = maersk_events(env, token, bl)
+        if not events:
+            # запасні шляхи: по номеру контейнера, потім публічний ендпойнт
+            cont = str(row.get("Контейнер") or "").split(",")[0].strip()
+            if cont:
+                time.sleep(THROTTLE)
+                events, note2 = maersk_events(env, token, cont, "equipmentReference")
+                if events:
+                    by_container.append("%s→%s" % (bl, cont))
+                    note = note2
+            if not events:
+                time.sleep(THROTTLE)
+                events, note3 = maersk_events(env, token, bl, "carrierBookingReference", EVENTS_URL_PUBLIC)
+                note = note or note3
         if events is None:
-            events, note2 = maersk_events(env, token, bl, EVENTS_URL_PUBLIC)
-            if events is None:
-                (no_data if "404" in note else errors).append("%s(%s)" % (bl, note or note2))
-                continue
+            (no_data if "404" in str(note) else errors).append("%s(%s)" % (bl, note))
+            continue
         if not events:
             no_data.append("%s(порожньо)" % bl)
             continue
@@ -327,6 +339,8 @@ def main():
     if changed_cols:
         log("%sЗміни по колонках: %s" % (tag, ", ".join(
             "%s=%d" % (k, v) for k, v in sorted(changed_cols.items(), key=lambda x: -x[1]))))
+    if by_container:
+        log("%sЗнайдено по номеру контейнера (букінг Maersk не знає): %s" % (tag, ", ".join(by_container[:20])))
     if no_data:
         log("%sБез даних у Maersk: %s" % (tag, ", ".join(no_data[:20])))
     if errors:
