@@ -1,7 +1,7 @@
 {
-  "stdout": "SIZE: 133925\nSTICKY: 1\nUI 200\n=== автоматизація Маерска: останні запуски ===\nворкфлоу: [('CRM Дашборд (web)', 'активний'), ('ДЗ — обробка замовлень для CRM (Set, Split Out, Expressions, Filter, Code)', 'ВИКЛЮЧЕНИЙ'), ('Container Tracking — Maersk', 'ВИКЛЮЧЕНИЙ'), ('Container Tracking — Maersk (CRM)', 'активний'), ('CRM Клієнтська вітрина (web)', 'активний'), ('Нові угоди → майстер-таблиця (для Maersk-трекінгу)', 'активний')]\n   2026-07-30T04:50 success Нові угоди → майстер-таблиця (для Maersk-трекінгу)\n   2026-07-30T04:00 success Container Tracking — Maersk (CRM)\n   2026-07-29T09:25 success Нові угоди → майстер-таблиця (для Maersk-трекінгу)\n   2026-07-29T04:50 success Нові угоди → майстер-таблиця (для Maersk-трекінгу)\n   2026-07-29T04:00 success Container Tracking — Maersk (CRM)\n   2026-07-28T04:50 success Нові угоди → майстер-таблиця (для Maersk-трекінгу)\n   2026-07-28T04:00 success Container Tracking — Maersk (CRM)\n   2026-07-27T04:50 success Нові угоди → майстер-таблиця (для Maersk-трекінгу)\n",
+  "stdout": "Traceback (most recent call last):\n  File \"/tmp/fl2.py\", line 6, in <module>\n    print(\"угод отримано:\", len(rows))\n                            ^^^^^^^^^\nTypeError: object of type 'generator' has no len()\n",
   "stderr": "",
   "returncode": 0,
-  "id": "ui-v18-0729",
-  "ts": "2026-07-30T04:53:46Z"
+  "id": "deal-fields-0730",
+  "ts": "2026-07-30T07:26:25Z"
 }
