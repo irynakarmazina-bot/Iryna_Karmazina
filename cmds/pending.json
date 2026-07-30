@@ -1,1 +1,1 @@
-{"id": "maersk-drysum2-0730", "cmd": "python3 -c \"\nfor ln in open('/root/direct-sync/maersk_dry.out',encoding='utf-8'):\n    if not ln.startswith('DRY'): print(ln.rstrip()[:350])\""}
+{"id": "maersk-run-0730", "cmd": "cd /root/direct-sync && nohup /root/unitex-finrep/.venv/bin/python maersk_track_sync.py > /root/direct-sync/maersk_run.out 2>&1 &\nsleep 95; python3 -c \"\nfor ln in open('/root/direct-sync/maersk_run.out',encoding='utf-8'): print(ln.rstrip()[:300])\" | tail -8"}
