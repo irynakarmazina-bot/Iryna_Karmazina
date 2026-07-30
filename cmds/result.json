@@ -1,7 +1,7 @@
 {
-  "stdout": "Угод для трекінгу: 34 (усього в платформі 267)\nТокен Maersk отримано\nОновити угод: 19; без даних: 15; помилки: 0\nЗміни по колонках: Останнє оновлення=19, Статус=10, ETA=5, ETA порт (план)=4, Зміни ETA (історія)=2, Остання зміна=2, Контейнер (лінія)=1, Судно=1, Вояж=1\nDONE tracked=34 updated=19 nodata=15 api_errors=0 write_fails=0\nMAERSK_OK tracked=34 updated=19 nodata=15 api_errors=0 write_fails=0\nTIMER_MAERSK: enabled next=Fri 2026-07-31 07:00:00 EEST\n",
-  "stderr": "Created symlink /etc/systemd/system/timers.target.wants/maersk-track-sync.timer → /etc/systemd/system/maersk-track-sync.timer.\n",
+  "stdout": "TRIGGER: active\nBUTTON: {'status': 'ok', 'result': 'Угод з Експедитора (проведених): 266\nЗаписів у платформі: 267\nНових угод: 0, оновити наявних: 0\nНЕ чіпала (у платформі чужі значення): ETA=129, ETA порт (план)=52, Контейнер=4, Кількість=1\nDONE deals=266 new=0 updated=0 errors=0\nSYNC_OK deals=266 new=0 updated=0 errors=0 | трекінг Maersk запущено у фоні (ETA/судно оновляться за ~1 хв)'}\nMAERSK_LOG:\n2026-07-30 11:23:01 Токен Maersk отримано\n2026-07-30 11:23:56 Оновити угод: 19; без даних: 15; помилки: 0\n2026-07-30 11:23:56 Зміни по колонках: Останнє оновлення=19\n2026-07-30 11:23:57 DONE tracked=34 updated=19 nodata=15 api_errors=0 write_fails=0\n",
+  "stderr": "",
   "returncode": 0,
-  "id": "maersk-run2-0730",
-  "ts": "2026-07-30T08:21:49Z"
+  "id": "button-test-0730",
+  "ts": "2026-07-30T08:24:15Z"
 }
