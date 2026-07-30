@@ -1,7 +1,7 @@
 {
-  "stdout": "UI_PATCHED\nТАЙМЕРИ:\nFri 2026-07-31 07:00:00 EEST\nFri 2026-07-31 07:20:00 EEST\nтест кнопки запущено\n",
+  "stdout": "=== результат синхронної кнопки ===\nще виконується або немає файла: Expecting value: line 1 column 1 (char 0)\n=== пробую сайтові трекінги з сервера (як їх бачить браузер) ===\nMaersk сайт (наш 404-й BL) HTTP 403 | <HTML><HEAD> <TITLE>Access Denied</TITLE> </HEAD><BODY> <H1>Access Denied</H1>   You don't have permission to \nMaersk сайт (робочий BL)   HTTP 403 | <HTML><HEAD> <TITLE>Access Denied</TITLE> </HEAD><BODY> <H1>Access Denied</H1>   You don't have permission to \nMSC сайт API               HTTP 403 | <HTML><HEAD> <TITLE>Access Denied</TITLE> </HEAD><BODY> <H1>Access Denied</H1>   You don't have permission to \nCOSCO публічний API        200 | {\"code\":\"200\",\"message\":\"无数据\",\"data\":{\"content\":{\"transportationType3\":null,\"transportationType4\":null,\"cargoT\nCMA CGM сайт               HTTP 403 | {\"url\":\"https://geo.captcha-delivery.com/captcha/?initialCid=AHrlqAAAAAMAxpBbtxDE9vwAhtFeDA==&cid=8Uod_Hf~TT2C\nHapag сайт                 HTTP 403 | <!DOCTYPE html> <html lang=\"en\" style=\"visibility:visible !important;\"> <head> <title>Security Check - Hapag-L\n",
   "stderr": "",
   "returncode": 0,
-  "id": "deploy-syncbtn-0730",
-  "ts": "2026-07-30T11:22:43Z"
+  "id": "site-probe2-0730",
+  "ts": "2026-07-30T11:23:12Z"
 }
