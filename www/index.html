@@ -692,6 +692,14 @@ PAGES.dashboard = async () => {
   active.forEach(r=>{ const s = r["Статус"] || "Без статусу"; byStatus[s] = (byStatus[s]||0)+1; });
   const stNames = Object.keys(byStatus).sort((a,b)=>byStatus[b]-byStatus[a]);
   const maxSt = Math.max(1, ...stNames.map(s=>byStatus[s]));
+  // розподіл по видах перевезення і по типу завантаження
+  const byMode = {}, byLoad = {};
+  rows.forEach(r=>{ const v=String(r["Вид перевезення"]||"").trim(); if(v) byMode[v]=(byMode[v]||0)+1; });
+  rows.forEach(r=>{ const v=String(r["FCL/LCL"]||"").trim(); if(v) byLoad[v]=(byLoad[v]||0)+1; });
+  const modeNames = Object.keys(byMode).sort((a,b)=>byMode[b]-byMode[a]);
+  const loadNames = Object.keys(byLoad).sort((a,b)=>byLoad[b]-byLoad[a]);
+  const noMode = rows.filter(r=>!String(r["Вид перевезення"]||"").trim()).length;
+  const maxMode = Math.max(1, ...modeNames.map(m=>byMode[m]));
 
   $("content").innerHTML = `
     ${scopeNote}
@@ -706,6 +714,23 @@ PAGES.dashboard = async () => {
         <div class="chartbox"><canvas id="ch-months"></canvas></div></div>
       <div class="card"><h3>🚢 Розподіл по лініях</h3><p class="sub">усі угоди${cfg().scope!=="all"?" (твої)":""}</p>
         <div class="chartbox"><canvas id="ch-lines"></canvas></div></div>
+    </div>
+    <div class="chartgrid" style="margin-top:16px">
+      <div class="card"><h3>🚚 Розподіл по видах перевезення</h3>
+        <p class="sub">${modeNames.length? `усі угоди${noMode? `; без виду перевезення — ${noMode}`:""}` : "поле «Вид перевезення» ще не заповнене"}</p>
+        ${modeNames.length? '<div class="chartbox"><canvas id="ch-modes"></canvas></div>' :
+          '<p class="sub" style="margin-top:12px">Заповни «Вид перевезення» в угодах — і розподіл з’явиться тут.</p>'}
+        ${modeNames.length? `<div style="display:flex;flex-direction:column;gap:8px;margin-top:12px">
+          ${modeNames.map(m=>`<div style="display:flex;align-items:center;gap:12px">
+            <div style="min-width:190px;font-size:13.5px">${esc(m)}</div>
+            <div style="flex:1;background:var(--neutral-bg);border-radius:8px;height:10px;overflow:hidden">
+              <div style="width:${Math.round(byMode[m]/maxMode*100)}%;height:100%;background:var(--accent);border-radius:8px"></div></div>
+            <b style="min-width:34px;text-align:right;font-size:14px">${byMode[m]}</b></div>`).join("")}
+        </div>`:""}</div>
+      <div class="card"><h3>📦 FCL / LCL / FTL / LTL</h3>
+        <p class="sub">${loadNames.length? "позначка завантаження" : "позначка ще не заповнена"}</p>
+        ${loadNames.length? '<div class="chartbox"><canvas id="ch-loads"></canvas></div>' :
+          '<p class="sub" style="margin-top:12px">Постав FCL/LCL/FTL/LTL в угодах — з’явиться розподіл.</p>'}</div>
     </div>
     <div class="card"><h3>📈 Статуси активних перевезень</h3><p class="sub">де зараз вантажі</p>
       <div style="display:flex;flex-direction:column;gap:10px;margin-top:12px">
@@ -742,6 +767,21 @@ PAGES.dashboard = async () => {
       borderWidth:0, hoverOffset:6 }] },
     options:{ maintainAspectRatio:false, cutout:"62%",
       plugins:{ legend:{position:"right", labels:{boxWidth:10, boxHeight:10, usePointStyle:true, pointStyle:"circle", padding:12}} } }
+  });
+  if (modeNames.length) drawChart("ch-modes", {
+    type:"doughnut",
+    data:{ labels: modeNames, datasets:[{ data: modeNames.map(m=>byMode[m]),
+      backgroundColor:[CH.blue, CH.green, CH.amber, CH.violet, CH.red, CH.slate, "#0ea5e9", "#f472b6", "#14b8a6", "#a3e635"],
+      borderWidth:0, hoverOffset:6 }] },
+    options:{ maintainAspectRatio:false, cutout:"62%",
+      plugins:{ legend:{position:"right", labels:{boxWidth:10, boxHeight:10, usePointStyle:true, pointStyle:"circle", padding:10}} } }
+  });
+  if (loadNames.length) drawChart("ch-loads", {
+    type:"bar",
+    data:{ labels: loadNames, datasets:[{ data: loadNames.map(l=>byLoad[l]), backgroundColor: CH.green,
+      borderRadius:7, maxBarThickness:46 }] },
+    options:{ maintainAspectRatio:false, plugins:{legend:{display:false}},
+      scales:{ y:{beginAtZero:true, ticks:{precision:0}, grid:{color:"rgba(148,163,184,.18)"}}, x:{grid:{display:false}} } }
   });
   enhanceTiles();
 };
@@ -1088,7 +1128,7 @@ $("gen-btn").addEventListener("click", async ()=>{
 });
 
 const CARD_GROUPS = [
-  ["Основне", ["Угода","Напрямок","Клієнт","Лінія","Тип","Перевізник","Агент","Маршрут","BL","Контейнер","Вантаж","Тип обладнання","Кількість","Вивіз (Carrier/Merchant)","Сухий порт","Адреса розмитнення"]],
+  ["Основне", ["Угода","Напрямок","Клієнт","Лінія","Вид перевезення","FCL/LCL","Тип","Перевізник","Агент","Маршрут","BL","Контейнер","Вантаж","Тип обладнання","Кількість","Вивіз (Carrier/Merchant)","Сухий порт","Адреса розмитнення"]],
   ["Море", ["Судно","Вояж","Контейнер (лінія)","Звірка","Статус","ETA","ETD (план)","ETD (факт)","ETA порт (план)","ETA порт (факт)","Зміни ETA (історія)","Остання зміна","Останнє оновлення"]],
   ["Дати на землі", ["Подача авто (план)","Подача авто (факт)","Port Cut Off","Гейт ін","Вивантаження в порту (факт)","Постановка/завантаження (план)","Постановка/завантаження (факт)","Перетин кордону (факт)","Планова до клієнта (план)","Планова до клієнта (факт)","Вивантаження у отримувача (факт)"]],
   ["Авто і документи", ["Номер авто","Номер ЦМР","Водій (ПІБ)","Водій (телефон)","Телекс","Т1","ДО","Документи","SI","Замитнення","Реліз"]],
