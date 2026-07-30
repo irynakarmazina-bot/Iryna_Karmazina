@@ -250,6 +250,10 @@
 
   /* table */
   .tablewrap{overflow-x:auto}
+  .dispscroll{max-height:calc(100vh - 300px);min-height:340px;overflow:auto}
+  .dispscroll thead th{position:sticky;top:0;z-index:3;background:var(--surface);
+    box-shadow:inset 0 -1px 0 var(--line)}
+  tr.done td{color:var(--muted)}
   table{border-collapse:collapse;width:100%;font-size:13.5px}
   th{font-size:12px;letter-spacing:0;color:var(--muted);
     background:transparent;text-align:left;font-weight:600;padding:9px 10px;white-space:nowrap;
@@ -720,12 +724,10 @@ const FLAGS = ["Телекс","Т1","ДО","Документи","SI","Замит
 PAGES.dispatch = async () => {
   DISP_CACHE = null;
   const all = scoped(await dispRows());
-  // порядок: спершу ті, що в роботі (найближче ETA — вгорі), доставлені — в кінці
+  // хронологія за ETA: доставлені лишаються вище, таблиця сама відкривається на угодах у роботі
   const _eta = r => { const m=/(\d{4})-(\d{2})-(\d{2})/.exec(String(r["ETA"]||"")); return m? (m[1]+m[2]+m[3]) : "99999999"; };
-  const _done = r => r["Статус"] === "Вантаж доставлено" ? 1 : 0;
-  all.sort((a,b)=> _done(a) - _done(b)
-      || _eta(a).localeCompare(_eta(b))
-      || (parseInt(b["Угода"])||0) - (parseInt(a["Угода"])||0));
+  const _done = r => r["Статус"] === "Вантаж доставлено";
+  all.sort((a,b)=> _eta(a).localeCompare(_eta(b)) || (parseInt(a["Угода"])||0) - (parseInt(b["Угода"])||0));
   const logist = cfg().cols === "logist";
   const syncBtn = cfg().sync ? '<button class="btn" id="sync-btn">⟳ Оновити з Експедитора</button>' : "";
   const head = logist
@@ -745,7 +747,7 @@ PAGES.dispatch = async () => {
         <select id="linef"><option value="">Усі лінії</option><option>Maersk</option><option>MSC</option><option>CMA CGM</option><option>Інша</option></select>
         <select id="clif"><option value="">Усі клієнти</option>${[...new Set(all.map(r=>String(r["Клієнт"]||"").trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"uk")).map(c=>`<option>${esc(c)}</option>`).join("")}</select>
       </div>
-      <div class="tablewrap"><table>
+      <div class="tablewrap dispscroll" id="dscroll"><table>
         <thead><tr>${head}</tr></thead>
         <tbody id="drows"></tbody></table></div>
     </div>`;
@@ -757,14 +759,14 @@ PAGES.dispatch = async () => {
       (!dir || r["Напрямок"]===dir) && (!line || r["Лінія"]===line) && (!cli || String(r["Клієнт"]||"").trim()===cli) &&
       (!q || [r["Угода"],r["Клієнт"],r["BL"],r["Контейнер"],r["Судно"],r["Номер авто"],r["Водій (ПІБ)"]].join(" ").toLowerCase().includes(q)));
     $("drows").innerHTML = list.length ? list.map(r=> logist ? `
-      <tr data-id="${r.Id}" style="cursor:pointer">
+      <tr data-id="${r.Id}" class="${r["Статус"]==='Вантаж доставлено'?'done':''}" style="cursor:pointer">
         <td class="mono"><b>${esc(r["Угода"])}</b></td><td>${esc(r["Клієнт"]||"—")}</td>
         <td class="mono">${esc(r["Контейнер"]||"—")}</td><td>${stPill(r["Статус"])}</td>
         <td class="mono">${esc(r["Номер авто"]||"—")}</td><td>${esc(r["Водій (ПІБ)"]||"—")}</td>
         <td class="mono">${esc(r["Водій (телефон)"]||"—")}</td><td class="mono">${esc(r["Перетин кордону (факт)"]||"—")}</td>
         <td>${docBtn(r)}</td>
       </tr>` : `
-      <tr data-id="${r.Id}" style="cursor:pointer">
+      <tr data-id="${r.Id}" class="${r["Статус"]==='Вантаж доставлено'?'done':''}" style="cursor:pointer">
         <td class="mono"><b>${esc(r["Угода"])}</b></td>
         <td>${r["Напрямок"]?`<span class="dirchip ${r["Напрямок"]==="Імпорт"?"imp":"exp"}">${r["Напрямок"]==="Імпорт"?"ІМП":(r["Напрямок"]==="Експорт"?"ЕКС":"ТРН")}</span>`:""}</td>
         <td>${esc(r["Клієнт"]||"—")}</td>
@@ -778,6 +780,12 @@ PAGES.dispatch = async () => {
         <td>${docBtn(r)}</td>
       </tr>`).join("") : `<tr><td colspan="10" class="cell-muted">Нічого не знайдено.</td></tr>`;
     $("drows").querySelectorAll("tr[data-id]").forEach(tr=>tr.addEventListener("click",()=>openRow(all.find(x=>String(x.Id)===tr.dataset.id))));
+    // таблиця відкривається на першій угоді в роботі (доставлені лишаються вище, за шапкою)
+    const box = $("dscroll");
+    if (box){
+      const firstOpen = $("drows").querySelector("tr:not(.done)");
+      box.scrollTop = firstOpen ? Math.max(0, firstOpen.offsetTop - 2) : 0;
+    }
     $("drows").querySelectorAll(".docs-btn").forEach(b=>b.addEventListener("click",(e)=>{ e.stopPropagation(); openDocs(all.find(x=>String(x.Id)===b.dataset.doc)); }));
   };
   ["q","dirf","stf","linef","clif"].forEach(id=>$(id).addEventListener(id==="q"?"input":"change",draw));
