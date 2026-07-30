@@ -1,1 +1,1 @@
-{"id": "maersk-dryfull-0730", "cmd": "cd /root/direct-sync && nohup /root/unitex-finrep/.venv/bin/python maersk_track_sync.py --dry-run > /root/direct-sync/maersk_dry.out 2>&1 &\nsleep 100; tail -6 /root/direct-sync/maersk_dry.out"}
+{"id": "maersk-drysum-0730", "cmd": "grep -v '^DRY' /root/direct-sync/maersk_dry.out | cut -c1-400"}
