@@ -1,0 +1,10 @@
+[Unit]
+Description=Пряма синхронізація Експедитор (OData) -> платформа (NocoDB Диспетчеризація)
+After=network.target
+
+[Service]
+Type=oneshot
+User=root
+WorkingDirectory=/root/direct-sync
+ExecStart=/root/unitex-finrep/.venv/bin/python /root/direct-sync/expeditor_direct_sync.py
+TimeoutStartSec=600
