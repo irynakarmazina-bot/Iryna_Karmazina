@@ -1,7 +1,7 @@
 {
-  "stdout": "LIVE до: bd16e3aa70b7b5462406ef35d6656cae\nLIVE після: 1160d226d546199a67458901cac9f74a\nREPO:       1160d226d546199a67458901cac9f74a\nплитки клікабельні: 5, пігулка: 3\nUI 200\n",
+  "stdout": "LIVE до: 1160d226d546199a67458901cac9f74a\nLIVE після: 0d63bd86c59ae2e91d738029a97c1c98\nREPO:       0d63bd86c59ae2e91d738029a97c1c98\nSTAGE_RANK у файлі: 2\nUI 200\n",
   "stderr": "",
   "returncode": 0,
-  "id": "deploy-tiles-0730",
-  "ts": "2026-07-30T16:37:21Z"
+  "id": "deploy-sort2-0730",
+  "ts": "2026-07-30T19:28:04Z"
 }
