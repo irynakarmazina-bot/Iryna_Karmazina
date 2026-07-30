@@ -1,7 +1,7 @@
 {
-  "stdout": "ПРАЦЮЄ 19: напрямок {'Імпорт': 18, 'Експорт': 1}\nНЕ ПРАЦЮЄ 15: напрямок {'Експорт': 5, 'Імпорт': 10}\nклієнти НЕ ПРАЦЮЄ: {'ГРАНД МАРИН ООО': 5, 'Мірандор': 10}\nклієнти ПРАЦЮЄ: {'Громикс / Миксен': 4, 'Олео Захід': 4, 'Домдах Domdax': 1, 'ОТІС ТАРДА ООО': 1, 'Мірандор': 3, 'Кампус Коттон Клаб': 2, 'Сидун': 2, 'ГРАНД МАРИН ООО': 1, 'Суперповерхность /': 1}\n\nПРИКЛАД РОБОЧОЇ (угода 21, BL 264900732, напрямок Імпорт) — ідентифікатори в подіях:\n{\"eventID\": \"14188735726\", \"eventType\": \"SHIPMENT\", \"eventDateTime\": \"2026-01-07T09:43:48Z\", \"eventCreatedDateTime\": \"2026-01-07T09:43:48Z\", \"eventClassifierCode\": \"ACT\", \"shipmentEventTypeCode\": \"PENA\", \"documentTypeCode\": \"SRM\", \"documentID\": \"264900732\"}\nreferences = [{\"referenceType\": \"EQ\", \"referenceValue\": \"TGBU9665867\"}, {\"referenceType\": \"CR\", \"referenceValue\": \"264900732\"}]\n",
+  "stdout": "=== чи взагалі підтримується параметр «коносамент» (беремо ЗАВІДОМО видимий номер) ===\n  carrierBookingReference    200, подій 2\n  transportDocumentReference 200, подій 4\n  billOfLadingNumber         HTTP 400\n  transportDocumentID        HTTP 400\n  documentID                 HTTP 400\n  bookingReference           HTTP 400\n=== ті самі параметри на номерах зі скріншотів ===\n  269554674 carrierBookingReference    HTTP 404\n  269554674 transportDocumentReference HTTP 404\n  269554674 billOfLadingNumber         HTTP 400\n  270493375 carrierBookingReference    HTTP 404\n  270493375 transportDocumentReference HTTP 404\n  270493375 billOfLadingNumber         HTTP 400\n=== найновіші (статус Букінг) ===\n  274389708 booking HTTP 404\n  274085325 booking HTTP 404\n",
   "stderr": "",
   "returncode": 0,
-  "id": "why404-0730",
-  "ts": "2026-07-30T11:14:54Z"
+  "id": "param-test-0730",
+  "ts": "2026-07-30T11:16:01Z"
 }
