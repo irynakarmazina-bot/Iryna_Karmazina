@@ -1,7 +1,7 @@
 {
-  "stdout": "Оновити: 2; без даних: 0\nЗміни по колонках: Судно=2, Вояж=2, Контейнер (лінія)=2, Контейнер=2, ETD (план)=2, ETD (факт)=2, ETA порт (факт)=2, Вивантаження в порту (факт)=2, Статус=2, Останнє оновлення=2\nDONE tracked=2 updated=2 nodata=0 write_fails=0\nCOSCO_OK tracked=2 updated=2 nodata=0 write_fails=0\nРОЗКЛАД:\nFri 2026-07-31 07:00:00 EEST\nFri 2026-07-31 07:20:00 EEST\nFri 2026-07-31 07:25:00 cosco-track-sync.service\nтест кнопки запущено (перевіримо наступною командою)\n",
+  "stdout": "--- /root/direct-sync/button_test2.json 0\n   Expecting value: line 1 column 1 (char 0)\n--- /root/direct-sync/button_test.json 0\n   Expecting value: line 1 column 1 (char 0)\nerr: \n",
   "stderr": "",
   "returncode": 0,
-  "id": "cosco-deploy-0730",
-  "ts": "2026-07-30T11:26:59Z"
+  "id": "button-check-0730",
+  "ts": "2026-07-30T11:28:08Z"
 }
