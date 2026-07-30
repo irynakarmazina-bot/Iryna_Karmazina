@@ -6,12 +6,22 @@
 (вимога користувачки 30.07.2026). Майстер-таблицю не читає і не пише.
 
 Політика запису:
-  * поля, які Експедитор веде сам, — перезаписуються (він авторитетне джерело);
+  * ДОВІДНИКОВІ поля (Клієнт, Напрямок, Лінія, Менеджер, Агент) — Експедитор
+    авторитетний, перезаписуються завжди;
+  * РЕШТА (BL, Контейнер, Кількість, дати, Коментар) — тільки якщо в платформі
+    порожньо АБО там стоїть значення, яке цей самий скрипт записав минулого разу
+    (файл станів written_state.json). Тобто чужі дані — трекінг Maersk, ручні
+    правки — ніколи не затираються; конфлікти лише пишуться в лог;
   * порожнє значення в Експедиторі НІКОЛИ не стирає заповнене в платформі;
   * поля, яких в Експедиторі НЕМАЄ (Статус, Судно, Вояж, Маршрут, Тип, Перевізник,
     авто/водій/ЦМР, чекбокси документів, коментарі клієнту, «Зміни ETA») — не чіпає;
   * нові угоди створює, наявні знаходить за номером угоди;
   * нічого не видаляє.
+
+Чому так з ETA: перевірка 30.07.2026 показала, що в 126 угодах ETA в платформі
+(з трекінгу Maersk через майстер-таблицю) СВІЖІША за ETA в Експедиторі — сліпе
+перезаписування відкотило б реальні затримки назад. Жива океанська ETA має
+приходити з API Maersk окремою автоматизацією.
 
 Запуск:  python3 /root/direct-sync/expeditor_direct_sync.py [--dry-run] [--limit N]
 Лог:     /root/direct-sync/sync.log
@@ -29,7 +39,7 @@ import urllib.request
 FINREP = "/root/unitex-finrep"
 WORKDIR = "/root/direct-sync"
 NAMES = os.path.join(WORKDIR, "names.json")
-ETA_STATE = os.path.join(WORKDIR, "eta_state.json")
+STATE = os.path.join(WORKDIR, "written_state.json")   # що саме цей скрипт записав минулого разу
 LOG = os.path.join(WORKDIR, "sync.log")
 NAMES_TTL = 6 * 3600
 
@@ -60,8 +70,8 @@ TEXT_FIELDS = [
     ("BL", "Коносамент"),
     ("Контейнер", "СписокКонтейнеров"),
 ]
-# Колонки, які заповнюємо ЛИШЕ якщо в платформі порожньо (там може бути ручний текст)
-FILL_IF_EMPTY = {"Коментар"}
+# Довідникові колонки: Експедитор — єдине джерело правди, пишемо завжди
+AUTHORITATIVE = {"Клієнт", "Напрямок", "Лінія", "Менеджер", "Агент"}
 
 WRITTEN_COLS = (
     ["Клієнт", "Напрямок", "Лінія", "Менеджер", "Агент", "Кількість", "Коментар"]
@@ -300,21 +310,23 @@ def main():
         by_num.setdefault(num(r.get("Угода")), r)
     log("%sЗаписів у платформі: %d" % (tag, len(rows)))
 
-    eta_state = {}
-    if os.path.exists(ETA_STATE):
+    state = {}
+    if os.path.exists(STATE):
         try:
-            eta_state = json.load(open(ETA_STATE, encoding="utf-8"))
+            state = json.load(open(STATE, encoding="utf-8"))
         except Exception:  # noqa: BLE001
-            eta_state = {}
-    first_run = not eta_state
+            state = {}
+    date_cols = {c for c, _ in DATE_FIELDS}
 
     to_create, to_update, eta_changes = [], [], []
-    field_hits = {}
+    field_hits, conflicts = {}, {}
+    new_state = {}
     for d in deals:
         n = num(d.get("Number"))
         if not n:
             continue
         want = map_deal(d, names, allowed_lines, allowed_kinds)
+        mine = state.get(n, {})
         cur = by_num.get(n)
         if cur is None:
             rec = dict(want)
@@ -323,33 +335,42 @@ def main():
             to_create.append(rec)
             for k in want:
                 field_hits[k] = field_hits.get(k, 0) + 1
+            new_state[n] = dict(want)
         else:
-            patch = {}
+            patch, keep = {}, {}
             for col, val in want.items():
                 old = cur.get(col)
-                old_s = "" if old in (None, "") else str(old)[:10] if col in dict(DATE_FIELDS) else str(old)
-                if col in FILL_IF_EMPTY and old_s:
+                old_s = "" if old in (None, "") else (str(old)[:10] if col in date_cols else str(old))
+                if old_s == str(val):
+                    keep[col] = val          # уже збігається — вважаємо нашим
                     continue
-                if old_s != str(val):
-                    patch[col] = val
-                    field_hits[col] = field_hits.get(col, 0) + 1
+                if col not in AUTHORITATIVE and old_s and old_s != str(mine.get(col, "")):
+                    # у платформі чуже значення (трекінг або ручна правка) — не чіпаємо
+                    conflicts[col] = conflicts.get(col, 0) + 1
+                    continue
+                patch[col] = val
+                keep[col] = val
+                field_hits[col] = field_hits.get(col, 0) + 1
             if patch:
                 patch["Id"] = cur["Id"]
                 to_update.append(patch)
+            if keep:
+                new_state[n] = keep
         new_eta = want.get("ETA")
-        old_eta = eta_state.get(n)
+        old_eta = mine.get("ETA")
         if new_eta and old_eta and new_eta != old_eta:
             eta_changes.append("угода %s: ETA %s → %s" % (n, old_eta, new_eta))
-        if new_eta:
-            eta_state[n] = new_eta
 
     log("%sНових угод: %d, оновити наявних: %d" % (tag, len(to_create), len(to_update)))
     if field_hits:
-        log("%sЗміни по колонках: %s" % (tag, ", ".join(
+        log("%sЗапис по колонках: %s" % (tag, ", ".join(
             "%s=%d" % (k, v) for k, v in sorted(field_hits.items(), key=lambda x: -x[1]))))
+    if conflicts:
+        log("%sНЕ чіпала (у платформі чужі значення): %s" % (tag, ", ".join(
+            "%s=%d" % (k, v) for k, v in sorted(conflicts.items(), key=lambda x: -x[1]))))
     if eta_changes:
-        log("%sЗміни ETA (%d): %s" % (tag, len(eta_changes), "; ".join(eta_changes[:15])))
-    elif first_run:
+        log("%sETA змінилась в Експедиторі (%d): %s" % (tag, len(eta_changes), "; ".join(eta_changes[:15])))
+    elif not state:
         log("%sETA: перший прогін — базу зафіксовано, зміни відслідковуються з наступного разу" % tag)
 
     if dry:
@@ -372,7 +393,10 @@ def main():
             errors += 1
             log("UPDATE_FAIL %s %s" % (st, str(js)[:200]))
 
-    json.dump(eta_state, open(ETA_STATE, "w", encoding="utf-8"), ensure_ascii=False)
+    if errors == 0:
+        json.dump(new_state, open(STATE, "w", encoding="utf-8"), ensure_ascii=False)
+    else:
+        log("WARN стан не збережено через помилки запису — наступний прогін повторить спробу")
     log("DONE deals=%d new=%d updated=%d errors=%d" % (len(deals), len(to_create), len(to_update), errors))
     print("SYNC_OK deals=%d new=%d updated=%d errors=%d"
           % (len(deals), len(to_create), len(to_update), errors))
