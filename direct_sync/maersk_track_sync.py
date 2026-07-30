@@ -44,6 +44,12 @@ RETRIES = 3
 
 BL_RE = re.compile(r"^\d{9}$")
 DELIVERED = "Вантаж доставлено"
+# У n8n-логіці статус «Завантажений» розділений на авто/потяг, а в платформі
+# затверджена 8-модель з одним варіантом. Зводимо до наявного варіанта.
+STATUS_MAP = {
+    "Завантажений на потяг": "Завантажений на авто/потяг",
+    "Завантажений на авто": "Завантажений на авто/потяг",
+}
 READ_FIELDS = ["Id", "Угода", "BL", "Контейнер", "Контейнер (лінія)", "ETA",
                "ETA порт (план)", "ETA порт (факт)", "Статус", "Судно", "Вояж",
                "Зміни ETA (історія)", "Звірка", "Лінія"]
@@ -86,6 +92,17 @@ def nc(method, path, data=None):
         return e.code, {"err": e.read().decode()[:300]}
     except Exception as e:  # noqa: BLE001
         return 0, {"err": str(e)[:300]}
+
+
+def nc_status_options():
+    """Дозволені варіанти колонки «Статус» — щоб не завалити запис невідомим значенням."""
+    st, js = nc("GET", "/api/v2/meta/tables/%s" % TABLE)
+    if st != 200:
+        return set()
+    col = next((c for c in js["columns"] if c["title"] == "Статус"), None)
+    if not col:
+        return set()
+    return {o["title"] for o in (col.get("colOptions") or {}).get("options", [])}
 
 
 def nc_records():
@@ -233,6 +250,7 @@ def parse_events(events, row, today_iso):
         st = load_st
     elif code == "GTIN":
         st = DELIVERED if mode == "TRUCK" else load_st
+    st = STATUS_MAP.get(st, st)
     if st and str(row.get("Статус") or "") != DELIVERED:
         out["Статус"] = st
 
@@ -253,6 +271,7 @@ def main():
     today_iso = datetime.date.today().isoformat()
 
     env = load_env()
+    statuses = nc_status_options()
     rows = nc_records()
     todo = []
     for r in rows:
@@ -286,6 +305,10 @@ def main():
             no_data.append("%s(порожньо)" % bl)
             continue
         want = parse_events(events, row, today_iso)
+        if want.get("Статус") and statuses and want["Статус"] not in statuses:
+            log("WARN статус «%s» не входить у варіанти колонки — не пишу (угода %s)"
+                % (want["Статус"], row.get("Угода")))
+            want.pop("Статус")
         patch = {}
         for col, val in want.items():
             old = str(row.get(col) or "")
@@ -316,10 +339,16 @@ def main():
 
     fails = 0
     for i in range(0, len(patches), CHUNK):
-        st, js = nc("PATCH", "/api/v2/tables/%s/records" % TABLE, patches[i:i + CHUNK])
-        if st not in (200, 201):
-            fails += 1
-            log("UPDATE_FAIL %s %s" % (st, str(js)[:200]))
+        part = patches[i:i + CHUNK]
+        st, js = nc("PATCH", "/api/v2/tables/%s/records" % TABLE, part)
+        if st in (200, 201):
+            continue
+        log("UPDATE_FAIL порція %d-%d: %s %s — пробую по одному" % (i, i + len(part), st, str(js)[:160]))
+        for one in part:                     # щоб один поганий запис не блокував решту
+            st1, js1 = nc("PATCH", "/api/v2/tables/%s/records" % TABLE, [one])
+            if st1 not in (200, 201):
+                fails += 1
+                log("UPDATE_FAIL угода Id=%s: %s %s" % (one.get("Id"), st1, str(js1)[:160]))
     log("DONE tracked=%d updated=%d nodata=%d api_errors=%d write_fails=%d"
         % (len(todo), len(patches), len(no_data), len(errors), fails))
     print("MAERSK_OK tracked=%d updated=%d nodata=%d api_errors=%d write_fails=%d"
