@@ -1,7 +1,7 @@
 {
-  "stdout": "PATCHED_BLOCKS 2\nLIVE_MD5: 1da402297847ebaafc895ac5641c73f3\nREPO_MD5: 1da402297847ebaafc895ac5641c73f3\nUI 200\n",
+  "stdout": "по коносаменту дані є: 18; ТІЛЬКИ по букінгу: 1\n  угода 223 | Кампус Коттон Клаб | Імпорт | BL 271364164 | конт CAAU4665092 | статус В морі | ETA 2026-08-02 | подій по букінгу 9\n",
   "stderr": "",
   "returncode": 0,
-  "id": "deploy-sort-0730",
-  "ts": "2026-07-30T11:38:34Z"
+  "id": "which-booking-only-0730",
+  "ts": "2026-07-30T15:18:44Z"
 }
