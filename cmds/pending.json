@@ -1,1 +1,1 @@
-{"id": "dryrun2-0730", "cmd": "set -e\ncd /root/Iryna_Karmazina && git fetch -q origin claude/direct-automation-expeditor-671esy\ngit show origin/claude/direct-automation-expeditor-671esy:direct_sync/expeditor_direct_sync.py > /root/direct-sync/expeditor_direct_sync.py\ncd /root/direct-sync && timeout 110 python3 expeditor_direct_sync.py --dry-run 2>&1 | grep -v '^DRY ' | tail -12"}
+{"id": "firstrun-0730", "cmd": "cd /root/direct-sync && timeout 115 python3 expeditor_direct_sync.py 2>&1 | tail -10"}
