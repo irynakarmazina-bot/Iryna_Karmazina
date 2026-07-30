@@ -1,7 +1,7 @@
 {
-  "stdout": "Catalog_Валюты Catalog_ФизическиеЛица Catalog_ФизическиеЛица_СоставСемьи Catalog_ФизическиеЛица_ИсторияСсылка Catalog_Организации Catalog_Организации_ВидСделки Catalog_Организации_СтатьиСчетовПорта Catalog_Организации_СтавкиНДС Catalog_Контрагенты Catalog_Контрагенты_БанковскиеРеквизиты Catalog_Контрагенты_SoftProCRM_GA_CID Catalog_СчетаПоставщиков Catalog_СчетаПоставщиков_Касательно Catalog_Клиенты Catalog_Клиенты_ВидыДеятельности Catalog_Клиенты_Менеджеры Catalog_Клиенты_ЗаблокированныеМенеджеры Catalog_Клиенты_SoftProCRM_GA_CID Catalog_Линии Catalog_ВидОплаты Catalog_ВидОплаты_ПраваОплаты Catalog_ВидОплаты_ПраваПодписи Catalog_ВидОплаты_ДополнительнаяИнформация Catalog_ВидПлатежа Catalog_ВидыРасходов Catalog_СчетаДляВыпискиБанка\n",
+  "stdout": "== ПОЛ/ПОД у движку ==\n== deals_all.csv header ==\nnumber,date,manager,kind,type,status,client,pol,pod,fd,line,bill_of_lading,eta,planned_profit,profit,cargo,completed_date\n== metadata type ПОЛ_Key ==\nTraceback (most recent call last):\n  File \"<string>\", line 5, in <module>\n  File \"/root/unitex-finrep/engine/odata_client.py\", line 72, in _get\n    with urllib.request.urlopen(req, timeout=120, context=self._ctx) as r:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/urllib/request.py\", line 215, in urlopen\n    return opener.open(url, data, timeout)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/urllib/request.py\", line 521, in open\n    response = meth(req, response)\n               ^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/urllib/request.py\", line 630, in http_response\n",
   "stderr": "",
   "returncode": 0,
-  "id": "recon-catalogs-all-0730",
-  "ts": "2026-07-30T07:59:18Z"
+  "id": "recon-ports-0730",
+  "ts": "2026-07-30T07:59:46Z"
 }
