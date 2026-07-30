@@ -1,7 +1,7 @@
 {
-  "stdout": "=== кнопка (синхронна) ===\nнемає результату: Expecting value: line 1 column 1 (char 0)\n=== COSCO: пробую варіанти запиту ===\nbill COSU6449384450  200 msg=无数据 непорожніх полів=0\nbill 6449384450      200 msg= непорожніх полів=8\nbill+timeZone        200 msg=无数据 непорожніх полів=0\ncontainer CSNU...    HTTP 404\nbooking              200 msg=无数据 непорожніх полів=0\n",
+  "stdout": "ключі content: ['transportationType3', 'transportationType4', 'cargoTrackingContainer', 'bookingNumbersInBillOfLadingTrackingGroupAssociationList', 'trackingNA', 'actualShipment', 'fastLabel', 'betdNotice', 'lfd', 'slowLabel', 'isShow', 'trackingPath', 'usDisplay', 'cargoCutOff', 'usOrCanadaDisplay', 'itNumber', 'actualShipmentPic', 'checkHanJin', 'isbillOfLadingExist']\n  transportationType3 = Truck\n  transportationType4 = 0\n  cargoTrackingContainer: список 1\n  bookingNumbersInBillOfLadingTrackingGroupAssociationList: список 0\n  actualShipment: список 1\n  betdNotice = False\n  lfd = LFD\n  isShow = False\n  trackingPath: словник ['billOfladingRefCode', 'trackingGroupReferenceCode', 'fromCity', 'toCity', 'cgoAvailTm', 'cgoFinalTm', 'vslNme', 'voyNumber']\n  usDisplay = False\n  usOrCanadaDisplay = False\n  actualShipmentPic: список 1\n  checkHanJin = False\n  isbillOfLadingExist = True\n",
   "stderr": "",
   "returncode": 0,
-  "id": "cosco-test-0730",
-  "ts": "2026-07-30T11:23:54Z"
+  "id": "cosco-struct-0730",
+  "ts": "2026-07-30T11:24:27Z"
 }
