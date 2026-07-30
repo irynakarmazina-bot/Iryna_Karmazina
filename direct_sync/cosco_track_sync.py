@@ -51,6 +51,23 @@ DATE_COLS = {"ETA", "ETA порт (план)", "ETA порт (факт)", "ETD (
              "Вивантаження в порту (факт)"}
 
 
+def cancelled_numbers():
+    """Номери скасованих угод (файл пише expeditor_direct_sync.py) — їх не трекаємо."""
+    path = os.path.join(WORKDIR, "cancelled.json")
+    try:
+        return {str(x) for x in json.load(open(path, encoding="utf-8"))}
+    except Exception:  # noqa: BLE001
+        return set()
+
+
+def deal_no(v):
+    s = str(v or "").strip()
+    try:
+        return str(int(s))
+    except ValueError:
+        return s
+
+
 def log(msg):
     line = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") + " " + msg
     with open(LOG, "a", encoding="utf-8") as f:
@@ -181,11 +198,13 @@ def main():
     today_iso = datetime.date.today().isoformat()
 
     allowed = statuses_allowed()
+    cancelled = cancelled_numbers()
     rows = nc_records()
     todo = [r for r in rows
             if str(r.get("Лінія") or "") == LINE
             and str(r.get("BL") or "").strip()
-            and str(r.get("Статус") or "") != DELIVERED]
+            and str(r.get("Статус") or "") != DELIVERED
+            and deal_no(r.get("Угода")) not in cancelled]
     log("%sУгод COSCO для трекінгу: %d (усього в платформі %d)" % (tag, len(todo), len(rows)))
     if not todo:
         print("COSCO_OK tracked=0 updated=0")

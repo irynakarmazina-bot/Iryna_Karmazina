@@ -54,6 +54,23 @@ READ_FIELDS = ["Id", "Угода", "BL", "Контейнер", "Контейне
                "Остання зміна", "Останнє оновлення"]
 
 
+def cancelled_numbers():
+    """Номери скасованих угод (файл пише expeditor_direct_sync.py) — їх не трекаємо."""
+    path = os.path.join(WORKDIR, "cancelled.json")
+    try:
+        return {str(x) for x in json.load(open(path, encoding="utf-8"))}
+    except Exception:  # noqa: BLE001
+        return set()
+
+
+def deal_no(v):
+    s = str(v or "").strip()
+    try:
+        return str(int(s))
+    except ValueError:
+        return s
+
+
 def log(msg):
     line = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") + " " + msg
     with open(LOG, "a", encoding="utf-8") as f:
@@ -303,15 +320,21 @@ def main():
 
     env = load_env()
     statuses = nc_status_options()
+    cancelled = cancelled_numbers()
     rows = nc_records()
-    todo = []
+    todo, skipped = [], 0
     for r in rows:
         bl = str(r.get("BL") or "").strip()
         if not BL_RE.match(bl):
             continue
         if not a.all and str(r.get("Статус") or "") == DELIVERED:
             continue
+        if deal_no(r.get("Угода")) in cancelled:
+            skipped += 1
+            continue
         todo.append((bl, r))
+    if skipped:
+        log("%sПропущено скасованих в Експедиторі: %d" % (tag, skipped))
     if a.limit:
         todo = todo[: a.limit]
     log("%sУгод для трекінгу: %d (усього в платформі %d)" % (tag, len(todo), len(rows)))

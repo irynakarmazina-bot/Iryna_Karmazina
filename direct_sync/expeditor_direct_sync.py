@@ -72,10 +72,21 @@ TEXT_FIELDS = [
     ("Вантаж", "Груз"),
 ]
 # Довідникові колонки: Експедитор — єдине джерело правди, пишемо завжди
-AUTHORITATIVE = {"Клієнт", "Напрямок", "Лінія", "Менеджер", "Агент"}
+AUTHORITATIVE = {"Клієнт", "Напрямок", "Лінія", "Менеджер", "Агент", "Статус"}
+
+# Стадія перевезення в Експедиторі → статус у платформі (рішення користувачки 30.07.2026).
+# Мапимо ЛИШЕ однозначне: «Завершена» = вантаж доставлено (дата завершення є у всіх таких угод).
+# «Выполняется» і «ВыставленСчет» надто загальні (друге взагалі про оплату) — не чіпаємо,
+# точний етап дає трекінг перевізника.
+STAGE_MAP = {"Завершена": "Вантаж доставлено"}
+
+# Скасовані угоди в таблицю не вносяться взагалі (рішення користувачки 30.07.2026):
+# не створюються, не оновлюються; їхні номери пишемо у файл, щоб трекери їх не питали.
+CANCELLED_STAGE = "Отменена"
+CANCELLED_FILE = os.path.join(WORKDIR, "cancelled.json")
 
 WRITTEN_COLS = (
-    ["Клієнт", "Напрямок", "Лінія", "Менеджер", "Агент", "Кількість", "Коментар"]
+    ["Клієнт", "Напрямок", "Лінія", "Менеджер", "Агент", "Кількість", "Коментар", "Статус"]
     + [c for c, _ in TEXT_FIELDS]
     + [c for c, _ in DATE_FIELDS]
 )
@@ -255,9 +266,12 @@ def ref(names, key, guid):
     return txt(names.get(key, {}).get(g))
 
 
-def map_deal(d, names, allowed_lines, allowed_kinds):
+def map_deal(d, names, allowed_lines, allowed_kinds, allowed_statuses=frozenset()):
     """Повертає {колонка NocoDB: значення} лише з непорожніх даних Експедитора."""
     o = {}
+    stage = STAGE_MAP.get(str(d.get("Статус") or "").strip())
+    if stage and (not allowed_statuses or stage in allowed_statuses):
+        o["Статус"] = stage
     kind = KIND_MAP.get(str(d.get("Вид") or "").strip())
     if kind and kind in allowed_kinds:
         o["Напрямок"] = kind
@@ -293,10 +307,18 @@ def main():
     c = odata_client()
     names = load_names(c, force=a.refresh_names)
 
-    deals = [d for d in c.list("Document_Сделка") if d.get("Posted")]
+    posted = [d for d in c.list("Document_Сделка") if d.get("Posted")]
+    cancelled = [d for d in posted if str(d.get("Статус") or "").strip() == CANCELLED_STAGE]
+    deals = [d for d in posted if d not in cancelled]
     if a.limit:
         deals = deals[: a.limit]
-    log("%sУгод з Експедитора (проведених): %d" % (tag, len(deals)))
+    log("%sУгод з Експедитора (проведених): %d" % (tag, len(posted)))
+    if cancelled:
+        nums = sorted(num(d.get("Number")) for d in cancelled)
+        log("%sСкасованих (в таблицю не вносимо і не оновлюємо): %d — угоди %s"
+            % (tag, len(cancelled), ", ".join(nums)))
+        if not dry:
+            json.dump(nums, open(CANCELLED_FILE, "w", encoding="utf-8"), ensure_ascii=False)
 
     meta = nc_meta()
     line_values = {v for v in (line_option(ref(names, "line", d.get("Линия_Key"))) for d in deals) if v}
@@ -304,6 +326,8 @@ def main():
     kind_values = {KIND_MAP[k] for k in
                    {str(d.get("Вид") or "").strip() for d in deals} if k in KIND_MAP}
     allowed_kinds = ensure_options(meta, "Напрямок", kind_values, dry)
+    st_col = next((c for c in meta["columns"] if c["title"] == "Статус"), None)
+    allowed_statuses = {o["title"] for o in ((st_col or {}).get("colOptions") or {}).get("options", [])}
 
     rows = nc_records(["Id", "Угода"] + WRITTEN_COLS)
     by_num = {}
@@ -326,7 +350,7 @@ def main():
         n = num(d.get("Number"))
         if not n:
             continue
-        want = map_deal(d, names, allowed_lines, allowed_kinds)
+        want = map_deal(d, names, allowed_lines, allowed_kinds, allowed_statuses)
         mine = state.get(n, {})
         cur = by_num.get(n)
         if cur is None:
