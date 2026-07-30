@@ -210,6 +210,12 @@
   .card .sub{color:var(--muted);font-size:12.5px;margin:0 0 14px}
 
   .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:16px}
+  .tile.clickable{cursor:pointer;transition:transform .12s ease,box-shadow .12s ease}
+  .tile.clickable:hover{transform:translateY(-2px);box-shadow:0 8px 22px rgba(15,23,42,.10)}
+  .tile.clickable .delta::after{content:" ›";font-weight:700}
+  .quickchip{display:inline-flex;align-items:center;gap:8px;background:var(--accent-bg,#eef4ff);color:var(--accent);
+    border:1px solid var(--line);border-radius:999px;padding:5px 12px;font-size:13px;font-weight:600}
+  .quickchip button{border:0;background:transparent;color:inherit;cursor:pointer;font-size:15px;line-height:1;padding:0}
   .tile{background:var(--tile-bg);border:1px solid var(--line);border-radius:16px;padding:16px 18px;
     box-shadow:0 1px 2px rgba(16,24,40,.04),0 4px 12px rgba(16,24,40,.05);transition:box-shadow .15s,transform .15s}
   .tile:hover{box-shadow:0 2px 4px rgba(16,24,40,.06),0 10px 24px rgba(16,24,40,.08);transform:translateY(-1px)}
@@ -583,7 +589,7 @@ const MODMAP = {
 };
 function buildNav(){
   $("nav").innerHTML = cfg().nav.map(id=>`<button class="nav-item" data-page="${id}"><span class="ico">${MODMAP[id].ico}</span>${MODMAP[id].label}</button>`).join("");
-  $("nav").querySelectorAll(".nav-item").forEach(b=>b.addEventListener("click",()=>go(b.dataset.page)));
+  $("nav").querySelectorAll(".nav-item").forEach(b=>b.addEventListener("click",()=>{ DISP_QUICK=null; go(b.dataset.page); }));
 }
 function go(page){
   if (!cfg().nav.includes(page)) page = cfg().nav[0];
@@ -660,6 +666,7 @@ function toast(m){ const t=$("toast"); t.textContent=m; t.style.display="block";
 /* ===== сторінки ===== */
 const PAGES = {};
 let DISP_CACHE = null;
+let DISP_QUICK = null;          // швидкий фільтр з плиток дашборда
 async function dispRows(){ return DISP_CACHE || (DISP_CACHE = await loadAll(T["Диспетчеризація"])); }
 
 PAGES.dashboard = async () => {
@@ -704,10 +711,10 @@ PAGES.dashboard = async () => {
   $("content").innerHTML = `
     ${scopeNote}
     <div class="tiles">
-      <div class="tile"><div class="lbl">📦 Активні перевезення</div><div class="val">${active.length}</div><div class="delta">з ${rows.length} угод усього</div></div>
-      <div class="tile"><div class="lbl">🌊 В морі зараз</div><div class="val">${sea}</div><div class="delta">${active.length? Math.round(sea/active.length*100):0}% активних</div></div>
-      <div class="tile"><div class="lbl">📅 Прибуття за 7 днів</div><div class="val">${week}</div><div class="delta">потребують уваги</div></div>
-      <div class="tile warn"><div class="lbl">🚫 Без BL (не трекаються)</div><div class="val">${noBL}</div><div class="delta">впиши BL — трекінг увімкнеться</div></div>
+      <div class="tile clickable" data-jump="active"><div class="lbl">📦 Активні перевезення</div><div class="val">${active.length}</div><div class="delta">з ${rows.length} угод усього</div></div>
+      <div class="tile clickable" data-jump="sea"><div class="lbl">🌊 В морі зараз</div><div class="val">${sea}</div><div class="delta">${active.length? Math.round(sea/active.length*100):0}% активних</div></div>
+      <div class="tile clickable" data-jump="eta7"><div class="lbl">📅 Прибуття за 7 днів</div><div class="val">${week}</div><div class="delta">потребують уваги</div></div>
+      <div class="tile warn clickable" data-jump="nobl"><div class="lbl">🚫 Без BL (не трекаються)</div><div class="val">${noBL}</div><div class="delta">впиши BL — трекінг увімкнеться</div></div>
     </div>
     <div class="chartgrid" style="margin-top:16px">
       <div class="card"><h3>📊 Прибуття по місяцях</h3><p class="sub">кількість угод за датою ETA</p>
@@ -768,6 +775,9 @@ PAGES.dashboard = async () => {
     options:{ maintainAspectRatio:false, cutout:"62%",
       plugins:{ legend:{position:"right", labels:{boxWidth:10, boxHeight:10, usePointStyle:true, pointStyle:"circle", padding:12}} } }
   });
+  $("content").querySelectorAll(".tile[data-jump]").forEach(t=>t.addEventListener("click",()=>{
+    DISP_QUICK = t.dataset.jump; go("dispatch");
+  }));
   if (modeNames.length) drawChart("ch-modes", {
     type:"doughnut",
     data:{ labels: modeNames, datasets:[{ data: modeNames.map(m=>byMode[m]),
@@ -803,6 +813,18 @@ PAGES.dispatch = async () => {
       || (parseInt(a["Угода"])||0)-(parseInt(b["Угода"])||0);
     return _eta(a).localeCompare(_eta(b)) || (parseInt(a["Угода"])||0)-(parseInt(b["Угода"])||0);
   });
+  // швидкий фільтр із плиток дашборда (клік по плитці → сюди з готовим відбором)
+  const _dt = v => { const m=/(\d{4})-(\d{2})-(\d{2})/.exec(String(v||"")); return m? new Date(+m[1],+m[2]-1,+m[3]) : null; };
+  const _today = new Date(); _today.setHours(0,0,0,0);
+  const QUICK = {
+    active:{label:"активні перевезення", test:r=>!_done(r)},
+    sea:{label:"в морі зараз", test:r=>r["Статус"]==="В морі"},
+    eta7:{label:"прибуття за 7 днів", test:r=>{ if(_done(r)) return false; const e=_dt(r["ETA"]);
+      if(!e) return false; const dd=(e-_today)/86400000; return dd>=0 && dd<=7; }},
+    nobl:{label:"без BL (не трекаються)", test:r=>!_done(r) && !String(r["BL"]||"").trim()},
+  };
+  const quick = QUICK[DISP_QUICK] || null;
+  const quickCount = quick ? all.filter(quick.test).length : all.length;
   const logist = cfg().cols === "logist";
   const syncBtn = cfg().sync ? '<button class="btn" id="sync-btn">⟳ Оновити з Експедитора</button>' : "";
   const head = logist
@@ -812,7 +834,8 @@ PAGES.dispatch = async () => {
     <div class="card">
       <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
         <h3 style="margin:0">🚢 Диспетчеризація</h3>
-        <span class="sub" style="margin:0">угод: ${all.length}${cfg().scope!=="all"?" (лише твої)":""} · клік по рядку — картка</span>
+        <span class="sub" style="margin:0">угод: ${quick? `${quickCount} з ${all.length}` : all.length}${cfg().scope!=="all"?" (лише твої)":""} · клік по рядку — картка</span>
+        ${quick? `<span class="quickchip">Фільтр: ${esc(quick.label)}<button id="quick-clear" title="скинути фільтр">✕</button></span>`:""}
         <span style="flex:1"></span>${syncBtn}
       </div>
       <div class="filters" style="margin-top:12px">
@@ -830,6 +853,7 @@ PAGES.dispatch = async () => {
     const q=$("q").value.toLowerCase(), st=$("stf").value;
     const dir=$("dirf").value, line=$("linef").value, cli=$("clif").value;
     const list = all.filter(r =>
+      (!quick || quick.test(r)) &&
       (!st || r["Статус"]===st) &&
       (!dir || r["Напрямок"]===dir) && (!line || r["Лінія"]===line) && (!cli || String(r["Клієнт"]||"").trim()===cli) &&
       (!q || [r["Угода"],r["Клієнт"],r["BL"],r["Контейнер"],r["Судно"],r["Номер авто"],r["Водій (ПІБ)"]].join(" ").toLowerCase().includes(q)));
@@ -867,6 +891,8 @@ PAGES.dispatch = async () => {
     $("drows").querySelectorAll(".docs-btn").forEach(b=>b.addEventListener("click",(e)=>{ e.stopPropagation(); openDocs(all.find(x=>String(x.Id)===b.dataset.doc)); }));
   };
   ["q","dirf","stf","linef","clif"].forEach(id=>$(id).addEventListener(id==="q"?"input":"change",draw));
+  const qc = $("quick-clear");
+  if (qc) qc.addEventListener("click",()=>{ DISP_QUICK=null; go("dispatch"); });
   draw();
   const sb = $("sync-btn");
   if (sb) sb.addEventListener("click", async ()=>{
