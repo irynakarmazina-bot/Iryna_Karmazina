@@ -1,7 +1,7 @@
 {
-  "stdout": "UI_CLEANED\nживий фасад: авто/потяг = 0 | авто = 1 | потяг = 1 | Вантаж у картці = 1\nУгод для трекінгу: 34 (усього в платформі 267)\nТокен Maersk отримано\nОновити угод: 0; без даних: 15; помилки: 0\nDONE tracked=34 updated=0 nodata=15 api_errors=0 write_fails=0\nMAERSK_OK tracked=34 updated=0 nodata=15 api_errors=0 write_fails=0\n",
+  "stdout": "privat  booking      -> HTTP 404 | {\"method\":\"GET\",\"requestUri\":\"/track-and-trace-private/events\",\"status\":404,\"timestamp\":\"2026-07-30T11:13:49Z\",\"message\":\"Not Found\",\"id\":\"598a387636132848cdd7a2d75549a063\"}\nprivat  BL(transport) -> HTTP 404 | {\"method\":\"GET\",\"requestUri\":\"/track-and-trace-private/events\",\"status\":404,\"timestamp\":\"2026-07-30T11:13:51Z\",\"message\":\"Not Found\",\"id\":\"b931a8d850b88052e31e1a785b29b15c\"}\nprivat  контейнер    -> HTTP 404 | {\"method\":\"GET\",\"requestUri\":\"/track-and-trace-private/events\",\"status\":404,\"timestamp\":\"2026-07-30T11:13:53Z\",\"message\":\"Not Found\",\"id\":\"6019c1ef509a01586701046133bbad0d\"}\nпублічн BL(transport) -> HTTP 401 | {\"error\":[{\"code\":\"ERR_GW_001\",\"message\":\"API Key Validation Failed, please check the API key\",\"reason\":\"Invalid or expired Key\",\"status\":\"401\"}]}\nпублічн booking      -> HTTP 401 | {\"error\":[{\"code\":\"ERR_GW_001\",\"message\":\"API Key Validation Failed, please check the API key\",\"reason\":\"Invalid or expired Key\",\"status\":\"401\"}]}\nпублічн контейнер    -> HTTP 401 | {\"error\":[{\"code\":\"ERR_GW_001\",\"message\":\"API Key Validation Failed, please check the API key\",\"reason\":\"Invalid or expired Key\",\"status\":\"401\"}]}\n",
   "stderr": "",
   "returncode": 0,
-  "id": "clean-status-0730",
-  "ts": "2026-07-30T11:12:13Z"
+  "id": "diag-params-0730",
+  "ts": "2026-07-30T11:13:59Z"
 }
