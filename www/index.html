@@ -750,10 +750,19 @@ const FLAGS = ["Телекс","Т1","ДО","Документи","SI","Замит
 PAGES.dispatch = async () => {
   DISP_CACHE = null;
   const all = scoped(await dispRows());
-  // хронологія за ETA: доставлені лишаються вище, таблиця сама відкривається на угодах у роботі
-  const _eta = r => { const m=/(\d{4})-(\d{2})-(\d{2})/.exec(String(r["ETA"]||"")); return m? (m[1]+m[2]+m[3]) : "99999999"; };
+  // Порядок згори вниз: доставлені (за шапкою, не видно) → без ETA → найпізніші ETA →
+  // ... → найближчі ETA в самому кінці. Таблиця відкривається прокрученою в кінець,
+  // тому одразу видно найближчі прибуття.
+  const _eta = r => { const m=/(\d{4})-(\d{2})-(\d{2})/.exec(String(r["ETA"]||"")); return m? (m[1]+m[2]+m[3]) : ""; };
   const _done = r => r["Статус"] === "Вантаж доставлено";
-  all.sort((a,b)=> _eta(a).localeCompare(_eta(b)) || (parseInt(a["Угода"])||0) - (parseInt(b["Угода"])||0));
+  const _rank = r => _done(r) ? 0 : (_eta(r) ? 2 : 1);   // доставлені → без ETA → з ETA
+  all.sort((a,b)=>{
+    const ra=_rank(a), rb=_rank(b);
+    if (ra!==rb) return ra-rb;
+    if (ra===2) return _eta(b).localeCompare(_eta(a))       // найпізніші вище, найближчі внизу
+      || (parseInt(a["Угода"])||0)-(parseInt(b["Угода"])||0);
+    return _eta(a).localeCompare(_eta(b)) || (parseInt(a["Угода"])||0)-(parseInt(b["Угода"])||0);
+  });
   const logist = cfg().cols === "logist";
   const syncBtn = cfg().sync ? '<button class="btn" id="sync-btn">⟳ Оновити з Експедитора</button>' : "";
   const head = logist
@@ -806,11 +815,14 @@ PAGES.dispatch = async () => {
         <td>${docBtn(r)}</td>
       </tr>`).join("") : `<tr><td colspan="10" class="cell-muted">Нічого не знайдено.</td></tr>`;
     $("drows").querySelectorAll("tr[data-id]").forEach(tr=>tr.addEventListener("click",()=>openRow(all.find(x=>String(x.Id)===tr.dataset.id))));
-    // таблиця відкривається на першій угоді в роботі (доставлені лишаються вище, за шапкою)
+    // таблиця відкривається в кінці списку — там найближчі ETA; доставлені лишаються вище, за шапкою
     const box = $("dscroll");
     if (box){
+      const rows = $("drows").querySelectorAll("tr[data-id]");
       const firstOpen = $("drows").querySelector("tr:not(.done)");
-      box.scrollTop = firstOpen ? Math.max(0, firstOpen.offsetTop - 2) : 0;
+      box.scrollTop = rows.length
+        ? Math.max(0, box.scrollHeight - box.clientHeight)
+        : (firstOpen ? Math.max(0, firstOpen.offsetTop - 2) : 0);
     }
     $("drows").querySelectorAll(".docs-btn").forEach(b=>b.addEventListener("click",(e)=>{ e.stopPropagation(); openDocs(all.find(x=>String(x.Id)===b.dataset.doc)); }));
   };
