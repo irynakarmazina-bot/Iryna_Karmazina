@@ -1,7 +1,7 @@
 {
-  "stdout": "--- /root/direct-sync/button_test2.json 0\n   Expecting value: line 1 column 1 (char 0)\n--- /root/direct-sync/button_test.json 0\n   Expecting value: line 1 column 1 (char 0)\nerr: \n",
+  "stdout": "розмір: 552\nok |  Нових угод: 0, оновити наявних: 0 | НЕ чіпала (у платформі чужі значення): ETA=130, ETA порт (план)=53, Контейнер=4, Кількість=1 | DONE deals=266 new=0 updated=0 errors=0 | SYNC_OK deals=266 new=0 updated=0 errors=0 | MAERSK_OK tracked=34 updated=0 nodata=15 api_errors=0 write_fails=0 | COSCO_OK tracked=2 updated=0 nodata=0 write_fails=0\n",
   "stderr": "",
   "returncode": 0,
-  "id": "button-check-0730",
-  "ts": "2026-07-30T11:28:08Z"
+  "id": "button-check2-0730",
+  "ts": "2026-07-30T11:30:20Z"
 }
