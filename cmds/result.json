@@ -1,7 +1,7 @@
 {
-  "stdout": "Нових угод: 0, оновити наявних: 0\nНЕ чіпала (у платформі чужі значення): ETA=126, ETA порт (план)=52, Контейнер=4, Кількість=1\nDONE deals=265 new=0 updated=0 errors=0\nSYNC_OK deals=265 new=0 updated=0 errors=0\n== контроль записів ==\n",
-  "stderr": "http/client.py\", line 1376, in _send_request\n    self.putrequest(method, url, **skips)\n  File \"/usr/lib/python3.12/http/client.py\", line 1214, in putrequest\n    self._output(self._encode_request(request))\n                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/http/client.py\", line 1294, in _encode_request\n    return request.encode('ascii')\n           ^^^^^^^^^^^^^^^^^^^^^^^\nUnicodeEncodeError: 'ascii' codec can't encode characters in position 57-61: ordinal not in range(128)\n",
-  "returncode": 1,
-  "id": "verify-idem-0730",
-  "ts": "2026-07-30T08:08:21Z"
+  "stdout": "{'Угода': '99', 'Клієнт': 'Мірандор', 'Лінія': 'Maersk', 'BL': '266155609', 'Контейнер': 'HASU5097590', 'Судно': 'ARCHER', 'ETA': '2026-03-17', 'Статус': 'Вантаж доставлено', 'Коментар': 'HASU5097590 266155609 ML-GB073', 'ETA порт (план)': '2026-03-17', 'Кількість': '1×40'}\n{'Угода': '98', 'Клієнт': 'Мірандор', 'Лінія': 'Maersk', 'BL': '266155487', 'Контейнер': 'HASU4337892', 'Судно': 'MAERSK NUBA', 'ETA': '2026-03-17', 'Статус': 'Вантаж доставлено', 'Коментар': 'HASU4337892 266155487 07.Mar S', 'ETA порт (план)': '2026-03-17', 'Кількість': '1×40'}\n{'Угода': '97', 'Клієнт': 'Мірандор', 'Лінія': 'Maersk', 'BL': '266155422', 'Контейнер': 'MIEU0024599', 'Судно': 'MAERSK NUBA', 'ETA': '2026-03-17', 'Статус': 'Вантаж доставлено', 'Коментар': 'MIEU0024599 266155422 ML-GB061', 'ETA порт (план)': '2026-03-17', 'Кількість': '1×40'}\n{'Угода': '96', 'Клієнт': 'Мірандор', 'Лінія': 'Maersk', 'BL': '266155687', 'Контейнер': 'MRSU4977020', 'Судно': 'MAERSK NUBA', 'ETA': '2026-03-17', 'Статус': 'Вантаж доставлено', 'Коментар': 'MRSU4977020 266155687 ML-GB061', 'ETA порт (план)': '2026-03-17', 'Кількість': '1×40'}\n",
+  "stderr": "",
+  "returncode": 0,
+  "id": "verify-rows-0730",
+  "ts": "2026-07-30T08:08:38Z"
 }
