@@ -1,7 +1,7 @@
 {
-  "stdout": "",
-  "stderr": "Traceback (most recent call last):\n  File \"<stdin>\", line 13, in <module>\n  File \"<stdin>\", line 5, in nc\nUnboundLocalError: cannot access local variable 'urllib' where it is not associated with a value\n",
-  "returncode": 1,
-  "id": "status-split-0730",
-  "ts": "2026-07-30T10:56:36Z"
+  "stdout": "БУЛО: ['Букінг', 'Стафіровка', 'В порту відправлення', 'Завантажений на судно', 'В морі', 'Вивантажений в порту прибуття', 'Завантажений на авто/потяг', 'Вантаж доставлено']\nPATCH 200 {'id': 'm58xsjo6at01ohl', 'source_id': 'b4015ks2gscph03', 'base_id': 'pbhr1qkpvx09z8m', 'table_name': 'nc_bpfs___Диспетчеризація', 'title': 'Диспетчер\nСТАЛО: ['Букінг', 'Стафіровка', 'В порту відправлення', 'Завантажений на судно', 'В морі', 'Вивантажений в порту прибуття', 'Завантажений на авто/потяг', 'Вантаж доставлено', 'Завантажений на авто', 'Завантажений на потяг']\nРОЗПОДІЛ: {'Вантаж доставлено': 178, '(порожньо)': 62, 'В морі': 8, 'Завантажений на авто/потяг': 8, 'Букінг': 11}\n",
+  "stderr": "",
+  "returncode": 0,
+  "id": "status-split2-0730",
+  "ts": "2026-07-30T10:56:59Z"
 }
