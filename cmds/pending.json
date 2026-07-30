@@ -1,1 +1,1 @@
-{"id": "recon-dealsall-0730", "cmd": "cd /root/unitex-finrep\necho \"== хто пише deals_all ==\"; grep -rln \"deals_all\" --include=*.py . | head\necho \"== мапінг pol ==\"; grep -rn \"\\\"pol\\\"\\|'pol'\" --include=*.py . | head -6"}
+{"id": "recon-ingest-0730", "cmd": "sed -n 168,205p /root/unitex-finrep/engine/odata_ingest.py"}
