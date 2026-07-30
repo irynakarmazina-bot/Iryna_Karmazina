@@ -1,7 +1,7 @@
 {
-  "stdout": "BL 264900732: по букінгу 2, по коносаменту 4, разом унікальних 4\n   букінг     : 2026-01-07/PENA, 2026-01-07/RELS\n   коносамент : 2026-01-07/PENA, 2026-01-07/RELS, 2026-01-07/PENA, 2026-01-07/RELS\nBL 266155609: по букінгу 26, по коносаменту 28, разом унікальних 28\n   букінг     : 2026-02-16/DEPA/TRUCK, 2026-02-17/ARRI/TRUCK, 2026-02-20/DEPA/VESSEL/SOFIA EXPRESS, 2026-02-23/ARRI/VESSEL/SOFIA EXPRESS, 2026-03-04/DEPA/VESSEL/MAERSK NUBA, 2026-03-10/DEPA/RAIL, \n   коносамент : 2026-02-16/DEPA/TRUCK, 2026-02-17/ARRI/TRUCK, 2026-02-20/DEPA/VESSEL/SOFIA EXPRESS, 2026-02-23/ARRI/VESSEL/SOFIA EXPRESS, 2026-03-04/DEPA/VESSEL/MAERSK NUBA, 2026-03-10/DEPA/RAIL, \nконтейнер зі скріншота BSIU8155990: 0 подій\n",
+  "stdout": "Removed \"/etc/systemd/system/timers.target.wants/nocodb-deals-sync.timer\".\nСТАРИЙ ТАЙМЕР: enabled=disabled active=inactive\nФАЙЛИ ЛИШИЛИСЬ: /etc/systemd/system/nocodb-deals-sync.service /etc/systemd/system/nocodb-deals-sync.timer /root/nocodb_deals_sync.py \nНАШІ ТАЙМЕРИ: 2 з 2\nУгод для трекінгу: 34 (усього в платформі 267)\nТокен Maersk отримано\n",
   "stderr": "",
   "returncode": 0,
-  "id": "compare-keys-0730",
-  "ts": "2026-07-30T11:16:56Z"
+  "id": "disable-old-0730",
+  "ts": "2026-07-30T11:20:07Z"
 }
