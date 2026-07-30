@@ -1,8 +1,11 @@
 """Кнопка «Оновити з Експедитора» на платформі (порт 8788).
 
-GET /run?token=…  → синхронно: пряма синхронізація з Експедитора (швидка),
-                     потім у фоні: трекінг Maersk (довгий, ~1 хв на 34 угоди).
-Відповідь JSON містить "new=N" — фасад показує тост «Додано нових угод: N».
+GET /run?token=…  → синхронно ОБИДВІ роботи: пряма синхронізація з Експедитора
+                     (~20 с) і трекінг Maersk (~1,5 хв). Відповідь приходить, коли
+                     все готово — рішення користувачки 30.07.2026.
+                     /run?...&maersk=0 — пропустити трекінг (лише Експедитор).
+Відповідь JSON містить "new=N" і "MAERSK_OK tracked=… updated=…" — фасад показує
+тост «додано нових угод: N · трекінг Maersk: оновлено X з Y».
 
 Копія робочого файла /root/deals_trigger.py (у репозиторії — для історії змін).
 """
@@ -34,13 +37,12 @@ class H(http.server.BaseHTTPRequestHandler):
         if args.get('token', [''])[0] != TOKEN:
             return self._send(403, {'error': 'forbidden'})
         try:
-            out = subprocess.run([PY, SYNC], capture_output=True, timeout=600).stdout.decode()[-300:]
+            out = subprocess.run([PY, SYNC], capture_output=True, timeout=900).stdout.decode()[-300:]
             note = ''
             if args.get('maersk', ['1'])[0] != '0':
-                # трекінг довгий — не тримаємо браузер, віддаємо результат Експедитора одразу
-                subprocess.Popen([PY, MAERSK], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
-                                 start_new_session=True)
-                note = ' | трекінг Maersk запущено у фоні (ETA/судно оновляться за ~1 хв)'
+                mo = subprocess.run([PY, MAERSK], capture_output=True, timeout=1800).stdout.decode()
+                last = [ln for ln in mo.splitlines() if ln.startswith('MAERSK_')]
+                note = ' | ' + (last[-1] if last else 'трекінг Maersk: без результату')
             self._send(200, {'status': 'ok', 'result': out.strip() + note})
         except Exception as e:  # noqa: BLE001
             self._send(500, {'status': 'error', 'detail': str(e)[:100]})

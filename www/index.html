@@ -818,11 +818,15 @@ PAGES.dispatch = async () => {
   draw();
   const sb = $("sync-btn");
   if (sb) sb.addEventListener("click", async ()=>{
-    sb.disabled=true; sb.textContent="⏳ Оновлюю…";
+    sb.disabled=true; sb.textContent="⏳ Оновлюю… (до 2 хв: Експедитор + трекінг)";
     try{
       const r = await fetch("/sync"); const js = await r.json();
-      const m = /new=(\d+)/.exec(js.result||"");
-      toast(m && m[1]!=="0" ? `✅ Додано нових угод: ${m[1]}` : "✅ Синхронізовано, нових угод немає");
+      const res = js.result||"";
+      const m = /new=(\d+)/.exec(res);
+      const t = /MAERSK_OK tracked=(\d+) updated=(\d+)/.exec(res);
+      const parts = [m && m[1]!=="0" ? `додано нових угод: ${m[1]}` : "нових угод немає"];
+      if (t) parts.push(`трекінг Maersk: оновлено ${t[2]} з ${t[1]}`);
+      toast("✅ " + parts.join(" · "));
       DISP_CACHE=null; go("dispatch");
     } catch(e){ toast("⚠ Не вдалося оновити — спробуй ще раз"); }
     finally{ sb.disabled=false; sb.textContent="⟳ Оновити з Експедитора"; }

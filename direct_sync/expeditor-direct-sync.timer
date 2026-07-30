@@ -1,8 +1,8 @@
 [Unit]
-Description=Щоденна пряма синхронізація з Експедитора (07:20 за Києвом)
+Description=Щоденна пряма синхронізація з Експедитора (07:00 за Києвом)
 
 [Timer]
-OnCalendar=*-*-* 07:20:00
+OnCalendar=*-*-* 07:00:00
 Persistent=true
 
 [Install]
