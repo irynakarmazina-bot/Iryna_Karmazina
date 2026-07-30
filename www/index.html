@@ -648,7 +648,9 @@ function drawChart(id, cfg){
 const STATUSES = {
   "Букінг":"t-neutral","Стафіровка":"t-info","В порту відправлення":"t-info",
   "Завантажений на судно":"t-info","В морі":"t-info",
-  "Вивантажений в порту прибуття":"t-vio","Завантажений на авто/потяг":"t-good",
+  "Вивантажений в порту прибуття":"t-vio",
+  "Завантажений на авто":"t-good","Завантажений на потяг":"t-good",
+  "Завантажений на авто/потяг":"t-good",
   "Вантаж доставлено":"t-del",
 };
 const stPill = st => st ? `<span class="pill ${STATUSES[st]||"t-neutral"}">${esc(st)}</span>` : '<span class="cell-muted">—</span>';

@@ -44,12 +44,10 @@ RETRIES = 3
 
 BL_RE = re.compile(r"^\d{9}$")
 DELIVERED = "Вантаж доставлено"
-# У n8n-логіці статус «Завантажений» розділений на авто/потяг, а в платформі
-# затверджена 8-модель з одним варіантом. Зводимо до наявного варіанта.
-STATUS_MAP = {
-    "Завантажений на потяг": "Завантажений на авто/потяг",
-    "Завантажений на авто": "Завантажений на авто/потяг",
-}
+# Статус «Завантажений» РОЗДІЛЕНИЙ на авто і потяг (рішення користувачки 30.07.2026):
+# у колонці «Статус» додано варіанти «Завантажений на авто» і «Завантажений на потяг».
+# Старий об'єднаний варіант лишився в колонці для історичних записів.
+LOADED_MERGED = "Завантажений на авто/потяг"
 READ_FIELDS = ["Id", "Угода", "BL", "Контейнер", "Контейнер (лінія)", "ETA",
                "ETA порт (план)", "ETA порт (факт)", "Статус", "Судно", "Вояж",
                "Зміни ETA (історія)", "Звірка", "Лінія",
@@ -174,7 +172,7 @@ def _dt(e):
     return str(e.get("eventDateTime") or "")
 
 
-def parse_events(events, row, today_iso):
+def parse_events(events, row, today_iso, statuses=frozenset()):
     """Портована логіка вузла «Розбір». Повертає {колонка: значення}."""
     out = {}
     conts = []
@@ -251,7 +249,8 @@ def parse_events(events, row, today_iso):
         st = load_st
     elif code == "GTIN":
         st = DELIVERED if mode == "TRUCK" else load_st
-    st = STATUS_MAP.get(st, st)
+    if st and st not in statuses and LOADED_MERGED in statuses and st.startswith("Завантажений на"):
+        st = LOADED_MERGED     # запас, якщо розділених варіантів у колонці ще немає
     if st and str(row.get("Статус") or "") != DELIVERED:
         out["Статус"] = st
 
@@ -317,7 +316,7 @@ def main():
         if not events:
             no_data.append("%s(порожньо)" % bl)
             continue
-        want = parse_events(events, row, today_iso)
+        want = parse_events(events, row, today_iso, statuses)
         if want.get("Статус") and statuses and want["Статус"] not in statuses:
             log("WARN статус «%s» не входить у варіанти колонки — не пишу (угода %s)"
                 % (want["Статус"], row.get("Угода")))
