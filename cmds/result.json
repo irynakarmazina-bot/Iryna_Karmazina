@@ -1,7 +1,7 @@
 {
-  "stdout": "Fri 2026-07-31 07:00:00 EEST maersk-track-sync.service\nFri 2026-07-31 07:20:00 EEST expeditor-direct-sync.service\nFri 2026-07-31 07:45:00 EEST EEST\nTRIGGER: active  8788\nFILES: __pycache__, allkeys.txt, deal_fields.txt, deals_raw.json, deals_stat.txt,expeditor_direct_sync.py, maersk.log, maersk_dry.out, maersk_dry4.out,maersk_ref, maersk_run.out, maersk_run2.out, maersk_run3.out,maersk_track_sync.py, names.json, secure, sync.log, written_state.json\nSECURE: 600 /root/direct-sync/secure/maersk.env\n",
-  "stderr": "",
-  "returncode": 0,
-  "id": "final-state-0730",
-  "ts": "2026-07-30T08:30:38Z"
+  "stdout": "",
+  "stderr": "Traceback (most recent call last):\n  File \"<stdin>\", line 13, in <module>\n  File \"<stdin>\", line 5, in nc\nUnboundLocalError: cannot access local variable 'urllib' where it is not associated with a value\n",
+  "returncode": 1,
+  "id": "status-split-0730",
+  "ts": "2026-07-30T10:56:36Z"
 }
