@@ -1,7 +1,7 @@
 {
-  "stdout": "СТВОРЕНО Вид перевезення 200 {'id': 'm58xsjo6at01ohl', 'source_id': 'b4015ks2gscph03', 'b\nСТВОРЕНО FCL/LCL 200 {'id': 'm58xsjo6at01ohl', 'source_id': 'b4015ks2gscph03', 'b\nВид перевезення: ['фрахт', 'фрахт+ТЕО', 'фрахт+ТЕО+МО', 'авіа', 'авіа+ТЕО', 'авіа+ТЕО+МО', 'фрахт+ТЕО+залізниця', 'ТЕО+авто', 'ТЕО+залізниця', 'авто']\nFCL/LCL: ['FCL', 'LCL', 'FTL', 'LTL']\nколонок у таблиці: 68\n",
+  "stdout": "LIVE до: 1da402297847ebaafc895ac5641c73f3 (очікую 1da402297847ebaafc895ac5641c73f3)\nLIVE після: bd16e3aa70b7b5462406ef35d6656cae\nREPO:       bd16e3aa70b7b5462406ef35d6656cae\nблоки: види=1 fcl=1\nUI 200\n",
   "stderr": "",
   "returncode": 0,
-  "id": "new-cols-0730",
-  "ts": "2026-07-30T16:09:16Z"
+  "id": "deploy-modes-0730",
+  "ts": "2026-07-30T16:10:52Z"
 }
