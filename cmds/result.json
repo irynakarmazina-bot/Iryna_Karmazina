@@ -1,7 +1,7 @@
 {
-  "stdout": "СТАН ДО:\n   Container Tracking — Maersk (CRM)                       active=True\n   NocoDB Sync — Диспетчеризація (Sheets → платформа)      active=True\n   Нові угоди → майстер-таблиця (для Maersk-трекінгу)      active=True\nВИМИКАЮ (deactivate, НЕ видаляю):\n   Container Tracking — Maersk (CRM)                       -> вимкнено\n   NocoDB Sync — Диспетчеризація (Sheets → платформа)      -> вимкнено\n   Нові угоди → майстер-таблиця (для Maersk-трекінгу)      -> вимкнено\nСТАН ПІСЛЯ:\n   Container Tracking — Maersk (CRM)                       active=False\n   NocoDB Sync — Диспетчеризація (Sheets → платформа)      active=False\n   Нові угоди → майстер-таблиця (для Maersk-трекінгу)      active=False\n",
+  "stdout": "SIZE: 154638\nSECTIONS: 1\nSPARK: 1\nUI 200\nCHARTJS 200\n",
   "stderr": "",
   "returncode": 0,
-  "id": "n8n-off-0730",
-  "ts": "2026-07-30T07:36:40Z"
+  "id": "ui-v18-fin-sheet-0730",
+  "ts": "2026-07-30T07:51:48Z"
 }
