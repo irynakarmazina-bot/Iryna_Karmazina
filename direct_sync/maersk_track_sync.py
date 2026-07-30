@@ -136,7 +136,7 @@ def maersk_token(env):
     return tok
 
 
-def maersk_events(env, token, value, param="carrierBookingReference", url=EVENTS_URL):
+def maersk_events(env, token, value, param="transportDocumentReference", url=EVENTS_URL):
     """Події по букінгу або по номеру контейнера. Повертає (events|None, note)."""
     q = urllib.parse.urlencode({param: value})
     req = urllib.request.Request(url + "?" + q, headers={
@@ -168,6 +168,39 @@ def maersk_events(env, token, value, param="carrierBookingReference", url=EVENTS
 
 
 # ---------------------------------------------------------------- розбір подій
+def collect_events(env, token, bl, container):
+    """Усі події по відправці: спершу по КОНОСАМЕНТУ (віддає більше, ніж букінг),
+    потім домішуємо по букінгу, і лише якщо нічого — по номеру контейнера.
+    Повертає (події, як_знайшли, нота)."""
+    found, seen, how = [], set(), []
+
+    def add(evs):
+        new = 0
+        for e in evs or []:
+            k = e.get("eventID") or json.dumps(e, sort_keys=True, ensure_ascii=False)[:200]
+            if k not in seen:
+                seen.add(k)
+                found.append(e)
+                new += 1
+        return new
+
+    note = ""
+    for param, value, label in (("transportDocumentReference", bl, "коносамент"),
+                                ("carrierBookingReference", bl, "букінг")):
+        evs, n = maersk_events(env, token, value, param)
+        note = note or n
+        if add(evs):
+            how.append(label)
+        time.sleep(THROTTLE)
+    if not found and container:
+        evs, n = maersk_events(env, token, container, "equipmentReference")
+        note = note or n
+        if add(evs):
+            how.append("контейнер")
+        time.sleep(THROTTLE)
+    return found, "+".join(how), note
+
+
 def _dt(e):
     return str(e.get("eventDateTime") or "")
 
@@ -290,30 +323,14 @@ def main():
     log("%sТокен Maersk отримано" % tag)
 
     patches, no_data, errors, changed_cols = [], [], [], {}
-    by_container = []
-    for i, (bl, row) in enumerate(todo):
-        if i:
-            time.sleep(THROTTLE)
-        events, note = maersk_events(env, token, bl)
+    how_stat = {}
+    for bl, row in todo:
+        cont = str(row.get("Контейнер") or "").split(",")[0].strip()
+        events, how, note = collect_events(env, token, bl, cont)
         if not events:
-            # запасні шляхи: по номеру контейнера, потім публічний ендпойнт
-            cont = str(row.get("Контейнер") or "").split(",")[0].strip()
-            if cont:
-                time.sleep(THROTTLE)
-                events, note2 = maersk_events(env, token, cont, "equipmentReference")
-                if events:
-                    by_container.append("%s→%s" % (bl, cont))
-                    note = note2
-            if not events:
-                time.sleep(THROTTLE)
-                events, note3 = maersk_events(env, token, bl, "carrierBookingReference", EVENTS_URL_PUBLIC)
-                note = note or note3
-        if events is None:
-            (no_data if "404" in str(note) else errors).append("%s(%s)" % (bl, note))
+            (no_data if "404" in str(note) else errors).append("%s(%s)" % (bl, note or "порожньо"))
             continue
-        if not events:
-            no_data.append("%s(порожньо)" % bl)
-            continue
+        how_stat[how] = how_stat.get(how, 0) + 1
         want = parse_events(events, row, today_iso, statuses)
         if want.get("Статус") and statuses and want["Статус"] not in statuses:
             log("WARN статус «%s» не входить у варіанти колонки — не пишу (угода %s)"
@@ -336,8 +353,8 @@ def main():
     if changed_cols:
         log("%sЗміни по колонках: %s" % (tag, ", ".join(
             "%s=%d" % (k, v) for k, v in sorted(changed_cols.items(), key=lambda x: -x[1]))))
-    if by_container:
-        log("%sЗнайдено по номеру контейнера (букінг Maersk не знає): %s" % (tag, ", ".join(by_container[:20])))
+    if how_stat:
+        log("%sЯк знайшлись дані: %s" % (tag, ", ".join("%s=%d" % kv for kv in sorted(how_stat.items()))))
     if no_data:
         log("%sБез даних у Maersk: %s" % (tag, ", ".join(no_data[:20])))
     if errors:
