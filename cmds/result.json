@@ -1,7 +1,7 @@
 {
-  "stdout": "LIVE до: 1160d226d546199a67458901cac9f74a\nLIVE після: 0d63bd86c59ae2e91d738029a97c1c98\nREPO:       0d63bd86c59ae2e91d738029a97c1c98\nSTAGE_RANK у файлі: 2\nUI 200\n",
+  "stdout": "LIVE до: 0d63bd86c59ae2e91d738029a97c1c98\nLIVE після: ad3f485b37753403366f12c8884e32b4\nLAND_STAGES: 2\nUI 200\n",
   "stderr": "",
   "returncode": 0,
-  "id": "deploy-sort2-0730",
-  "ts": "2026-07-30T19:28:04Z"
+  "id": "deploy-sort3-0730",
+  "ts": "2026-07-30T19:47:59Z"
 }
