@@ -20,6 +20,7 @@ PORT = 8788
 PY = '/root/unitex-finrep/.venv/bin/python'
 SYNC = '/root/direct-sync/expeditor_direct_sync.py'
 MAERSK = '/root/direct-sync/maersk_track_sync.py'
+COSCO = '/root/direct-sync/cosco_track_sync.py'
 
 
 class H(http.server.BaseHTTPRequestHandler):
@@ -40,9 +41,10 @@ class H(http.server.BaseHTTPRequestHandler):
             out = subprocess.run([PY, SYNC], capture_output=True, timeout=900).stdout.decode()[-300:]
             note = ''
             if args.get('maersk', ['1'])[0] != '0':
-                mo = subprocess.run([PY, MAERSK], capture_output=True, timeout=1800).stdout.decode()
-                last = [ln for ln in mo.splitlines() if ln.startswith('MAERSK_')]
-                note = ' | ' + (last[-1] if last else 'трекінг Maersk: без результату')
+                for script, mark, name in ((MAERSK, 'MAERSK_', 'Maersk'), (COSCO, 'COSCO_', 'COSCO')):
+                    r = subprocess.run([PY, script], capture_output=True, timeout=1800).stdout.decode()
+                    last = [ln for ln in r.splitlines() if ln.startswith(mark)]
+                    note += ' | ' + (last[-1] if last else 'трекінг %s: без результату' % name)
             self._send(200, {'status': 'ok', 'result': out.strip() + note})
         except Exception as e:  # noqa: BLE001
             self._send(500, {'status': 'error', 'detail': str(e)[:100]})
