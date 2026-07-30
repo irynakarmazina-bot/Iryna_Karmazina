@@ -1,7 +1,7 @@
 {
-  "stdout": "=== УСІ активні таймери ===\nNEXT LEFT LAST PASSED\nThu 2026-07-30 14:01:44 EEST EEST\nThu 2026-07-30 14:06:16 EEST 13:07:37\nThu 2026-07-30 14:10:00 EEST EEST\nThu 2026-07-30 14:33:02 EEST EEST\nThu 2026-07-30 18:30:37 EEST 05:47:00\nThu 2026-07-30 21:07:32 EEST EEST\nFri 2026-07-31 00:00:00 EEST EEST\nFri 2026-07-31 00:00:00 EEST EEST\nFri 2026-07-31 00:07:00 EEST EEST\nFri 2026-07-31 06:53:57 EEST EEST\nFri 2026-07-31 07:00:00 EEST maersk-track-sync.service\n=== cron ===\ne2scrub_all sysstat === poller (має бути вимкнений) ===\ndisabled\ninactive\n=== скільки разів Maersk запускався сьогодні (з лога) ===\n8\n",
+  "stdout": "усього 267, активних (не доставлено) 89\n\nЛІНІЯ      актив   з BL BL 9циф є Судно   є ETA приклади BL\nMaersk        52     34     34      14      50 264900732, 269554674, 264909561\nMSC           13      9      0       0       7 MEDUYF001422, MEDUB2586627, 177LGPGPN91836A\n(порожньо)    13      0      0       0       0 \nCMA CGM        6      2      0       0       5 NGP3540681, OEA0218983\nHLC            2      0      0       0       0 \nCOSCO          2      2      0       0       2 COSU6449384450, COSU6500459910\nEMC            1      1      0       0       0 MEDUHX176330\n\nконтейнери у активних без Судна: 54\n",
   "stderr": "",
   "returncode": 0,
-  "id": "check-freq-0730",
-  "ts": "2026-07-30T11:01:37Z"
+  "id": "gap-lines-0730",
+  "ts": "2026-07-30T11:04:00Z"
 }
