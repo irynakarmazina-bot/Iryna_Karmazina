@@ -241,6 +241,17 @@
   details.det>summary::before{content:"▸";font-size:10px}
   details.det[open]>summary::before{content:"▾"}
   details.det>summary:hover{border-color:var(--accent);color:var(--accent)}
+  /* картки секції 1: спарклайн + % зміни до контрольної дати */
+  .spark{height:32px;margin-top:9px;position:relative}
+  .delta .up{color:var(--good-text);font-weight:600}
+  .delta .down{color:var(--crit-text);font-weight:600}
+  /* розгортання рахунків усередині рядка клієнта/постачальника */
+  tr.exp:hover>td{background:var(--neutral-bg)}
+  .tw{color:var(--muted);font-size:11px}
+  table.subt{width:100%;border-collapse:collapse;margin:4px 0 6px}
+  table.subt th{font-size:11px;color:var(--muted);font-weight:600;padding:4px 8px;text-align:left;white-space:nowrap}
+  table.subt td{font-size:12px;padding:4px 8px;border-top:1px solid var(--line)}
+  tr.subrow>td{background:var(--neutral-bg);padding:4px 10px}
 
   /* pills */
   .pill{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;
@@ -1204,131 +1215,257 @@ const hBarOpts = () => ({
 });
 const noData = txt => `<p class="sub" style="margin:22px 0 0">${esc(txt)}</p>`;
 
+/* ===== ОПЕРАТИВНИЙ ЗВІТ — точний каркас аркуша «Дашборд» таблиці «Фін звітність (АРІ)»
+   (секції 1–10 + Капітал, engine/upload_dashboard.py), дані — computed/dashboard_data.json ===== */
+const SUBT = (rows, heads) => `<table class="subt"><thead><tr>${heads.map(h=>`<th>${esc(h)}</th>`).join("")}</tr></thead><tbody>${
+  (rows||[]).map(r=>`<tr>${r.map((v,i)=>`<td${(typeof v==="number")?' class="num"':""}>${typeof v==="number"?fmtN(v,2):esc(v)}</td>`).join("")}</tr>`).join("")}</tbody></table>`;
+
 async function renderOper(){
   $("rep-body").innerHTML = '<div class="card"><p class="sub">Завантаження звіту…</p></div>';
   let js;
   try{ js = await fetchFin("dashboard"); }
   catch(e){ $("rep-body").innerHTML = `<div class="note">⚠ ${esc(e.message)}</div>`; return; }
-  const D = js.data;
-  const sig = (D.signals||[]).map(s=>`<div class="note" style="${s[0]==="warn"?"background:var(--warn-bg);color:var(--warn-text)":""}">⚠️ ${esc(s[1])}: <b>${esc(s[2])}</b></div>`).join("");
+  const D  = js.data;
+  const C  = D.cards || {}, TR = D.cardTrends || {}, TB = D.cardTrendBase || "";
+  const sig = (D.signals||[]).map(s=>{
+    const warn = s[0] === "warn";
+    return `<div class="note" style="${warn?"background:var(--warn-bg);color:var(--warn-text)":""}">${warn?"⚠️":"✅"} ${esc(s[1])}: <b>${esc(s[2])}</b></div>`;
+  }).join("");
+
+  /* ── 1. СТАН СЬОГОДНІ ── */
+  const CARDS = [
+    ["cash",   "💰 Гроші (Cash)",                  "good"],
+    ["ar",     "💳 Дебіторка (AR)",                "bad"],
+    ["ap",     "📤 Кредиторка (AP)",               "bad"],
+    ["wip",    "🧊 WIP (незакриті угоди)",         "bad"],
+    ["nwc",    "🧮 Чистий оборотний капітал (NWC)","good"],
+    ["nwcDep", "🏦 NWC з депозитом",               "good"],
+  ];
+  const tileHtml = ([k, label, pol]) => {
+    const t = TR[k] || {}, pct = Number(t.pct), dir = t.dir;
+    let delta = TB ? `до ${esc(TB)}` : "";
+    if (isFinite(pct) && pct > 0 && (dir === "up" || dir === "down")){
+      const good = (pol === "good") === (dir === "up");
+      delta = `<span class="${good?"up":"down"}">${dir==="up"?"▲":"▼"} ${pct}%</span>${TB?" до "+esc(TB):""}`;
+    }
+    const sp = Array.isArray(t.spark) && t.spark.length > 1;
+    return `<div class="tile"><div class="lbl">${label}</div><div class="val">${fmtN(C[k],0)}</div>
+      <div class="delta">${delta}</div>${sp?`<div class="spark"><canvas id="sp-${k}"></canvas></div>`:""}</div>`;
+  };
+
+  /* ── 2. ПЛАТІЖНИЙ КАЛЕНДАР ── */
+  const cal = D.calendar || [];
+  const calRows = cal.map(r=>`<tr><td>${esc(r[0])}</td><td class="num">${fmtN(r[1],2)}</td>
+    <td class="num">${fmtN(r[2],2)}</td><td class="num">${fmtN(r[3],2)}</td>
+    <td>${String(r[4])==="РОЗРИВ"?'<span class="pill t-crit">РОЗРИВ</span>':esc(r[4]||"")}</td></tr>`);
+
+  /* ── 3. ЛІКВІДНІСТЬ ПО КАСАХ ── */
   const cashRows = (D.cashReal||[]).map(r=>`<tr><td>${esc(r[0])}</td><td class="num">${esc(r[1])}</td><td>${esc(r[2])}</td></tr>`);
-  const fro = D.frozen||{};
-  const cf = (D.cashflowWeekly||[]).map(r=>`<tr><td>${esc(r[0])}</td><td class="num">${fmtN(r[1])}</td><td class="num">${fmtN(r[2])}</td><td class="num">${fmtN(r[3])}</td><td class="num">${fmtN(r[5])}</td></tr>`);
-  const arA = (D.arAging||[]).map(r=>`<tr><td>${esc(r[0])}</td><td class="num">${fmtN(r[1],2)}</td><td class="num">${r[2]}</td></tr>`);
-  const apA = (D.apAging||[]).map(r=>`<tr><td>${esc(r[0])}</td><td class="num">${fmtN(r[1],2)}</td><td class="num">${r[2]}</td></tr>`);
-  const arD = (D.arDetail||[]).slice(0,10).map(c=>`<tr><td><b>${esc(c.name)}</b></td><td class="num">${fmtN(c.total,2)}</td><td class="num">${c.count}</td><td class="num">${c.maxOverdue||0} дн</td></tr>`);
-  const apD = (D.apDetail||[]).slice(0,10).map(c=>`<tr><td><b>${esc(c.name)}</b></td><td class="num">${fmtN(c.total,2)}</td><td class="num">${c.count}</td><td class="num">${c.maxAge||0} дн</td></tr>`);
-  const cal = (D.calendar||[]).map(r=>`<tr><td>${esc(r[0])}</td><td class="num">${fmtN(r[1],2)}</td><td class="num">${fmtN(r[2],2)}</td><td class="num">${fmtN(r[3],2)}</td><td>${esc(r[4]||"")}</td></tr>`);
-  const wip = (D.wipTop||[]).slice(0,10).map(r=>`<tr><td class="mono">${esc(r[0])}</td><td>${esc(r[1])}</td><td class="num">${fmtN(r[3],2)}</td></tr>`);
-  const eq = (D.equity||[]).map(r=>`<tr><td>${esc(r[0])}</td><td class="num">${fmtN(r[1],2)}</td><td class="num">${fmtN(r[2],2)}</td><td class="num">${fmtN(r[3],2)}</td></tr>`);
-  // дані для графіків (тільки поля, які вже приходять у dashboard_data.json)
-  const cfW  = (D.cashflowWeekly||[]);
-  const calR = (D.calendar||[]);
-  // кошики віку: чим старіший борг, тим «гарячіший» колір (порядок кошиків — з даних)
+  if (D.deposit != null) cashRows.push(`<tr style="font-weight:600"><td>Депозити (Time Deposits, поза оперативними касами)</td>
+    <td class="num">${fmtN(D.deposit,2)}</td><td>УО</td></tr>`);
+  const fc = D.forecast || [], fcSplit = Number(D.forecastSplit)||0;
+
+  /* ── 4. P&L МІСЯЦЯ ── */
+  const pMonths = D.pnlMonths || [], lastM = pMonths[pMonths.length-1];
+  const P = (D.pnlByMonth||{})[lastM];
+  const pLbl = (D.pnlMonthsLabels||{})[lastM] || lastM || "";
+  const pnlLine = (name, a, c) => `<tr><td>${esc(name)}</td><td class="num">${fmtN(a,2)}</td>
+    <td class="num">${fmtN(c,2)}</td><td class="num">${fmtN((Number(a)||0)-(Number(c)||0),2)}</td></tr>`;
+  const pnlRows = P ? [
+    pnlLine("Дохід (Revenue)", P.rev_a, P.rev_c),
+    pnlLine("Собівартість (COGS)", P.cogs_a, P.cogs_c),
+    pnlLine("Валовий прибуток (Gross Profit)", P.gp_a, P.gp_c),
+    `<tr><td>Валова маржа % (Gross Margin)</td><td class="num">${fmtN(P.marg_a,2)}%</td>
+      <td class="num">${fmtN(P.marg_c,2)}%</td><td class="num">${fmtN((Number(P.marg_a)||0)-(Number(P.marg_c)||0),2)}</td></tr>`,
+  ] : [];
+  const pnlAll = pMonths.slice().reverse().map(m=>{
+    const x = (D.pnlByMonth||{})[m] || {};
+    return `<tr><td>${esc((D.pnlMonthsLabels||{})[m]||m)}</td><td class="num">${fmtN(x.rev_a,2)}</td>
+      <td class="num">${fmtN(x.cogs_a,2)}</td><td class="num">${fmtN(x.gp_a,2)}</td><td class="num">${fmtN(x.marg_a,2)}%</td></tr>`;
+  });
+
+  /* ── 5. CASH FLOW ФАКТ ── */
+  const cf = D.cashflowWeekly || [];
+  const cfRows = cf.map(r=>`<tr${r[4]?' style="background:var(--info-bg);font-weight:600"':""}>
+    <td>${esc(r[0])}${r[4]?" · поточний":""}</td><td class="num">${fmtN(r[1],2)}</td><td class="num">${fmtN(r[2],2)}</td>
+    <td class="num">${fmtN(r[3],2)}</td><td class="num">${fmtN(r[5],2)}</td></tr>`);
+
+  /* ── 6/7. ДЕБІТОРКА і КРЕДИТОРКА ── */
   const AGE_C = [CH.green, CH.amber, CH.red, "#8f1d1d", CH.violet, CH.slate];
-  const aging = src => (src||[]).map((r,i)=>({l:r[0], v:nval(r[1]), c:AGE_C[i]||CH.slate})).filter(x=>x.v!==0);
-  const arAg = aging(D.arAging);
-  const apAg = aging(D.apAging);
-  const debt = (D.arDetail||[]).slice(0,8);
-  const sup  = (D.apDetail||[]).slice(0,8);
+  const aging = src => (src||[]).map((r,i)=>({l:r[0], v:nval(r[1]), n:r[2], c:AGE_C[i]||CH.slate}));
+  const arAg = aging(D.arAging), apAg = aging(D.apAging);
+  const agRows = a => a.map(x=>`<tr><td>${esc(x.l)}</td><td class="num">${fmtN(x.v,2)}</td><td class="num">${esc(x.n)}</td></tr>`);
+  const expRows = (list, kind, heads, ageKey, ageLbl) => (list||[]).slice(0,10).map((g,i)=>`
+    <tr class="exp" data-sub="${kind}-${i}"><td><span class="tw">▸</span> <b>${esc(g.name)}</b></td>
+      <td class="num">${fmtN(g.total,2)}</td><td class="num">${esc(g.count)}</td><td class="num">${esc(g[ageKey]||0)} дн</td></tr>
+    <tr class="subrow" id="${kind}-${i}" style="display:none"><td colspan="4">${SUBT(g.rows, heads)}</td></tr>`).join("");
+  const arExp = expRows(D.arDetail, "arx", ["Рахунок","Дата","Сума УО","Борг УО","Простроч., дн","Угода"], "maxOverdue");
+  const apExp = expRows(D.apDetail, "apx", ["Рахунок","Дата","Сума УО","Борг УО","Вік, дн","Послуга","Угода"], "maxAge");
+
+  /* ── 8. WIP ── */
+  const wip = D.wipTop || [];
+  const wipRow = r => `<tr><td class="mono">${esc(r[0])}</td><td>${esc(r[1])}</td><td>${esc(r[2]||"—")}</td><td class="num">${fmtN(r[3],2)}</td></tr>`;
+
+  /* ── 9. КЛІЄНТИ ── */
+  const cli = D.clients || [];
+  const cliRows = cli.map(r=>`<tr><td><b>${esc(r[0])}</b></td><td class="num">${fmtN(r[1],2)}</td></tr>`);
+  if (D.clientsTotal != null) cliRows.push(`<tr style="font-weight:700"><td>РАЗОМ (топ-${cli.length})</td><td class="num">${fmtN(D.clientsTotal,2)}</td></tr>`);
+
+  /* ── 10. NWC ПО МІСЯЦЯХ ── */
+  const nwcM = D.nwcMonthly || [];
+  const nwcRows = nwcM.slice().reverse().map(r=>`<tr><td>${esc(r[0])}</td><td class="num">${fmtN(r[1],2)}</td><td class="num">${fmtN(r[2],2)}</td></tr>`);
+
+  /* ── Капітал ── */
+  const eq = (D.equity||[]).map(r=>`<tr${String(r[0]).toLowerCase()==="разом"?' style="font-weight:700"':""}>
+    <td>${esc(r[0])}</td><td class="num">${fmtN(r[1],2)}</td><td class="num">${fmtN(r[2],2)}</td><td class="num">${fmtN(r[3],2)}</td></tr>`);
+  const eqM = (D.equityMonthly||[]).map(r=>`<tr><td>${esc(r[0])}</td><td>${esc(r[1])}</td>
+    <td class="num">${fmtN(r[2],2)}</td><td class="num">${fmtN(r[3],2)}</td></tr>`);
 
   $("rep-body").innerHTML = `
     ${refreshBar(js.mtime, renderOper)}
     ${sig}
-    <div class="tiles">
-      <div class="tile"><div class="lbl">💳 Дебіторка (нам винні)</div><div class="val">${fmtN(fro.ar,0)}</div><div class="delta">DSO ${D.dso||"—"} дн · рахунків: ${(D.arDetail||[]).reduce((s,c)=>s+(+c.count||0),0)}</div></div>
-      <div class="tile"><div class="lbl">📤 Кредиторка (ми винні)</div><div class="val">${fmtN(fro.ap,0)}</div><div class="delta">постачальників: ${(D.apDetail||[]).length}</div></div>
-      <div class="tile"><div class="lbl">🧊 В угодах (WIP)</div><div class="val">${fmtN(fro.wip,0)}</div><div class="delta">незакриті витрати по угодах</div></div>
-      <div class="tile warn"><div class="lbl">🧮 Заморожено разом (нетто)</div><div class="val">${fmtN(fro.net,0)}</div><div class="delta">брутто ${fmtN(fro.gross,0)}</div></div>
-    </div>
+    <div class="card"><h3>1. Стан сьогодні</h3>
+      <p class="sub">станом на ${esc(D.dataDate||"—")} · У.О. (USD-еквівалент)${TB?` · % — зміна до ${esc(TB)}`:""}</p>
+      <div class="tiles">${CARDS.map(tileHtml).join("")}</div></div>
+
+    <div class="card"><h3>2. Платіжний календар (ISO-тижні)</h3>
+      <p class="sub">прогноз надходжень і планових оплат, У.О.</p>
+      ${calRows.length ? finTable(["Тиждень","Надходження УО","Оплати УО","Прогнозний залишок УО","Розрив?"], calRows) : noData("Календар порожній.")}
+      ${cal.length?'<div class="chartbox" style="margin-top:14px"><canvas id="ch-cal"></canvas></div>':""}</div>
+
+    <div class="card"><h3>3. Ліквідність по касах</h3>
+      <p class="sub">каси НЕ взаємозамінні — залишки в оригінальних валютах; депозити поза оперативними касами</p>
+      ${finTable(["Каса (Вид оплати)","Залишок","Валюта"], cashRows)}
+      ${fc.length?`<h3 style="margin-top:16px">Гроші: останні місяці і сьогодні</h3>
+        <div class="chartbox"><canvas id="ch-fc"></canvas></div>`:""}</div>
+
+    <div class="card"><h3>4. P&amp;L місяця — ${esc(pLbl)}</h3>
+      <p class="sub">нарахування (виставлено) · каса (оплачено) · різниця; матчинг по угоді</p>
+      ${pnlRows.length ? finTable(["Показник","Нарахування (Accrual)","Каса (Cash)","Різниця"], pnlRows) : noData("Даних P&L за місяць немає.")}
+      ${pnlAll.length ? det("Показати всі місяці (нарахування)", finTable(["Місяць","Дохід","Собівартість","Валовий прибуток","Маржа %"], pnlAll)) : ""}</div>
+
+    <div class="card"><h3>5. Cash Flow — факт по тижнях (прямий метод)</h3>
+      <p class="sub">останні ${cf.length} тижнів · залишок на кінець тижня</p>
+      ${cfRows.length ? finTable(["Тиждень","Надходження факт УО","Виплати факт УО","Чистий потік УО","Залишок УО"], cfRows) : noData("Даних по тижнях немає.")}
+      ${cf.length?'<div class="chartbox" style="margin-top:14px"><canvas id="ch-cf"></canvas></div>':""}</div>
 
     <div class="chartgrid">
-      <div class="card"><h3>🌊 Кешфлоу по тижнях (У.О.)</h3><p class="sub">факт: надходження і виплати, лінія — залишок на кінець тижня</p>
-        <div class="chartbox">${cfW.length?'<canvas id="ch-cf"></canvas>':""}</div>${cfW.length?"":noData("Даних по тижнях немає.")}
-        ${cfW.length? det("Показати таблицю", finTable(["Тиждень","Надходження","Виплати","Чистий потік","Залишок"], cf)) : ""}</div>
-      <div class="card"><h3>📆 Платіжний календар (У.О.)</h3><p class="sub">прогноз надходжень і планові оплати, лінія — прогнозний залишок</p>
-        <div class="chartbox">${calR.length?'<canvas id="ch-cal"></canvas>':""}</div>${calR.length?"":noData("Календар порожній.")}
-        ${calR.length? det("Показати таблицю", finTable(["Період","Прогноз надходжень","Планові оплати","Прогн. залишок","Розрив"], cal)) : ""}</div>
+      <div class="card"><h3>6. Дебіторка (AR) — aging, топ, DSO</h3>
+        <p class="sub">DSO (медіана оплати клієнтів): <b>${esc(D.dso||"—")}</b> дн · разом ${fmtN((D.cards||{}).ar,2)} УО</p>
+        <div class="chartbox">${arAg.some(x=>x.v)?'<canvas id="ch-ar"></canvas>':""}</div>
+        ${finTable(["Кошик (aging)","Σ УО","Кількість"], agRows(arAg))}
+        <h3 style="margin-top:16px">Топ боржників</h3><p class="sub">клік по рядку — рахунки клієнта</p>
+        ${finTable(["Клієнт","Борг УО","Рахунків","Макс. простроч."], [arExp])}</div>
+      <div class="card"><h3>7. Кредиторка (AP)</h3>
+        <p class="sub">aging ${esc(D.apAgingLabel||"")} · разом ${fmtN((D.cards||{}).ap,2)} УО</p>
+        <div class="chartbox">${apAg.some(x=>x.v)?'<canvas id="ch-ap"></canvas>':""}</div>
+        ${finTable(["Кошик (aging)","Σ УО","Кількість"], agRows(apAg))}
+        <h3 style="margin-top:16px">Топ постачальників</h3><p class="sub">клік по рядку — рахунки постачальника</p>
+        ${finTable(["Постачальник","Борг УО","Рахунків","Макс. вік"], [apExp])}</div>
     </div>
+
+    <div class="card"><h3>8. WIP — незакриті угоди</h3>
+      <p class="sub">усього ${wip.length} угод з WIP &gt; 0 на ${fmtN((D.cards||{}).wip,2)} УО</p>
+      ${wip.length ? finTable(["№ угоди","Клієнт","Маршрут","WIP УО"], wip.slice(0,10).map(wipRow)) : noData("Незакритих угод немає.")}
+      ${wip.length>10 ? det(`Показати решту (${wip.length-10})`, finTable(["№ угоди","Клієнт","Маршрут","WIP УО"], wip.slice(10).map(wipRow))) : ""}</div>
 
     <div class="chartgrid">
-      <div class="card"><h3>💳 Дебіторка за віком</h3><p class="sub">скільки і наскільки давно нам винні</p>
-        <div class="chartbox">${arAg.length?'<canvas id="ch-ar"></canvas>':""}</div>${arAg.length?"":noData("Дебіторки немає.")}
-        ${det("Показати таблицю", finTable(["Кошик","Сума У.О.","Рахунків"], arA))}</div>
-      <div class="card"><h3>📤 Кредиторка за віком</h3><p class="sub">скільки і наскільки давно винні ми</p>
-        <div class="chartbox">${apAg.length?'<canvas id="ch-ap"></canvas>':""}</div>${apAg.length?"":noData("Кредиторки немає.")}
-        ${det("Показати таблицю", finTable(["Кошик","Сума У.О.","Рахунків"], apA))}</div>
+      <div class="card"><h3>9. Клієнти — зависає разом (AR + WIP)</h3>
+        <p class="sub">топ-${cli.length} за сумою зависання, У.О.</p>
+        <div class="chartbox">${cli.length?'<canvas id="ch-cli"></canvas>':""}</div>
+        ${cli.length ? finTable(["Клієнт","Разом зависає УО"], cliRows) : noData("Даних немає.")}</div>
+      <div class="card"><h3>10. NWC по місяцях</h3>
+        <p class="sub">чистий оборотний капітал на кінець місяця, У.О.</p>
+        <div class="chartbox">${nwcM.length?'<canvas id="ch-nwc"></canvas>':""}</div>
+        ${nwcM.length ? det("Показати таблицю", finTable(["Місяць","NWC УО","NWC з депозитом УО"], nwcRows)) : noData("Історії NWC немає.")}</div>
     </div>
 
-    <div class="chartgrid">
-      <div class="card"><h3>🧮 Структура замороженого капіталу</h3><p class="sub">з чого складаються зв'язані гроші, У.О.</p>
-        <div class="chartbox"><canvas id="ch-frozen"></canvas></div>
-        <div class="note">Нетто = дебіторка + WIP − кредиторка = <b>${fmtN(fro.net,0)}</b> У.О.</div></div>
-      <div class="card"><h3>🏆 Топ боржників</h3><p class="sub">найбільші суми до отримання, У.О.</p>
-        <div class="chartbox">${debt.length?'<canvas id="ch-debt"></canvas>':""}</div>${debt.length?"":noData("Боржників немає.")}
-        ${det("Показати таблицю", finTable(["Клієнт","Борг У.О.","Рах.","Макс. протерм."], arD))}</div>
-    </div>
+    <div class="card"><h3>Капітал власників (довідково, поза секціями 1–10)</h3>
+      ${finTable(["Власник","Внесено брутто УО","Вилучено УО","Нетто УО"], eq)}
+      ${eqM.length ? det("Показати помісячно", finTable(["Місяць","Власник","Внесено УО","Вилучено УО"], eqM)) : ""}</div>
 
-    <div class="chartgrid">
-      <div class="card"><h3>💵 Ліквідність по касах</h3><p class="sub">фактичні залишки в оригінальних валютах</p>
-        ${finTable(["Каса","Залишок","Валюта"], cashRows)}</div>
-      <div class="card"><h3>📦 Топ постачальників</h3><p class="sub">кому і скільки винні, У.О.</p>
-        <div class="chartbox">${sup.length?'<canvas id="ch-sup"></canvas>':""}</div>${sup.length?"":noData("Боргів постачальникам немає.")}
-        ${det("Показати таблицю", finTable(["Постачальник","Борг У.О.","Рах.","Макс. вік"], apD))}</div>
-    </div>
+    <div class="note">💡 Каркас і назви секцій — з движка звіту (engine/upload_dashboard.py), числа — з
+      computed/dashboard_data.json, тобто ті самі, що в таблиці «Фін звітність (АРІ)».
+      Чого тут поки немає, бо цих полів немає у файлі даних: у касах — колонки «До сплати / Очікується / Баланс»;
+      у кредиторці — ЦМР-утримання, «на розборі» і DPO; у клієнтах — розбивка AR/WIP і медіана днів оплати.</div>`;
 
-    <div class="card"><h3>🧊 Топ угод із замороженими коштами (WIP)</h3><p class="sub">де саме зв'язані гроші</p>${finTable(["Угода","Клієнт","Сума У.О."], wip)}</div>
-    <div class="card"><h3>🏦 Капітал власників (У.О.)</h3>${finTable(["Учасник","Внесено","Вилучено","Разом"], eq)}</div>
-    <div class="note">💡 Той самий розрахунок, що й у таблиці звіту — Google-таблиця лишається паралельним інструментом.</div>`;
+  /* ── спарклайни карток ── */
+  CARDS.forEach(([k,,pol])=>{
+    const t = TR[k] || {};
+    if (!Array.isArray(t.spark) || t.spark.length < 2) return;
+    const good = (pol === "good") === (t.dir !== "down");
+    drawChart("sp-"+k, {
+      type:"line",
+      data:{ labels: t.spark.map((_,i)=>i), datasets:[{ data: t.spark,
+        borderColor: good ? CH.green : CH.red, borderWidth:1.8, tension:.35,
+        pointRadius:0, fill:false }] },
+      options:{ maintainAspectRatio:false, animation:false,
+        plugins:{legend:{display:false}, tooltip:{enabled:false}},
+        scales:{ x:{display:false}, y:{display:false} } }
+    });
+  });
 
-  if (cfW.length) drawChart("ch-cf", {
+  if (cal.length) drawChart("ch-cal", {
     type:"bar",
-    data:{ labels: cfW.map(r=>r[0]), datasets:[
-      { label:"Надходження", data: cfW.map(r=>nval(r[1])), backgroundColor:CH.green, borderRadius:6, maxBarThickness:26, order:2 },
-      { label:"Виплати",     data: cfW.map(r=>nval(r[2])), backgroundColor:CH.red,   borderRadius:6, maxBarThickness:26, order:2 },
-      { label:"Залишок", type:"line", data: cfW.map(r=>nval(r[5])), yAxisID:"y1", borderColor:CH.blue,
+    data:{ labels: cal.map(r=>r[0]), datasets:[
+      { label:"Надходження", data: cal.map(r=>nval(r[1])), backgroundColor:CH.green, borderRadius:6, maxBarThickness:34, order:2 },
+      { label:"Оплати",      data: cal.map(r=>nval(r[2])), backgroundColor:CH.amber, borderRadius:6, maxBarThickness:34, order:2 },
+      { label:"Прогнозний залишок", type:"line", data: cal.map(r=>nval(r[3])), yAxisID:"y1",
+        borderColor:CH.blue, backgroundColor:CH.blue, borderWidth:2, borderDash:[5,4], tension:.3, pointRadius:3, order:1 } ] },
+    options: barLineOpts()
+  });
+  if (fc.length) drawChart("ch-fc", {
+    type:"line",
+    data:{ labels: fc.map(r=>r[0]), datasets:[{ data: fc.map(r=>nval(r[1])), label:"Гроші УО",
+      borderColor:CH.blue, backgroundColor:CH.blue, borderWidth:2, tension:.3, pointRadius:3,
+      segment:{ borderDash: c => c.p1DataIndex >= fcSplit ? [5,4] : undefined } }] },
+    options:{ maintainAspectRatio:false,
+      plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label: c => f0(c.parsed.y) } } },
+      scales:{ y:{ grid:GRIDC, ticks:{callback:axisK} }, x:{ grid:{display:false} } } }
+  });
+  if (cf.length) drawChart("ch-cf", {
+    type:"bar",
+    data:{ labels: cf.map(r=>r[0]), datasets:[
+      { label:"Надходження", data: cf.map(r=>nval(r[1])), backgroundColor:CH.green, borderRadius:6, maxBarThickness:26, order:2 },
+      { label:"Виплати",     data: cf.map(r=>nval(r[2])), backgroundColor:CH.red,   borderRadius:6, maxBarThickness:26, order:2 },
+      { label:"Залишок", type:"line", data: cf.map(r=>nval(r[5])), yAxisID:"y1", borderColor:CH.blue,
         backgroundColor:CH.blue, borderWidth:2, tension:.3, pointRadius:2.5, order:1 } ] },
     options: barLineOpts()
   });
-  if (calR.length) drawChart("ch-cal", {
+  const dough = (id, arr) => { const a = arr.filter(x=>x.v!==0); if (!a.length) return;
+    drawChart(id, { type:"doughnut",
+      data:{ labels:a.map(x=>x.l), datasets:[{ data:a.map(x=>x.v), backgroundColor:a.map(x=>x.c), borderWidth:0, hoverOffset:6 }] },
+      options: doughnutOpts() }); };
+  dough("ch-ar", arAg);
+  dough("ch-ap", apAg);
+  if (cli.length) drawChart("ch-cli", {
     type:"bar",
-    data:{ labels: calR.map(r=>r[0]), datasets:[
-      { label:"Прогноз надходжень", data: calR.map(r=>nval(r[1])), backgroundColor:CH.green, borderRadius:6, maxBarThickness:26, order:2 },
-      { label:"Планові оплати",     data: calR.map(r=>nval(r[2])), backgroundColor:CH.amber, borderRadius:6, maxBarThickness:26, order:2 },
-      { label:"Прогн. залишок", type:"line", data: calR.map(r=>nval(r[3])), yAxisID:"y1", borderColor:CH.blue,
-        backgroundColor:CH.blue, borderWidth:2, borderDash:[5,4], tension:.3, pointRadius:2.5, order:1 } ] },
-    options: barLineOpts()
-  });
-  if (arAg.length) drawChart("ch-ar", {
-    type:"doughnut",
-    data:{ labels: arAg.map(x=>x.l), datasets:[{ data: arAg.map(x=>x.v),
-      backgroundColor: arAg.map(x=>x.c), borderWidth:0, hoverOffset:6 }] },
-    options: doughnutOpts()
-  });
-  if (apAg.length) drawChart("ch-ap", {
-    type:"doughnut",
-    data:{ labels: apAg.map(x=>x.l), datasets:[{ data: apAg.map(x=>x.v),
-      backgroundColor: apAg.map(x=>x.c), borderWidth:0, hoverOffset:6 }] },
-    options: doughnutOpts()
-  });
-  drawChart("ch-frozen", {
-    type:"bar",
-    data:{ labels:["Дебіторка","В угодах (WIP)","Кредиторка"], datasets:[{
-      data:[nval(fro.ar), nval(fro.wip), nval(fro.ap)],
-      backgroundColor:[CH.blue, CH.violet, CH.amber], borderRadius:7, maxBarThickness:34 }] },
+    data:{ labels: cli.map(r=>cut(r[0])), datasets:[{ data: cli.map(r=>nval(r[1])),
+      backgroundColor:CH.violet, borderRadius:7, maxBarThickness:22 }] },
     options: hBarOpts()
   });
-  if (debt.length) drawChart("ch-debt", {
+  if (nwcM.length) drawChart("ch-nwc", {
     type:"bar",
-    data:{ labels: debt.map(c=>cut(c.name)), datasets:[{ data: debt.map(c=>nval(c.total)),
-      backgroundColor:CH.blue, borderRadius:7, maxBarThickness:22 }] },
-    options: hBarOpts()
+    data:{ labels: nwcM.map(r=>r[0]), datasets:[
+      { label:"NWC", data: nwcM.map(r=>nval(r[1])), backgroundColor:CH.blue, borderRadius:6, maxBarThickness:30 },
+      { label:"NWC з депозитом", data: nwcM.map(r=>nval(r[2])), backgroundColor:CH.slate, borderRadius:6, maxBarThickness:30 } ] },
+    options:{ maintainAspectRatio:false,
+      plugins:{ legend:{position:"top", align:"end", labels:LEGBOX},
+        tooltip:{ callbacks:{ label: c => `${c.dataset.label}: ${f0(c.parsed.y)}` } } },
+      scales:{ y:{ grid:GRIDC, ticks:{callback:axisK} }, x:{ grid:{display:false} } } }
   });
-  if (sup.length) drawChart("ch-sup", {
-    type:"bar",
-    data:{ labels: sup.map(c=>cut(c.name)), datasets:[{ data: sup.map(c=>nval(c.total)),
-      backgroundColor:CH.amber, borderRadius:7, maxBarThickness:22 }] },
-    options: hBarOpts()
+
+  /* розгортання рахунків клієнта/постачальника */
+  $("rep-body").querySelectorAll("tr.exp").forEach(tr=>{
+    tr.style.cursor = "pointer";
+    tr.addEventListener("click", ()=>{
+      const sub = document.getElementById(tr.dataset.sub);
+      if (!sub) return;
+      const open = sub.style.display !== "none";
+      sub.style.display = open ? "none" : "table-row";
+      const tw = tr.querySelector(".tw");
+      if (tw) tw.textContent = open ? "▸" : "▾";
+    });
   });
   enhanceTiles();
   window.scrollTo(0,0);
