@@ -1,7 +1,7 @@
 {
-  "stdout": "TOKEN NODE keys: ['method', 'url', 'sendHeaders', 'headerParameters', 'sendBody', 'contentType', 'bodyParameters', 'options']\n   param: Consumer-Key\n   param: Content-Type\n   param: grant_type\n   param: client_id\n   param: client_secret\n   має секрети: True\nCODE Відбір Maersk 381 -> /root/direct-sync/maersk_ref/Відбір_Maersk.js\nAPI NODE url: ={{ 'https://api.maersk.com/track-and-trace-private/events?carrierBookingReference=' + encodeURIComponent($json.bl) }}\n   headers: {\"parameters\": [{\"name\": \"Consumer-Key\", \"value\": \"<masked>\"}, {\"name\": \"Authorization\", \"value\": \"=Bearer {{ $('Maersk Token').first().json.access_token }}\"}]}\nCODE Розбір 2880 -> /root/direct-sync/maersk_ref/Розбір.js\n",
+  "stdout": "SECRETS_SAVED: MAERSK_CONSUMER_KEY(len=32), MAERSK_CLIENT_ID(len=32), MAERSK_CLIENT_SECRET(len=16)\nFILE: /root/direct-sync/secure/maersk.env 600\n== Відбір Maersk ==\n\nconst out=[];\nfor(const it of $input.all()){ const r=it.json;\n  const bl=String(r['BL/Booking']||'').trim();\n  if(!/^\\d{9}$/.test(bl)) continue;\n  out.push({json:{bl, ourContainer:String(r['Контейнер']||'').trim(),\n    etaPlanOld:String(r['ETA порт (план)']||'').trim(), histOld:String(r['Зміни ETA (історія)']||''),\n    curStatus:String(r['Статус']||'').trim()}});\n}\nreturn out;\n",
   "stderr": "",
   "returncode": 0,
-  "id": "recon-maersk-nodes-0730",
-  "ts": "2026-07-30T08:11:26Z"
+  "id": "maersk-secrets-0730",
+  "ts": "2026-07-30T08:11:48Z"
 }
