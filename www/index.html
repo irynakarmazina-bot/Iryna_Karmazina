@@ -226,8 +226,21 @@
   :root[data-theme="dark"] .ic-violet{background:#231b3d} :root[data-theme="dark"] .ic-amber{background:#2e2311}
   :root[data-theme="dark"] .ic-red{background:#331717} :root[data-theme="dark"] .ic-slate{background:#1e232c}
   .chartbox{position:relative;height:250px}
+  .chartbox.tall{height:300px}
+  /* блоки фінзвіту стоять з тим самим кроком, що й картки дашборда */
+  #rep-body{display:flex;flex-direction:column;gap:20px}
+  #p-out{display:flex;flex-direction:column;gap:20px;margin-top:4px}
   .chartgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px}
   .delta.up{color:var(--good-text)} .delta.down{color:var(--crit-text)}
+  /* згортання таблиць-деталізацій під графіками */
+  details.det{margin-top:12px}
+  details.det>summary{cursor:pointer;font-size:12.5px;color:var(--ink-2);list-style:none;
+    display:inline-flex;align-items:center;gap:7px;padding:5px 11px;border:1px solid var(--line);
+    border-radius:9px;background:var(--tile-bg);user-select:none}
+  details.det>summary::-webkit-details-marker{display:none}
+  details.det>summary::before{content:"▸";font-size:10px}
+  details.det[open]>summary::before{content:"▾"}
+  details.det>summary:hover{border-color:var(--accent);color:var(--accent)}
 
   /* pills */
   .pill{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;
@@ -1161,6 +1174,36 @@ function finTable(headers, rows){
     <tbody>${rows.join("")}</tbody></table></div>`;
 }
 
+/* ===== хелпери графіків фінансів (той самий стиль, що й на Дашборді) ===== */
+const CHPAL = [CH.blue, CH.green, CH.amber, CH.violet, CH.red, CH.slate, "#0ea5e9", "#f472b6"];
+const nval = v => { const n = Number(v); return isFinite(n) ? n : 0; };
+const f0 = n => nval(n).toLocaleString("uk-UA", {maximumFractionDigits:0});
+const axisK = v => Math.abs(v) >= 1000 ? Math.round(v/1000) + " тис" : v;
+const LEGBOX = {boxWidth:10, boxHeight:10, usePointStyle:true, pointStyle:"circle", padding:12};
+const GRIDC = {color:"rgba(148,163,184,.18)"};
+const cut = (s, n=22) => { s = String(s||""); return s.length > n ? s.slice(0, n-1) + "…" : s; };
+const det = (label, inner) => `<details class="det"><summary>${esc(label)}</summary>${inner}</details>`;
+/* стовпчики + лінія залишку на правій осі */
+const barLineOpts = () => ({
+  maintainAspectRatio:false, interaction:{mode:"index", intersect:false},
+  plugins:{ legend:{position:"top", align:"end", labels:LEGBOX},
+    tooltip:{ callbacks:{ label: c => `${c.dataset.label}: ${f0(c.parsed.y)}` } } },
+  scales:{ y:{ grid:GRIDC, ticks:{callback:axisK} },
+           y1:{ position:"right", grid:{display:false}, ticks:{callback:axisK} },
+           x:{ grid:{display:false} } }
+});
+const doughnutOpts = () => ({
+  maintainAspectRatio:false, cutout:"62%",
+  plugins:{ legend:{position:"right", labels:LEGBOX},
+    tooltip:{ callbacks:{ label: c => `${c.label}: ${f0(c.parsed)}` } } }
+});
+const hBarOpts = () => ({
+  maintainAspectRatio:false, indexAxis:"y",
+  plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label: c => f0(c.parsed.x) } } },
+  scales:{ x:{ grid:GRIDC, ticks:{callback:axisK} }, y:{ grid:{display:false}, ticks:{font:{size:11.5}} } }
+});
+const noData = txt => `<p class="sub" style="margin:22px 0 0">${esc(txt)}</p>`;
+
 async function renderOper(){
   $("rep-body").innerHTML = '<div class="card"><p class="sub">Завантаження звіту…</p></div>';
   let js;
@@ -1178,27 +1221,116 @@ async function renderOper(){
   const cal = (D.calendar||[]).map(r=>`<tr><td>${esc(r[0])}</td><td class="num">${fmtN(r[1],2)}</td><td class="num">${fmtN(r[2],2)}</td><td class="num">${fmtN(r[3],2)}</td><td>${esc(r[4]||"")}</td></tr>`);
   const wip = (D.wipTop||[]).slice(0,10).map(r=>`<tr><td class="mono">${esc(r[0])}</td><td>${esc(r[1])}</td><td class="num">${fmtN(r[3],2)}</td></tr>`);
   const eq = (D.equity||[]).map(r=>`<tr><td>${esc(r[0])}</td><td class="num">${fmtN(r[1],2)}</td><td class="num">${fmtN(r[2],2)}</td><td class="num">${fmtN(r[3],2)}</td></tr>`);
+  // дані для графіків (тільки поля, які вже приходять у dashboard_data.json)
+  const cfW  = (D.cashflowWeekly||[]);
+  const calR = (D.calendar||[]);
+  // кошики віку: чим старіший борг, тим «гарячіший» колір (порядок кошиків — з даних)
+  const AGE_C = [CH.green, CH.amber, CH.red, "#8f1d1d", CH.violet, CH.slate];
+  const aging = src => (src||[]).map((r,i)=>({l:r[0], v:nval(r[1]), c:AGE_C[i]||CH.slate})).filter(x=>x.v!==0);
+  const arAg = aging(D.arAging);
+  const apAg = aging(D.apAging);
+  const debt = (D.arDetail||[]).slice(0,8);
+  const sup  = (D.apDetail||[]).slice(0,8);
+
   $("rep-body").innerHTML = `
     ${refreshBar(js.mtime, renderOper)}
     ${sig}
     <div class="tiles">
-      <div class="tile"><div class="lbl">💳 Дебіторка (нам винні)</div><div class="val">${fmtN((D.frozen||{}).ar,0)}</div><div class="delta">DSO ${D.dso||"—"} дн</div></div>
-      <div class="tile"><div class="lbl">📤 Кредиторка (ми винні)</div><div class="val">${fmtN(fro.ap,0)}</div></div>
-      <div class="tile"><div class="lbl">🧊 В угодах (WIP)</div><div class="val">${fmtN(fro.wip,0)}</div></div>
-      <div class="tile warn"><div class="lbl">🧮 Заморожено разом (нетто)</div><div class="val">${fmtN(fro.net,0)}</div></div>
+      <div class="tile"><div class="lbl">💳 Дебіторка (нам винні)</div><div class="val">${fmtN(fro.ar,0)}</div><div class="delta">DSO ${D.dso||"—"} дн · рахунків: ${(D.arDetail||[]).reduce((s,c)=>s+(+c.count||0),0)}</div></div>
+      <div class="tile"><div class="lbl">📤 Кредиторка (ми винні)</div><div class="val">${fmtN(fro.ap,0)}</div><div class="delta">постачальників: ${(D.apDetail||[]).length}</div></div>
+      <div class="tile"><div class="lbl">🧊 В угодах (WIP)</div><div class="val">${fmtN(fro.wip,0)}</div><div class="delta">незакриті витрати по угодах</div></div>
+      <div class="tile warn"><div class="lbl">🧮 Заморожено разом (нетто)</div><div class="val">${fmtN(fro.net,0)}</div><div class="delta">брутто ${fmtN(fro.gross,0)}</div></div>
     </div>
-    <div class="card"><h3>💵 Ліквідність по касах</h3><p class="sub">фактичні залишки</p>${finTable(["Каса","Залишок","Валюта"], cashRows)}</div>
-    <div class="card"><h3>📆 Платіжний календар (У.О.)</h3>${finTable(["Період","Прогноз надходжень","Планові оплати","Прогн. залишок","Розрив"], cal)}</div>
-    <div class="card"><h3>🌊 Кешфлоу по тижнях (У.О.)</h3>${finTable(["Тиждень","Надходження","Виплати","Чистий потік","Залишок"], cf)}</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
-      <div class="card"><h3>💳 Дебіторка за віком</h3>${finTable(["Кошик","Сума У.О.","Рахунків"], arA)}
-        <h3 style="margin-top:14px">Топ боржників</h3>${finTable(["Клієнт","Борг У.О.","Рах.","Макс. протерм."], arD)}</div>
-      <div class="card"><h3>📤 Кредиторка за віком</h3>${finTable(["Кошик","Сума У.О.","Рахунків"], apA)}
-        <h3 style="margin-top:14px">Топ постачальників</h3>${finTable(["Постачальник","Борг У.О.","Рах.","Макс. вік"], apD)}</div>
+
+    <div class="chartgrid">
+      <div class="card"><h3>🌊 Кешфлоу по тижнях (У.О.)</h3><p class="sub">факт: надходження і виплати, лінія — залишок на кінець тижня</p>
+        <div class="chartbox">${cfW.length?'<canvas id="ch-cf"></canvas>':""}</div>${cfW.length?"":noData("Даних по тижнях немає.")}
+        ${cfW.length? det("Показати таблицю", finTable(["Тиждень","Надходження","Виплати","Чистий потік","Залишок"], cf)) : ""}</div>
+      <div class="card"><h3>📆 Платіжний календар (У.О.)</h3><p class="sub">прогноз надходжень і планові оплати, лінія — прогнозний залишок</p>
+        <div class="chartbox">${calR.length?'<canvas id="ch-cal"></canvas>':""}</div>${calR.length?"":noData("Календар порожній.")}
+        ${calR.length? det("Показати таблицю", finTable(["Період","Прогноз надходжень","Планові оплати","Прогн. залишок","Розрив"], cal)) : ""}</div>
     </div>
-    <div class="card"><h3>🧊 Топ угод із замороженими коштами (WIP)</h3>${finTable(["Угода","Клієнт","Сума У.О."], wip)}</div>
+
+    <div class="chartgrid">
+      <div class="card"><h3>💳 Дебіторка за віком</h3><p class="sub">скільки і наскільки давно нам винні</p>
+        <div class="chartbox">${arAg.length?'<canvas id="ch-ar"></canvas>':""}</div>${arAg.length?"":noData("Дебіторки немає.")}
+        ${det("Показати таблицю", finTable(["Кошик","Сума У.О.","Рахунків"], arA))}</div>
+      <div class="card"><h3>📤 Кредиторка за віком</h3><p class="sub">скільки і наскільки давно винні ми</p>
+        <div class="chartbox">${apAg.length?'<canvas id="ch-ap"></canvas>':""}</div>${apAg.length?"":noData("Кредиторки немає.")}
+        ${det("Показати таблицю", finTable(["Кошик","Сума У.О.","Рахунків"], apA))}</div>
+    </div>
+
+    <div class="chartgrid">
+      <div class="card"><h3>🧮 Структура замороженого капіталу</h3><p class="sub">з чого складаються зв'язані гроші, У.О.</p>
+        <div class="chartbox"><canvas id="ch-frozen"></canvas></div>
+        <div class="note">Нетто = дебіторка + WIP − кредиторка = <b>${fmtN(fro.net,0)}</b> У.О.</div></div>
+      <div class="card"><h3>🏆 Топ боржників</h3><p class="sub">найбільші суми до отримання, У.О.</p>
+        <div class="chartbox">${debt.length?'<canvas id="ch-debt"></canvas>':""}</div>${debt.length?"":noData("Боржників немає.")}
+        ${det("Показати таблицю", finTable(["Клієнт","Борг У.О.","Рах.","Макс. протерм."], arD))}</div>
+    </div>
+
+    <div class="chartgrid">
+      <div class="card"><h3>💵 Ліквідність по касах</h3><p class="sub">фактичні залишки в оригінальних валютах</p>
+        ${finTable(["Каса","Залишок","Валюта"], cashRows)}</div>
+      <div class="card"><h3>📦 Топ постачальників</h3><p class="sub">кому і скільки винні, У.О.</p>
+        <div class="chartbox">${sup.length?'<canvas id="ch-sup"></canvas>':""}</div>${sup.length?"":noData("Боргів постачальникам немає.")}
+        ${det("Показати таблицю", finTable(["Постачальник","Борг У.О.","Рах.","Макс. вік"], apD))}</div>
+    </div>
+
+    <div class="card"><h3>🧊 Топ угод із замороженими коштами (WIP)</h3><p class="sub">де саме зв'язані гроші</p>${finTable(["Угода","Клієнт","Сума У.О."], wip)}</div>
     <div class="card"><h3>🏦 Капітал власників (У.О.)</h3>${finTable(["Учасник","Внесено","Вилучено","Разом"], eq)}</div>
     <div class="note">💡 Той самий розрахунок, що й у таблиці звіту — Google-таблиця лишається паралельним інструментом.</div>`;
+
+  if (cfW.length) drawChart("ch-cf", {
+    type:"bar",
+    data:{ labels: cfW.map(r=>r[0]), datasets:[
+      { label:"Надходження", data: cfW.map(r=>nval(r[1])), backgroundColor:CH.green, borderRadius:6, maxBarThickness:26, order:2 },
+      { label:"Виплати",     data: cfW.map(r=>nval(r[2])), backgroundColor:CH.red,   borderRadius:6, maxBarThickness:26, order:2 },
+      { label:"Залишок", type:"line", data: cfW.map(r=>nval(r[5])), yAxisID:"y1", borderColor:CH.blue,
+        backgroundColor:CH.blue, borderWidth:2, tension:.3, pointRadius:2.5, order:1 } ] },
+    options: barLineOpts()
+  });
+  if (calR.length) drawChart("ch-cal", {
+    type:"bar",
+    data:{ labels: calR.map(r=>r[0]), datasets:[
+      { label:"Прогноз надходжень", data: calR.map(r=>nval(r[1])), backgroundColor:CH.green, borderRadius:6, maxBarThickness:26, order:2 },
+      { label:"Планові оплати",     data: calR.map(r=>nval(r[2])), backgroundColor:CH.amber, borderRadius:6, maxBarThickness:26, order:2 },
+      { label:"Прогн. залишок", type:"line", data: calR.map(r=>nval(r[3])), yAxisID:"y1", borderColor:CH.blue,
+        backgroundColor:CH.blue, borderWidth:2, borderDash:[5,4], tension:.3, pointRadius:2.5, order:1 } ] },
+    options: barLineOpts()
+  });
+  if (arAg.length) drawChart("ch-ar", {
+    type:"doughnut",
+    data:{ labels: arAg.map(x=>x.l), datasets:[{ data: arAg.map(x=>x.v),
+      backgroundColor: arAg.map(x=>x.c), borderWidth:0, hoverOffset:6 }] },
+    options: doughnutOpts()
+  });
+  if (apAg.length) drawChart("ch-ap", {
+    type:"doughnut",
+    data:{ labels: apAg.map(x=>x.l), datasets:[{ data: apAg.map(x=>x.v),
+      backgroundColor: apAg.map(x=>x.c), borderWidth:0, hoverOffset:6 }] },
+    options: doughnutOpts()
+  });
+  drawChart("ch-frozen", {
+    type:"bar",
+    data:{ labels:["Дебіторка","В угодах (WIP)","Кредиторка"], datasets:[{
+      data:[nval(fro.ar), nval(fro.wip), nval(fro.ap)],
+      backgroundColor:[CH.blue, CH.violet, CH.amber], borderRadius:7, maxBarThickness:34 }] },
+    options: hBarOpts()
+  });
+  if (debt.length) drawChart("ch-debt", {
+    type:"bar",
+    data:{ labels: debt.map(c=>cut(c.name)), datasets:[{ data: debt.map(c=>nval(c.total)),
+      backgroundColor:CH.blue, borderRadius:7, maxBarThickness:22 }] },
+    options: hBarOpts()
+  });
+  if (sup.length) drawChart("ch-sup", {
+    type:"bar",
+    data:{ labels: sup.map(c=>cut(c.name)), datasets:[{ data: sup.map(c=>nval(c.total)),
+      backgroundColor:CH.amber, borderRadius:7, maxBarThickness:22 }] },
+    options: hBarOpts()
+  });
+  enhanceTiles();
   window.scrollTo(0,0);
 }
 
@@ -1213,12 +1345,13 @@ async function renderPeriod(){
   $("rep-body").innerHTML = `
     ${refreshBar(js.mtime, renderPeriod)}
     <div class="card"><h3>📆 Фінансовий звіт за період</h3>
+      <p class="sub">дохід, собівартість і прибуток по угодах + операційні витрати</p>
       <div class="filters" style="margin-top:8px">
         <label style="font-size:13px;color:var(--ink-2)">З місяця <select id="pfrom">${selOpts}</select></label>
         <label style="font-size:13px;color:var(--ink-2)">По місяць <select id="pto">${selOpts}</select></label>
       </div>
-      <div id="p-out"></div>
-    </div>`;
+    </div>
+    <div id="p-out"></div>`;
   $("pfrom").value = months[Math.max(0, months.length-3)] || months[0];
   $("pto").value = months[months.length-1];
   const draw = () => {
@@ -1235,25 +1368,76 @@ async function renderPeriod(){
     const byCli = {};
     deals.forEach(d=>{ const k=d.client||"—"; byCli[k]=byCli[k]||{r:0,p:0,n:0}; byCli[k].r+=+d.revenue||0; byCli[k].p+=+d.profit||0; byCli[k].n++; });
     const topCli = Object.entries(byCli).sort((x,y)=>y[1].r-x[1].r).slice(0,12);
+    const mgrRows = Object.entries(byMgr).sort((x,y)=>y[1].p-x[1].p);
+    const opexRows = Object.entries(opexCat).sort((x,y)=>y[1]-x[1]);
+    // помісячна динаміка в межах вибраного періоду
+    const pm = months.filter(m=>m>=a && m<=b);
+    const mLbl = m => { const t=/^(\d{4})-(\d{2})/.exec(String(m||"")); return t ? t[2]+"."+t[1].slice(2) : String(m||""); };
+    const sumBy = (m, f) => deals.filter(d=>d.month===m).reduce((s,d)=>s+(+d[f]||0),0);
+    const mRev  = pm.map(m=>sumBy(m,"revenue"));
+    const mProf = pm.map(m=>sumBy(m,"profit"));
+    const mOpex = pm.map(m=>nval((D.opexByMonth||{})[m]));
+    const topCli8 = topCli.slice(0,8), mgr8 = mgrRows.slice(0,8), opex8 = opexRows.slice(0,8);
+
     $("p-out").innerHTML = `
-      <div class="tiles" style="margin-top:12px">
-        <div class="tile"><div class="lbl">Дохід</div><div class="val">${fmtN(rev)}</div><div class="delta">У.О. · угод: ${deals.length}</div></div>
-        <div class="tile"><div class="lbl">Собівартість угод</div><div class="val">${fmtN(cost)}</div></div>
-        <div class="tile"><div class="lbl">Прибуток по угодах</div><div class="val" style="color:var(--good-text)">${fmtN(prof)}</div><div class="delta">маржа ${rev? Math.round(prof/rev*100):0}%</div></div>
-        <div class="tile"><div class="lbl">Опер. витрати (OPEX)</div><div class="val">${fmtN(opex)}</div><div class="delta">чистий: ${fmtN(prof-opex)}</div></div>
+      <div class="tiles">
+        <div class="tile"><div class="lbl">💰 Дохід</div><div class="val">${fmtN(rev)}</div><div class="delta">У.О. · угод: ${deals.length}</div></div>
+        <div class="tile"><div class="lbl">📦 Собівартість угод</div><div class="val">${fmtN(cost)}</div><div class="delta">${rev? Math.round(cost/rev*100):0}% доходу</div></div>
+        <div class="tile"><div class="lbl">✅ Прибуток по угодах</div><div class="val" style="color:var(--good-text)">${fmtN(prof)}</div><div class="delta">маржа ${rev? Math.round(prof/rev*100):0}%</div></div>
+        <div class="tile warn"><div class="lbl">🧮 Опер. витрати (OPEX)</div><div class="val">${fmtN(opex)}</div><div class="delta">чистий результат: ${fmtN(prof-opex)}</div></div>
       </div>
-      <h3 style="margin-top:16px">По менеджерах</h3>
-      ${finTable(["Менеджер","Угод","Дохід","Прибуток"], Object.entries(byMgr).sort((x,y)=>y[1].p-x[1].p).map(([m,v])=>`<tr><td><b>${esc(m)}</b></td><td class="num">${v.n}</td><td class="num">${fmtN(v.r)}</td><td class="num">${fmtN(v.p)}</td></tr>`))}
-      <h3 style="margin-top:16px">Топ клієнтів за доходом</h3>
-      ${finTable(["Клієнт","Угод","Дохід","Прибуток"], topCli.map(([c,v])=>`<tr><td><b>${esc(c)}</b></td><td class="num">${v.n}</td><td class="num">${fmtN(v.r)}</td><td class="num">${fmtN(v.p)}</td></tr>`))}
-      <h3 style="margin-top:16px">Операційні витрати по категоріях</h3>
-      ${finTable(["Категорія","Сума У.О."], Object.entries(opexCat).sort((x,y)=>y[1]-x[1]).map(([c,v])=>`<tr><td>${esc(c)}</td><td class="num">${fmtN(v,2)}</td></tr>`))}
-      <h3 style="margin-top:16px">Угоди періоду</h3>
-      ${finTable(["Угода","Місяць","Менеджер","Клієнт","Напрямок","Дохід","Витрати","Прибуток"],
-        deals.sort((x,y)=>String(y.month).localeCompare(String(x.month)) || (+y.num)-(+x.num)).map(d=>`<tr>
+
+      <div class="card"><h3>📊 Динаміка по місяцях (У.О.)</h3><p class="sub">дохід і прибуток по угодах, лінія — операційні витрати</p>
+        <div class="chartbox tall">${pm.length?'<canvas id="ch-p-mon"></canvas>':""}</div>${pm.length?"":noData("У вибраному періоді угод немає.")}</div>
+
+      <div class="chartgrid">
+        <div class="card"><h3>🏆 Топ клієнтів за доходом</h3><p class="sub">У.О. за період</p>
+          <div class="chartbox">${topCli8.length?'<canvas id="ch-p-cli"></canvas>':""}</div>${topCli8.length?"":noData("Клієнтів немає.")}
+          ${det("Показати таблицю (топ-12)", finTable(["Клієнт","Угод","Дохід","Прибуток"], topCli.map(([c,v])=>`<tr><td><b>${esc(c)}</b></td><td class="num">${v.n}</td><td class="num">${fmtN(v.r)}</td><td class="num">${fmtN(v.p)}</td></tr>`)))}</div>
+        <div class="card"><h3>🧮 Операційні витрати по категоріях</h3><p class="sub">У.О. за період · разом ${fmtN(opex)}</p>
+          <div class="chartbox">${opex8.length?'<canvas id="ch-p-opex"></canvas>':""}</div>${opex8.length?"":noData("Операційних витрат немає.")}
+          ${det("Показати таблицю (всі категорії)", finTable(["Категорія","Сума У.О."], opexRows.map(([c,v])=>`<tr><td>${esc(c)}</td><td class="num">${fmtN(v,2)}</td></tr>`)))}</div>
+      </div>
+
+      <div class="card"><h3>👥 По менеджерах</h3><p class="sub">прибуток по угодах, У.О.</p>
+        <div class="chartbox">${mgr8.length?'<canvas id="ch-p-mgr"></canvas>':""}</div>${mgr8.length?"":noData("Даних по менеджерах немає.")}
+        ${det("Показати таблицю", finTable(["Менеджер","Угод","Дохід","Прибуток"], mgrRows.map(([m,v])=>`<tr><td><b>${esc(m)}</b></td><td class="num">${v.n}</td><td class="num">${fmtN(v.r)}</td><td class="num">${fmtN(v.p)}</td></tr>`)))}</div>
+
+      <div class="card"><h3>📄 Угоди періоду</h3><p class="sub">усі ${deals.length} угод, від найновіших</p>
+        ${finTable(["Угода","Місяць","Менеджер","Клієнт","Напрямок","Дохід","Витрати","Прибуток"],
+        deals.slice().sort((x,y)=>String(y.month).localeCompare(String(x.month)) || (+y.num)-(+x.num)).map(d=>`<tr>
           <td class="mono"><b>${esc(d.num)}</b></td><td class="mono">${esc(d.month)}</td><td>${esc(d.manager||"—")}</td>
           <td>${esc(d.client||"—")}</td><td>${esc(d.kind||"—")}</td>
-          <td class="num">${fmtN(d.revenue,2)}</td><td class="num">${fmtN(d.cost,2)}</td><td class="num">${fmtN(d.profit,2)}</td></tr>`))}`;
+          <td class="num">${fmtN(d.revenue,2)}</td><td class="num">${fmtN(d.cost,2)}</td><td class="num">${fmtN(d.profit,2)}</td></tr>`))}</div>`;
+
+    if (pm.length) drawChart("ch-p-mon", {
+      type:"bar",
+      data:{ labels: pm.map(mLbl), datasets:[
+        { label:"Дохід",    data:mRev,  backgroundColor:CH.blue,  borderRadius:6, maxBarThickness:34, order:2 },
+        { label:"Прибуток", data:mProf, backgroundColor:CH.green, borderRadius:6, maxBarThickness:34, order:2 },
+        { label:"OPEX", type:"line", data:mOpex, yAxisID:"y1", borderColor:CH.red, backgroundColor:CH.red,
+          borderWidth:2, tension:.3, pointRadius:2.5, order:1 } ] },
+      options: barLineOpts()
+    });
+    if (topCli8.length) drawChart("ch-p-cli", {
+      type:"bar",
+      data:{ labels: topCli8.map(([c])=>cut(c)), datasets:[{ data: topCli8.map(([,v])=>v.r),
+        backgroundColor:CH.blue, borderRadius:7, maxBarThickness:22 }] },
+      options: hBarOpts()
+    });
+    if (opex8.length) drawChart("ch-p-opex", {
+      type:"doughnut",
+      data:{ labels: opex8.map(([c])=>cut(c, 26)), datasets:[{ data: opex8.map(([,v])=>v),
+        backgroundColor:CHPAL, borderWidth:0, hoverOffset:6 }] },
+      options: doughnutOpts()
+    });
+    if (mgr8.length) drawChart("ch-p-mgr", {
+      type:"bar",
+      data:{ labels: mgr8.map(([m])=>cut(m)), datasets:[{ data: mgr8.map(([,v])=>v.p),
+        backgroundColor:CH.green, borderRadius:7, maxBarThickness:22 }] },
+      options: hBarOpts()
+    });
+    enhanceTiles();
   };
   $("pfrom").addEventListener("change", draw);
   $("pto").addEventListener("change", draw);
