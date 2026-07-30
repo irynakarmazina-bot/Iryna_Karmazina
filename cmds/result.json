@@ -1,7 +1,7 @@
 {
-  "stdout": "Угод для трекінгу: 34 (усього в платформі 267)\nТокен Maersk отримано\nОновити угод: 19; без даних: 15; помилки: 0\nЗміни по колонках: Останнє оновлення=19, Статус=10, ETA=5, ETA порт (план)=4, Зміни ETA (історія)=2, Остання зміна=2, Контейнер (лінія)=1, Судно=1, Вояж=1\nБез даних у Maersk: 269554674(404 немає даних), 272050345(404 немає даних), 274014640(404 немає даних), 270493375(404 немає даних), 272623134(404 немає даних), 272623041(404 немає даних), 272050345(404 немає даних), 271335733(404 немає даних), 274782805(404 немає даних), 272931333(404 немає даних), \nUPDATE_FAIL 400 {'err': '{\"msg\":\"Invalid option(s) \\\\\"Завантажений на потяг\\\\\" provided for column \\\\\"Статус\\\\\". Valid options are \\\\\"Букінг, Стафіровка, В порту відправлення, Завантажений на судно, В морі, Вивантаже\nDONE tracked=34 updated=19 nodata=15 api_errors=0 write_fails=1\nMAERSK_OK tracked=34 updated=19 nodata=15 api_errors=0 write_fails=1\n",
-  "stderr": "",
+  "stdout": "Угод для трекінгу: 34 (усього в платформі 267)\nТокен Maersk отримано\nОновити угод: 19; без даних: 15; помилки: 0\nЗміни по колонках: Останнє оновлення=19, Статус=10, ETA=5, ETA порт (план)=4, Зміни ETA (історія)=2, Остання зміна=2, Контейнер (лінія)=1, Судно=1, Вояж=1\nDONE tracked=34 updated=19 nodata=15 api_errors=0 write_fails=0\nMAERSK_OK tracked=34 updated=19 nodata=15 api_errors=0 write_fails=0\nTIMER_MAERSK: enabled next=Fri 2026-07-31 07:00:00 EEST\n",
+  "stderr": "Created symlink /etc/systemd/system/timers.target.wants/maersk-track-sync.timer → /etc/systemd/system/maersk-track-sync.timer.\n",
   "returncode": 0,
-  "id": "maersk-run-0730",
-  "ts": "2026-07-30T08:18:36Z"
+  "id": "maersk-run2-0730",
+  "ts": "2026-07-30T08:21:49Z"
 }
