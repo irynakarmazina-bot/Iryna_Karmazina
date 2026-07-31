@@ -53,7 +53,19 @@ MODE_BY_TYPE = {
 }
 UNMAPPED = {"055a1679": "Збірний", "ab8b270f": "МО", "00000000": "тип не заповнений в Експедиторі"}
 SEA_MODES = {"фрахт", "фрахт+ТЕО", "фрахт+ТЕО+МО", "фрахт+ТЕО+авто", "фрахт+ТЕО+залізниця", "ТЕО+авто"}
-STAGE_TO_STATUS = {"Букинг": "Букінг", "Выполняется": "Виконується"}
+# Рішення користувачки 31.07.2026: «ВыставленСчет» теж «Виконується» —
+# «якщо немає іншої інформації (або людина поставила Доставлено,
+#  або є в угоді дата завершення робіт)».
+STAGE_TO_STATUS = {"Букинг": "Букінг",
+                   "Выполняется": "Виконується",
+                   "ВыставленСчет": "Виконується"}
+DELIVERED = "Вантаж доставлено"
+WORKS_DONE_FIELD = "ДатаВыполненияРабот"
+
+
+def has_date(v):
+    s = str(v or "")
+    return bool(s) and not s.startswith("0001-01-01")
 
 
 def nc(method, path, data=None):
@@ -179,9 +191,12 @@ def main():
             elif eff in SEA_MODES:
                 skipped["FCL/LCL: морська без номера контейнера"] += 1
 
-        # --- статус: лише однозначний етап «Букинг»
+        # --- статус
         if not F(r, "Статус"):
-            tgt = STAGE_TO_STATUS.get(str(d.get("Статус") or "").strip())
+            if has_date(d.get(WORKS_DONE_FIELD)):
+                tgt = DELIVERED                      # роботи виконані → доставлено
+            else:
+                tgt = STAGE_TO_STATUS.get(str(d.get("Статус") or "").strip())
             if tgt and (st_opts is None or tgt in st_opts):
                 put(r["Id"], "Статус", tgt); stats["статус: " + tgt] += 1
             else:
