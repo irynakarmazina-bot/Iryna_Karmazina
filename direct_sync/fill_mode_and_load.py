@@ -148,7 +148,7 @@ def main():
 
     ensure_options("Вид перевезення", set(MODE_BY_TYPE.values()), a.dry_run)
     load_opts = ensure_options("FCL/LCL", {"FCL", "LCL"}, a.dry_run)
-    st_opts = ensure_options("Статус", set(STAGE_TO_STATUS.values()), a.dry_run)
+    st_opts = ensure_options("Статус", set(STAGE_TO_STATUS.values()) | {DELIVERED}, a.dry_run)
 
     def num(n):
         s = str(n or "").strip()
@@ -192,11 +192,13 @@ def main():
                 skipped["FCL/LCL: морська без номера контейнера"] += 1
 
         # --- статус
-        if not F(r, "Статус"):
-            if has_date(d.get(WORKS_DONE_FIELD)):
-                tgt = DELIVERED                      # роботи виконані → доставлено
-            else:
-                tgt = STAGE_TO_STATUS.get(str(d.get("Статус") or "").strip())
+        cur_st = F(r, "Статус")
+        if has_date(d.get(WORKS_DONE_FIELD)) and cur_st != DELIVERED:
+            # роботи виконані → вантаж доставлено (переважає і етап, і вже поставлений статус)
+            put(r["Id"], "Статус", DELIVERED)
+            stats["статус: %s (є дата виконання робіт)" % DELIVERED] += 1
+        elif not cur_st:
+            tgt = STAGE_TO_STATUS.get(str(d.get("Статус") or "").strip())
             if tgt and (st_opts is None or tgt in st_opts):
                 put(r["Id"], "Статус", tgt); stats["статус: " + tgt] += 1
             else:
