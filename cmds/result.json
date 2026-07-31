@@ -1,7 +1,7 @@
 {
-  "stdout": "colgroup: 2\nfixw: 3\nнове сортування: 1\nUI 200\n",
+  "stdout": "НАБОРІВ УСЬОГО: 108\n\nНАБОРИ, СХОЖІ НА СТАТУС/ЕТАП/ПОДІЮ:\n\nУСІ InformationRegister_*:\n\nУСІ AccumulationRegister_* і BusinessProcess/Task:\n    AccumulationRegister_БанкДокументы\n    AccumulationRegister_БанкДокументы_RecordType\n    AccumulationRegister_БанкОстатки\n    AccumulationRegister_БанкОстатки_RecordType\n    AccumulationRegister_Фонды\n    AccumulationRegister_Фонды_RecordType\n",
   "stderr": "",
   "returncode": 0,
-  "id": "deploy-ui7-0731",
-  "ts": "2026-07-31T14:12:06Z"
+  "id": "sets-all-0731",
+  "ts": "2026-07-31T14:30:49Z"
 }
