@@ -1,1 +1,1 @@
-{"id": "fill-dry-0731", "cmd": "set -e\nB=claude/direct-automation-expeditor-671esy\ncd /root/Iryna_Karmazina && git fetch -q origin $B\ngit show origin/$B:direct_sync/fill_mode_and_load.py > /root/direct-sync/fill_mode_and_load.py\ncd /root/unitex-finrep && .venv/bin/python /root/direct-sync/fill_mode_and_load.py --dry-run 2>&1 | tail -c 2400"}
+{"id": "fill-real-0731", "cmd": "cd /root/unitex-finrep && .venv/bin/python /root/direct-sync/fill_mode_and_load.py 2>&1 | tail -c 2200"}
