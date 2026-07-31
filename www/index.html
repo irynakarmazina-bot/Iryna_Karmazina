@@ -862,7 +862,6 @@ PAGES.dispatch = async () => {
   $("content").innerHTML = `
     <div class="card">
       <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
-        <h3 style="margin:0">🚢 Диспетчеризація</h3>
         <span class="sub" style="margin:0">угод: ${quick? `${quickCount} з ${all.length}` : all.length}${cfg().scope!=="all"?" (лише твої)":""} · клік по рядку — картка</span>
         ${quick? `<span class="quickchip">Фільтр: ${esc(quick.label)}<button id="quick-clear" title="скинути фільтр">✕</button></span>`:""}
         <span style="flex:1"></span>${syncBtn}
@@ -1216,7 +1215,7 @@ PAGES.clients = async () => {
   disp.forEach(r=>{ const k=(r["Клієнт"]||"").trim(); if(!k) return; cnt[k]=cnt[k]||{all:0,act:0}; cnt[k].all++; if(r["Статус"]!=="Вантаж доставлено") cnt[k].act++; });
   const names = Object.keys(cnt).sort((a,b)=>cnt[b].act-cnt[a].act || cnt[b].all-cnt[a].all);
   $("content").innerHTML = `
-    <div class="card"><h3>👥 Клієнти${cfg().scope!=="all"?" (твої)":""}</h3><p class="sub">з угод диспетчеризації</p>
+    <div class="card"><p class="sub">з угод диспетчеризації${cfg().scope!=="all"?" · лише твої":""}</p>
       <div class="tablewrap"><table>
         <thead><tr><th>Клієнт</th><th class="num">Угод всього</th><th class="num">Активних</th></tr></thead>
         <tbody>${names.map(n=>`<tr><td><b>${esc(n)}</b></td><td class="num">${cnt[n].all}</td><td class="num">${cnt[n].act}</td></tr>`).join("")}</tbody>
@@ -1237,7 +1236,7 @@ PAGES.finance = async () => {
     return;
   }
   $("content").innerHTML = `
-    <div class="card"><h3>💰 Фінансова звітність</h3>
+    <div class="card">
       <p class="sub">джерело — Експедитор напряму · таблиця Google лишається окремим інструментом</p>
       <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:6px">
         <button class="btn" id="rep-oper">⚡ Оперативний фінансовий звіт</button>
@@ -1484,7 +1483,6 @@ PAGES.calc = async () => {
   $("content").innerHTML = `
     <div class="card">
       <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
-        <h3 style="margin:0">🧮 Калькуляції</h3>
         <span class="sub" style="margin:0">усього: ${all.length} · прийнято: ${sum("Прийнято")} · чернеток: ${sum("Чернетка")}</span>
         <span style="flex:1"></span>
         ${ro?"":'<button class="btn" id="calc-new">＋ Нова калькуляція</button>'}
@@ -1689,7 +1687,7 @@ function openCalc(r){
 PAGES.tasks = async () => {
   const rows = await loadAll(T["Задачі"]);
   $("content").innerHTML = `
-    <div class="card"><h3>✅ Задачі</h3><p class="sub">ведуться в базі · створення звідси — наступна ітерація</p>
+    <div class="card"><p class="sub">ведуться в базі · створення звідси — наступна ітерація</p>
       <div class="tablewrap"><table>
         <thead><tr><th>Задача</th><th>Кому</th><th>Термін</th><th>Статус</th><th>Угода</th></tr></thead>
         <tbody>${rows.length ? rows.map(t=>`<tr><td>${esc(t["Задача"]||"")}</td><td>${esc(t["Кому"]||"—")}</td>
@@ -1727,7 +1725,7 @@ PAGES.instr = async () => {
 PAGES.users = async () => {
   const rows = await loadAll(T["Користувачі"]);
   $("content").innerHTML = `
-    <div class="card"><h3>🔐 Користувачі та ролі</h3>
+    <div class="card">
       <p class="sub">роль визначає, що людина бачить у платформі</p>
       <div class="tablewrap"><table>
         <thead><tr><th>Ім'я</th><th>Email</th><th>Роль</th><th>Активний</th></tr></thead>
