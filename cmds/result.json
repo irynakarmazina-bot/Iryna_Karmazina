@@ -1,7 +1,7 @@
 {
-  "stdout": "метадані: 600727 символів\n  GUID da7d27a1 згадок: 0\n  GUID 8e35f3c7 згадок: 0\n  GUID 91ec6953 згадок: 0\n\nUnavailableEntity у метаданих: 0\n",
+  "stdout": "масивів (субконто) у полях руху НЕМАЄ\n",
   "stderr": "",
   "returncode": 0,
-  "id": "metadata-guids-0731",
-  "ts": "2026-07-31T11:15:53Z"
+  "id": "subconto-0731",
+  "ts": "2026-07-31T11:18:48Z"
 }
