@@ -1,7 +1,7 @@
 {
-  "stdout": "слот дій: 1\nUI 200\n",
+  "stdout": "лого ліворуч: 1\nUI 200\n",
   "stderr": "",
   "returncode": 0,
-  "id": "deploy-pageactions-0731",
-  "ts": "2026-07-31T12:19:53Z"
+  "id": "deploy-logoleft-0731",
+  "ts": "2026-07-31T12:21:19Z"
 }
