@@ -1,7 +1,7 @@
 {
-  "stdout": "ПОЛІВ: 51\n   AccountCr_Key\n   AccountDr_Key\n   Active\n   LineNumber\n   Period\n   Recorder\n   Recorder_Type\n   ВСуммаНДС\n   ВСуммаСНДС\n   ВалютаCr_Key\n   ВалютаDr_Key\n   ВалютнаяСуммаCr\n   ВалютнаяСуммаDr\n   ВзаиморасчетСОрганизацией_Key\n   ВидОплаты_Key\n   Груз_Key\n   ДатаДокумента\n   ДатаОплаты\n   ДатаРасхода\n   КоличествоCr\n   КоличествоDr\n   Коносамент_Key\n   Контейнер\n   Контрагент_Key\n   Машина_Key\n   НаОснованииПрекращенного\n   НомерЖурнала\n   НомерО\n   НомерСтрокиТЧРегистратор\n   НомерСчета\n   ОплачиваемыйДокумент\n   ОплачиваемыйДокумент_Type\n   Организация_Key\n   Партия\n   Партия_Type\n   Подразделение_Key\n   ПравоПросмотра_Key\n   Предварительный\n   Прекращенный\n   Сделка_Key\n   Склад_Key\n   Содержание\n   СтатусСчета\n   Сумма\n   СуммаНДС\n   СуммаСНДС\n   СчетДополнительный_Key\n   СчетНаКлиента_Key\n   СчетПоставщика_Key\n   СчетПоставщикаНР_Key\n   Услуга_Key\n",
+  "stdout": "грошових проводок 1487, без виду оплати 468\nДОКУМЕНТИ БЕЗ ВИДУ ОПЛАТИ: UnavailableEntities.UnavailableEntity_da7d27a1-4bf2-4c2d-8d2a-aedf3dc86230=447 | UnavailableEntities.UnavailableEntity_8e35f3c7-351b-4b3a-bce6-4f9f5e2e4de5=19 | UnavailableEntities.UnavailableEntity_91ec6953-cc82-412d-85ea-49617683b6c8=2\nДОКУМЕНТИ З ВИДОМ ОПЛАТИ: UnavailableEntities.UnavailableEntity_91ec6953-cc82-412d-85ea-49617683b6c8=770 | UnavailableEntities.UnavailableEntity_8e35f3c7-351b-4b3a-bce6-4f9f5e2e4de5=249\nобидві сторони грошові (переміщення): 221\nвалюти (перші пари): [(('9df29c26', '9df29c26'), 848), (('9df29c27', '9df29c27'), 341), (('None', '9df29c26'), 144), (('None', '9df29c27'), 77), (('9df29c27', '9df29c26'), 37)]\n",
   "stderr": "",
   "returncode": 0,
-  "id": "reg-fields-0731",
-  "ts": "2026-07-31T12:49:03Z"
+  "id": "cash-gap-0731",
+  "ts": "2026-07-31T12:49:43Z"
 }
