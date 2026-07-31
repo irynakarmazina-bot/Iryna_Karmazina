@@ -446,7 +446,7 @@
 <div id="app">
   <div class="shell">
     <nav class="sidebar">
-      <div class="brand"><img class="brand-logo" id="logo-side" alt="UNITEX" style="height:28px"></div>
+      <div class="brand"><img class="brand-logo" id="logo-side" alt="UNITEX" style="height:44px"></div>
       <div id="nav"></div>
       <div class="spacer"></div>
     </nav>
@@ -1480,7 +1480,6 @@ PAGES.finance = async () => {
       <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-top:6px">
         <button class="btn" id="rep-oper">⚡ Оперативний фінансовий звіт</button>
         <button class="btn" id="rep-period">📆 Фінансовий звіт за період</button>
-        <button class="btn" id="cash-sheet">💵 Вивантажити каси в Google-таблицю</button>
         <span id="fin-refresh-slot" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"></span>
       </div>
       <p class="sub" id="fin-status" style="margin-top:10px"></p>
@@ -1488,21 +1487,6 @@ PAGES.finance = async () => {
     <div id="rep-body"></div>`;
   $("rep-oper").addEventListener("click", ()=>renderOper());
   $("rep-period").addEventListener("click", ()=>renderPeriod());
-  // окрема дія «по запиту»: залишки грошей з Експедитора → аркуш «Імпорт_Залишки»
-  $("cash-sheet").addEventListener("click", async (e)=>{
-    const b = e.currentTarget, was = b.textContent;
-    b.disabled = true; b.textContent = "⏳ Рахую і вивантажую… (до 2 хв)";
-    try{
-      const r = await fetch("/cash-sheet");
-      const js = await r.json();
-      if (!r.ok) throw new Error(js.error || ("HTTP " + r.status));
-      const m = /кас=(\d+) разом_УО=([\d\s,-]+)/.exec(js.cash || "");
-      toast(m ? `✅ У таблицю: ${m[1]} кас, разом ${m[2]} УО` : "✅ Вивантажено в Google-таблицю");
-      $("fin-status").textContent = "Каси вивантажено в аркуш «Імпорт_Залишки» — " +
-        new Date().toLocaleString("uk-UA",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"});
-    }catch(err){ toast("⚠ " + err.message); }
-    b.disabled = false; b.textContent = was;
-  });
   renderOper();
 };
 
@@ -1546,8 +1530,8 @@ function refreshBar(mtime, onFresh){
     });
   }, 0);
   // панель живе у верхній картці (слот #fin-refresh-slot), поруч із кнопками звітів
-  return `<span class="sub" style="margin:0;white-space:nowrap">Дані станом на <b>${stamp}</b></span>
-    <button class="btn" id="fin-refresh" style="padding:7px 14px;font-size:13px">⟳ Підтягнути свіжі дані з Експедитора</button>`;
+  return `<button class="btn" id="fin-refresh" style="padding:7px 14px;font-size:13px"
+    title="дані станом на ${stamp}">⟳ Підтягнути свіжі дані з Експедитора</button>`;
 }
 function finTable(headers, rows){
   return `<div class="tablewrap"><table><thead><tr>${headers.map(h=>`<th>${h}</th>`).join("")}</tr></thead>
