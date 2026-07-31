@@ -1,7 +1,7 @@
 {
-  "stdout": "АРКУШІ: Дашборд(gid=100) | Календар(gid=200) | План оплат(gid=300) | P&L(gid=400) | Cash Flow(gid=500) | Дебіторка(gid=600) | Кредиторка(gid=700) | Угоди(gid=800) | Клієнти(gid=900) | Гроші(gid=1000) | Капітал(gid=1100) | Знімки(gid=1200) | Глосарій(gid=1300) | Помилки даних(gid=1400) | Довідник_Статті(gid=2000) | Імпорт_Доходні(gid=1500,hidden) | Імпорт_Витратні(gid=1600,hidden) | Імпорт_Рух(gid=1700,hidden) | Імпорт_Угоди(gid=1800,hidden) | Імпорт_Незакриті(gid=2100,hidden) | Імпорт_Залишки(gid=1900,hidden)\nРЕЖИМИ proxy: proxy(\"clear\" proxy(\"read\" proxy(\"update\" \naddSheet/meta: \n",
+  "stdout": "=== config.json ПОМИЛКА: [Errno 2] No such file or directory: '/root/unitex-finrep/config.json'\n=== config.api.json → Імпорт_Залишки ===\n    ['cash_name', 'currency', 'amount', 'amount_uo']\n    ['Банк Cr String Cycle LLC', 'USD', '87,8', '87,8']\n    ['Банк Юнітекс Ейч-Ді', 'UAH', '2603,72', '58,12']\n    ['Банк Юнітекс Ейч-Ді EUR', 'EUR', '0', '0']\n    ['Банк Юнітекс Ейч-Ді Восток', 'UAH', '17801,45', '397,34']\n    ['Банк Юнітекс Форвардинг', 'UAH', '101098,85', '2256,59']\n    ['Каса UAH UFWD', 'UAH', '0', '0']\n    ['Каса UAH UHD', 'UAH', '0', '0']\n",
   "stderr": "",
   "returncode": 0,
-  "id": "discover7-0731",
-  "ts": "2026-07-31T13:21:32Z"
+  "id": "read-import-0731",
+  "ts": "2026-07-31T13:22:13Z"
 }
