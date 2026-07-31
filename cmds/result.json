@@ -1,7 +1,7 @@
 {
-  "stdout": "AccountingRegister_Бухгалтерский_RecordType    порожньо\nAccountingRegister_Налоговый_RecordType        порожньо\nAccumulationRegister_Фонды                     порожньо\nAccumulationRegister_БанкОстатки               порожньо\nAccumulationRegister_БанкДокументы             порожньо\n",
+  "stdout": "LIVE: 9b824fa038a68194e23861e467b9e7cf\nперевірка: назва на вході = 0, лого 74px = 1\nUI 200\n",
   "stderr": "",
   "returncode": 0,
-  "id": "other-registers-0731",
-  "ts": "2026-07-31T11:49:34Z"
+  "id": "deploy-login-0731",
+  "ts": "2026-07-31T12:13:25Z"
 }
