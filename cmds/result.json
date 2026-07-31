@@ -1,7 +1,7 @@
 {
-  "stdout": "LIVE: 5c98e4545a25fd6371c9a61e0e18985b\nрозмір: 136740\nUI 200\n",
+  "stdout": "LIVE: b4d079e47161e5cc303e434b57fac576\nперевірка: залишків назв сторінок у h3 = 0\nUI 200\n",
   "stderr": "",
   "returncode": 0,
-  "id": "deploy-design1-0730",
-  "ts": "2026-07-31T04:02:39Z"
+  "id": "deploy-nodup-0731",
+  "ts": "2026-07-31T07:47:42Z"
 }
