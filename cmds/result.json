@@ -1,7 +1,7 @@
 {
-  "stdout": "сервіс: active\nмаршрути додано\nCADDY_INVALID\n",
-  "stderr": "Failed to reload caddy.service: Unit caddy.service not found.\nFailed to restart caddy.service: Unit caddy.service not found.\n",
-  "returncode": 5,
-  "id": "cash-svc-0731",
-  "ts": "2026-07-31T13:29:09Z"
+  "stdout": "процес caddy:   52136 caddy           caddy run --config /etc/caddy/Caddyfile --adapter caddyfile\n\nюніти: \nфайли юнітів: \ncaddy у PATH: /bin/sh: 1: caddy: not found\n\ndocker? caddy caddy:2-alpine\nnocodb nocodb/nocodb:latest\n\n",
+  "stderr": "",
+  "returncode": 0,
+  "id": "caddy-how-0731",
+  "ts": "2026-07-31T13:29:32Z"
 }
