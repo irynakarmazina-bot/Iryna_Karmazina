@@ -1,7 +1,7 @@
 {
-  "stdout": "title: <title>UNITEX ERP</title>\nUI 200\n",
+  "stdout": "слот дій: 1\nUI 200\n",
   "stderr": "",
   "returncode": 0,
-  "id": "deploy-title-0731",
-  "ts": "2026-07-31T12:18:12Z"
+  "id": "deploy-pageactions-0731",
+  "ts": "2026-07-31T12:19:53Z"
 }
