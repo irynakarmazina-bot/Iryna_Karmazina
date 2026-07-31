@@ -332,6 +332,12 @@
   /* BL і Контейнер — два рядки, тому їм переніс дозволений */
   .dispscroll table.fixw td.c-bl{white-space:normal;word-break:break-all}
   .dispscroll td{vertical-align:middle}
+  /* редагування прямо в таблиці */
+  td.ed{cursor:cell}
+  td.ed:hover{box-shadow:inset 0 0 0 1.5px var(--accent)}
+  td.ed.saving{opacity:.45}
+  .edinput{width:100%;box-sizing:border-box;border:1px solid var(--accent);border-radius:5px;
+    padding:3px 5px;font-family:inherit;font-size:12px;background:var(--paper);color:var(--ink)}
   /* рядок-алерт: імпорт стоїть у порту без авто */
   tr.alertrow td{background:#fdeeee}
   tr.alertrow td:first-child{box-shadow:inset 3px 0 0 #d1453b}
@@ -584,12 +590,12 @@ async function loadAll(table){
 
 /* ===== ролі ===== */
 const RC = {
-  "Адміністратор":        { nav:["dashboard","calc","dispatch","clients","finance","tasks","instr","users"], scope:"all", fin:"full", sync:true },
-  "Сейлз-менеджер":       { nav:["dashboard","calc","dispatch","clients","finance","tasks","instr"], scope:"mgr", fin:"personal", sync:false },
+  "Адміністратор":        { nav:["dashboard","calc","dispatch","clients","finance","tasks","instr","users"], scope:"all", fin:"full", sync:true, edit:true },
+  "Сейлз-менеджер":       { nav:["dashboard","calc","dispatch","clients","finance","tasks","instr"], scope:"mgr", fin:"personal", sync:false, edit:true },
   "Бухгалтер":            { nav:["dashboard","calc","dispatch","clients","finance","tasks","instr"], scope:"all", fin:"acct", sync:true },
   "Фінансист":            { nav:["dashboard","calc","dispatch","clients","finance","tasks","instr"], scope:"all", fin:"full", sync:true },
-  "Операційний менеджер": { nav:["dashboard","calc","dispatch","clients","tasks","instr"], scope:"ops", fin:"none", sync:true },
-  "Логіст":               { nav:["dispatch","instr"], scope:"all", cols:"logist", fin:"none", sync:false },
+  "Операційний менеджер": { nav:["dashboard","calc","dispatch","clients","tasks","instr"], scope:"ops", fin:"none", sync:true, edit:true },
+  "Логіст":               { nav:["dispatch","instr"], scope:"all", cols:"logist", fin:"none", sync:false, edit:true },
   "Перегляд":             { nav:["dashboard","calc","dispatch","clients","finance","tasks","instr"], scope:"all", fin:"blur", sync:false },
 };
 function cfg(){ return RC[ROLE] || RC["Перегляд"]; }
@@ -1074,6 +1080,13 @@ PAGES.dispatch = async () => {
   }
   const quickCount = quick ? all.filter(quick.test).length : all.length;
   const logist = cfg().cols === "logist";
+  // РЕДАГУВАННЯ ПРЯМО В ТАБЛИЦІ. Редаговані лише ті поля, які синхронізація з
+  // Експедитора НЕ затирає (політика «не чіпати чуже»), плюс «Статус» — його
+  // Експедитор перезаписує лише для етапів Завершена / Букинг / Выполняется.
+  const CAN_EDIT = !!cfg().edit;
+  const ED = CAN_EDIT ? " ed" : "";
+  const ED_KIND = {"ETA":"date", "Подача авто (факт)":"date", "Перетин кордону (факт)":"date",
+                   "Статус":"select"};
   const syncBtn = cfg().sync ? '<button class="btn" id="sync-btn">⟳ Оновити з Експедитора</button>' : "";
   const head = logist
     ? "<th>Угода</th><th>Клієнт</th><th>Контейнер</th><th>Статус</th><th>Номер авто</th><th>Водій</th><th>Телефон</th><th>Перетин кордону</th><th></th>"
@@ -1115,6 +1128,50 @@ PAGES.dispatch = async () => {
         <tbody id="drows"></tbody></table></div>
     </div>`;
   if (cfg().sync) $("page-actions").innerHTML = syncBtn;
+  // ── редагування клітинки на місці: Enter/клік поза межами — зберегти, Esc — скасувати
+  const editCell = (td) => {
+    if (td.querySelector(".edinput")) return;
+    const col = td.dataset.ed;
+    const row = all.find(x => String(x.Id) === td.closest("tr").dataset.id);
+    if (!row) return;
+    const kind = ED_KIND[col] || "text";
+    const cur = String(row[col] || "");
+    const val0 = kind === "date" ? cur.slice(0,10) : cur;
+    const keep = td.innerHTML;
+    td.innerHTML = kind === "select"
+      ? `<select class="edinput"><option value=""></option>${Object.keys(STATUSES).map(o=>
+          `<option${o===cur?" selected":""}>${esc(o)}</option>`).join("")}</select>`
+      : `<input class="edinput" type="${kind==="date"?"date":"text"}" value="${esc(val0)}">`;
+    const inp = td.querySelector(".edinput");
+    inp.focus();
+    if (kind === "text") inp.select();
+    let closed = false;
+    const finish = async (save) => {
+      if (closed) return;
+      closed = true;
+      const v = String(inp.value || "").trim();
+      if (!save || v === val0){ td.innerHTML = keep; return; }
+      td.classList.add("saving");
+      try{
+        await api(`/api/v2/tables/${T["Диспетчеризація"]}/records`, {method:"PATCH",
+          body: JSON.stringify([{Id: row.Id, [col]: v || null}])});
+        row[col] = v;                       // DISP_CACHE той самий об'єкт — таблиця і картка бачать нове
+        toast(`✅ ${col}: ${v || "очищено"}`);
+        draw();
+      }catch(err){
+        td.innerHTML = keep;
+        toast("⚠ Не збереглось: " + err.message);
+      }
+      td.classList.remove("saving");
+    };
+    inp.addEventListener("blur", ()=>finish(true));
+    inp.addEventListener("keydown", e=>{
+      if (e.key === "Enter"){ e.preventDefault(); finish(true); }
+      if (e.key === "Escape"){ e.preventDefault(); finish(false); }
+    });
+    if (kind === "select") inp.addEventListener("change", ()=>finish(true));
+  };
+
   const draw = () => {
     const q=$("q").value.toLowerCase(), st=$("stf").value;
     const dir=$("dirf").value, line=$("linef").value, cli=$("clif").value;
@@ -1128,9 +1185,11 @@ PAGES.dispatch = async () => {
     $("drows").innerHTML = list.length ? list.map(r=> logist ? `
       <tr data-id="${r.Id}" class="${r["Статус"]==='Вантаж доставлено'?'done':''}" style="cursor:pointer">
         <td class="mono"><b>${esc(r["Угода"])}</b></td><td>${esc(r["Клієнт"]||"—")}</td>
-        <td class="mono">${esc(r["Контейнер"]||"—")}</td><td>${stPill(r["Статус"])}</td>
-        <td class="mono">${esc(r["Номер авто"]||"—")}</td><td>${esc(r["Водій (ПІБ)"]||"—")}</td>
-        <td class="mono">${esc(r["Водій (телефон)"]||"—")}</td><td class="mono">${esc(r["Перетин кордону (факт)"]||"—")}</td>
+        <td class="mono">${esc(r["Контейнер"]||"—")}</td><td class="${ED.trim()}" data-ed="Статус">${stPill(r["Статус"])}</td>
+        <td class="mono${ED}" data-ed="Номер авто">${esc(r["Номер авто"]||"—")}</td>
+        <td class="${ED.trim()}" data-ed="Водій (ПІБ)">${esc(r["Водій (ПІБ)"]||"—")}</td>
+        <td class="mono${ED}" data-ed="Водій (телефон)">${esc(r["Водій (телефон)"]||"—")}</td>
+        <td class="mono${ED}" data-ed="Перетин кордону (факт)">${esc(r["Перетин кордону (факт)"]||"—")}</td>
         <td>${docBtn(r)}</td>
       </tr>` : `
       <tr data-id="${r.Id}" class="${r["Статус"]==='Вантаж доставлено'?'done':''} ${(truckLate(r)||stageStale(r))?'alertrow':''}" style="cursor:pointer"
@@ -1141,19 +1200,22 @@ PAGES.dispatch = async () => {
         <td>${esc(r["Клієнт"]||"—")}</td>
         <td>${esc(r["Лінія"]||"—")}</td>
         <td class="mono c-bl">${esc(r["BL"]||"—")}<br><span class="cell-muted">${esc(r["Контейнер"]||"")}</span></td>
-        <td class="c-ves">${esc(r["Судно"]||"—")}</td>
-        <td class="mono">${esc(r["ETA"]||"—")}</td>
-        <td>${stPill(r["Статус"])}</td>
-        <td class="mono">${truckDate(r)
+        <td class="c-ves${ED}" data-ed="Судно">${esc(r["Судно"]||"—")}</td>
+        <td class="mono${ED}" data-ed="ETA">${esc(r["ETA"]||"—")}</td>
+        <td class="${ED.trim()}" data-ed="Статус">${stPill(r["Статус"])}</td>
+        <td class="mono${ED}" data-ed="Подача авто (факт)">${truckDate(r)
             ? `${esc(truckDate(r).slice(0,10))}${_s(r,"Подача авто (факт)")?"":'<br><span class="cell-muted">план</span>'}`
             : (truckLate(r) ? '<span style="color:#d1453b;font-weight:700">немає</span>' : '<span class="cell-muted">—</span>')}</td>
-        <td class="mono">${r["Номер авто"] ? esc(r["Номер авто"])
+        <td class="mono${ED}" data-ed="Номер авто">${r["Номер авто"] ? esc(r["Номер авто"])
             : (truckLate(r) ? '<span style="color:#d1453b;font-weight:700">немає</span>' : '<span class="cell-muted">—</span>')}</td>
         <td>${FLAGS.filter(f=>r[f]).map(f=>`<span class="flag on">${f} ✓</span>`).join("")||'<span class="cell-muted">—</span>'}</td>
-        <td class="cell-muted c-com" title="${esc(r["Коментар"]||"")}">${esc(r["Коментар"]||"")}</td>
+        <td class="cell-muted c-com${ED}" data-ed="Коментар" title="${esc(r["Коментар"]||"")}">${esc(r["Коментар"]||"")}</td>
         <td>${docBtn(r)}</td>
       </tr>`).join("") : `<tr><td colspan="13" class="cell-muted">Нічого не знайдено.</td></tr>`;
     $("drows").querySelectorAll("tr[data-id]").forEach(tr=>tr.addEventListener("click",()=>openRow(all.find(x=>String(x.Id)===tr.dataset.id))));
+    // клік по редагованій клітинці — правка на місці, картка угоди при цьому не відкривається
+    if (CAN_EDIT) $("drows").querySelectorAll("td.ed[data-ed]").forEach(td=>
+      td.addEventListener("click", e=>{ e.stopPropagation(); editCell(td); }));
     // прокручуємо так, щоб доставлені пішли за шапку, а першим видимим був
     // найраніший ETA серед активних угод
     const box = $("dscroll");
