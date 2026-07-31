@@ -1,7 +1,7 @@
 {
-  "stdout": "expand=ExtDimensionsDr                помилка 'ascii' codec can't encode characters in position 48-59: ordinal not i\nexpand=ExtDimensionsDr,ExtDimensionsCr помилка 'ascii' codec can't encode characters in position 48-59: ordinal not i\nexpand=СубконтоDr                     помилка 'ascii' codec can't encode characters in position 48-59: ordinal not i\nexpand=ExtDimensionDr                 помилка 'ascii' codec can't encode characters in position 48-59: ordinal not i\n",
+  "stdout": "expand=ExtDimensionsDr                  помилка: HTTP Error 400: Bad request\nexpand=ExtDimensionsDr,ExtDimensionsCr  помилка: HTTP Error 400: Bad request\nexpand=ExtDimensionDr                   помилка: HTTP Error 400: Bad request\nexpand=СубконтоDr                       помилка: HTTP Error 400: Bad request\n",
   "stderr": "",
   "returncode": 0,
-  "id": "expand-subconto-0731",
-  "ts": "2026-07-31T11:19:21Z"
+  "id": "expand-subconto2-0731",
+  "ts": "2026-07-31T11:19:44Z"
 }
