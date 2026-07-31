@@ -1,7 +1,7 @@
 {
-  "stdout": "конфіги Caddy: /root/Caddyfile\n\n\nпорти, що слухаються: :8080 :8787 :8788 :8789 :8790 \n",
+  "stdout": "{\n\temail irynakarmazina@gmail.com\n}\n\nhttps://134.209.94.12 {\n\ttls {\n\t\tissuer acme {\n\t\t\tprofile shortlived\n\t\t}\n\t}\n\tencode gzip\n\thandle /api/* {\n\t\treverse_proxy 127.0.0.1:8080\n\t}\n\thandle /download/* {\n\t\treverse_proxy 127.0.0.1:8080\n\t}\n\thandle /finrep-data* {\n\t\treverse_proxy 127.0.0.1:8789\n\t}\n\thandle /finrep-run {\n\t\trewrite * /run?token=***\n\t\treverse_proxy 127.0.0.1:8787\n\t}\n\thandle /sync {\n\t\trewrite * /run?token=***\n\t\treverse_proxy 127.0.0.1:8788\n\t}\n\thandle /gen-doc {\n\t\treverse_proxy 127.0.0.1:8790\n\t}\n\thandle {\n\t\theader /index.html Cache-Control \"no-cache, must-revalidate\"\n\t\theader / Cache-Control \"no-cache, must-revalidate\"\n\t\troot * /srv/www\n\t\ttry_files {path} /index.html\n\t\tfile_server\n\t}\n}\n\nhttp://134.209.94.12, http://:80 {\n\tredir https://134.209.94.12{uri} permanent\n}\n\n--- сервіси на портах ---\nLISTEN 0      5          127.0.0.1:8789      0.0.0.0:*    users:((\"python3\",pid=192609,fd=3))                      \nLISTEN 0      5          127.0.0.1:8790      0.0.0.0:*    users:((\"python3\",pid=192606,fd=3))                      \nLISTEN 0      5            0.0.0.0:8787      0.0.0.0:*    users:((\"python\",pid=192612,fd=3))                       \nLISTEN 0      5            0.0.0.0:8788      0.0.0.0:*    users:((\"python3\",pid=192603,fd=3))                      \n\n",
   "stderr": "",
   "returncode": 0,
-  "id": "caddy-read-0731",
-  "ts": "2026-07-31T13:27:03Z"
+  "id": "caddy-read2-0731",
+  "ts": "2026-07-31T13:27:31Z"
 }
