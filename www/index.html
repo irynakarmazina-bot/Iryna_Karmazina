@@ -324,6 +324,10 @@
   /* колонки BL/Контейнер і Судно — щільніше одна до одної */
   td.c-bl,th.c-bl{width:1%;white-space:nowrap;padding-right:6px}
   td.c-ves,th.c-ves{padding-left:6px;max-width:150px}
+  /* довгий коментар не роздуває рядок: один рядок з трьома точками,
+     повний текст — при наведенні і в картці угоди */
+  td.c-com{max-width:220px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .dispscroll td{vertical-align:middle}
   /* рядок-алерт: імпорт стоїть у порту без авто */
   tr.alertrow td{background:#fdeeee}
   tr.alertrow td:first-child{box-shadow:inset 3px 0 0 #d1453b}
@@ -1123,7 +1127,7 @@ PAGES.dispatch = async () => {
         <td class="mono">${r["Номер авто"] ? esc(r["Номер авто"])
             : (truckLate(r) ? '<span style="color:#d1453b;font-weight:700">немає</span>' : '<span class="cell-muted">—</span>')}</td>
         <td>${FLAGS.filter(f=>r[f]).map(f=>`<span class="flag on">${f} ✓</span>`).join("")||'<span class="cell-muted">—</span>'}</td>
-        <td class="cell-muted" style="max-width:200px">${esc(r["Коментар"]||"")}</td>
+        <td class="cell-muted c-com" title="${esc(r["Коментар"]||"")}">${esc(r["Коментар"]||"")}</td>
         <td>${docBtn(r)}</td>
       </tr>`).join("") : `<tr><td colspan="13" class="cell-muted">Нічого не знайдено.</td></tr>`;
     $("drows").querySelectorAll("tr[data-id]").forEach(tr=>tr.addEventListener("click",()=>openRow(all.find(x=>String(x.Id)===tr.dataset.id))));
