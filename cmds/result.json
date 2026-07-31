@@ -1,7 +1,7 @@
 {
-  "stdout": "dashgrid: 1\nissrow: 1\ninport: 1\nUI 200\n",
+  "stdout": "методи клієнта: ['entity_sets', 'first', 'list', 'url', 'user']\nДОВІДНИК СУБКОНТО: 30 видів\n    ВидОплаты\n    ВидыНачисленийУдержанийЗП\n    ВидыПриходов\n    ВидыРасходов\n    Водители\n    Груз\n    ГруппыОсновныхСредств\n    ГСМ\n    Договоры\n    Документ\n    ДокументСделка\n    ДокументСчет\n    Запчасти\n    Клиенты\n    Контейнер\n    Контрагенты\n    Линии\n    Машины\n    Места хранения основных средств\n    Организации\n    ОсновныеСредства\n    Период\n    ПластиковыеКарточки\n    Склады\n    Сотрудники\n    Судозаходы\n    СчетаПоставщиков\n    ТМЦ\n    Услуги\n    ЮрЛица\nAccountingRegister_Хозрасчетный: 3 полів — RecordSet, Recorder, Recorder_Type\nAccountingRegister_Хозрасчетный_RecordType: 57 полів — AccountCr@navigationLinkUrl, AccountCr_Key, AccountDr@navigationLinkUrl, AccountDr_Key, Active, LineNumber, Period, Recorder, Recorder_Type, ВСуммаНДС, ВСуммаСНДС, ВалютаCr_Key, ВалютаDr@navigationLinkUrl, ВалютаDr_Key, ВалютнаяСуммаCr, ВалютнаяСуммаDr, ВзаиморасчетСОрганизацией_Key, ВидОплаты@navigationLinkUrl, ВидОплаты_Key, Груз_Key, ДатаДокумента, ДатаОплаты, ДатаРасхода, КоличествоCr, КоличествоDr, Коносамент_Key, Контейнер, Контрагент@navigationLinkUrl, Контрагент_Key, Машина_Key, НаОснованииПрекращенного, НомерЖурнала, НомерО, НомерСтрокиТЧРегистратор, НомерСчета, ОплачиваемыйДокумент, \n",
   "stderr": "",
   "returncode": 0,
-  "id": "deploy-dash-0731",
-  "ts": "2026-07-31T12:46:08Z"
+  "id": "subconto-check-0731",
+  "ts": "2026-07-31T12:46:53Z"
 }
