@@ -326,7 +326,11 @@
   td.c-ves,th.c-ves{padding-left:6px;max-width:150px}
   /* довгий коментар не роздуває рядок: один рядок з трьома точками,
      повний текст — при наведенні і в картці угоди */
-  td.c-com{max-width:220px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .dispscroll table.fixw{table-layout:fixed;width:100%}
+  .dispscroll table.fixw td,.dispscroll table.fixw th{overflow:hidden;text-overflow:ellipsis}
+  td.c-com{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  /* BL і Контейнер — два рядки, тому їм переніс дозволений */
+  .dispscroll table.fixw td.c-bl{white-space:normal;word-break:break-all}
   .dispscroll td{vertical-align:middle}
   /* рядок-алерт: імпорт стоїть у порту без авто */
   tr.alertrow td{background:#fdeeee}
@@ -1019,37 +1023,24 @@ const FLAGS = ["Телекс","Т1","ДО","Документи","SI","Замит
 PAGES.dispatch = async () => {
   DISP_CACHE = null;
   const all = scoped(await dispRows());
-  // Порядок згори вниз (вимога користувачки «чим ближче — тим нижче»):
-  //   0) «Вантаж доставлено» — вгорі, за шапкою, не видно;
-  //   1) ПРОСТРОЧЕНІ: ще не в порту, а ETA вже минув — найстаріші вище, найсвіжіші нижче;
-  //   2) МАЮТЬ ПРИБУТИ в порт (ETA у майбутньому; без ETA — на початку групи) —
-  //      найпізніші вище, НАЙБЛИЖЧЕ ПРИБУТТЯ в самому низу групи;
-  //   3) НАЙНИЖЧЕ: вже прибули в порт і доставляються по землі — найдавніші вище,
-  //      найсвіжіші (щойно прибули) нижче.
-  // У кожній групі виконується «чим ближче до сьогодні — тим нижче». Дата «стрибає»
-  // лише на межі груп, бо групи — це етапи перевезення.
+  // ПОРЯДОК (остаточне правило користувачки 31.07.2026):
+  //   1) «Вантаж доставлено» — вгорі, за шапкою (їх не видно, таблиця прокручена нижче);
+  //   2) решта — СТРОГО за датою ETA: чим раніше, тим вище. Жодних інших груп.
+  // Природний наслідок такого порядку саме той, який вона описала: спершу йдуть
+  // «Вивантажений в порту прибуття» (найраніші ETA, вони в минулому), далі
+  // «Завантажений на потяг/авто», і в самому низу «Букінг» (ETA ще далеко).
+  //   3) угоди без ETA — у самий низ (дата невідома, планувати нічого).
   const _eta = r => { const m=/(\d{4})-(\d{2})-(\d{2})/.exec(String(r["ETA"]||"")); return m? (m[1]+m[2]+m[3]) : ""; };
   const _done = r => r["Статус"] === "Вантаж доставлено";
-  const LAND_STAGES = { "Вивантажений в порту прибуття":1, "Завантажений на авто":1, "Завантажений на потяг":1 };
-  const _tdy = (()=>{ const d=new Date(); return String(d.getFullYear())+String(d.getMonth()+1).padStart(2,"0")+String(d.getDate()).padStart(2,"0"); })();
-  const _rank = r => {
-    if (_done(r)) return 0;
-    if (LAND_STAGES[String(r["Статус"]||"").trim()]) return 3;
-    const e=_eta(r);
-    return (e && e < _tdy) ? 1 : 2;
-  };
   const _num = r => parseInt(r["Угода"])||0;
   all.sort((a,b)=>{
-    const ra=_rank(a), rb=_rank(b);
-    if (ra!==rb) return ra-rb;
+    const ra = _done(a)?0:1, rb = _done(b)?0:1;
+    if (ra !== rb) return ra - rb;
     const ea=_eta(a), eb=_eta(b);
     if (!ea && !eb) return _num(a)-_num(b);
-    if (!ea) return -1;                      // без ETA — на початку своєї групи
-    if (!eb) return 1;
-    // групи з датами в минулому (1 і 3): найдавніші вище → зростання вниз
-    // група майбутніх прибуттів (2) і доставлені (0): найпізніші вище → спадання вниз
-    const asc = (ra===1 || ra===3);
-    return (asc ? ea.localeCompare(eb) : eb.localeCompare(ea)) || _num(a)-_num(b);
+    if (!ea) return 1;                       // без ETA — у самий низ
+    if (!eb) return -1;
+    return ea.localeCompare(eb) || _num(a)-_num(b);   // чим раніше ETA — тим вище
   });
   // швидкий фільтр із плиток дашборда (клік по плитці → сюди з готовим відбором)
   const _dt = v => { const m=/(\d{4})-(\d{2})-(\d{2})/.exec(String(v||"")); return m? new Date(+m[1],+m[2]-1,+m[3]) : null; };
@@ -1114,7 +1105,12 @@ PAGES.dispatch = async () => {
         <select id="manf"><option value="">Усі менеджери</option>${uniq("Менеджер").map(c=>`<option>${esc(c)}</option>`).join("")}</select>
         <select id="opmf"><option value="">Усі оп. менеджери</option>${uniq("Оп. менеджер").map(c=>`<option>${esc(c)}</option>`).join("")}</select>
       </div>
-      <div class="tablewrap dispscroll" id="dscroll"><table>
+      <div class="tablewrap dispscroll" id="dscroll"><table class="${logist?"":"fixw"}">
+        ${logist? "" : `<colgroup>
+          <col style="width:58px"><col style="width:44px"><col style="width:150px"><col style="width:76px">
+          <col style="width:172px"><col style="width:128px"><col style="width:92px"><col style="width:176px">
+          <col style="width:92px"><col style="width:96px"><col style="width:116px"><col><col style="width:44px">
+        </colgroup>`}
         <thead><tr>${head}</tr></thead>
         <tbody id="drows"></tbody></table></div>
     </div>`;
@@ -1158,14 +1154,12 @@ PAGES.dispatch = async () => {
         <td>${docBtn(r)}</td>
       </tr>`).join("") : `<tr><td colspan="13" class="cell-muted">Нічого не знайдено.</td></tr>`;
     $("drows").querySelectorAll("tr[data-id]").forEach(tr=>tr.addEventListener("click",()=>openRow(all.find(x=>String(x.Id)===tr.dataset.id))));
-    // таблиця відкривається в кінці списку — там найближчі ETA; доставлені лишаються вище, за шапкою
+    // прокручуємо так, щоб доставлені пішли за шапку, а першим видимим був
+    // найраніший ETA серед активних угод
     const box = $("dscroll");
     if (box){
-      const rows = $("drows").querySelectorAll("tr[data-id]");
       const firstOpen = $("drows").querySelector("tr:not(.done)");
-      box.scrollTop = rows.length
-        ? Math.max(0, box.scrollHeight - box.clientHeight)
-        : (firstOpen ? Math.max(0, firstOpen.offsetTop - 2) : 0);
+      box.scrollTop = firstOpen ? Math.max(0, firstOpen.offsetTop - 2) : 0;
     }
     $("drows").querySelectorAll(".docs-btn").forEach(b=>b.addEventListener("click",(e)=>{ e.stopPropagation(); openDocs(all.find(x=>String(x.Id)===b.dataset.doc)); }));
   };
