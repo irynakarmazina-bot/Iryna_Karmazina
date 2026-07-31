@@ -1,7 +1,7 @@
 {
-  "stdout": "залишилось згадок: 0\nUI 200\n",
+  "stdout": "title: <title>UNITEX ERP</title>\nUI 200\n",
   "stderr": "",
   "returncode": 0,
-  "id": "deploy-foot-0731",
-  "ts": "2026-07-31T12:17:33Z"
+  "id": "deploy-title-0731",
+  "ts": "2026-07-31T12:18:12Z"
 }
