@@ -1,7 +1,7 @@
 {
-  "stdout": "ТАБЛИЦЯ: Користувачі meqpi0r197bz14n\n  колонки: Id, CreatedAt, UpdatedAt, nc_created_by, nc_updated_by, nc_order, __nc_deleted, Email, Ім'я, Роль, Активний\n  записів: 2\n    {'Email': 'irynakarmazina@gmail.com', 'Роль': 'Адміністратор'}\n    {'Email': 'v.pontus@unitex.od.ua', 'Роль': 'Адміністратор'}\n",
-  "stderr": "",
-  "returncode": 0,
-  "id": "users-check-0731",
-  "ts": "2026-07-31T14:05:05Z"
+  "stdout": "",
+  "stderr": "'utf-8' codec can't decode byte 0xbe in position 0: invalid start byte",
+  "returncode": -1,
+  "id": "sort-check-0731",
+  "ts": "2026-07-31T14:08:58Z"
 }
