@@ -135,6 +135,8 @@
     border:1px solid var(--line); border-radius:14px; box-shadow:var(--shadow); padding:32px 28px}
   .brand{display:flex; align-items:center; gap:12px; margin-bottom:6px}
   .brand-logo{height:34px;width:auto;display:block;background:#fff;padding:4px 8px;border-radius:8px}
+  .brand-login{justify-content:center;margin:6px 0 2px}
+  .brand-login .brand-logo{height:74px;padding:0}
   .brand-mark{width:40px;height:40px;border-radius:9px;background:var(--accent);
     color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px}
   .brand h1{font-size:20px;margin:0;letter-spacing:-.2px}
@@ -373,11 +375,10 @@
 <!-- ============ ВХІД ============ -->
 <div id="login-screen">
   <div class="login-card">
-    <div class="brand">
+    <div class="brand brand-login">
       <img class="brand-logo" id="logo-login" alt="UNITEX">
-      <div><h1>Юнітекс OS<small>ERP-система компанії</small></h1></div>
     </div>
-    <p class="hint">Вхід для співробітників.</p>
+    <p class="hint" style="text-align:center;margin:18px 0 22px">Вхід для співробітників.</p>
     <div class="field"><label for="em">Email</label>
       <input id="em" type="email" autocomplete="username" placeholder="name@unitex.od.ua"></div>
     <div class="field" style="margin-top:10px"><label for="pw">Пароль</label>
