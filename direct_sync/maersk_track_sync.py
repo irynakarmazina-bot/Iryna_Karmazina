@@ -43,6 +43,7 @@ THROTTLE = 1.5          # пауза між запитами до Maersk (у в�
 RETRIES = 3
 
 BL_RE = re.compile(r"^\d{9}$")
+CONT_RE = re.compile(r"^[A-Z]{4}\d{7}$")   # ISO-номер контейнера, напр. MRSU8851528
 DELIVERED = "Вантаж доставлено"
 # Статус «Завантажений» РОЗДІЛЕНИЙ на авто і потяг (рішення користувачки 30.07.2026):
 # у колонці «Статус» є варіанти «Завантажений на авто» і «Завантажений на потяг»,
@@ -322,10 +323,17 @@ def main():
     statuses = nc_status_options()
     cancelled = cancelled_numbers()
     rows = nc_records()
-    todo, skipped = [], 0
+    # 31.07.2026: раніше брались ЛИШЕ угоди з коносаментом, тому десятки угод
+    # Мірандора (133-139, 189, 201-204 …) взагалі не трекались — у них є тільки
+    # номер контейнера. Тепер беремо і такі: Maersk віддає події й по контейнеру.
+    todo, skipped, nokey = [], 0, 0
     for r in rows:
         bl = str(r.get("BL") or "").strip()
+        cont = str(r.get("Контейнер") or "").split(",")[0].strip()
         if not BL_RE.match(bl):
+            bl = ""                       # не коносамент Maersk — підемо по контейнеру
+        if not bl and not CONT_RE.match(cont.upper()):
+            nokey += 1
             continue
         if not a.all and str(r.get("Статус") or "") == DELIVERED:
             continue
@@ -333,6 +341,8 @@ def main():
             skipped += 1
             continue
         todo.append((bl, r))
+    if nokey:
+        log("%sБез коносамента і без номера контейнера — не трекаються: %d" % (tag, nokey))
     if skipped:
         log("%sПропущено скасованих в Експедиторі: %d" % (tag, skipped))
     if a.limit:
@@ -351,7 +361,9 @@ def main():
         cont = str(row.get("Контейнер") or "").split(",")[0].strip()
         events, how, note = collect_events(env, token, bl, cont)
         if not events:
-            (no_data if "404" in str(note) else errors).append("%s(%s)" % (bl, note or "порожньо"))
+            key = bl or str(row.get("Контейнер") or "").split(",")[0].strip()
+            (no_data if "404" in str(note) else errors).append(
+                "угода %s/%s(%s)" % (row.get("Угода"), key, note or "порожньо"))
             continue
         how_stat[how] = how_stat.get(how, 0) + 1
         want = parse_events(events, row, today_iso, statuses)
