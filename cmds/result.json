@@ -1,7 +1,7 @@
 {
-  "stdout": "РЯДКІВ: 123\n    def _load_env():\n        def __init__(self):\n        def _verify_pin(self):\n        def _get(self, path):\n            req = urllib.request.Request(self.url + path)\n            req.add_header(\"Authorization\", self._auth)\n            with urllib.request.urlopen(req, timeout=120, context=self._ctx) as r:\n        def entity_sets(self):\n            data = self._get(\"/?$format=json\")\n        def list(self, entity, select=None, filter=None, expand=None, order=None, top=None, page=1000):\n            Генератор рядків об'єкта з автоматичною пагінацією ($skip/$top).\n            parts = [\"$format=json\"]\n                parts.append(\"$select= \"***\",\".join(select)))\n                parts.append(\"$filter=\" + quote(filter))\n            if expand:\n                parts.append(\"$expand= \"***\",\".join(expand)))\n                parts.append(\"$orderby=\" + quote(order))\n                q = base_q + f\"&$top={page}&$skip={skip}\"\n        def first(self, entity, **kw):\n",
+  "stdout": "METADATA ПОМИЛКА: Expecting value: line 1 column 1 (char 0)\nEXPAND ExtDimensionsDr: HTTP Error 400: Bad request\nEXPAND ExtDimensionsCr: HTTP Error 400: Bad request\nEXPAND ExtDimensions: HTTP Error 400: Bad request\n",
   "stderr": "",
   "returncode": 0,
-  "id": "odc-src2-0731",
-  "ts": "2026-07-31T12:56:28Z"
+  "id": "md-check-0731",
+  "ts": "2026-07-31T12:57:02Z"
 }
