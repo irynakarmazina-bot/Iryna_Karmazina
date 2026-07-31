@@ -786,11 +786,20 @@ const GONE_STATUS = {"Завантажений на авто":1, "Заванта
 const truckLate = r => {
   if (isDone(r) || _s(r,"Напрямок") !== "Імпорт") return false;
   if (GONE_STATUS[_s(r,"Статус")]) return false;
-  if (!/авто/i.test(_s(r,"Вид перевезення"))) return false;
+  // з порту по землі везе потяг — авто тут ні до чого. Для авіа авто ПОТРІБНЕ
+  // (уточнення користувачки 31.07.2026), тому відсікаємо тільки залізницю.
+  if (/залізниц/i.test(_s(r,"Вид перевезення"))) return false;
   if (MOVED_STAGES[_s(r,"Етап (Експедитор)")]) return false;
   const dd = daysIn(r);
   return dd !== null && dd >= 2 && !truckDate(r) && !_s(r,"Номер авто");
 };
+/* Помилка менеджера: вантаж фізично вже поїхав (трекінг це бачить), а в Експедиторі
+   угода досі на «Букинг» — менеджер не вніс зміни. Приклад: угода 227 —
+   «Завантажений на потяг», а етап «Букинг». */
+const STATUS_MOVED = {"Стафіровка":1,"В порту відправлення":1,"Завантажений на судно":1,
+  "В морі":1,"Вивантажений в порту прибуття":1,"Завантажений на потяг":1,
+  "Завантажений на авто":1,"Вантаж доставлено":1};
+const stageStale = r => _s(r,"Етап (Експедитор)") === "Букинг" && !!STATUS_MOVED[_s(r,"Статус")];
 let toastTimer=null;
 function toast(m){ const t=$("toast"); t.textContent=m; t.style.display="block"; clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.style.display="none",4000); }
 
@@ -876,6 +885,9 @@ PAGES.dashboard = async () => {
   const ISSUES = [
     {q:"trucklate", crit:true, nm:"Імпорт у порту, а авто не подане понад 2 дні", n: rows.filter(truckLate).length,
      sub:"немає ні дати подачі авто, ні номера — вантаж стоїть, капає зберігання"},
+    {q:"stagestale", crit:true, nm:"Менеджер не оновив угоду в Експедиторі", n: rows.filter(stageStale).length,
+     sub: (()=>{ const m=[...new Set(rows.filter(stageStale).map(r=>_s(r,"Менеджер")).filter(Boolean))];
+       return "вантаж уже їде, а етап досі «Букинг»" + (m.length? " · " + m.join(", ") : ""); })()},
     {q:"nostatus", nm:"Без статусу", n: rows.filter(r=>!_s(r,"Статус")).length,
      sub:"етап в Експедиторі є, але ми його ще не мапимо в статус платформи"},
     {q:"nobl", nm:"Без BL", n: noBL, sub:"трекінг лінії не вмикається — впиши коносамент"},
@@ -1060,6 +1072,7 @@ PAGES.dispatch = async () => {
       const u=dOf(_s(r,"Останнє оновлення")||_s(r,"Остання зміна"));
       return !!u && (_today-u)/86400000 > 7; }},
     trucklate:{label:"імпорт у порту без авто понад 2 дні", test:truckLate},
+    stagestale:{label:"менеджер не оновив етап в Експедиторі", test:stageStale},
   };
   // «st:<назва>» — клік по рядку статусу на дашборді; порожня назва = без статусу
   let quick = QUICK[DISP_QUICK] || null;
@@ -1079,6 +1092,7 @@ PAGES.dispatch = async () => {
   const nActive = all.filter(r=>!_done(r)).length;
   const ALERTS = [
     {q:"trucklate", cls:"a-red",   nm:"Імпорт у порту без авто >2 дн", n: all.filter(truckLate).length},
+    {q:"stagestale",cls:"a-red",   nm:"Менеджер не оновив етап",         n: all.filter(stageStale).length},
     {q:"inport",    cls:"a-amber", nm:"Стоять у порту",                n: all.filter(inPort).length},
     {q:"overdue",   cls:"a-amber", nm:"ETA минула",                    n: all.filter(QUICK.overdue.test).length},
     {q:"nostatus",  cls:"a-amber", nm:"Без статусу",                   n: all.filter(r=>!_s(r,"Статус")).length},
@@ -1123,8 +1137,9 @@ PAGES.dispatch = async () => {
         <td class="mono">${esc(r["Водій (телефон)"]||"—")}</td><td class="mono">${esc(r["Перетин кордону (факт)"]||"—")}</td>
         <td>${docBtn(r)}</td>
       </tr>` : `
-      <tr data-id="${r.Id}" class="${r["Статус"]==='Вантаж доставлено'?'done':''} ${truckLate(r)?'alertrow':''}" style="cursor:pointer"
-          ${truckLate(r)?`title="Імпорт у порту ${daysIn(r)} дн, авто не подане і номера немає"`:""}>
+      <tr data-id="${r.Id}" class="${r["Статус"]==='Вантаж доставлено'?'done':''} ${(truckLate(r)||stageStale(r))?'alertrow':''}" style="cursor:pointer"
+          ${truckLate(r)?`title="Імпорт у порту ${daysIn(r)} дн, авто не подане і номера немає"`
+            :(stageStale(r)?`title="Статус «${esc(_s(r,"Статус"))}», а етап в Експедиторі досі «Букинг» — менеджер не вніс зміни"`:"")}>
         <td class="mono"><b>${esc(r["Угода"])}</b></td>
         <td>${r["Напрямок"]?`<span class="dirchip ${r["Напрямок"]==="Імпорт"?"imp":"exp"}">${r["Напрямок"]==="Імпорт"?"ІМП":(r["Напрямок"]==="Експорт"?"ЕКС":"ТРН")}</span>`:""}</td>
         <td>${esc(r["Клієнт"]||"—")}</td>
