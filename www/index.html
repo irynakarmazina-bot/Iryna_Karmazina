@@ -1447,12 +1447,28 @@ PAGES.finance = async () => {
       <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:6px">
         <button class="btn" id="rep-oper">⚡ Оперативний фінансовий звіт</button>
         <button class="btn" id="rep-period">📆 Фінансовий звіт за період</button>
+        <button class="btn" id="cash-sheet">💵 Вивантажити каси в Google-таблицю</button>
       </div>
       <p class="sub" id="fin-status" style="margin-top:10px"></p>
     </div>
     <div id="rep-body"></div>`;
   $("rep-oper").addEventListener("click", ()=>renderOper());
   $("rep-period").addEventListener("click", ()=>renderPeriod());
+  // окрема дія «по запиту»: залишки грошей з Експедитора → аркуш «Імпорт_Залишки»
+  $("cash-sheet").addEventListener("click", async (e)=>{
+    const b = e.currentTarget, was = b.textContent;
+    b.disabled = true; b.textContent = "⏳ Рахую і вивантажую… (до 2 хв)";
+    try{
+      const r = await fetch("/cash-sheet");
+      const js = await r.json();
+      if (!r.ok) throw new Error(js.error || ("HTTP " + r.status));
+      const m = /кас=(\d+) разом_УО=([\d\s,-]+)/.exec(js.cash || "");
+      toast(m ? `✅ У таблицю: ${m[1]} кас, разом ${m[2]} УО` : "✅ Вивантажено в Google-таблицю");
+      $("fin-status").textContent = "Каси вивантажено в аркуш «Імпорт_Залишки» — " +
+        new Date().toLocaleString("uk-UA",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"});
+    }catch(err){ toast("⚠ " + err.message); }
+    b.disabled = false; b.textContent = was;
+  });
   renderOper();
 };
 
@@ -1481,7 +1497,9 @@ function refreshBar(mtime, onFresh){
     b.addEventListener("click", async ()=>{
       b.disabled = true; b.textContent = "⏳ Тягну з Експедитора (~2 хв)…";
       try{
-        await fetch("/finrep-run");
+        // /cash-refresh спершу перераховує залишки кас з Експедитора, потім
+        // запускає звичайну перебудову звіту — інакше звіт брав би стару касу
+        await fetch("/cash-refresh");
         const t0 = mtime;
         const poll = setInterval(async ()=>{
           try{
