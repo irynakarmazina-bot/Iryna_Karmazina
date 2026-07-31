@@ -269,6 +269,9 @@
   .issrow{display:flex;align-items:center;gap:10px;padding:7px 2px;border-bottom:1px solid var(--line)}
   .issrow:last-child{border-bottom:0}
   .issrow.clickable{cursor:pointer} .issrow.clickable:hover{background:var(--hover-bg,#f7f8fa)}
+  /* рядок статусу в картці «Статуси активних перевезень» — теж клікабельний */
+  .strow{display:flex;align-items:center;gap:10px;cursor:pointer;padding:3px 4px;border-radius:7px}
+  .strow:hover{background:var(--hover-bg,#f7f8fa)}
   .issrow .dotw{width:8px;height:8px;border-radius:50%;flex:none}
   .issrow .nm{flex:1;min-width:0;font-size:12.5px}
   .issrow .nm small{display:block;color:var(--muted);font-size:10.5px}
@@ -824,7 +827,15 @@ PAGES.dashboard = async () => {
   // статуси
   const byStatus = {};
   active.forEach(r=>{ const s = r["Статус"] || "Без статусу"; byStatus[s] = (byStatus[s]||0)+1; });
-  const stNames = Object.keys(byStatus).sort((a,b)=>byStatus[b]-byStatus[a]);
+  // порядок — за етапом перевезення, а не за кількістю: вивантаження в порту
+  // ЗАВЖДИ перед завантаженням на потяг/авто (вимога користувачки)
+  const STAGE_ORDER = ["Букінг","Стафіровка","В порту відправлення","Завантажений на судно",
+    "В морі","Вивантажений в порту прибуття","Завантажений на потяг","Завантажений на авто",
+    "Вантаж доставлено","Без статусу"];
+  const stNames = Object.keys(byStatus).sort((a,b)=>{
+    const ia=STAGE_ORDER.indexOf(a), ib=STAGE_ORDER.indexOf(b);
+    return (ia<0?99:ia)-(ib<0?99:ib) || byStatus[b]-byStatus[a];
+  });
   const maxSt = Math.max(1, ...stNames.map(s=>byStatus[s]));
   // розподіл по видах перевезення
   const byMode = {};
@@ -837,10 +848,11 @@ PAGES.dashboard = async () => {
   const lcl = rows.filter(isLCL).length;
   const fcl = seaRows.filter(r=>_s(r,"Контейнер") && !isLCL(r)).length;
   const seaNoCont = seaRows.filter(r=>!_s(r,"Контейнер") && !isLCL(r)).length;
+  // у діаграму йдуть ЛИШЕ FCL і LCL; морські без номера контейнера — це прогалина
+  // в даних, вона живе в блоці «Потребує уваги», а не окремим сегментом
   const loadNames = [], loadVals = [];
   if (fcl) { loadNames.push("FCL"); loadVals.push(fcl); }
   if (lcl) { loadNames.push("LCL"); loadVals.push(lcl); }
-  if (seaNoCont) { loadNames.push("не визначено"); loadVals.push(seaNoCont); }
 
   // ── блок «потребує уваги»: помилки й прогалини в даних
   const stale = rows.filter(r=>{ const u=dOf(_s(r,"Останнє оновлення")||_s(r,"Остання зміна"));
@@ -864,7 +876,7 @@ PAGES.dashboard = async () => {
     {q:"stale", nm:"Не оновлювалось понад 7 днів", n: stale,
      sub:"активна угода, а даних з Експедитора чи трекінгу давно не було"},
   ].sort((a,b)=> (b.crit && b.n ? 1:0) - (a.crit && a.n ? 1:0) || b.n-a.n);
-  const issRow = i => `<div class="issrow${i.n? " clickable":""}" data-jump="${i.q}">
+  const issRow = i => `<div class="issrow clickable" data-jump="${i.q}" title="показати ці угоди в диспетчеризації">
       <span class="dotw" style="background:${i.n? ((i.crit||i.n>=30)? "#d1453b" : "#e6a817") : "#1a8f5c"}"></span>
       <span class="nm">${esc(i.nm)}<small>${esc(i.sub)}</small></span>
       <span class="cnt" style="color:${i.n? ((i.crit||i.n>=30)? "#d1453b" : "var(--ink)") : "#1a8f5c"}">${i.n||"✓"}</span>
@@ -889,7 +901,6 @@ PAGES.dashboard = async () => {
           '<p class="sub" style="margin-top:12px">Заповни «Вид перевезення» в угодах — і розподіл з’явиться тут.</p>'}</div>
 
       <div class="card"><h3>📦 FCL / LCL</h3>
-        <p class="sub">${loadNames.length? `тільки морські — ${seaRows.length} угод${seaNoCont? `; без номера контейнера — ${seaNoCont}`:""}` : "морських перевезень не знайдено"}</p>
         ${loadNames.length? '<div class="chartbox"><canvas id="ch-loads"></canvas></div>' :
           '<p class="sub" style="margin-top:12px">FCL — морська угода з номером контейнера, LCL — позначена як «Збірний».</p>'}</div>
 
@@ -899,11 +910,12 @@ PAGES.dashboard = async () => {
 
       <div class="card"><h3>📈 Статуси активних перевезень</h3><p class="sub">де зараз вантажі</p>
         <div class="scrollbox" style="display:flex;flex-direction:column;gap:8px;margin-top:4px">
-          ${stNames.map(s=>`<div style="display:flex;align-items:center;gap:10px">
-            <div style="min-width:150px;font-size:12px">${s==="Без статусу"? '<span class="pill t-neutral">Без статусу</span>' : stPill(s)}</div>
+          ${stNames.map(s=>`<div class="strow" data-jump="st:${s==="Без статусу"?"":esc(s)}" title="показати ці угоди в диспетчеризації">
+            <div style="min-width:150px;font-size:12px">${s==="Без статусу"? '<span class="pill t-crit">Без статусу</span>' : stPill(s)}</div>
             <div style="flex:1;background:var(--neutral-bg);border-radius:8px;height:9px;overflow:hidden">
-              <div style="width:${Math.round(byStatus[s]/maxSt*100)}%;height:100%;background:var(--accent);border-radius:8px"></div></div>
-            <b style="min-width:30px;text-align:right;font-size:13px">${byStatus[s]}</b></div>`).join("") ||
+              <div style="width:${Math.round(byStatus[s]/maxSt*100)}%;height:100%;background:${s==="Без статусу"?"#d1453b":"var(--accent)"};border-radius:8px"></div></div>
+            <b style="min-width:30px;text-align:right;font-size:13px">${byStatus[s]}</b>
+            <span style="color:var(--muted);font-size:13px">›</span></div>`).join("") ||
             '<p class="sub">Активних перевезень немає.</p>'}
         </div></div>
 
@@ -945,8 +957,7 @@ PAGES.dashboard = async () => {
     type:"bar",
     // рік у другому рядку підпису — інакше не видно, де січень міняє рік
     data:{ labels: months.map(([y,m])=>[MON[m], "’"+String(y).slice(2)]),
-      datasets:[{ data: byMonth, backgroundColor: months.map(([,m])=> m===0 ? CH.violet : CH.blue),
-      borderRadius:5, maxBarThickness:30 }] },
+      datasets:[{ data: byMonth, backgroundColor: CH.blue, borderRadius:5, maxBarThickness:30 }] },
     options:{ maintainAspectRatio:false, plugins:{legend:{display:false}},
       scales:{ y:{beginAtZero:true, ticks:{precision:0, font:{size:10}}, grid:{color:"rgba(148,163,184,.18)"}},
                x:{grid:{display:false}, ticks:{font:{size:10}}} } }
@@ -1034,7 +1045,13 @@ PAGES.dispatch = async () => {
       return !!u && (_today-u)/86400000 > 7; }},
     trucklate:{label:"імпорт у порту без авто понад 2 дні", test:truckLate},
   };
-  const quick = QUICK[DISP_QUICK] || null;
+  // «st:<назва>» — клік по рядку статусу на дашборді; порожня назва = без статусу
+  let quick = QUICK[DISP_QUICK] || null;
+  if (!quick && String(DISP_QUICK || "").startsWith("st:")){
+    const s = DISP_QUICK.slice(3);
+    quick = s ? {label:"статус: "+s, test:r=>_s(r,"Статус")===s}
+              : {label:"без статусу", test:r=>!_s(r,"Статус")};
+  }
   const quickCount = quick ? all.filter(quick.test).length : all.length;
   const logist = cfg().cols === "logist";
   const syncBtn = cfg().sync ? '<button class="btn" id="sync-btn">⟳ Оновити з Експедитора</button>' : "";
@@ -1444,10 +1461,11 @@ PAGES.finance = async () => {
   $("content").innerHTML = `
     <div class="card">
       <p class="sub">джерело — Експедитор напряму · таблиця Google лишається окремим інструментом</p>
-      <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:6px">
+      <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-top:6px">
         <button class="btn" id="rep-oper">⚡ Оперативний фінансовий звіт</button>
         <button class="btn" id="rep-period">📆 Фінансовий звіт за період</button>
         <button class="btn" id="cash-sheet">💵 Вивантажити каси в Google-таблицю</button>
+        <span id="fin-refresh-slot" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"></span>
       </div>
       <p class="sub" id="fin-status" style="margin-top:10px"></p>
     </div>
@@ -1511,10 +1529,9 @@ function refreshBar(mtime, onFresh){
       }catch(e){ b.disabled=false; b.textContent="⟳ Підтягнути свіжі дані з Експедитора"; toast("⚠ Не вдалося запустити"); }
     });
   }, 0);
-  return `<div class="note" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
-    📊 Дані станом на <b>${stamp}</b>
-    <button class="btn" id="fin-refresh" style="padding:6px 12px;font-size:13px">⟳ Підтягнути свіжі дані з Експедитора</button>
-  </div>`;
+  // панель живе у верхній картці (слот #fin-refresh-slot), поруч із кнопками звітів
+  return `<span class="sub" style="margin:0;white-space:nowrap">Дані станом на <b>${stamp}</b></span>
+    <button class="btn" id="fin-refresh" style="padding:7px 14px;font-size:13px">⟳ Підтягнути свіжі дані з Експедитора</button>`;
 }
 function finTable(headers, rows){
   return `<div class="tablewrap"><table><thead><tr>${headers.map(h=>`<th>${h}</th>`).join("")}</tr></thead>
@@ -1551,7 +1568,8 @@ async function renderOper(){
   let js;
   try{ js = await fetchFin("dashboard"); }
   catch(e){ $("rep-body").innerHTML = `<div class="note">⚠ ${esc(e.message)}</div>`; return; }
-  $("rep-body").innerHTML = refreshBar(js.mtime, renderOper) + finFrame("findash", "/findash.html?v=19", js.data);
+  $("fin-refresh-slot").innerHTML = refreshBar(js.mtime, renderOper);
+  $("rep-body").innerHTML = finFrame("findash", "/findash.html?v=19", js.data);
   window.scrollTo(0,0);
 }
 
@@ -1560,7 +1578,8 @@ async function renderPeriod(){
   let js;
   try{ js = await fetchFin("period"); }
   catch(e){ $("rep-body").innerHTML = `<div class="note">⚠ ${esc(e.message)}</div>`; return; }
-  $("rep-body").innerHTML = refreshBar(js.mtime, renderPeriod) + finFrame("finperiod", "/finperiod.html?v=19", js.data);
+  $("fin-refresh-slot").innerHTML = refreshBar(js.mtime, renderPeriod);
+  $("rep-body").innerHTML = finFrame("finperiod", "/finperiod.html?v=19", js.data);
   window.scrollTo(0,0);
 }
 
