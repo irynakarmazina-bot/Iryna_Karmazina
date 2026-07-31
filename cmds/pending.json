@@ -1,1 +1,1 @@
-{"id": "track-log-0731", "cmd": "sleep 90; tail -n 14 /root/track_run.log; echo '--- чи ще працює ---'; pgrep -f maersk_track_sync >/dev/null && echo 'ПРАЦЮЄ' || echo 'ЗАВЕРШЕНО'"}
+{"id": "track-log2-0731", "cmd": "for i in $(seq 1 11); do pgrep -f maersk_track_sync >/dev/null || break; sleep 10; done; tail -n 16 /root/track_run.log; echo '---'; pgrep -f maersk_track_sync >/dev/null && echo 'ЩЕ ПРАЦЮЄ' || echo 'ЗАВЕРШЕНО'"}
