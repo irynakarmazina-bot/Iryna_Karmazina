@@ -29,6 +29,7 @@
 """
 import argparse
 import collections
+import datetime
 import json
 import os
 import sys
@@ -63,9 +64,18 @@ DELIVERED = "Вантаж доставлено"
 WORKS_DONE_FIELD = "ДатаВыполненияРабот"
 
 
-def has_date(v):
-    s = str(v or "")
-    return bool(s) and not s.startswith("0001-01-01")
+def works_done(deal, eta):
+    """Дата виконання робіт вважається фактом доставки лише якщо вона вже минула
+    і не раніша за ETA. Без другої умови 15 угод ставали «доставлено» помилково —
+    у них ця дата раніша за їхню ж ETA (угода 227: роботи 22.12.25, ETA 26.07.26)."""
+    v = str(deal.get(WORKS_DONE_FIELD) or "")
+    if not v or v.startswith("0001-01-01"):
+        return False
+    w = v[:10]
+    if w > datetime.date.today().isoformat():
+        return False
+    e = str(eta or "")[:10]
+    return (not e) or w >= e
 
 
 def nc(method, path, data=None):
@@ -193,7 +203,7 @@ def main():
 
         # --- статус
         cur_st = F(r, "Статус")
-        if has_date(d.get(WORKS_DONE_FIELD)) and cur_st != DELIVERED:
+        if works_done(d, F(r, "ETA")) and cur_st != DELIVERED:
             # роботи виконані → вантаж доставлено (переважає і етап, і вже поставлений статус)
             put(r["Id"], "Статус", DELIVERED)
             stats["статус: %s (є дата виконання робіт)" % DELIVERED] += 1
