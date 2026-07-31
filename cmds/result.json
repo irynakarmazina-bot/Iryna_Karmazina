@@ -1,7 +1,7 @@
 {
-  "stdout": "--- /cash-refresh (реально рахує касу і запускає перебудову звіту) ---\nstatus: started\ncash: CASH_OK кас=13 разом_УО=65977,59\nlog-хвіст:\nпозити USD                   USD          8000,00        8000,00\nКаса UAH UFWD                  UAH          3909,52          44,33\nКаса UAH UHD                   UAH         13303,77          54,84\nКаса USD UFWD                  USD         26193,46       26193,46\nКаса USD UHD                   USD         19662,91       19662,91\nКаса USD Украмарин             USD         -5682,60       -5682,60\nМаерск USD                     USD          1935,38        1935,38\nРАЗОМ                                                     65977,59\n\nКопія попереднього CSV: cash_balances.csv.bak-20260731-1630\nCSV оновлено: /root/unitex-finrep/normalized/cash_balances.csv (13 кас)\nCASH_OK кас=13 разом_УО=65977,59\n\n--- CSV на диску ---\n-rw-r--r-- 1 root root 693 Jul 31 16:30 /root/unitex-finrep/normalized/cash_balances.csv\n-rw-r--r-- 1 root root 693 Jul 31 16:30 /root/unitex-finrep/normalized/cash_balances.csv.bak-20260731-1630\ncash_name,currency,amount,amount_uo\nБанк Cr String Cycle LLC,USD,-11332.34,-11332.34\nБанк Юнітекс Ейч-Ді,UAH,891705.42,21322.15\nБанк Юнітекс Ейч-Ді EUR,EUR,2700.00,4810.80\nБанк Юнітекс Ейч-Ді USD,USD,0.00,0.00\nБанк Юнітекс Ейч-Ді Восток,UAH,11559.45,206.58\nБанк Юнітекс Форвардинг,UAH,31929.73,762.08\nДепозити USD,USD,8000.00,8000.00\nКаса UAH UFWD,UAH,3909.52,44.33\nКаса UAH UHD,UAH,13303.77,54.84\nКаса USD UFWD,USD,26193.46,26193.46\nКаса USD UHD,USD,19662.91,19662.91\nКаса USD Украмарин,USD,-5682.60,-5682.60\nМаерск USD,USD,1935.38,1935.38\n",
+  "stdout": "strow: 1\nSTAGE_ORDER: 2\nslot: 4\nUI 200\n",
   "stderr": "",
   "returncode": 0,
-  "id": "cash-run-0731",
-  "ts": "2026-07-31T13:30:46Z"
+  "id": "deploy-ui2-0731",
+  "ts": "2026-07-31T13:34:22Z"
 }
