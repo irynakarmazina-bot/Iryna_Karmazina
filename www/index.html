@@ -227,8 +227,11 @@
   .quickchip button{border:0;background:transparent;color:inherit;cursor:pointer;font-size:15px;line-height:1;padding:0}
   /* плитка — той самий вигляд, що картки у фінансовому звіті:
      квадратна іконка ліворуч, праворуч стовпчик «підпис / число / уточнення» */
+  /* до перебудови (enhanceTiles) плитка — звичайний блок, після — рядок «іконка + текст».
+     Без цього між першим малюванням і перебудовою підпис/число з'їжджають в один рядок. */
   .tile{background:var(--tile-bg);border:1px solid var(--line);border-radius:12px;padding:12px 14px;
-    display:flex;align-items:flex-start;gap:10px;box-shadow:none;transition:box-shadow .15s,border-color .15s}
+    display:block;box-shadow:none;transition:box-shadow .15s,border-color .15s}
+  .tile.tready{display:flex;align-items:flex-start;gap:10px}
   .tile .tbody{flex:1;min-width:0}
   .tile>.ic{width:38px;height:38px;border-radius:10px}
   .tile>.ic svg{width:20px;height:20px}
@@ -251,6 +254,26 @@
   /* рамка з дашбордом фінзвіту (findash.html / finperiod.html) */
   .finframe{width:100%;display:block;border:0;border-radius:16px;background:#f4f5f7;height:900px}
   .chartgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px}
+  /* дашборд: рівно 3 картки в ряд, компактні — щоб усі 6 влізли на один екран */
+  .dashgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:12px}
+  .dashgrid .card{padding:10px 12px}
+  .dashgrid .card h3{font-size:13px}
+  .dashgrid .card .sub{font-size:10.5px;margin-bottom:6px}
+  .dashgrid .chartbox{height:168px}
+  .dashgrid .scrollbox{max-height:168px;overflow-y:auto}
+  .dashgrid table td,.dashgrid table th{padding:3px 4px;font-size:11.5px}
+  @media (max-width:1180px){ .dashgrid{grid-template-columns:repeat(2,1fr)} }
+  @media (max-width:820px){ .dashgrid{grid-template-columns:1fr} }
+  /* блок «потребує уваги» */
+  .isslist{display:flex;flex-direction:column}
+  .issrow{display:flex;align-items:center;gap:10px;padding:7px 2px;border-bottom:1px solid var(--line)}
+  .issrow:last-child{border-bottom:0}
+  .issrow.clickable{cursor:pointer} .issrow.clickable:hover{background:var(--hover-bg,#f7f8fa)}
+  .issrow .dotw{width:8px;height:8px;border-radius:50%;flex:none}
+  .issrow .nm{flex:1;min-width:0;font-size:12.5px}
+  .issrow .nm small{display:block;color:var(--muted);font-size:10.5px}
+  .issrow .cnt{font-weight:700;font-size:14px;font-variant-numeric:tabular-nums}
+  .issrow .go{color:var(--muted);font-size:13px}
   .delta.up{color:var(--good-text)} .delta.down{color:var(--crit-text)}
   /* згортання таблиць-деталізацій під графіками */
   details.det{margin-top:12px}
@@ -670,6 +693,7 @@ function enhanceTiles(root){
     while (t.firstChild) body.appendChild(t.firstChild);
     if (def) t.innerHTML = '<span class="ic ic-'+def[1]+'"><svg viewBox="0 0 24 24">'+ICONS[def[0]]+'</svg></span>';
     t.appendChild(body);
+    t.classList.add("tready");
   });
 }
 new MutationObserver(()=>enhanceTiles()).observe(document.body, {childList:true, subtree:true});
@@ -696,6 +720,32 @@ const STATUSES = {
   "Вантаж доставлено":"t-del",
 };
 const stPill = st => st ? `<span class="pill ${STATUSES[st]||"t-neutral"}">${esc(st)}</span>` : '<span class="cell-muted">—</span>';
+
+/* ===== класифікація перевезень (спільна для дашборда і швидких фільтрів) =====
+   Правила від користувачки 31.07.2026:
+   * FCL — морське перевезення з номером контейнера; LCL — позначено «Збірний»;
+   * лінія буває лише там, де є морське або залізничне плече
+     (мультимодальні на FOB/CIF — «ТЕО+авто» — теж), тож авіа й авто не рахуємо. */
+const _s = (r,k) => String(r[k]||"").trim();
+const SEA_MODES = {"фрахт":1,"фрахт+ТЕО+авто":1,"фрахт+ТЕО+залізниця":1,"ТЕО+авто":1};
+const isLCL = r => /збірн/i.test(_s(r,"Тип")) || /lcl/i.test(_s(r,"FCL/LCL"));
+const isSea = r => {
+  const m = _s(r,"Вид перевезення");
+  if (SEA_MODES[m]) return true;
+  if (m === "авіа" || m === "авто") return false;
+  const t = _s(r,"Тип").toLowerCase();
+  return t.includes("море") || t.includes("фрахт") || t.includes("збірн");
+};
+const isRail  = r => /залізни/i.test(_s(r,"Вид перевезення")) || /залізни/i.test(_s(r,"Тип"));
+const hasLine = r => isSea(r) || isRail(r);
+const isDone  = r => r["Статус"] === "Вантаж доставлено";
+const dOf = v => { const m=/(\d{4})-(\d{2})-(\d{2})/.exec(String(v||"")); return m? new Date(+m[1],+m[2]-1,+m[3]) : null; };
+/* вантаж уже в порту прибуття і ще не вивезений → капають зберігання/демередж */
+const portSince = r => dOf(_s(r,"Вивантаження в порту (факт)") || _s(r,"ETA порт (факт)"));
+const inPort = r => !isDone(r) && !_s(r,"Вивантаження у отримувача (факт)") &&
+  (!!portSince(r) || r["Статус"] === "Вивантажений в порту прибуття");
+const daysIn = r => { const p=portSince(r); if(!p) return null;
+  const t=new Date(); t.setHours(0,0,0,0); return Math.round((t-p)/86400000); };
 let toastTimer=null;
 function toast(m){ const t=$("toast"); t.textContent=m; t.style.display="block"; clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.style.display="none",4000); }
 
@@ -713,36 +763,84 @@ PAGES.dashboard = async () => {
   const sea = active.filter(r=>r["Статус"]==="В морі").length;
   const week = active.filter(r=>{ const e=d(r["ETA"]); return e && (e-today)/86400000>=0 && (e-today)/86400000<=7; }).length;
   const noBL = active.filter(r=>!String(r["BL"]||"").trim()).length;
+  // у порту прибуття і ще не вивезені — тут капають зберігання і демередж
+  const inPortRows = rows.filter(inPort).sort((a,b)=>(daysIn(b)||0)-(daysIn(a)||0));
+  const inPortMax = inPortRows.length ? (daysIn(inPortRows[0]) || 0) : 0;
   const fmtRow = r => `<tr><td class="mono"><b>${esc(r["Угода"])}</b></td><td>${esc(r["Клієнт"]||"—")}</td>
     <td>${esc(r["Судно"]||"—")}</td><td>${stPill(r["Статус"])}</td><td class="mono">${esc(r["ETA"]||"—")}</td></tr>`;
   const upcoming = active.filter(r=>{ const e=d(r["ETA"]); return e && e>=today; })
     .sort((a,b)=>String(a["ETA"]).localeCompare(String(b["ETA"]))).slice(0,8);
-  const overdue = active.filter(r=>{ const e=d(r["ETA"]); return e && e<today; })
-    .sort((a,b)=>String(a["ETA"]).localeCompare(String(b["ETA"]))).slice(0,8);
+  const overdueAll = active.filter(r=>{ const e=d(r["ETA"]); return e && e<today; })
+    .sort((a,b)=>String(a["ETA"]).localeCompare(String(b["ETA"])));
+  const overdue = overdueAll.slice(0,8);
   const scopeNote = cfg().scope!=="all" ? `<div class="note">👤 Показано лише твої угоди (${esc(UNAME)}).</div>` : "";
 
-  // розподіл по лініях
+  // розподіл по лініях — лише там, де лінія взагалі буває:
+  // морські + залізничні + мультимодальні на FOB/CIF («ТЕО+авто»). Авіа й авто не рахуємо.
+  const lineRows = rows.filter(hasLine);
+  const notClassified = rows.length - lineRows.length
+    - rows.filter(r=>{ const m=_s(r,"Вид перевезення"); return m==="авіа"||m==="авто"; }).length;
   const byLine = {};
-  rows.forEach(r=>{ const l = String(r["Лінія"]||"").trim() || "Без лінії"; byLine[l] = (byLine[l]||0)+1; });
+  lineRows.forEach(r=>{ const l = _s(r,"Лінія") || "Без лінії"; byLine[l] = (byLine[l]||0)+1; });
   const lineNames = Object.keys(byLine).sort((a,b)=>byLine[b]-byLine[a]);
-  // прибуття по місяцях (останні 6)
+  // прибуття по місяцях — УСІ місяці, у яких є ETA (від першого до останнього, без пропусків)
   const MON = ["січ","лют","бер","кві","тра","чер","лип","сер","вер","жов","лис","гру"];
+  const monKeys = [...new Set(rows.map(r=>String(r["ETA"]||"").slice(0,7)))].filter(k=>/^\d{4}-\d{2}$/.test(k)).sort();
   const months = [];
-  for (let k=5; k>=0; k--){ const dt=new Date(today.getFullYear(), today.getMonth()-k, 1); months.push([dt.getFullYear(), dt.getMonth()]); }
-  const byMonth = months.map(([y,m])=> rows.filter(r=>{ const e=d(r["ETA"]); return e && e.getFullYear()===y && e.getMonth()===m; }).length);
+  if (monKeys.length){
+    const a = monKeys[0].split("-").map(Number), b = monKeys[monKeys.length-1].split("-").map(Number);
+    let y = a[0], m = a[1];
+    while (y < b[0] || (y === b[0] && m <= b[1])){ months.push([y, m-1]); m++; if (m > 12){ m = 1; y++; } }
+  }
+  const monCount = {};
+  rows.forEach(r=>{ const k=String(r["ETA"]||"").slice(0,7); if(/^\d{4}-\d{2}$/.test(k)) monCount[k]=(monCount[k]||0)+1; });
+  const byMonth = months.map(([y,m])=> monCount[y+"-"+String(m+1).padStart(2,"0")] || 0);
   // статуси
   const byStatus = {};
   active.forEach(r=>{ const s = r["Статус"] || "Без статусу"; byStatus[s] = (byStatus[s]||0)+1; });
   const stNames = Object.keys(byStatus).sort((a,b)=>byStatus[b]-byStatus[a]);
   const maxSt = Math.max(1, ...stNames.map(s=>byStatus[s]));
-  // розподіл по видах перевезення і по типу завантаження
-  const byMode = {}, byLoad = {};
-  rows.forEach(r=>{ const v=String(r["Вид перевезення"]||"").trim(); if(v) byMode[v]=(byMode[v]||0)+1; });
-  rows.forEach(r=>{ const v=String(r["FCL/LCL"]||"").trim(); if(v) byLoad[v]=(byLoad[v]||0)+1; });
+  // розподіл по видах перевезення
+  const byMode = {};
+  rows.forEach(r=>{ const v=_s(r,"Вид перевезення"); if(v) byMode[v]=(byMode[v]||0)+1; });
   const modeNames = Object.keys(byMode).sort((a,b)=>byMode[b]-byMode[a]);
-  const loadNames = Object.keys(byLoad).sort((a,b)=>byLoad[b]-byLoad[a]);
-  const noMode = rows.filter(r=>!String(r["Вид перевезення"]||"").trim()).length;
+  const noMode = rows.filter(r=>!_s(r,"Вид перевезення")).length;
   const maxMode = Math.max(1, ...modeNames.map(m=>byMode[m]));
+  // FCL / LCL — тільки морські: FCL = є номер контейнера, LCL = позначено «Збірний»
+  const seaRows = rows.filter(isSea);
+  const lcl = rows.filter(isLCL).length;
+  const fcl = seaRows.filter(r=>_s(r,"Контейнер") && !isLCL(r)).length;
+  const seaNoCont = seaRows.filter(r=>!_s(r,"Контейнер") && !isLCL(r)).length;
+  const loadNames = [], loadVals = [];
+  if (fcl) { loadNames.push("FCL"); loadVals.push(fcl); }
+  if (lcl) { loadNames.push("LCL"); loadVals.push(lcl); }
+  if (seaNoCont) { loadNames.push("не визначено"); loadVals.push(seaNoCont); }
+
+  // ── блок «потребує уваги»: помилки й прогалини в даних
+  const stale = rows.filter(r=>{ const u=dOf(_s(r,"Останнє оновлення")||_s(r,"Остання зміна"));
+    return !isDone(r) && u && (today-u)/86400000 > 7; }).length;
+  const ISSUES = [
+    {q:"nostatus", nm:"Без статусу", n: rows.filter(r=>!_s(r,"Статус")).length,
+     sub:"етап в Експедиторі є, але ми його ще не мапимо в статус платформи"},
+    {q:"nobl", nm:"Без BL", n: noBL, sub:"трекінг лінії не вмикається — впиши коносамент"},
+    {q:"noeta", nm:"Без ETA", n: rows.filter(r=>!_s(r,"ETA")).length,
+     sub:"немає дати прибуття — угода не потрапляє в план і в сортування"},
+    {q:"overdue", nm:"ETA минула, а угода не закрита", n: overdueAll.length,
+     sub:"або вантаж затримався, або не оновлено статус чи дати"},
+    {q:"nocont", nm:"Без номера контейнера", n: rows.filter(r=>!_s(r,"Контейнер")).length,
+     sub:"не визначається FCL і не працює запасний трекінг по контейнеру"},
+    {q:"noline", nm:"Без лінії (морські й залізничні)", n: lineRows.filter(r=>!_s(r,"Лінія")).length,
+     sub:"невідомо, чиїм трекінгом тягнути дані"},
+    {q:"nomode", nm:"Без виду перевезення", n: noMode,
+     sub:"не потрапляє в розподіли по видах і в FCL/LCL"},
+    {q:"stale", nm:"Не оновлювалось понад 7 днів", n: stale,
+     sub:"активна угода, а даних з Експедитора чи трекінгу давно не було"},
+  ].sort((a,b)=>b.n-a.n);
+  const issRow = i => `<div class="issrow${i.n? " clickable":""}" data-jump="${i.q}">
+      <span class="dotw" style="background:${i.n? (i.n>=30? "#d1453b" : "#e6a817") : "#1a8f5c"}"></span>
+      <span class="nm">${esc(i.nm)}<small>${esc(i.sub)}</small></span>
+      <span class="cnt" style="color:${i.n? (i.n>=30? "#d1453b" : "var(--ink)") : "#1a8f5c"}">${i.n||"✓"}</span>
+      <span class="go">${i.n? "›" : ""}</span></div>`;
 
   $("content").innerHTML = `
     ${scopeNote}
@@ -750,87 +848,103 @@ PAGES.dashboard = async () => {
       <div class="tile clickable" data-jump="active"><div class="lbl">📦 Активні перевезення</div><div class="val">${active.length}</div><div class="delta">з ${rows.length} угод усього</div></div>
       <div class="tile clickable" data-jump="sea"><div class="lbl">🌊 В морі зараз</div><div class="val">${sea}</div><div class="delta">${active.length? Math.round(sea/active.length*100):0}% активних</div></div>
       <div class="tile clickable" data-jump="eta7"><div class="lbl">📅 Прибуття за 7 днів</div><div class="val">${week}</div><div class="delta">потребують уваги</div></div>
+      <div class="tile ${inPortMax>=14?"warn":""} clickable" data-jump="inport"><div class="lbl">⏳ У порту — не вивезено</div><div class="val">${inPortRows.length}</div><div class="delta">${inPortRows.length? `найдовше — ${inPortMax} дн · ризик зберігання` : "простою немає"}</div></div>
     </div>
-    <div class="chartgrid" style="margin-top:16px">
-      <div class="card"><h3>📊 Прибуття по місяцях</h3><p class="sub">кількість угод за датою ETA</p>
+
+    <div class="dashgrid">
+      <div class="card"><h3>📊 Прибуття по місяцях</h3><p class="sub">кількість угод за датою ETA${monKeys.length? ` · ${MON[months[0][1]]} ${String(months[0][0]).slice(2)} — ${MON[months[months.length-1][1]]} ${String(months[months.length-1][0]).slice(2)}`:""}</p>
         <div class="chartbox"><canvas id="ch-months"></canvas></div></div>
-      <div class="card"><h3>🚢 Розподіл по лініях</h3><p class="sub">усі угоди${cfg().scope!=="all"?" (твої)":""}</p>
-        <div class="chartbox"><canvas id="ch-lines"></canvas></div></div>
-    </div>
-    <div class="chartgrid" style="margin-top:16px">
+
       <div class="card"><h3>🚚 Розподіл по видах перевезення</h3>
         <p class="sub">${modeNames.length? `усі угоди${noMode? `; без виду перевезення — ${noMode}`:""}` : "поле «Вид перевезення» ще не заповнене"}</p>
         ${modeNames.length? '<div class="chartbox"><canvas id="ch-modes"></canvas></div>' :
-          '<p class="sub" style="margin-top:12px">Заповни «Вид перевезення» в угодах — і розподіл з’явиться тут.</p>'}
-        ${modeNames.length? `<div style="display:flex;flex-direction:column;gap:8px;margin-top:12px">
-          ${modeNames.map(m=>`<div style="display:flex;align-items:center;gap:12px">
-            <div style="min-width:190px;font-size:13.5px">${esc(m)}</div>
-            <div style="flex:1;background:var(--neutral-bg);border-radius:8px;height:10px;overflow:hidden">
-              <div style="width:${Math.round(byMode[m]/maxMode*100)}%;height:100%;background:var(--accent);border-radius:8px"></div></div>
-            <b style="min-width:34px;text-align:right;font-size:14px">${byMode[m]}</b></div>`).join("")}
-        </div>`:""}</div>
-      <div class="card"><h3>📦 FCL / LCL / FTL / LTL</h3>
-        <p class="sub">${loadNames.length? "позначка завантаження" : "позначка ще не заповнена"}</p>
+          '<p class="sub" style="margin-top:12px">Заповни «Вид перевезення» в угодах — і розподіл з’явиться тут.</p>'}</div>
+
+      <div class="card"><h3>📦 FCL / LCL</h3>
+        <p class="sub">${loadNames.length? `тільки морські — ${seaRows.length} угод${seaNoCont? `; без номера контейнера — ${seaNoCont}`:""}` : "морських перевезень не знайдено"}</p>
         ${loadNames.length? '<div class="chartbox"><canvas id="ch-loads"></canvas></div>' :
-          '<p class="sub" style="margin-top:12px">Постав FCL/LCL/FTL/LTL в угодах — з’явиться розподіл.</p>'}</div>
+          '<p class="sub" style="margin-top:12px">FCL — морська угода з номером контейнера, LCL — позначена як «Збірний».</p>'}</div>
+
+      <div class="card"><h3>🚢 Розподіл по лініях</h3>
+        <p class="sub">морські + залізничні + FOB/CIF — ${lineRows.length} угод${notClassified? `; не класифіковано — ${notClassified}`:""}</p>
+        <div class="chartbox"><canvas id="ch-lines"></canvas></div></div>
+
+      <div class="card"><h3>📈 Статуси активних перевезень</h3><p class="sub">де зараз вантажі</p>
+        <div class="scrollbox" style="display:flex;flex-direction:column;gap:8px;margin-top:4px">
+          ${stNames.map(s=>`<div style="display:flex;align-items:center;gap:10px">
+            <div style="min-width:150px;font-size:12px">${s==="Без статусу"? '<span class="pill t-neutral">Без статусу</span>' : stPill(s)}</div>
+            <div style="flex:1;background:var(--neutral-bg);border-radius:8px;height:9px;overflow:hidden">
+              <div style="width:${Math.round(byStatus[s]/maxSt*100)}%;height:100%;background:var(--accent);border-radius:8px"></div></div>
+            <b style="min-width:30px;text-align:right;font-size:13px">${byStatus[s]}</b></div>`).join("") ||
+            '<p class="sub">Активних перевезень немає.</p>'}
+        </div></div>
+
+      <div class="card"><h3>📅 Найближчі прибуття</h3><p class="sub">активні угоди за ETA, від найближчої</p>
+        <div class="scrollbox"><table>
+          <thead><tr><th>Угода</th><th>Клієнт</th><th>Статус</th><th>ETA</th></tr></thead>
+          <tbody>${upcoming.map(r=>`<tr><td class="mono"><b>${esc(r["Угода"])}</b></td><td>${esc(r["Клієнт"]||"—")}</td><td>${stPill(r["Статус"])}</td><td class="mono">${esc(r["ETA"]||"—")}</td></tr>`).join("")
+            || '<tr><td colspan="4" class="cell-muted">Немає активних угод з майбутнім ETA.</td></tr>'}</tbody>
+        </table></div></div>
     </div>
-    <div class="card"><h3>📈 Статуси активних перевезень</h3><p class="sub">де зараз вантажі</p>
-      <div style="display:flex;flex-direction:column;gap:10px;margin-top:12px">
-        ${stNames.map(s=>`<div style="display:flex;align-items:center;gap:12px">
-          <div style="min-width:190px;font-size:13.5px">${stPill(s)}</div>
-          <div style="flex:1;background:var(--neutral-bg);border-radius:8px;height:10px;overflow:hidden">
-            <div style="width:${Math.round(byStatus[s]/maxSt*100)}%;height:100%;background:var(--accent);border-radius:8px"></div></div>
-          <b style="min-width:34px;text-align:right;font-size:14px">${byStatus[s]}</b></div>`).join("") ||
-          '<p class="sub">Активних перевезень немає.</p>'}
-      </div></div>
-    <div class="card"><h3>📅 Найближчі прибуття</h3><p class="sub">активні угоди за датою ETA, від найближчої</p>
+
+    <div class="card" style="margin-top:12px"><h3>⚠️ Потребує уваги — помилки й прогалини в даних</h3>
+      <p class="sub">натисни рядок, щоб побачити ці угоди в диспетчеризації</p>
+      <div class="isslist">${ISSUES.map(issRow).join("")}</div></div>
+
+    ${inPortRows.length? `<div class="card" style="margin-top:12px"><h3>⏳ Стоять у порту прибуття</h3>
+      <p class="sub">прибули, але ще не вивезені — за кожен день капає зберігання і демередж</p>
       <div class="tablewrap"><table>
-        <thead><tr><th>Угода</th><th>Клієнт</th><th>Судно</th><th>Статус</th><th>ETA</th></tr></thead>
-        <tbody>${upcoming.map(fmtRow).join("") || '<tr><td colspan="5" class="cell-muted">Немає активних угод з майбутнім ETA.</td></tr>'}</tbody>
-      </table></div></div>
-    <div class="card"><h3>⚠️ ETA минуло — перевірити</h3><p class="sub">дата прибуття вже позаду, а угода не закрита: оновити статус або дати</p>
+        <thead><tr><th>Угода</th><th>Клієнт</th><th>Контейнер</th><th>Статус</th><th>У порту з</th><th>Днів</th></tr></thead>
+        <tbody>${inPortRows.map(r=>{ const dd=daysIn(r);
+          return `<tr><td class="mono"><b>${esc(r["Угода"])}</b></td><td>${esc(r["Клієнт"]||"—")}</td>
+            <td class="mono">${esc(r["Контейнер"]||"—")}</td><td>${stPill(r["Статус"])}</td>
+            <td class="mono">${esc((_s(r,"Вивантаження в порту (факт)")||_s(r,"ETA порт (факт)")||"—").slice(0,10))}</td>
+            <td class="mono" style="font-weight:700;color:${dd>=14?"#d1453b":"inherit"}">${dd==null?"—":dd}</td></tr>`;}).join("")}</tbody>
+      </table></div></div>`:""}
+
+    <div class="card" style="margin-top:12px"><h3>⚠️ ETA минуло — перевірити</h3><p class="sub">дата прибуття вже позаду, а угода не закрита: оновити статус або дати</p>
       <div class="tablewrap"><table>
         <thead><tr><th>Угода</th><th>Клієнт</th><th>Судно</th><th>Статус</th><th>ETA</th></tr></thead>
         <tbody>${overdue.map(fmtRow).join("") || '<tr><td colspan="5" class="cell-muted">Таких немає — все під контролем ✅</td></tr>'}</tbody>
-      </table></div></div>
-    <div class="tiles" style="margin-top:16px;grid-template-columns:repeat(auto-fit,minmax(240px,300px))">
-      <div class="tile warn clickable" data-jump="nobl"><div class="lbl">🚫 Без BL (не трекаються)</div><div class="val">${noBL}</div><div class="delta">впиши BL — трекінг увімкнеться</div></div>
-    </div>`;
+      </table></div></div>`;
+
+  const DONUT = {maintainAspectRatio:false, cutout:"60%",
+    plugins:{ legend:{position:"right", labels:{boxWidth:8, boxHeight:8, usePointStyle:true,
+      pointStyle:"circle", padding:7, font:{size:10.5}}} }};
+  const PALETTE = [CH.blue, CH.green, CH.amber, CH.violet, CH.red, CH.slate, "#0ea5e9", "#f472b6", "#14b8a6", "#a3e635"];
 
   drawChart("ch-months", {
     type:"bar",
-    data:{ labels: months.map(([y,m])=>MON[m]), datasets:[{ data: byMonth, backgroundColor: CH.blue,
-      borderRadius:7, maxBarThickness:46 }] },
+    // рік у другому рядку підпису — інакше не видно, де січень міняє рік
+    data:{ labels: months.map(([y,m])=>[MON[m], "’"+String(y).slice(2)]),
+      datasets:[{ data: byMonth, backgroundColor: months.map(([,m])=> m===0 ? CH.violet : CH.blue),
+      borderRadius:5, maxBarThickness:30 }] },
     options:{ maintainAspectRatio:false, plugins:{legend:{display:false}},
-      scales:{ y:{beginAtZero:true, ticks:{precision:0}, grid:{color:"rgba(148,163,184,.18)"}},
-               x:{grid:{display:false}} } }
+      scales:{ y:{beginAtZero:true, ticks:{precision:0, font:{size:10}}, grid:{color:"rgba(148,163,184,.18)"}},
+               x:{grid:{display:false}, ticks:{font:{size:10}}} } }
   });
   drawChart("ch-lines", {
     type:"doughnut",
     data:{ labels: lineNames, datasets:[{ data: lineNames.map(l=>byLine[l]),
-      backgroundColor:[CH.blue, CH.green, CH.amber, CH.violet, CH.red, CH.slate, "#0ea5e9", "#f472b6"],
-      borderWidth:0, hoverOffset:6 }] },
-    options:{ maintainAspectRatio:false, cutout:"62%",
-      plugins:{ legend:{position:"right", labels:{boxWidth:10, boxHeight:10, usePointStyle:true, pointStyle:"circle", padding:12}} } }
+      backgroundColor: PALETTE, borderWidth:0, hoverOffset:6 }] },
+    options: DONUT
   });
-  $("content").querySelectorAll(".tile[data-jump]").forEach(t=>t.addEventListener("click",()=>{
-    DISP_QUICK = t.dataset.jump; go("dispatch");
-  }));
   if (modeNames.length) drawChart("ch-modes", {
     type:"doughnut",
     data:{ labels: modeNames, datasets:[{ data: modeNames.map(m=>byMode[m]),
-      backgroundColor:[CH.blue, CH.green, CH.amber, CH.violet, CH.red, CH.slate, "#0ea5e9", "#f472b6", "#14b8a6", "#a3e635"],
-      borderWidth:0, hoverOffset:6 }] },
-    options:{ maintainAspectRatio:false, cutout:"62%",
-      plugins:{ legend:{position:"right", labels:{boxWidth:10, boxHeight:10, usePointStyle:true, pointStyle:"circle", padding:10}} } }
+      backgroundColor: PALETTE, borderWidth:0, hoverOffset:6 }] },
+    options: DONUT
   });
   if (loadNames.length) drawChart("ch-loads", {
-    type:"bar",
-    data:{ labels: loadNames, datasets:[{ data: loadNames.map(l=>byLoad[l]), backgroundColor: CH.green,
-      borderRadius:7, maxBarThickness:46 }] },
-    options:{ maintainAspectRatio:false, plugins:{legend:{display:false}},
-      scales:{ y:{beginAtZero:true, ticks:{precision:0}, grid:{color:"rgba(148,163,184,.18)"}}, x:{grid:{display:false}} } }
+    type:"doughnut",
+    data:{ labels: loadNames, datasets:[{ data: loadVals,
+      backgroundColor:[CH.blue, CH.green, CH.slate], borderWidth:0, hoverOffset:6 }] },
+    options: DONUT
   });
+  $("content").querySelectorAll("[data-jump]").forEach(t=>t.addEventListener("click",()=>{
+    if (t.classList.contains("issrow") && !t.classList.contains("clickable")) return;
+    DISP_QUICK = t.dataset.jump; go("dispatch");
+  }));
   enhanceTiles();
 };
 
@@ -879,6 +993,17 @@ PAGES.dispatch = async () => {
     eta7:{label:"прибуття за 7 днів", test:r=>{ if(_done(r)) return false; const e=_dt(r["ETA"]);
       if(!e) return false; const dd=(e-_today)/86400000; return dd>=0 && dd<=7; }},
     nobl:{label:"без BL (не трекаються)", test:r=>!_done(r) && !String(r["BL"]||"").trim()},
+    inport:{label:"у порту — не вивезено", test:inPort},
+    nostatus:{label:"без статусу", test:r=>!_s(r,"Статус")},
+    noeta:{label:"без ETA", test:r=>!_s(r,"ETA")},
+    overdue:{label:"ETA минула, угода не закрита", test:r=>{ if(_done(r)) return false;
+      const e=_dt(r["ETA"]); return !!e && e<_today; }},
+    nocont:{label:"без номера контейнера", test:r=>!_s(r,"Контейнер")},
+    noline:{label:"без лінії (морські й залізничні)", test:r=>hasLine(r) && !_s(r,"Лінія")},
+    nomode:{label:"без виду перевезення", test:r=>!_s(r,"Вид перевезення")},
+    stale:{label:"не оновлювалось понад 7 днів", test:r=>{ if(_done(r)) return false;
+      const u=dOf(_s(r,"Останнє оновлення")||_s(r,"Остання зміна"));
+      return !!u && (_today-u)/86400000 > 7; }},
   };
   const quick = QUICK[DISP_QUICK] || null;
   const quickCount = quick ? all.filter(quick.test).length : all.length;
