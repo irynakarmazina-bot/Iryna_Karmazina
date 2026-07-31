@@ -1,7 +1,7 @@
 {
-  "stdout": "рухів по грошових рахунках: 1487\n   ВидОплаты_Key            заповнено в  1019 (69%)\n   Контрагент_Key           заповнено в   983 (66%)\n   без жодної ознаки:        466 (31%)\n",
+  "stdout": "AccountingRegister_Бухгалтерский_RecordType    порожньо\nAccountingRegister_Налоговый_RecordType        порожньо\nAccumulationRegister_Фонды                     порожньо\nAccumulationRegister_БанкОстатки               порожньо\nAccumulationRegister_БанкДокументы             порожньо\n",
   "stderr": "",
   "returncode": 0,
-  "id": "attrib-probe-0731",
-  "ts": "2026-07-31T11:21:08Z"
+  "id": "other-registers-0731",
+  "ts": "2026-07-31T11:49:34Z"
 }
