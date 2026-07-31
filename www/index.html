@@ -218,19 +218,23 @@
   .card h3.h3ico .ic svg{width:14px;height:14px}
   .card .sub{color:var(--muted);font-size:11px;margin:0 0 10px}
 
-  .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
-  .tile.clickable{cursor:pointer;transition:transform .12s ease,box-shadow .12s ease}
-  .tile.clickable:hover{transform:translateY(-2px);box-shadow:0 8px 22px rgba(15,23,42,.10)}
+  .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}
+  .tile.clickable{cursor:pointer}
+  .tile.clickable:hover{box-shadow:0 2px 10px rgba(16,24,40,.08);border-color:#d5dae4}
   .tile.clickable .delta::after{content:" ›";font-weight:700}
   .quickchip{display:inline-flex;align-items:center;gap:8px;background:var(--accent-bg,#eef4ff);color:var(--accent);
     border:1px solid var(--line);border-radius:999px;padding:5px 12px;font-size:13px;font-weight:600}
   .quickchip button{border:0;background:transparent;color:inherit;cursor:pointer;font-size:15px;line-height:1;padding:0}
-  .tile{background:var(--tile-bg);border:1px solid var(--line);border-radius:12px;padding:12px 16px;
-    box-shadow:none;transition:box-shadow .15s,transform .15s}
-  .tile:hover{box-shadow:0 2px 10px rgba(16,24,40,.06)}
+  /* плитка — той самий вигляд, що картки у фінансовому звіті:
+     квадратна іконка ліворуч, праворуч стовпчик «підпис / число / уточнення» */
+  .tile{background:var(--tile-bg);border:1px solid var(--line);border-radius:12px;padding:12px 14px;
+    display:flex;align-items:flex-start;gap:10px;box-shadow:none;transition:box-shadow .15s,border-color .15s}
+  .tile .tbody{flex:1;min-width:0}
+  .tile>.ic{width:38px;height:38px;border-radius:10px}
+  .tile>.ic svg{width:20px;height:20px}
   .tile.warn .val{color:var(--neg)}
-  .tile .lbl{font-size:11px;color:var(--ink-2);display:flex;align-items:center;gap:8px;line-height:1.3}
-  .tile .val{font-size:22px;font-weight:700;letter-spacing:-.3px;margin-top:6px}
+  .tile .lbl{font-size:11px;color:var(--ink-2);line-height:1.3;min-height:28px;display:flex;align-items:flex-end}
+  .tile .val{font-size:22px;font-weight:700;letter-spacing:-.3px;margin-top:3px}
   .tile .delta{font-size:10.5px;margin-top:3px;color:var(--muted)}
   .ic{width:28px;height:28px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;flex:none}
   .ic svg{width:15px;height:15px;stroke-width:1.9;fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round}
@@ -651,15 +655,21 @@ function enhanceHeads(root){
 }
 function enhanceTiles(root){
   enhanceHeads(root);
-  (root || document).querySelectorAll(".tile .lbl").forEach(l=>{
-    if (l.dataset.ico) return;
+  // \u043F\u043B\u0438\u0442\u043A\u0430 \u043F\u0435\u0440\u0435\u0431\u0443\u0434\u043E\u0432\u0443\u0454\u0442\u044C\u0441\u044F \u0432 \u0441\u0442\u0440\u0443\u043A\u0442\u0443\u0440\u0443 \u0444\u0456\u043D\u0437\u0432\u0456\u0442\u0443: [\u0456\u043A\u043E\u043D\u043A\u0430] [\u043F\u0456\u0434\u043F\u0438\u0441 / \u0447\u0438\u0441\u043B\u043E / \u0443\u0442\u043E\u0447\u043D\u0435\u043D\u043D\u044F]
+  (root || document).querySelectorAll(".tile").forEach(t=>{
+    if (t.dataset.ico) return;
+    t.dataset.ico = "1";
+    const l = t.querySelector(".lbl");
+    if (!l) return;
     const m = EMO_RE.exec(l.textContent.trim());
     const key = m ? m[1].replace(/\uFE0F/g,"") : null;
     const def = key && (EMOJI_ICON[key] || EMOJI_ICON[m[1]]);
-    l.dataset.ico = "1";
-    if (!def) return;
-    const rest = l.textContent.trim().replace(EMO_RE, "");
-    l.innerHTML = '<span class="ic ic-'+def[1]+'"><svg viewBox="0 0 24 24">'+ICONS[def[0]]+'</svg></span><span>'+esc(rest)+'</span>';
+    if (def) l.textContent = l.textContent.trim().replace(EMO_RE, "");
+    const body = document.createElement("div");
+    body.className = "tbody";
+    while (t.firstChild) body.appendChild(t.firstChild);
+    if (def) t.innerHTML = '<span class="ic ic-'+def[1]+'"><svg viewBox="0 0 24 24">'+ICONS[def[0]]+'</svg></span>';
+    t.appendChild(body);
   });
 }
 new MutationObserver(()=>enhanceTiles()).observe(document.body, {childList:true, subtree:true});
@@ -740,7 +750,6 @@ PAGES.dashboard = async () => {
       <div class="tile clickable" data-jump="active"><div class="lbl">📦 Активні перевезення</div><div class="val">${active.length}</div><div class="delta">з ${rows.length} угод усього</div></div>
       <div class="tile clickable" data-jump="sea"><div class="lbl">🌊 В морі зараз</div><div class="val">${sea}</div><div class="delta">${active.length? Math.round(sea/active.length*100):0}% активних</div></div>
       <div class="tile clickable" data-jump="eta7"><div class="lbl">📅 Прибуття за 7 днів</div><div class="val">${week}</div><div class="delta">потребують уваги</div></div>
-      <div class="tile warn clickable" data-jump="nobl"><div class="lbl">🚫 Без BL (не трекаються)</div><div class="val">${noBL}</div><div class="delta">впиши BL — трекінг увімкнеться</div></div>
     </div>
     <div class="chartgrid" style="margin-top:16px">
       <div class="card"><h3>📊 Прибуття по місяцях</h3><p class="sub">кількість угод за датою ETA</p>
@@ -783,7 +792,10 @@ PAGES.dashboard = async () => {
       <div class="tablewrap"><table>
         <thead><tr><th>Угода</th><th>Клієнт</th><th>Судно</th><th>Статус</th><th>ETA</th></tr></thead>
         <tbody>${overdue.map(fmtRow).join("") || '<tr><td colspan="5" class="cell-muted">Таких немає — все під контролем ✅</td></tr>'}</tbody>
-      </table></div></div>`;
+      </table></div></div>
+    <div class="tiles" style="margin-top:16px;grid-template-columns:repeat(auto-fit,minmax(240px,300px))">
+      <div class="tile warn clickable" data-jump="nobl"><div class="lbl">🚫 Без BL (не трекаються)</div><div class="val">${noBL}</div><div class="delta">впиши BL — трекінг увімкнеться</div></div>
+    </div>`;
 
   drawChart("ch-months", {
     type:"bar",
@@ -858,6 +870,18 @@ PAGES.dispatch = async () => {
     const asc = (ra===1 || ra===3);
     return (asc ? ea.localeCompare(eb) : eb.localeCompare(ea)) || _num(a)-_num(b);
   });
+  // швидкий фільтр із плиток дашборда (клік по плитці → сюди з готовим відбором)
+  const _dt = v => { const m=/(\d{4})-(\d{2})-(\d{2})/.exec(String(v||"")); return m? new Date(+m[1],+m[2]-1,+m[3]) : null; };
+  const _today = new Date(); _today.setHours(0,0,0,0);
+  const QUICK = {
+    active:{label:"активні перевезення", test:r=>!_done(r)},
+    sea:{label:"в морі зараз", test:r=>r["Статус"]==="В морі"},
+    eta7:{label:"прибуття за 7 днів", test:r=>{ if(_done(r)) return false; const e=_dt(r["ETA"]);
+      if(!e) return false; const dd=(e-_today)/86400000; return dd>=0 && dd<=7; }},
+    nobl:{label:"без BL (не трекаються)", test:r=>!_done(r) && !String(r["BL"]||"").trim()},
+  };
+  const quick = QUICK[DISP_QUICK] || null;
+  const quickCount = quick ? all.filter(quick.test).length : all.length;
   const logist = cfg().cols === "logist";
   const syncBtn = cfg().sync ? '<button class="btn" id="sync-btn">⟳ Оновити з Експедитора</button>' : "";
   const head = logist
@@ -868,7 +892,7 @@ PAGES.dispatch = async () => {
       <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
         <span class="sub" style="margin:0">угод: ${quick? `${quickCount} з ${all.length}` : all.length}${cfg().scope!=="all"?" (лише твої)":""} · клік по рядку — картка</span>
         ${quick? `<span class="quickchip">Фільтр: ${esc(quick.label)}<button id="quick-clear" title="скинути фільтр">✕</button></span>`:""}
-        <span style="flex:1"></span>${syncBtn}
+        <span style="flex:1"></span>
       </div>
       <div class="filters" style="margin-top:12px">
         <input id="q" placeholder="Пошук: угода, клієнт, BL, контейнер, судно…">
@@ -881,6 +905,7 @@ PAGES.dispatch = async () => {
         <thead><tr>${head}</tr></thead>
         <tbody id="drows"></tbody></table></div>
     </div>`;
+  if (cfg().sync) $("page-actions").innerHTML = syncBtn;
   const draw = () => {
     const q=$("q").value.toLowerCase(), st=$("stf").value;
     const dir=$("dirf").value, line=$("linef").value, cli=$("clif").value;
