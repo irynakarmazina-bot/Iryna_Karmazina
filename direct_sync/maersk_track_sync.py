@@ -375,15 +375,19 @@ def main():
     token = maersk_token(env)
     log("%sТокен Maersk отримано" % tag)
 
-    patches, no_data, errors, changed_cols = [], [], [], {}
+    # HTTP 400 на номер контейнера = контейнер належить іншій лінії (MSC, CMA, Hapag,
+    # COSCO). Це не помилка нашого коду і не збій API — тому окремий список.
+    patches, no_data, errors, foreign, changed_cols = [], [], [], [], {}
     how_stat = {}
     for bl, row in todo:
         cont = str(row.get("Контейнер") or "").split(",")[0].strip()
         events, how, note = collect_events(env, token, bl, cont)
         if not events:
             key = bl or str(row.get("Контейнер") or "").split(",")[0].strip()
-            (no_data if "404" in str(note) else errors).append(
-                "угода %s/%s(%s)" % (row.get("Угода"), key, note or "порожньо"))
+            bucket = no_data if "404" in str(note) else (foreign if "400" in str(note) else errors)
+            bucket.append("угода %s/%s" % (row.get("Угода"), key)
+                          if bucket is foreign else
+                          "угода %s/%s(%s)" % (row.get("Угода"), key, note or "порожньо"))
             continue
         how_stat[how] = how_stat.get(how, 0) + 1
         want = parse_events(events, row, today_iso, statuses)
@@ -412,6 +416,9 @@ def main():
         log("%sЯк знайшлись дані: %s" % (tag, ", ".join("%s=%d" % kv for kv in sorted(how_stat.items()))))
     if no_data:
         log("%sБез даних у Maersk: %s" % (tag, ", ".join(no_data[:20])))
+    if foreign:
+        log("%sКонтейнер іншої лінії — Maersk його не бачить (%d): %s"
+            % (tag, len(foreign), ", ".join(foreign)))
     if errors:
         log("%sПомилки API: %s" % (tag, ", ".join(errors[:20])))
 
@@ -433,10 +440,10 @@ def main():
             if st1 not in (200, 201):
                 fails += 1
                 log("UPDATE_FAIL угода Id=%s: %s %s" % (one.get("Id"), st1, str(js1)[:160]))
-    log("DONE tracked=%d updated=%d nodata=%d api_errors=%d write_fails=%d"
-        % (len(todo), len(patches), len(no_data), len(errors), fails))
-    print("MAERSK_OK tracked=%d updated=%d nodata=%d api_errors=%d write_fails=%d"
-          % (len(todo), len(patches), len(no_data), len(errors), fails))
+    log("DONE tracked=%d updated=%d nodata=%d foreign=%d api_errors=%d write_fails=%d"
+        % (len(todo), len(patches), len(no_data), len(foreign), len(errors), fails))
+    print("MAERSK_OK tracked=%d updated=%d nodata=%d foreign=%d api_errors=%d write_fails=%d"
+          % (len(todo), len(patches), len(no_data), len(foreign), len(errors), fails))
 
 
 if __name__ == "__main__":
