@@ -1,7 +1,7 @@
 {
-  "stdout": "грошових проводок 1487, без виду оплати 468\nДОКУМЕНТИ БЕЗ ВИДУ ОПЛАТИ: UnavailableEntities.UnavailableEntity_da7d27a1-4bf2-4c2d-8d2a-aedf3dc86230=447 | UnavailableEntities.UnavailableEntity_8e35f3c7-351b-4b3a-bce6-4f9f5e2e4de5=19 | UnavailableEntities.UnavailableEntity_91ec6953-cc82-412d-85ea-49617683b6c8=2\nДОКУМЕНТИ З ВИДОМ ОПЛАТИ: UnavailableEntities.UnavailableEntity_91ec6953-cc82-412d-85ea-49617683b6c8=770 | UnavailableEntities.UnavailableEntity_8e35f3c7-351b-4b3a-bce6-4f9f5e2e4de5=249\nобидві сторони грошові (переміщення): 221\nвалюти (перші пари): [(('9df29c26', '9df29c26'), 848), (('9df29c27', '9df29c27'), 341), (('None', '9df29c26'), 144), (('None', '9df29c27'), 77), (('9df29c27', '9df29c26'), 37)]\n",
+  "stdout": "РЯДКІВ: 123\n    def _load_env():\n        def __init__(self):\n        def _verify_pin(self):\n        def _get(self, path):\n            req = urllib.request.Request(self.url + path)\n            req.add_header(\"Authorization\", self._auth)\n            with urllib.request.urlopen(req, timeout=120, context=self._ctx) as r:\n        def entity_sets(self):\n            data = self._get(\"/?$format=json\")\n        def list(self, entity, select=None, filter=None, expand=None, order=None, top=None, page=1000):\n            Генератор рядків об'єкта з автоматичною пагінацією ($skip/$top).\n            parts = [\"$format=json\"]\n                parts.append(\"$select= \"***\",\".join(select)))\n                parts.append(\"$filter=\" + quote(filter))\n            if expand:\n                parts.append(\"$expand= \"***\",\".join(expand)))\n                parts.append(\"$orderby=\" + quote(order))\n                q = base_q + f\"&$top={page}&$skip={skip}\"\n        def first(self, entity, **kw):\n",
   "stderr": "",
   "returncode": 0,
-  "id": "cash-gap-0731",
-  "ts": "2026-07-31T12:49:43Z"
+  "id": "odc-src2-0731",
+  "ts": "2026-07-31T12:56:28Z"
 }
