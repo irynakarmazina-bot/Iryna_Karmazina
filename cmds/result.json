@@ -1,7 +1,7 @@
 {
-  "stdout": "=== config.json ПОМИЛКА: [Errno 2] No such file or directory: '/root/unitex-finrep/config.json'\n=== config.api.json → Імпорт_Залишки ===\n    ['cash_name', 'currency', 'amount', 'amount_uo']\n    ['Банк Cr String Cycle LLC', 'USD', '87,8', '87,8']\n    ['Банк Юнітекс Ейч-Ді', 'UAH', '2603,72', '58,12']\n    ['Банк Юнітекс Ейч-Ді EUR', 'EUR', '0', '0']\n    ['Банк Юнітекс Ейч-Ді Восток', 'UAH', '17801,45', '397,34']\n    ['Банк Юнітекс Форвардинг', 'UAH', '101098,85', '2256,59']\n    ['Каса UAH UFWD', 'UAH', '0', '0']\n    ['Каса UAH UHD', 'UAH', '0', '0']\n",
+  "stdout": "=== trigger.py ===\nimport http.server, socketserver, subprocess, urllib.parse, json, os\nTOKEN = open('/root/unitex-finrep/secure/trigger_token').read().strip()\nPORT = 8787\nclass H(http.server.BaseHTTPRequestHandler):\n    def _send(self, code, obj):\n        self.send_response(code); self.send_header('Content-Type','application/json')\n        self.send_header('Access-Control-Allow-Origin','*'); self.end_headers()\n        self.wfile.write(json.dumps(obj).encode())\n    def do_GET(self):\n        q = urllib.parse.urlparse(self.path)\n        if q.path != '/run': return self._send(404, {'error':'not found'})\n        params = urllib.parse.parse_qs(q.query)\n        if params.get('token',[''])[0] != TOKEN: return self._send(403, {'error':'forbidden'})\n        subprocess.Popen(['/bin/bash','/root/unitex-finrep/run.sh'])\n        self._send(200, {'status':'started'})\n    def log_message(self, *a): pass\nsocketserver.TCPServer.allow_reuse_address = True\nwith socketserver.TCPServer(('0.0.0.0', PORT), H) as httpd:\n    httpd.serve_forever()\n\n=== Caddy маршрути ===\n\n",
   "stderr": "",
   "returncode": 0,
-  "id": "read-import-0731",
-  "ts": "2026-07-31T13:22:13Z"
+  "id": "trig-read-0731",
+  "ts": "2026-07-31T13:22:51Z"
 }
