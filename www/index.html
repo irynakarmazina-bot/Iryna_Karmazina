@@ -197,7 +197,9 @@
   .main{flex:1; display:flex; flex-direction:column; min-width:0}
   .topbar{display:flex; align-items:center; gap:14px;
     padding:12px 24px; background:var(--surface); border-bottom:1px solid var(--line)}
-  .topbar h2{font-size:17px;margin:0;flex:1;letter-spacing:-.2px}
+  .topbar h2{font-size:17px;margin:0;letter-spacing:-.2px}
+  #page-actions{display:flex;align-items:center;gap:10px;flex:1}
+  #page-actions .btn{padding:7px 14px;font-size:13px}
   .topbar .pal-mini{display:flex;gap:6px;align-items:center}
   .topbar .pal-mini .pal-dot{width:20px;height:20px}
   .user-chip{display:flex;align-items:center;gap:10px}
@@ -399,6 +401,7 @@
     <div class="main">
       <div class="topbar">
         <h2 id="page-title"></h2>
+        <div id="page-actions"></div>
         <div class="user-chip">
           <div class="avatar" id="u-avatar"></div>
           <div class="who"><b id="u-name"></b><span class="role-badge" id="u-role">…</span></div>
@@ -600,6 +603,7 @@ function go(page){
   if (!cfg().nav.includes(page)) page = cfg().nav[0];
   $("nav").querySelectorAll(".nav-item").forEach(b=>b.classList.toggle("active", b.dataset.page===page));
   $("page-title").textContent = MODMAP[page].label;
+  $("page-actions").innerHTML = "";
   $("content").innerHTML = '<div class="card"><p class="sub">Завантаження…</p></div>';
   PAGES[page]().catch(e=>{ $("content").innerHTML = '<div class="note">⚠ Не вдалося завантажити дані ('+esc(e.message)+'). Спробуй оновити сторінку.</div>'; });
 }
@@ -1484,8 +1488,6 @@ PAGES.calc = async () => {
     <div class="card">
       <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
         <span class="sub" style="margin:0">усього: ${all.length} · прийнято: ${sum("Прийнято")} · чернеток: ${sum("Чернетка")}</span>
-        <span style="flex:1"></span>
-        ${ro?"":'<button class="btn" id="calc-new">＋ Нова калькуляція</button>'}
       </div>
       <div class="filters" style="margin-top:12px">
         <input id="cq" placeholder="Пошук: номер, клієнт, маршрут…">
@@ -1528,8 +1530,10 @@ PAGES.calc = async () => {
   $("cq").addEventListener("input", render);
   $("cst").addEventListener("change", render);
   render();
-  const nb = $("calc-new");
-  if (nb) nb.addEventListener("click", ()=>openCalc(null));
+  if (!ro){
+    $("page-actions").innerHTML = '<button class="btn" id="calc-new">＋ Нова калькуляція</button>';
+    $("calc-new").addEventListener("click", ()=>openCalc(null));
+  }
 };
 
 const CALC_FIELDS = [
