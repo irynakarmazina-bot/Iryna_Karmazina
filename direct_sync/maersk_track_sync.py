@@ -223,9 +223,29 @@ def _dt(e):
     return str(e.get("eventDateTime") or "")
 
 
+def bl_from_events(events):
+    """Коносамент, який Maersk віддає в самих подіях. Потрібен, коли ми знайшли
+    відправку по номеру контейнера, а поля BL в угоді не було (прохання
+    користувачки 31.07.2026 — «додати коносамент з сайту»)."""
+    for e in events:
+        v = str(e.get("transportDocumentReference") or "").strip()
+        if BL_RE.match(v):
+            return v
+        for dr in (e.get("documentReferences") or []):
+            t = str(dr.get("documentReferenceType") or "").upper()
+            val = str(dr.get("documentReferenceValue") or "").strip()
+            if t in ("TRD", "BL", "BOL") and BL_RE.match(val):
+                return val
+    return ""
+
+
 def parse_events(events, row, today_iso, statuses=frozenset()):
     """Портована логіка вузла «Розбір». Повертає {колонка: значення}."""
     out = {}
+    if not str(row.get("BL") or "").strip():
+        bl = bl_from_events(events)
+        if bl:
+            out["BL"] = bl
     conts = []
     for e in events:
         c = e.get("equipmentReference")
