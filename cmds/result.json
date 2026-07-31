@@ -1,7 +1,7 @@
 {
-  "stdout": "процес caddy:   52136 caddy           caddy run --config /etc/caddy/Caddyfile --adapter caddyfile\n\nюніти: \nфайли юнітів: \ncaddy у PATH: /bin/sh: 1: caddy: not found\n\ndocker? caddy caddy:2-alpine\nnocodb nocodb/nocodb:latest\n\n",
+  "stdout": "{\"level\":\"info\",\"ts\":1785504599.7786667,\"logger\":\"tls.cache.maintenance\",\"msg\":\"stopped background certificate maintenance\",\"cache\":\"0xb7151ad7200\"}\n{\"level\":\"info\",\"ts\":1785504599.7788913,\"logger\":\"http\",\"msg\":\"servers shutting down with eternal grace period\"}\nValid configuration\n{\"level\":\"info\",\"ts\":1785504599.9651825,\"msg\":\"using config from file\",\"file\":\"/etc/caddy/Caddyfile\"}\n{\"level\":\"info\",\"ts\":1785504599.9707427,\"msg\":\"adapted config to JSON\",\"adapter\":\"caddyfile\"}\ncash-refresh: 000\nUI: 200\nfinrep-data: 403\n",
   "stderr": "",
   "returncode": 0,
-  "id": "caddy-how-0731",
-  "ts": "2026-07-31T13:29:32Z"
+  "id": "caddy-reload-0731",
+  "ts": "2026-07-31T13:30:10Z"
 }
