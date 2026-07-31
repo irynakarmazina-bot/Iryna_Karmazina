@@ -1,7 +1,7 @@
 {
-  "stdout": "METADATA ПОМИЛКА: Expecting value: line 1 column 1 (char 0)\nEXPAND ExtDimensionsDr: HTTP Error 400: Bad request\nEXPAND ExtDimensionsCr: HTTP Error 400: Bad request\nEXPAND ExtDimensions: HTTP Error 400: Bad request\n",
+  "stdout": "METADATA символів: 602734\nусього згадок ExtDimension: 188\nусього згадок Субконто: 7\n    EntityType ChartOfCharacteristicTypes_ВидыСубконтоХозрасчетные\n    EntityType ChartOfCharacteristicTypes_ВидыСубконтоБухгалтерские\n    ComplexType AccountingRegister_Хозрасчетный_ExtDimensions\n    ComplexType AccountingRegister_Хозрасчетный_RecordsWithExtDimensions\n    ComplexType AccountingRegister_Бухгалтерский_ExtDimensions\n    ComplexType AccountingRegister_Бухгалтерский_RecordsWithExtDimensions\n    ComplexType AccountingRegister_Налоговый_ExtDimensions\n    ComplexType AccountingRegister_Налоговый_RecordsWithExtDimensions\n    ComplexType ChartOfAccounts_Хозрасчетный_ExtDimensionTypes\n    ComplexType ChartOfAccounts_Бухгалтерский_ExtDimensionTypes\n    EntitySet ChartOfCharacteristicTypes_ВидыСубконтоХозрасчетные\n    EntitySet ChartOfCharacteristicTypes_ВидыСубконтоБухгалтерские\nблок регістру знайдено: True\n   NavigationProperty: ['AccountDr', 'AccountCr', 'Организация', 'ВалютаDr', 'ВалютаCr', 'Сделка', 'Контрагент', 'ВидОплаты', 'СчетНаКлиента', 'СчетПоставщика', 'СчетПоставщикаНР', 'СчетДополнительный', 'ПравоПросмотра', 'ВзаиморасчетСОрганизацией']\n   ExtDimensions у блоці: False\n   властивостей: 51\nрегістри в метаданих: ['AccountingRegister_Бухгалтерский', 'AccountingRegister_Бухгалтерский_RecordType', 'AccountingRegister_Налоговый', 'AccountingRegister_Налоговый_RecordType', 'AccountingRegister_Хозрасчетный', 'AccountingRegister_Хозрасчетный_RecordType']\n",
   "stderr": "",
   "returncode": 0,
-  "id": "md-check-0731",
-  "ts": "2026-07-31T12:57:02Z"
+  "id": "md-raw-0731",
+  "ts": "2026-07-31T12:57:35Z"
 }
