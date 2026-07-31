@@ -317,7 +317,25 @@
 
   /* table */
   .tablewrap{overflow-x:auto}
-  .dispscroll{max-height:calc(100vh - 300px);min-height:340px;overflow:auto}
+  .dispscroll{max-height:calc(100vh - 218px);min-height:460px;overflow:auto}
+  /* колонки BL/Контейнер і Судно — щільніше одна до одної */
+  td.c-bl,th.c-bl{width:1%;white-space:nowrap;padding-right:6px}
+  td.c-ves,th.c-ves{padding-left:6px;max-width:150px}
+  /* рядок-алерт: імпорт стоїть у порту без авто */
+  tr.alertrow td{background:#fdeeee}
+  tr.alertrow td:first-child{box-shadow:inset 3px 0 0 #d1453b}
+  :root[data-theme="dark"] tr.alertrow td{background:#2a1618}
+  /* смуга алертів над таблицею */
+  .alertbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .abadge{display:inline-flex;align-items:center;gap:6px;font-size:12px;padding:4px 11px;
+    border-radius:999px;border:1px solid var(--line);background:var(--tile-bg);color:var(--ink-2)}
+  .abadge b{font-size:13px;color:var(--ink)}
+  .abadge.clickable{cursor:pointer}
+  .abadge.clickable:hover{border-color:#c3cad6}
+  .abadge.a-red{background:#fdeeee;border-color:#f3d2d2;color:#a33} .abadge.a-red b{color:#d1453b}
+  .abadge.a-amber{background:#fff6e8;border-color:#f4e2c4;color:#8a6320} .abadge.a-amber b{color:#b45309}
+  :root[data-theme="dark"] .abadge.a-red{background:#2a1618;border-color:#48252a}
+  :root[data-theme="dark"] .abadge.a-amber{background:#2a2113;border-color:#4a3c1e}
   .dispscroll thead th{position:sticky;top:0;z-index:3;background:var(--surface);
     box-shadow:inset 0 -1px 0 var(--line)}
   tr.done td{color:var(--muted)}
@@ -746,6 +764,14 @@ const inPort = r => !isDone(r) && !_s(r,"Вивантаження у отрим�
   (!!portSince(r) || r["Статус"] === "Вивантажений в порту прибуття");
 const daysIn = r => { const p=portSince(r); if(!p) return null;
   const t=new Date(); t.setHours(0,0,0,0); return Math.round((t-p)/86400000); };
+/* імпорт вивантажили в порту, минуло 2+ дні, а авто не подане й номера немає —
+   вантаж стоїть, капає зберігання (вимога користувачки 31.07.2026) */
+const truckDate = r => _s(r,"Подача авто (факт)") || _s(r,"Подача авто (план)");
+const truckLate = r => {
+  if (isDone(r) || _s(r,"Напрямок") !== "Імпорт") return false;
+  const dd = daysIn(r);
+  return dd !== null && dd >= 2 && !truckDate(r) && !_s(r,"Номер авто");
+};
 let toastTimer=null;
 function toast(m){ const t=$("toast"); t.textContent=m; t.style.display="block"; clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.style.display="none",4000); }
 
@@ -820,6 +846,8 @@ PAGES.dashboard = async () => {
   const stale = rows.filter(r=>{ const u=dOf(_s(r,"Останнє оновлення")||_s(r,"Остання зміна"));
     return !isDone(r) && u && (today-u)/86400000 > 7; }).length;
   const ISSUES = [
+    {q:"trucklate", crit:true, nm:"Імпорт у порту, а авто не подане понад 2 дні", n: rows.filter(truckLate).length,
+     sub:"немає ні дати подачі авто, ні номера — вантаж стоїть, капає зберігання"},
     {q:"nostatus", nm:"Без статусу", n: rows.filter(r=>!_s(r,"Статус")).length,
      sub:"етап в Експедиторі є, але ми його ще не мапимо в статус платформи"},
     {q:"nobl", nm:"Без BL", n: noBL, sub:"трекінг лінії не вмикається — впиши коносамент"},
@@ -835,11 +863,11 @@ PAGES.dashboard = async () => {
      sub:"не потрапляє в розподіли по видах і в FCL/LCL"},
     {q:"stale", nm:"Не оновлювалось понад 7 днів", n: stale,
      sub:"активна угода, а даних з Експедитора чи трекінгу давно не було"},
-  ].sort((a,b)=>b.n-a.n);
+  ].sort((a,b)=> (b.crit && b.n ? 1:0) - (a.crit && a.n ? 1:0) || b.n-a.n);
   const issRow = i => `<div class="issrow${i.n? " clickable":""}" data-jump="${i.q}">
-      <span class="dotw" style="background:${i.n? (i.n>=30? "#d1453b" : "#e6a817") : "#1a8f5c"}"></span>
+      <span class="dotw" style="background:${i.n? ((i.crit||i.n>=30)? "#d1453b" : "#e6a817") : "#1a8f5c"}"></span>
       <span class="nm">${esc(i.nm)}<small>${esc(i.sub)}</small></span>
-      <span class="cnt" style="color:${i.n? (i.n>=30? "#d1453b" : "var(--ink)") : "#1a8f5c"}">${i.n||"✓"}</span>
+      <span class="cnt" style="color:${i.n? ((i.crit||i.n>=30)? "#d1453b" : "var(--ink)") : "#1a8f5c"}">${i.n||"✓"}</span>
       <span class="go">${i.n? "›" : ""}</span></div>`;
 
   $("content").innerHTML = `
@@ -1004,6 +1032,7 @@ PAGES.dispatch = async () => {
     stale:{label:"не оновлювалось понад 7 днів", test:r=>{ if(_done(r)) return false;
       const u=dOf(_s(r,"Останнє оновлення")||_s(r,"Остання зміна"));
       return !!u && (_today-u)/86400000 > 7; }},
+    trucklate:{label:"імпорт у порту без авто понад 2 дні", test:truckLate},
   };
   const quick = QUICK[DISP_QUICK] || null;
   const quickCount = quick ? all.filter(quick.test).length : all.length;
@@ -1011,20 +1040,32 @@ PAGES.dispatch = async () => {
   const syncBtn = cfg().sync ? '<button class="btn" id="sync-btn">⟳ Оновити з Експедитора</button>' : "";
   const head = logist
     ? "<th>Угода</th><th>Клієнт</th><th>Контейнер</th><th>Статус</th><th>Номер авто</th><th>Водій</th><th>Телефон</th><th>Перетин кордону</th><th></th>"
-    : "<th>Угода</th><th></th><th>Клієнт</th><th>Лінія</th><th>BL / Контейнер</th><th>Судно</th><th>ETA</th><th>Статус</th><th>Позначки</th><th>Коментар</th><th></th>";
+    : "<th>Угода</th><th></th><th>Клієнт</th><th>Лінія</th><th class=\"c-bl\">BL / Контейнер</th><th class=\"c-ves\">Судно</th><th>ETA</th><th>Статус</th><th>Подача авто</th><th>Номер авто</th><th>Позначки</th><th>Коментар</th><th></th>";
+  // ── активні алерти над таблицею
+  const uniq = k => [...new Set(all.map(r=>_s(r,k)).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"uk"));
+  const nActive = all.filter(r=>!_done(r)).length;
+  const ALERTS = [
+    {q:"trucklate", cls:"a-red",   nm:"Імпорт у порту без авто >2 дн", n: all.filter(truckLate).length},
+    {q:"inport",    cls:"a-amber", nm:"Стоять у порту",                n: all.filter(inPort).length},
+    {q:"overdue",   cls:"a-amber", nm:"ETA минула",                    n: all.filter(QUICK.overdue.test).length},
+    {q:"nostatus",  cls:"a-amber", nm:"Без статусу",                   n: all.filter(r=>!_s(r,"Статус")).length},
+    {q:"nobl",      cls:"a-amber", nm:"Без BL",                        n: all.filter(QUICK.nobl.test).length},
+  ].filter(a=>a.n > 0);
   $("content").innerHTML = `
     <div class="card">
-      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
-        <span class="sub" style="margin:0">угод: ${quick? `${quickCount} з ${all.length}` : all.length}${cfg().scope!=="all"?" (лише твої)":""} · клік по рядку — картка</span>
-        ${quick? `<span class="quickchip">Фільтр: ${esc(quick.label)}<button id="quick-clear" title="скинути фільтр">✕</button></span>`:""}
-        <span style="flex:1"></span>
+      <div class="alertbar">
+        <span class="abadge">Активних угод <b>${nActive}</b><span class="cell-muted" style="font-size:11px">з ${all.length}</span></span>
+        ${ALERTS.map(a=>`<span class="abadge ${a.cls} clickable" data-q="${a.q}">${esc(a.nm)} <b>${a.n}</b></span>`).join("")}
+        ${quick? `<span class="quickchip">Фільтр: ${esc(quick.label)} — ${quickCount}<button id="quick-clear" title="скинути фільтр">✕</button></span>`:""}
       </div>
       <div class="filters" style="margin-top:12px">
         <input id="q" placeholder="Пошук: угода, клієнт, BL, контейнер, судно…">
         <select id="dirf"><option value="">Імпорт + експорт</option><option>Імпорт</option><option>Експорт</option><option>Транзит</option></select>
         <select id="stf"><option value="">Усі статуси</option>${Object.keys(STATUSES).map(s=>`<option>${s}</option>`).join("")}</select>
         <select id="linef"><option value="">Усі лінії</option><option>Maersk</option><option>MSC</option><option>CMA CGM</option><option>Інша</option></select>
-        <select id="clif"><option value="">Усі клієнти</option>${[...new Set(all.map(r=>String(r["Клієнт"]||"").trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"uk")).map(c=>`<option>${esc(c)}</option>`).join("")}</select>
+        <select id="clif"><option value="">Усі клієнти</option>${uniq("Клієнт").map(c=>`<option>${esc(c)}</option>`).join("")}</select>
+        <select id="manf"><option value="">Усі менеджери</option>${uniq("Менеджер").map(c=>`<option>${esc(c)}</option>`).join("")}</select>
+        <select id="opmf"><option value="">Усі оп. менеджери</option>${uniq("Оп. менеджер").map(c=>`<option>${esc(c)}</option>`).join("")}</select>
       </div>
       <div class="tablewrap dispscroll" id="dscroll"><table>
         <thead><tr>${head}</tr></thead>
@@ -1034,10 +1075,12 @@ PAGES.dispatch = async () => {
   const draw = () => {
     const q=$("q").value.toLowerCase(), st=$("stf").value;
     const dir=$("dirf").value, line=$("linef").value, cli=$("clif").value;
+    const man=$("manf").value, opm=$("opmf").value;
     const list = all.filter(r =>
       (!quick || quick.test(r)) &&
       (!st || r["Статус"]===st) &&
-      (!dir || r["Напрямок"]===dir) && (!line || r["Лінія"]===line) && (!cli || String(r["Клієнт"]||"").trim()===cli) &&
+      (!dir || r["Напрямок"]===dir) && (!line || r["Лінія"]===line) && (!cli || _s(r,"Клієнт")===cli) &&
+      (!man || _s(r,"Менеджер")===man) && (!opm || _s(r,"Оп. менеджер")===opm) &&
       (!q || [r["Угода"],r["Клієнт"],r["BL"],r["Контейнер"],r["Судно"],r["Номер авто"],r["Водій (ПІБ)"]].join(" ").toLowerCase().includes(q)));
     $("drows").innerHTML = list.length ? list.map(r=> logist ? `
       <tr data-id="${r.Id}" class="${r["Статус"]==='Вантаж доставлено'?'done':''}" style="cursor:pointer">
@@ -1047,19 +1090,25 @@ PAGES.dispatch = async () => {
         <td class="mono">${esc(r["Водій (телефон)"]||"—")}</td><td class="mono">${esc(r["Перетин кордону (факт)"]||"—")}</td>
         <td>${docBtn(r)}</td>
       </tr>` : `
-      <tr data-id="${r.Id}" class="${r["Статус"]==='Вантаж доставлено'?'done':''}" style="cursor:pointer">
+      <tr data-id="${r.Id}" class="${r["Статус"]==='Вантаж доставлено'?'done':''} ${truckLate(r)?'alertrow':''}" style="cursor:pointer"
+          ${truckLate(r)?`title="Імпорт у порту ${daysIn(r)} дн, авто не подане і номера немає"`:""}>
         <td class="mono"><b>${esc(r["Угода"])}</b></td>
         <td>${r["Напрямок"]?`<span class="dirchip ${r["Напрямок"]==="Імпорт"?"imp":"exp"}">${r["Напрямок"]==="Імпорт"?"ІМП":(r["Напрямок"]==="Експорт"?"ЕКС":"ТРН")}</span>`:""}</td>
         <td>${esc(r["Клієнт"]||"—")}</td>
         <td>${esc(r["Лінія"]||"—")}</td>
-        <td class="mono">${esc(r["BL"]||"—")}<br><span class="cell-muted">${esc(r["Контейнер"]||"")}</span></td>
-        <td>${esc(r["Судно"]||"—")}</td>
+        <td class="mono c-bl">${esc(r["BL"]||"—")}<br><span class="cell-muted">${esc(r["Контейнер"]||"")}</span></td>
+        <td class="c-ves">${esc(r["Судно"]||"—")}</td>
         <td class="mono">${esc(r["ETA"]||"—")}</td>
         <td>${stPill(r["Статус"])}</td>
+        <td class="mono">${truckDate(r)
+            ? `${esc(truckDate(r).slice(0,10))}${_s(r,"Подача авто (факт)")?"":'<br><span class="cell-muted">план</span>'}`
+            : (truckLate(r) ? '<span style="color:#d1453b;font-weight:700">немає</span>' : '<span class="cell-muted">—</span>')}</td>
+        <td class="mono">${r["Номер авто"] ? esc(r["Номер авто"])
+            : (truckLate(r) ? '<span style="color:#d1453b;font-weight:700">немає</span>' : '<span class="cell-muted">—</span>')}</td>
         <td>${FLAGS.filter(f=>r[f]).map(f=>`<span class="flag on">${f} ✓</span>`).join("")||'<span class="cell-muted">—</span>'}</td>
-        <td class="cell-muted" style="max-width:220px">${esc(r["Коментар"]||"")}</td>
+        <td class="cell-muted" style="max-width:200px">${esc(r["Коментар"]||"")}</td>
         <td>${docBtn(r)}</td>
-      </tr>`).join("") : `<tr><td colspan="10" class="cell-muted">Нічого не знайдено.</td></tr>`;
+      </tr>`).join("") : `<tr><td colspan="13" class="cell-muted">Нічого не знайдено.</td></tr>`;
     $("drows").querySelectorAll("tr[data-id]").forEach(tr=>tr.addEventListener("click",()=>openRow(all.find(x=>String(x.Id)===tr.dataset.id))));
     // таблиця відкривається в кінці списку — там найближчі ETA; доставлені лишаються вище, за шапкою
     const box = $("dscroll");
@@ -1072,7 +1121,10 @@ PAGES.dispatch = async () => {
     }
     $("drows").querySelectorAll(".docs-btn").forEach(b=>b.addEventListener("click",(e)=>{ e.stopPropagation(); openDocs(all.find(x=>String(x.Id)===b.dataset.doc)); }));
   };
-  ["q","dirf","stf","linef","clif"].forEach(id=>$(id).addEventListener(id==="q"?"input":"change",draw));
+  ["q","dirf","stf","linef","clif","manf","opmf"].forEach(id=>$(id).addEventListener(id==="q"?"input":"change",draw));
+  $("content").querySelectorAll(".abadge[data-q]").forEach(b=>b.addEventListener("click",()=>{
+    DISP_QUICK = (DISP_QUICK === b.dataset.q) ? null : b.dataset.q; go("dispatch");
+  }));
   const qc = $("quick-clear");
   if (qc) qc.addEventListener("click",()=>{ DISP_QUICK=null; go("dispatch"); });
   draw();
