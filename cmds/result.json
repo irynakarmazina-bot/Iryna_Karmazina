@@ -1,7 +1,7 @@
 {
-  "stdout": "=== внутрішні рахунки серед доходних ===\nвнутрішніх доходних рахунків: 1\n    ('Банк Юнітекс Ейч-Ді', 'Оплачен') 1\n\n=== проводки, де ОБИДВІ сторони — грошові рахунки (це і є переміщення) ===\nтаких проводок: 221 | з них із видом оплати: 0 | сума вал: 25306809.78\nнапрямки (Dr←Cr): {('1300', '1110'): 27, ('1110', '1300'): 80, ('1300', '1210'): 72, ('1220', '1300'): 16, ('1300', '1220'): 9, ('1210', '1300'): 17}\nреєстратори:\n   UnavailableEntities.UnavailableEntity_da7d27a1-4bf2-4c2d-8d2   221\n",
+  "stdout": "  File \"/root/direct-sync/find_doc_type.py\", line 21, in <module>\n    raw=c._get(\"$metadata\")\n        ^^^^^^^^^^^^^^^^^^^\n  File \"/root/unitex-finrep/engine/odata_client.py\", line 72, in _get\n    with urllib.request.urlopen(req, timeout=120, context=self._ctx) as r:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/urllib/request.py\", line 215, in urlopen\n    return opener.open(url, data, timeout)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/urllib/request.py\", line 521, in open\n    response = meth(req, response)\n               ^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/urllib/request.py\", line 630, in http_response\n    response = self.parent.error(\n               ^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/urllib/request.py\", line 559, in error\n    return self._call_chain(*args)\n           ^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/urllib/request.py\", line 492, in _call_chain\n    result = func(*args)\n             ^^^^^^^^^^^\n  File \"/usr/lib/python3.12/urllib/request.py\", line 639, in http_error_default\n    raise HTTPError(req.full_url, code, msg, hdrs, fp)\nurllib.error.HTTPError: HTTP Error 404: Not found\n",
   "stderr": "",
   "returncode": 0,
-  "id": "transfers2-0731",
-  "ts": "2026-07-31T10:59:44Z"
+  "id": "find-doctype-0731",
+  "ts": "2026-07-31T11:15:08Z"
 }
