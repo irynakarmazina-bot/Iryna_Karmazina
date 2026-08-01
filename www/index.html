@@ -1852,9 +1852,6 @@ PAGES.finance = async () => {
   $("rep-oper").addEventListener("click", ()=>renderOper());
   $("rep-period").addEventListener("click", ()=>renderPeriod());
   renderOper();
-  bindPalette();
-  bindPasswordChange();
-  if (isAdmin){ renderAudit(); bindUserEdit(rows); }
 };
 
 function bindPalette(){
@@ -2520,6 +2517,9 @@ PAGES.users = async () => {
       <p class="sub">тут зʼявляться доступи клієнтів до кабінету, сповіщення й довідники</p>
       <div class="note">🛠 Розділ наповнюється. Скажи, що винести сюди першим.</div></div>` : ""}
     ${isAdmin ? `<div class="note">➕ Щоб додати користувача: 1) скажи Клоду — він створить акаунт для входу; 2) додай рядок з email, ім'ям і роллю в таблицю «Користувачі» (через службову базу). Зміна ролі — просто зміни значення в рядку.</div>` : ""}`;
+  bindPalette();
+  bindPasswordChange();
+  if (isAdmin){ renderAudit(); bindUserEdit(rows); }
 };
 
 /* ===== старт ===== */
