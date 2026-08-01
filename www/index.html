@@ -344,7 +344,7 @@
      повний текст — при наведенні і в картці угоди */
   .dispscroll table.fixw{table-layout:fixed;width:100%}
   .dispscroll table.fixw td,.dispscroll table.fixw th{overflow:hidden;text-overflow:ellipsis}
-  td.c-com{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  td.c-com,td.c-rt{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   /* BL і Контейнер — два рядки, тому їм переніс дозволений */
   .dispscroll table.fixw td.c-bl{white-space:normal;word-break:break-all}
   .dispscroll td{vertical-align:middle}
@@ -1149,7 +1149,7 @@ PAGES.dispatch = async () => {
   const syncBtn = cfg().sync ? '<button class="btn" id="sync-btn">⟳ Оновити з Експедитора</button>' : "";
   const head = logist
     ? "<th>Угода</th><th>Клієнт</th><th>Контейнер</th><th>Статус</th><th>Номер авто</th><th>Водій</th><th>Телефон</th><th>Перетин кордону</th><th></th>"
-    : "<th>Угода</th><th></th><th>Клієнт</th><th>Лінія</th><th class=\"c-bl\">BL / Контейнер</th><th class=\"c-ves\">Судно</th><th>Гейт ін</th><th>ETD</th><th>ETA</th><th>Статус</th><th>Подача авто</th><th>Номер авто</th><th>Позначки</th><th>Коментар</th><th></th>";
+    : "<th>Угода</th><th></th><th>Клієнт</th><th>Маршрут</th><th>Лінія</th><th>HBL</th><th class=\"c-bl\">BL / Контейнер</th><th class=\"c-ves\">Судно</th><th>Gate in</th><th>ETD</th><th>ETA</th><th>Статус</th><th>Подача авто</th><th>Номер авто</th><th>Позначки</th><th>Коментар</th><th></th>";
   // ── активні алерти над таблицею
   const uniq = k => [...new Set(all.map(r=>_s(r,k)).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"uk"));
   const nActive = all.filter(r=>!_done(r)).length;
@@ -1180,9 +1180,9 @@ PAGES.dispatch = async () => {
       </div>
       <div class="tablewrap dispscroll" id="dscroll"><table class="${logist?"":"fixw"}">
         ${logist? "" : `<colgroup>
-          <col style="width:58px"><col style="width:54px"><col style="width:150px"><col style="width:76px">
-          <col style="width:172px"><col style="width:128px"><col style="width:84px"><col style="width:84px">
-          <col style="width:92px"><col style="width:176px">
+          <col style="width:58px"><col style="width:54px"><col style="width:150px"><col style="width:158px">
+          <col style="width:76px"><col style="width:124px"><col style="width:168px"><col style="width:126px">
+          <col style="width:84px"><col style="width:84px"><col style="width:92px"><col style="width:176px">
           <col style="width:108px"><col style="width:100px"><col style="width:116px"><col><col style="width:44px">
         </colgroup>`}
         <thead><tr>${head}</tr></thead>
@@ -1259,13 +1259,13 @@ PAGES.dispatch = async () => {
         <td class="mono"><b>${esc(r["Угода"])}</b></td>
         <td>${r["Напрямок"]?`<span class="dirchip ${r["Напрямок"]==="Імпорт"?"imp":"exp"}">${r["Напрямок"]==="Імпорт"?"ІМП":(r["Напрямок"]==="Експорт"?"ЕКС":"ТРН")}</span>`:""}</td>
         <td>${esc(r["Клієнт"]||"—")}</td>
-        <td>${esc(r["Лінія"]||"—")}</td>
+        <td class="c-rt${ED}" data-ed="Маршрут" title="${esc(r["Маршрут"]||"")}">${esc(r["Маршрут"]||"—")}</td>
+        <td>${isAir(r)||_s(r,"Вид перевезення")==="авто" ? '<span class="cell-muted">—</span>' : esc(r["Лінія"]||"—")}</td>
+        <td class="mono${ED}" data-ed="HBL">${isAir(r) ? '<span class="cell-muted">—</span>' : (esc(r["HBL"]||"") || '<span class="cell-muted">—</span>')}</td>
         <td class="mono c-bl">${isAir(r)
             ? (_s(r,"Авіанакладна") ? `${esc(r["Авіанакладна"])}<br><span class="cell-muted">авіанакладна</span>`
                                     : '<span class="cell-muted">авіа — накладної немає</span>')
-            : _s(r,"HBL")
-              ? `${esc(r["HBL"])}<br><span class="cell-muted">${esc(r["BL"]||"")}${r["BL"]&&r["Контейнер"]?" · ":""}${esc(r["Контейнер"]||"")}</span>`
-              : `${esc(r["BL"]||"—")}<br><span class="cell-muted">${esc(r["Контейнер"]||"")}</span>`}</td>
+            : `${esc(r["BL"]||"—")}<br><span class="cell-muted">${esc(r["Контейнер"]||"")}</span>`}</td>
         <td class="c-ves${ED}" data-ed="Судно">${esc(r["Судно"]||"—")}</td>
         <td class="mono${ED}" data-ed="Гейт ін">${dateB(r["Гейт ін"])}</td>
         <td class="mono${ED}" data-ed="ETD (факт)">${etdOf(r)
@@ -1281,7 +1281,7 @@ PAGES.dispatch = async () => {
         <td>${FLAGS.filter(f=>r[f]).map(f=>`<span class="flag on">${f} ✓</span>`).join("")||'<span class="cell-muted">—</span>'}</td>
         <td class="cell-muted c-com${ED}" data-ed="Коментар" title="${esc(r["Коментар"]||"")}">${esc(r["Коментар"]||"")}</td>
         <td>${docBtn(r)}</td>
-      </tr>`).join("") : `<tr><td colspan="15" class="cell-muted">Нічого не знайдено.</td></tr>`;
+      </tr>`).join("") : `<tr><td colspan="17" class="cell-muted">Нічого не знайдено.</td></tr>`;
     $("drows").querySelectorAll("tr[data-id]").forEach(tr=>tr.addEventListener("click",()=>openRow(all.find(x=>String(x.Id)===tr.dataset.id))));
     // клік по редагованій клітинці — правка на місці, картка угоди при цьому не відкривається
     if (CAN_EDIT) $("drows").querySelectorAll("td.ed[data-ed]").forEach(td=>{
