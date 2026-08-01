@@ -1,1 +1,1 @@
-{"id": "verify-cma-live", "cmd": "curl -s -o /dev/null -w \"local %{http_code}\n\" -H \"Host: erp.unitex.com.ua\" http://127.0.0.1/ ; curl -s -H \"Host: erp.unitex.com.ua\" http://127.0.0.1/ | grep -c \"ebusiness/tracking/detail\""}
+{"id": "verify-cma-live2", "cmd": "curl -sk --resolve erp.unitex.com.ua:443:127.0.0.1 https://erp.unitex.com.ua/ -o /tmp/live.html -w \"code %{http_code} size %{size_download}\n\"; grep -c \"ebusiness/tracking/detail\" /tmp/live.html"}
