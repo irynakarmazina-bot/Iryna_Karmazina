@@ -347,7 +347,11 @@
      повний текст — при наведенні і в картці угоди */
   .dispscroll table.fixw{table-layout:fixed;width:100%}
   .dispscroll table.fixw td,.dispscroll table.fixw th{overflow:hidden;text-overflow:ellipsis}
-  td.c-com,td.c-rt,td.c-md{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  td.c-com,td.c-md{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  /* Маршрут — кожна ланка окремим рядком, щоб колонка була вузька, а назви
+     портів читались повністю (прохання користувачки 01.08.2026). */
+  td.c-rt{white-space:normal;line-height:1.3}
+  td.c-rt .rtar{color:var(--muted);margin-right:3px}
   .buildstamp{font-size:10.5px;color:var(--muted);padding:6px 14px 10px;letter-spacing:.02em}
   /* Назва клієнта переноситься на два рядки, а не розтягує колонку
      (прохання користувачки 01.08.2026). Обрізання по висоті не робимо —
@@ -521,7 +525,7 @@
       <div class="spacer"></div>
       <!-- Позначка версії: по ній видно, чи браузер підтягнув свіжу сторінку.
            Оновлюється автоматично при кожному викладенні (scripts/stamp.sh). -->
-      <div class="buildstamp" id="buildstamp" title="версія сторінки — якщо не збігається з тим, що я назвала, натисни Ctrl+F5">в. 01.08 14:14</div>
+      <div class="buildstamp" id="buildstamp" title="версія сторінки — якщо не збігається з тим, що я назвала, натисни Ctrl+F5">в. 01.08 14:17</div>
     </nav>
     <div class="main">
       <div class="topbar">
@@ -1277,7 +1281,7 @@ PAGES.dispatch = async () => {
         ${logist? "" : `<colgroup>
           <!-- 17 колонок; ширини підібрані так, щоб таблиця вміщалась без бічної
                прокрутки на ~1360 px робочої області (зауваження користувачки 01.08.2026) -->
-          <col style="width:52px"><col style="width:48px"><col style="width:96px"><col style="width:118px">
+          <col style="width:52px"><col style="width:48px"><col style="width:96px"><col style="width:96px">
           <col style="width:100px"><col style="width:140px"><col style="width:86px"><col style="width:70px">
           <col style="width:70px"><col style="width:70px"><col style="width:70px"><col style="width:112px">
           <col style="width:88px"><col style="width:50px"><col style="width:76px"><col><col style="width:38px">
@@ -1393,7 +1397,11 @@ PAGES.dispatch = async () => {
         <td class="mono"><b>${esc(r["Угода"])}</b></td>
         <td>${r["Напрямок"]?`<span class="dirchip ${r["Напрямок"]==="Імпорт"?"imp":"exp"}">${r["Напрямок"]==="Імпорт"?"ІМП":(r["Напрямок"]==="Експорт"?"ЕКС":"ТРН")}</span>`:""}</td>
         <td class="c-cli">${esc(r["Клієнт"]||"—")}</td>
-        <td class="c-rt${ED}" data-ed="Маршрут" title="${esc(r["Маршрут"]||"")}">${esc(r["Маршрут"]||"—")}</td>
+        <td class="c-rt${ED}" data-ed="Маршрут" title="${esc(r["Маршрут"]||"")}">${
+            _s(r,"Маршрут")
+              ? _s(r,"Маршрут").split(/→|->/).map(x=>x.trim()).filter(Boolean)
+                  .map((x,i)=>`${i?'<span class="rtar">→</span>':""}${esc(x)}`).join("<br>")
+              : '<span class="cell-muted">—</span>'}</td>
         <td class="c-md${ED}" data-ed="Вид перевезення" title="${esc(_s(r,"Вид перевезення"))}">${
             _s(r,"Вид перевезення") ? esc(r["Вид перевезення"]) : '<span class="cell-muted">—</span>'}${
             (isAir(r)||_s(r,"Вид перевезення")==="авто"||!_s(r,"Лінія")) ? ""
