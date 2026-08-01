@@ -1,7 +1,7 @@
 {
-  "stdout": "[dry-run] Оновити угод: 166; без даних: 32; помилки: 0\n[dry-run] Зміни по колонках: ETD (факт)=162, Гейт ін=156, Гейт аут=156, Вивантаження в порту (факт)=155, Судно=7, Вояж=7, ETD (план)=2\nMAERSK_DRY tracked=237 would_update=166\n",
+  "stdout": "STARTED\n",
   "stderr": "",
   "returncode": 0,
-  "id": "dry2-cols",
-  "ts": "2026-08-01T12:07:01Z"
+  "id": "maersk-run-all",
+  "ts": "2026-08-01T12:07:33Z"
 }
