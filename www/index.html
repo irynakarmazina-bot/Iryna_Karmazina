@@ -336,7 +336,10 @@
 
   /* table */
   .tablewrap{overflow-x:auto}
-  .dispscroll{max-height:calc(100vh - 218px);min-height:460px;overflow:auto}
+  /* Висоту задає JS (fitDispScroll) від реального положення таблиці — інакше
+     при двох рядках фільтрів низ таблиці йде за екран разом із горизонтальною
+     смугою прокрутки (зауваження користувачки 01.08.2026). */
+  .dispscroll{max-height:calc(100vh - 218px);min-height:300px;overflow:auto}
   /* колонки BL/Контейнер і Судно — щільніше одна до одної */
   td.c-bl,th.c-bl{width:1%;white-space:nowrap;padding-right:6px}
   td.c-ves,th.c-ves{padding-left:6px;max-width:150px}
@@ -346,6 +349,10 @@
   .dispscroll table.fixw td,.dispscroll table.fixw th{overflow:hidden;text-overflow:ellipsis}
   td.c-com,td.c-rt,td.c-md{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .buildstamp{font-size:10.5px;color:var(--muted);padding:6px 14px 10px;letter-spacing:.02em}
+  /* Назва клієнта переноситься на два рядки, а не розтягує колонку
+     (прохання користувачки 01.08.2026). Обрізання по висоті не робимо —
+     назва має читатись повністю. */
+  td.c-cli{white-space:normal;line-height:1.25;overflow:visible;text-overflow:clip}
   td.c-rel{text-align:center}
   td.c-rel.tog{cursor:pointer}
   td.c-rel.tog:hover{background:var(--accent-soft)}
@@ -382,12 +389,17 @@
   :root[data-theme="dark"] tr.alertrow td{background:#2a1618}
   :root[data-theme="dark"] tr.warnrow td{background:#2a2113}
   /* смуга алертів над таблицею */
-  .alertbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  /* Один рядок, без переносу: алерти не мають з'їдати висоту над таблицею
+   (зауваження користувачки 01.08.2026 — «статуси розкидані на дві строки»).
+   Якщо алертів забагато — смуга гортається вбік, а не росте вниз. */
+  .alertbar{display:flex;align-items:center;gap:6px;flex-wrap:nowrap;
+    overflow-x:auto;overflow-y:hidden;scrollbar-width:thin;padding-bottom:2px}
+  .alertbar>*{flex:none}
   /* алерти навмисно НЕ кольорові плашки: кольором тільки крапка й число,
      щоб увага лишалась на самій таблиці (зауваження користувачки 01.08.2026) */
-  .abadge{display:inline-flex;align-items:center;gap:7px;font-size:12px;padding:4px 11px;
+  .abadge{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;padding:3px 9px;white-space:nowrap;
     border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink-2)}
-  .abadge::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--line);flex:none}
+  .abadge::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--line);flex:none}
   .abadge b{font-size:13px;color:var(--ink);font-variant-numeric:tabular-nums}
   .abadge.clickable{cursor:pointer}
   .abadge.clickable:hover{border-color:#b9c2d0;background:var(--surface-2)}
@@ -501,7 +513,7 @@
       <div class="spacer"></div>
       <!-- Позначка версії: по ній видно, чи браузер підтягнув свіжу сторінку.
            Оновлюється автоматично при кожному викладенні (scripts/stamp.sh). -->
-      <div class="buildstamp" id="buildstamp" title="версія сторінки — якщо не збігається з тим, що я назвала, натисни Ctrl+F5">в. 01.08 14:07</div>
+      <div class="buildstamp" id="buildstamp" title="версія сторінки — якщо не збігається з тим, що я назвала, натисни Ctrl+F5">в. 01.08 14:13</div>
     </nav>
     <div class="main">
       <div class="topbar">
@@ -1218,23 +1230,23 @@ PAGES.dispatch = async () => {
   const syncBtn = cfg().sync ? '<button class="btn" id="sync-btn">⟳ Оновити з Експедитора</button>' : "";
   const head = logist
     ? "<th>Угода</th><th>Клієнт</th><th>Контейнер</th><th>Статус</th><th>Номер авто</th><th>Водій</th><th>Телефон</th><th>Перетин кордону</th><th></th>"
-    : "<th>Угода</th><th></th><th>Клієнт</th><th>Маршрут</th><th>Вид</th><th>Лінія</th><th>HBL</th><th class=\"c-bl\">BL / Контейнер</th><th class=\"c-ves\">Судно</th><th>Gate in</th><th>ETD</th><th>ETA</th><th>Сух. порт</th><th>Статус</th><th>Подача авто</th><th>Номер авто</th><th>Реліз</th><th>Позначки</th><th>Коментар</th><th></th>";
+    : "<th>Угода</th><th></th><th>Клієнт</th><th>Маршрут</th><th>Вид / лінія</th><th class=\"c-bl\">Коносамент / контейнер</th><th class=\"c-ves\">Судно</th><th>Gate in</th><th>ETD</th><th>ETA</th><th>Сух. порт</th><th>Статус</th><th>Авто</th><th>Реліз</th><th>Позначки</th><th>Коментар</th><th></th>";
   // ── активні алерти над таблицею
   const uniq = k => [...new Set(all.map(r=>_s(r,k)).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"uk"));
   const nActive = all.filter(r=>!_done(r)).length;
   const ALERTS = [
-    {q:"trucklate", cls:"a-red",   nm:"Імпорт у порту без авто >2 дн", n: all.filter(truckLate).length},
-    {q:"stagestale",cls:"a-red",   nm:"Менеджер не оновив етап",         n: all.filter(stageStale).length},
+    {q:"trucklate", cls:"a-red",   nm:"У порту без авто >2дн", n: all.filter(truckLate).length},
+    {q:"stagestale",cls:"a-red",   nm:"Етап не оновлено",  n: all.filter(stageStale).length},
     {q:"nogatein",  cls:"a-red",   nm:"Експорт без Gate in",             n: all.filter(gateInMissing).length},
     {q:"inport",    cls:"a-amber", nm:"Стоять у порту",                n: all.filter(inPort).length},
     {q:"overdue",   cls:"a-amber", nm:"ETA минула",                    n: all.filter(QUICK.overdue.test).length},
     {q:"nostatus",  cls:"a-amber", nm:"Без статусу",                   n: all.filter(r=>!_s(r,"Статус")).length},
-    {q:"nobl",      cls:"a-amber", nm:"Без коносамента",                n: all.filter(QUICK.nobl.test).length},
+    {q:"nobl",      cls:"a-amber", nm:"Без BL",           n: all.filter(QUICK.nobl.test).length},
   ].filter(a=>a.n > 0);
   $("content").innerHTML = `
     <div class="card">
       <div class="alertbar">
-        <span class="abadge">Активних угод <b>${nActive}</b><span class="cell-muted" style="font-size:11px">з ${all.length}</span></span>
+        <span class="abadge">Активних <b>${nActive}</b><span class="cell-muted" style="font-size:11px">з ${all.length}</span></span>
         ${ALERTS.map(a=>`<span class="abadge ${a.cls} clickable" data-q="${a.q}">${esc(a.nm)} <b>${a.n}</b></span>`).join("")}
         ${quick? `<span class="quickchip">Фільтр: ${esc(quick.label)} — ${quickCount}<button id="quick-clear" title="скинути фільтр">✕</button></span>`:""}
       </div>
@@ -1250,12 +1262,12 @@ PAGES.dispatch = async () => {
       </div>
       <div class="tablewrap dispscroll" id="dscroll"><table class="${logist?"":"fixw"}">
         ${logist? "" : `<colgroup>
-          <col style="width:58px"><col style="width:54px"><col style="width:150px"><col style="width:158px">
-          <col style="width:132px"><col style="width:76px"><col style="width:118px"><col style="width:182px">
-          <col style="width:122px"><col style="width:84px"><col style="width:84px"><col style="width:92px">
-          <col style="width:88px"><col style="width:176px"><col style="width:108px"><col style="width:100px">
-          <col style="width:62px">
-          <col style="width:116px"><col><col style="width:44px">
+          <!-- 17 колонок; ширини підібрані так, щоб таблиця вміщалась без бічної
+               прокрутки на ~1360 px робочої області (зауваження користувачки 01.08.2026) -->
+          <col style="width:52px"><col style="width:48px"><col style="width:96px"><col style="width:118px">
+          <col style="width:100px"><col style="width:140px"><col style="width:86px"><col style="width:70px">
+          <col style="width:70px"><col style="width:70px"><col style="width:70px"><col style="width:112px">
+          <col style="width:88px"><col style="width:50px"><col style="width:76px"><col><col style="width:38px">
         </colgroup>`}
         <thead><tr>${head}</tr></thead>
         <tbody id="drows"></tbody></table></div>
@@ -1284,6 +1296,17 @@ PAGES.dispatch = async () => {
     }
     td.classList.remove("saving");
   };
+
+  /* Підганяє висоту таблиці під вікно: низ таблиці (а з ним і горизонтальна
+     смуга прокрутки) завжди лишається видимим, скільки б рядків фільтрів
+     і алертів не було зверху. */
+  const fitDispScroll = () => {
+    const box = $("dscroll");
+    if (!box) return;
+    const top = box.getBoundingClientRect().top;
+    box.style.maxHeight = Math.max(300, window.innerHeight - top - 24) + "px";
+  };
+  window.addEventListener("resize", fitDispScroll);
 
   const editCell = (td) => {
     if (td.querySelector(".edinput")) return;
@@ -1356,16 +1379,17 @@ PAGES.dispatch = async () => {
               :(gateInMissing(r)?'title="Експорт без дати заїзду в порт — її ставлять одразу після букінгу"':""))}>
         <td class="mono"><b>${esc(r["Угода"])}</b></td>
         <td>${r["Напрямок"]?`<span class="dirchip ${r["Напрямок"]==="Імпорт"?"imp":"exp"}">${r["Напрямок"]==="Імпорт"?"ІМП":(r["Напрямок"]==="Експорт"?"ЕКС":"ТРН")}</span>`:""}</td>
-        <td>${esc(r["Клієнт"]||"—")}</td>
+        <td class="c-cli">${esc(r["Клієнт"]||"—")}</td>
         <td class="c-rt${ED}" data-ed="Маршрут" title="${esc(r["Маршрут"]||"")}">${esc(r["Маршрут"]||"—")}</td>
         <td class="c-md${ED}" data-ed="Вид перевезення" title="${esc(_s(r,"Вид перевезення"))}">${
-            _s(r,"Вид перевезення") ? esc(r["Вид перевезення"]) : '<span class="cell-muted">—</span>'}</td>
-        <td>${isAir(r)||_s(r,"Вид перевезення")==="авто" ? '<span class="cell-muted">—</span>' : esc(r["Лінія"]||"—")}</td>
-        <td class="mono${ED}" data-ed="HBL">${isAir(r) ? '<span class="cell-muted">—</span>' : (esc(r["HBL"]||"") || '<span class="cell-muted">—</span>')}</td>
+            _s(r,"Вид перевезення") ? esc(r["Вид перевезення"]) : '<span class="cell-muted">—</span>'}${
+            (isAir(r)||_s(r,"Вид перевезення")==="авто"||!_s(r,"Лінія")) ? ""
+              : `<br><span class="cell-muted">${esc(r["Лінія"])}</span>`}</td>
         <td class="mono c-bl">${isAir(r)
             ? (_s(r,"Авіанакладна") ? `${esc(r["Авіанакладна"])}<br><span class="cell-muted">авіанакладна</span>`
                                     : '<span class="cell-muted">авіа — накладної немає</span>')
-            : `<span class="ln">${_s(r,"BL") ? trackLink(r, r["BL"]) : "—"}</span>${_s(r,"Контейнер").split(",")
+            : `${_s(r,"HBL") ? `<span class="ln" title="домашній коносамент">${esc(r["HBL"])}</span>` : ""}<span class="ln">${
+                _s(r,"BL") ? trackLink(r, r["BL"]) : (_s(r,"HBL") ? "" : "—")}</span>${_s(r,"Контейнер").split(",")
                 .map(c=>c.trim()).filter(Boolean)
                 .map(c=>`<span class="ln">${trackLink(r, c, "cell-muted")}</span>`).join("")}`}</td>
         <td class="c-ves${ED}" data-ed="Судно">${esc(r["Судно"]||"—")}</td>
@@ -1380,18 +1404,17 @@ PAGES.dispatch = async () => {
               : (isRail(r) ? '<span class="cell-muted">—</span>'
                            : '<span class="cell-muted">—</span>')}</td>
         <td class="${ED.trim()}" data-ed="Статус">${stPill(r["Статус"])}</td>
-        <td class="mono${ED}" data-ed="Подача авто (факт)">${truckDate(r)
-            ? `${dateB(truckDate(r))}${_s(r,"Подача авто (факт)")?"":'<br><span class="cell-muted">план</span>'}`
-            : (truckLate(r) ? '<span style="color:#d1453b;font-weight:700">немає</span>' : '<span class="cell-muted">—</span>')}</td>
-        <td class="mono${ED}" data-ed="Номер авто">${r["Номер авто"] ? esc(r["Номер авто"])
-            : (truckLate(r) ? '<span style="color:#d1453b;font-weight:700">немає</span>' : '<span class="cell-muted">—</span>')}</td>
+        <td class="mono${ED}" data-ed="Подача авто (факт)" title="дата подачі авто">${truckDate(r)
+            ? `${dateB(truckDate(r))}${_s(r,"Подача авто (факт)")?"":'<span class="cell-muted"> план</span>'}`
+            : (truckLate(r) ? '<span style="color:#d1453b;font-weight:700">немає</span>' : '<span class="cell-muted">—</span>')}${
+            _s(r,"Номер авто") ? `<br><span class="cell-muted">${esc(r["Номер авто"])}</span>` : ""}</td>
         <td class="c-rel${CAN_EDIT?" tog":""}" data-tog="Реліз" title="${
             CAN_EDIT?"клік — поставити або зняти «Реліз»":"Реліз"}">${
             r["Реліз"] ? '<span class="flag on">✓</span>' : '<span class="cell-muted">—</span>'}</td>
         <td>${FLAGS.filter(f=>f!=="Реліз"&&r[f]).map(f=>`<span class="flag on">${f} ✓</span>`).join("")||'<span class="cell-muted">—</span>'}</td>
         <td class="cell-muted c-com${ED}" data-ed="Коментар" title="${esc(r["Коментар"]||"")}">${esc(r["Коментар"]||"")}</td>
         <td>${docBtn(r)}</td>
-      </tr>`).join("") : `<tr><td colspan="20" class="cell-muted">Нічого не знайдено.</td></tr>`;
+      </tr>`).join("") : `<tr><td colspan="17" class="cell-muted">Нічого не знайдено.</td></tr>`;
     $("drows").querySelectorAll("tr[data-id]").forEach(tr=>tr.addEventListener("click",()=>openRow(all.find(x=>String(x.Id)===tr.dataset.id))));
     // клік по номеру відкриває трекінг лінії, а не картку угоди
     $("drows").querySelectorAll("a.tl").forEach(a=>a.addEventListener("click", e=>e.stopPropagation()));
@@ -1407,6 +1430,7 @@ PAGES.dispatch = async () => {
     });
     // прокручуємо так, щоб доставлені пішли за шапку, а першим видимим був
     // найраніший ETA серед активних угод
+    fitDispScroll();
     const box = $("dscroll");
     if (box){
       const firstOpen = $("drows").querySelector("tr:not(.done)");
