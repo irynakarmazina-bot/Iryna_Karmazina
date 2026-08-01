@@ -920,7 +920,17 @@ function toast(m){ const t=$("toast"); t.textContent=m; t.style.display="block";
 const PAGES = {};
 let DISP_CACHE = null;
 let DISP_QUICK = null;          // швидкий фільтр з плиток дашборда
-async function dispRows(){ return DISP_CACHE || (DISP_CACHE = await loadAll(T["Диспетчеризація"])); }
+/* Скасована угода не існує для роботи (правило користувачки 01.08.2026): не показуємо
+   її ніде — ні в таблиці диспетчеризації, ні на дашборді, ні в лічильниках чи алертах.
+   Фільтр стоїть в ОДНОМУ місці — усі сторінки беруть дані через dispRows().
+   У списку STATUSES цього статусу навмисно немає, тому він не з'являється ні у
+   випадайці фільтра, ні у виборі статусу в картці угоди. */
+const CANCELLED_ST = "Скасована";
+async function dispRows(){
+  if (!DISP_CACHE) DISP_CACHE = (await loadAll(T["Диспетчеризація"]))
+    .filter(r => String(r["Статус"] || "").trim() !== CANCELLED_ST);
+  return DISP_CACHE;
+}
 
 PAGES.dashboard = async () => {
   const rows = scoped(await dispRows());

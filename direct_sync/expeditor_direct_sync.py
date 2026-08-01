@@ -118,6 +118,10 @@ STAGE_COL = "Етап (Експедитор)"
 # не створюються, не оновлюються; їхні номери пишемо у файл, щоб трекери їх не питали.
 CANCELLED_STAGE = "Отменена"
 CANCELLED_FILE = os.path.join(WORKDIR, "cancelled.json")
+# 01.08.2026: раніше скасовані просто пропускались, і в платформі в них лишався
+# останній робочий статус — тому вони й далі висіли в таблиці й у показниках.
+# Тепер проставляємо їм окремий статус, а фасад ховає такі угоди скрізь.
+CANCELLED_STATUS = "Скасована"
 
 WRITTEN_COLS = (
     ["Клієнт", "Напрямок", "Лінія", "Менеджер", "Агент", "Кількість", "Коментар", "Статус", "Етап (Експедитор)"]
@@ -300,6 +304,33 @@ def ref(names, key, guid):
     return txt(names.get(key, {}).get(g))
 
 
+def mark_cancelled(cancelled, by_num, allowed_statuses, dry):
+    """Проставляє статус «Скасована» тим угодам, які Експедитор позначив «Отменена».
+
+    Пишемо навіть поверх «Вантаж доставлено»: скасування — рішення людини в
+    Експедиторі, воно старше за будь-який автоматичний статус. Нових записів не
+    створюємо і нічого не видаляємо — тільки міняємо статус наявним.
+    """
+    if CANCELLED_STATUS not in allowed_statuses:
+        log("WARN статусу «%s» немає серед варіантів колонки — скасовані не позначаю"
+            % CANCELLED_STATUS)
+        return
+    patch = [{"Id": r["Id"], "Статус": CANCELLED_STATUS}
+             for r in (by_num.get(num(d.get("Number"))) for d in cancelled)
+             if r and str(r.get("Статус") or "").strip() != CANCELLED_STATUS]
+    if not patch:
+        return
+    if dry:
+        log("DRY позначити скасованими: %d" % len(patch))
+        return
+    for i in range(0, len(patch), CHUNK):
+        st, js = nc("PATCH", "/api/v2/tables/%s/records" % TABLE, patch[i:i + CHUNK])
+        if st not in (200, 201):
+            log("CANCEL_FAIL %s %s" % (st, str(js)[:200]))
+            return
+    log("Позначено скасованими: %d" % len(patch))
+
+
 def map_deal(d, names, allowed_lines, allowed_kinds, allowed_statuses=frozenset()):
     """Повертає {колонка NocoDB: значення} лише з непорожніх даних Експедитора."""
     o = {}
@@ -368,14 +399,16 @@ def main():
     kind_values = {KIND_MAP[k] for k in
                    {str(d.get("Вид") or "").strip() for d in deals} if k in KIND_MAP}
     allowed_kinds = ensure_options(meta, "Напрямок", kind_values, dry)
-    st_col = next((c for c in meta["columns"] if c["title"] == "Статус"), None)
-    allowed_statuses = {o["title"] for o in ((st_col or {}).get("colOptions") or {}).get("options", [])}
+    # «Скасована» має бути серед варіантів колонки — інакше запис не пройде
+    allowed_statuses = ensure_options(meta, "Статус", {CANCELLED_STATUS}, dry)
 
     rows = nc_records(["Id", "Угода"] + WRITTEN_COLS)
     by_num = {}
     for r in rows:
         by_num.setdefault(num(r.get("Угода")), r)
     log("%sЗаписів у платформі: %d" % (tag, len(rows)))
+
+    mark_cancelled(cancelled, by_num, allowed_statuses, dry)
 
     state = {}
     if os.path.exists(STATE):
