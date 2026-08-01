@@ -1,1 +1,1 @@
-{"id": "audit-gaps-2b", "cmd": "python3 /root/audit_gaps.py 2>&1 | sed -n \"32,70p\""}
+{"id": "deploy-cma-track", "cmd": "cd /root/Iryna_Karmazina && git fetch origin claude/direct-automation-expeditor-671esy -q && git show origin/claude/direct-automation-expeditor-671esy:www/index.html > /root/unitex-os-www/index.html && grep -c \"ebusiness/tracking/detail\" /root/unitex-os-www/index.html && wc -c /root/unitex-os-www/index.html && curl -s -o /dev/null -w \"UI %{http_code}\n\" https://erp.unitex.com.ua/"}
