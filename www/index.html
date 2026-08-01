@@ -190,9 +190,23 @@
     color:var(--side-muted); cursor:pointer; font-size:14px; font-weight:500}
   .nav-item:hover{background:var(--side-active-bg); color:var(--side-ink)}
   .nav-item.active{background:var(--side-active-bg); color:var(--side-active-ink); font-weight:600}
-  .nav-item .ico{width:20px;height:20px;display:inline-flex;align-items:center;justify-content:center;flex:none}
-  .nav-item .ico svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.7;
+  .nav-item .ico{width:28px;height:28px;border-radius:8px;display:inline-flex;align-items:center;
+    justify-content:center;flex:none;background:var(--nav-ico-bg,#eef2f8)}
+  .nav-item .ico svg{width:17px;height:17px;fill:none;stroke:var(--nav-ico,#475467);stroke-width:1.9;
     stroke-linecap:round;stroke-linejoin:round}
+  .nav-item.active .ico{box-shadow:0 0 0 1.5px rgba(37,99,235,.25)}
+  .nav-ico-blue{--nav-ico-bg:#e8f0fe;--nav-ico:#2563eb}
+  .nav-ico-green{--nav-ico-bg:#e6f6ec;--nav-ico:#12924f}
+  .nav-ico-violet{--nav-ico-bg:#f0ebfe;--nav-ico:#7c3aed}
+  .nav-ico-amber{--nav-ico-bg:#fff3de;--nav-ico:#b45309}
+  .nav-ico-slate{--nav-ico-bg:#eceff4;--nav-ico:#475467}
+  .nav-ico-red{--nav-ico-bg:#fdeaea;--nav-ico:#c22b2b}
+  :root[data-theme="dark"] .nav-ico-blue{--nav-ico-bg:#16233f} 
+  :root[data-theme="dark"] .nav-ico-green{--nav-ico-bg:#12281d}
+  :root[data-theme="dark"] .nav-ico-violet{--nav-ico-bg:#221a3a}
+  :root[data-theme="dark"] .nav-ico-amber{--nav-ico-bg:#2e2410}
+  :root[data-theme="dark"] .nav-ico-slate{--nav-ico-bg:#20262f}
+  :root[data-theme="dark"] .nav-ico-red{--nav-ico-bg:#2c1717}
   .sidebar .spacer{flex:1}
   .sidebar .foot{font-size:11.5px;color:var(--side-muted);padding:8px 10px;border-top:1px solid var(--side-line)}
 
@@ -334,6 +348,11 @@
   /* BL і Контейнер — два рядки, тому їм переніс дозволений */
   .dispscroll table.fixw td.c-bl{white-space:normal;word-break:break-all}
   .dispscroll td{vertical-align:middle}
+  /* смужки через рядок — око не збивається на широкій таблиці */
+  .dispscroll tbody tr:nth-child(even) td{background:var(--surface-2)}
+  .dispscroll tbody tr:hover td{background:var(--hover-bg,#eef2f8)}
+  .dispscroll tbody tr.alertrow:nth-child(even) td{background:#fce9e9}
+  .dispscroll td:first-child b{font-size:13.5px;font-weight:700}
   /* редагування прямо в таблиці */
   td.ed{cursor:cell}
   td.ed:hover{box-shadow:inset 0 0 0 1.5px var(--accent)}
@@ -348,27 +367,28 @@
   :root[data-theme="dark"] tr.alertrow td{background:#2a1618}
   /* смуга алертів над таблицею */
   .alertbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-  .abadge{display:inline-flex;align-items:center;gap:6px;font-size:12px;padding:4px 11px;
-    border-radius:999px;border:1px solid var(--line);background:var(--tile-bg);color:var(--ink-2)}
-  .abadge b{font-size:13px;color:var(--ink)}
+  /* алерти навмисно НЕ кольорові плашки: кольором тільки крапка й число,
+     щоб увага лишалась на самій таблиці (зауваження користувачки 01.08.2026) */
+  .abadge{display:inline-flex;align-items:center;gap:7px;font-size:12px;padding:4px 11px;
+    border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink-2)}
+  .abadge::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--line);flex:none}
+  .abadge b{font-size:13px;color:var(--ink);font-variant-numeric:tabular-nums}
   .abadge.clickable{cursor:pointer}
-  .abadge.clickable:hover{border-color:#c3cad6}
-  .abadge.a-red{background:#fdeeee;border-color:#f3d2d2;color:#a33} .abadge.a-red b{color:#d1453b}
-  .abadge.a-amber{background:#fff6e8;border-color:#f4e2c4;color:#8a6320} .abadge.a-amber b{color:#b45309}
-  :root[data-theme="dark"] .abadge.a-red{background:#2a1618;border-color:#48252a}
-  :root[data-theme="dark"] .abadge.a-amber{background:#2a2113;border-color:#4a3c1e}
+  .abadge.clickable:hover{border-color:#b9c2d0;background:var(--surface-2)}
+  .abadge.a-red::before{background:#d1453b}    .abadge.a-red b{color:#d1453b}
+  .abadge.a-amber::before{background:#e6a817}  .abadge.a-amber b{color:#b45309}
   .dispscroll thead th{position:sticky;top:0;z-index:3;background:var(--surface);
     box-shadow:inset 0 -1px 0 var(--line)}
-  tr.done td{color:var(--muted)}
-  table{border-collapse:collapse;width:100%;font-size:12.5px}
-  th{font-size:11px;letter-spacing:0;color:var(--muted);
+  tr.done td{color:var(--ink-2)}
+  table{border-collapse:collapse;width:100%;font-size:13px}
+  th{font-size:11.5px;letter-spacing:.2px;color:var(--ink-2);
     background:transparent;text-align:left;font-weight:600;padding:7px 8px;white-space:nowrap;
     border-bottom:1px solid var(--line)}
-  td{padding:6px 8px;border-bottom:1px solid var(--line-soft);vertical-align:top}
+  td{padding:7px 8px;border-bottom:1px solid var(--line-soft);vertical-align:top;color:var(--ink)}
   tr:last-child td{border-bottom:none}
   td.num,th.num{font-variant-numeric:tabular-nums;text-align:right}
   tbody tr:hover{background:var(--surface-2)}
-  .cell-muted{color:var(--muted);font-size:11.5px}
+  .cell-muted{color:var(--ink-2);font-size:12px}
   .mono{font-variant-numeric:tabular-nums; white-space:nowrap}
 
   .filters{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
@@ -661,19 +681,19 @@ $("set-overlay").addEventListener("click", e=>{ if(e.target===$("set-overlay")) 
 /* ===== навігація ===== */
 /* меню: лінійні значки в одному стилі з фінзвітом (емодзі прибрано 31.07.2026) */
 const MODMAP = {
-  dashboard:{label:"Дашборд",   ico:"chart"},
-  calc:     {label:"Калькуляція",ico:"calculator"},
-  dispatch: {label:"Диспетчеризація",ico:"ship"},
-  crm:      {label:"CRM",        ico:"funnel"},
-  clients:  {label:"Клієнти",    ico:"users"},
-  finance:  {label:"Фінанси",    ico:"cash"},
-  accounting:{label:"Бух. облік",ico:"book"},
-  tasks:    {label:"Задачі",     ico:"check"},
-  instr:    {label:"Інструкції", ico:"doc"},
-  users:    {label:"Користувачі",ico:"shield"},
+  dashboard:{label:"Дашборд",   ico:"chart",     c:"blue"},
+  calc:     {label:"Калькуляція",ico:"calculator",c:"violet"},
+  dispatch: {label:"Диспетчеризація",ico:"ship",  c:"blue"},
+  crm:      {label:"CRM",        ico:"funnel",    c:"amber"},
+  clients:  {label:"Клієнти",    ico:"users",     c:"green"},
+  finance:  {label:"Фінанси",    ico:"cash",      c:"green"},
+  accounting:{label:"Бух. облік",ico:"book",      c:"violet"},
+  tasks:    {label:"Задачі",     ico:"check",     c:"green"},
+  instr:    {label:"Інструкції", ico:"doc",       c:"slate"},
+  users:    {label:"Користувачі",ico:"shield",    c:"red"},
 };
 function buildNav(){
-  $("nav").innerHTML = cfg().nav.map(id=>`<button class="nav-item" data-page="${id}"><span class="ico"><svg viewBox="0 0 24 24">${ICONS[MODMAP[id].ico]||""}</svg></span>${MODMAP[id].label}</button>`).join("");
+  $("nav").innerHTML = cfg().nav.map(id=>`<button class="nav-item" data-page="${id}"><span class="ico nav-ico-${MODMAP[id].c||"slate"}"><svg viewBox="0 0 24 24">${ICONS[MODMAP[id].ico]||""}</svg></span>${MODMAP[id].label}</button>`).join("");
   $("nav").querySelectorAll(".nav-item").forEach(b=>b.addEventListener("click",()=>{ DISP_QUICK=null; go(b.dataset.page); }));
 }
 function go(page){
@@ -791,6 +811,10 @@ const isSea = r => {
 const isRail  = r => /залізни/i.test(_s(r,"Вид перевезення")) || /залізни/i.test(_s(r,"Тип"));
 const hasLine = r => isSea(r) || isRail(r);
 const isDone  = r => r["Статус"] === "Вантаж доставлено";
+/* дата у звичному вигляді: 05.08.26, жирним — щоб читалась з першого погляду */
+const fmtD = v => { const m=/(\d{4})-(\d{2})-(\d{2})/.exec(String(v||""));
+  return m ? `${m[3]}.${m[2]}.${m[1].slice(2)}` : ""; };
+const dateB = v => { const d=fmtD(v); return d ? `<b>${d}</b>` : '<span class="cell-muted">—</span>'; };
 const dOf = v => { const m=/(\d{4})-(\d{2})-(\d{2})/.exec(String(v||"")); return m? new Date(+m[1],+m[2]-1,+m[3]) : null; };
 /* вантаж уже в порту прибуття і ще не вивезений → капають зберігання/демередж */
 const portSince = r => dOf(_s(r,"Вивантаження в порту (факт)") || _s(r,"ETA порт (факт)"));
@@ -848,7 +872,7 @@ PAGES.dashboard = async () => {
   const inPortRows = rows.filter(inPort).sort((a,b)=>(daysIn(b)||0)-(daysIn(a)||0));
   const inPortMax = inPortRows.length ? (daysIn(inPortRows[0]) || 0) : 0;
   const fmtRow = r => `<tr><td class="mono"><b>${esc(r["Угода"])}</b></td><td>${esc(r["Клієнт"]||"—")}</td>
-    <td>${esc(r["Судно"]||"—")}</td><td>${stPill(r["Статус"])}</td><td class="mono">${esc(r["ETA"]||"—")}</td></tr>`;
+    <td>${esc(r["Судно"]||"—")}</td><td>${stPill(r["Статус"])}</td><td class="mono">${dateB(r["ETA"])}</td></tr>`;
   const upcoming = active.filter(r=>{ const e=d(r["ETA"]); return e && e>=today; })
     .sort((a,b)=>String(a["ETA"]).localeCompare(String(b["ETA"]))).slice(0,8);
   const overdueAll = active.filter(r=>{ const e=d(r["ETA"]); return e && e<today; })
@@ -977,7 +1001,7 @@ PAGES.dashboard = async () => {
       <div class="card"><h3>📅 Найближчі прибуття</h3><p class="sub">активні угоди за ETA, від найближчої</p>
         <div class="scrollbox"><table>
           <thead><tr><th>Угода</th><th>Клієнт</th><th>Статус</th><th>ETA</th></tr></thead>
-          <tbody>${upcoming.map(r=>`<tr><td class="mono"><b>${esc(r["Угода"])}</b></td><td>${esc(r["Клієнт"]||"—")}</td><td>${stPill(r["Статус"])}</td><td class="mono">${esc(r["ETA"]||"—")}</td></tr>`).join("")
+          <tbody>${upcoming.map(r=>`<tr><td class="mono"><b>${esc(r["Угода"])}</b></td><td>${esc(r["Клієнт"]||"—")}</td><td>${stPill(r["Статус"])}</td><td class="mono">${dateB(r["ETA"])}</td></tr>`).join("")
             || '<tr><td colspan="4" class="cell-muted">Немає активних угод з майбутнім ETA.</td></tr>'}</tbody>
         </table></div></div>
     </div>
@@ -993,7 +1017,7 @@ PAGES.dashboard = async () => {
         <tbody>${inPortRows.map(r=>{ const dd=daysIn(r);
           return `<tr><td class="mono"><b>${esc(r["Угода"])}</b></td><td>${esc(r["Клієнт"]||"—")}</td>
             <td class="mono">${esc(r["Контейнер"]||"—")}</td><td>${stPill(r["Статус"])}</td>
-            <td class="mono">${esc((_s(r,"Вивантаження в порту (факт)")||_s(r,"ETA порт (факт)")||"—").slice(0,10))}</td>
+            <td class="mono">${dateB(_s(r,"Вивантаження в порту (факт)")||_s(r,"ETA порт (факт)"))}</td>
             <td class="mono" style="font-weight:700;color:${dd>=14?"#d1453b":"inherit"}">${dd==null?"—":dd}</td></tr>`;}).join("")}</tbody>
       </table></div></div>`:""}
 
@@ -1207,7 +1231,7 @@ PAGES.dispatch = async () => {
         <td class="mono${ED}" data-ed="Номер авто">${esc(r["Номер авто"]||"—")}</td>
         <td class="${ED.trim()}" data-ed="Водій (ПІБ)">${esc(r["Водій (ПІБ)"]||"—")}</td>
         <td class="mono${ED}" data-ed="Водій (телефон)">${esc(r["Водій (телефон)"]||"—")}</td>
-        <td class="mono${ED}" data-ed="Перетин кордону (факт)">${esc(r["Перетин кордону (факт)"]||"—")}</td>
+        <td class="mono${ED}" data-ed="Перетин кордону (факт)">${dateB(r["Перетин кордону (факт)"])}</td>
         <td>${docBtn(r)}</td>
       </tr>` : `
       <tr data-id="${r.Id}" class="${r["Статус"]==='Вантаж доставлено'?'done':''} ${(truckLate(r)||stageStale(r))?'alertrow':''}" style="cursor:pointer"
@@ -1221,10 +1245,10 @@ PAGES.dispatch = async () => {
             ? `${esc(r["HBL"])}<br><span class="cell-muted">${esc(r["BL"]||"")}${r["BL"]&&r["Контейнер"]?" · ":""}${esc(r["Контейнер"]||"")}</span>`
             : `${esc(r["BL"]||"—")}<br><span class="cell-muted">${esc(r["Контейнер"]||"")}</span>`}</td>
         <td class="c-ves${ED}" data-ed="Судно">${esc(r["Судно"]||"—")}</td>
-        <td class="mono${ED}" data-ed="ETA">${esc(r["ETA"]||"—")}</td>
+        <td class="mono${ED}" data-ed="ETA">${dateB(r["ETA"])}</td>
         <td class="${ED.trim()}" data-ed="Статус">${stPill(r["Статус"])}</td>
         <td class="mono${ED}" data-ed="Подача авто (факт)">${truckDate(r)
-            ? `${esc(truckDate(r).slice(0,10))}${_s(r,"Подача авто (факт)")?"":'<br><span class="cell-muted">план</span>'}`
+            ? `${dateB(truckDate(r))}${_s(r,"Подача авто (факт)")?"":'<br><span class="cell-muted">план</span>'}`
             : (truckLate(r) ? '<span style="color:#d1453b;font-weight:700">немає</span>' : '<span class="cell-muted">—</span>')}</td>
         <td class="mono${ED}" data-ed="Номер авто">${r["Номер авто"] ? esc(r["Номер авто"])
             : (truckLate(r) ? '<span style="color:#d1453b;font-weight:700">немає</span>' : '<span class="cell-muted">—</span>')}</td>
@@ -1577,7 +1601,9 @@ async function saveField(row, col, val){
 function cardVal(r, f){
   if (FLAGS.includes(f)) return r[f] ? "✓ так" : "—";
   const v = r[f];
-  return (v===null || v===undefined || v==="") ? "—" : String(v);
+  if (v===null || v===undefined || v==="") return "—";
+  if (CARD_DATE.test(f) && !CARD_SELECT[f]){ const d = fmtD(v); if (d) return d; }
+  return String(v);
 }
 
 function openRow(r){
@@ -1639,7 +1665,8 @@ function editCardField(td, r){
     if (!save || v === val0){ td.innerHTML = keep; return; }
     try{
       await saveField(r, f, v || null);
-      td.innerHTML = f === "Статус" ? stPill(v) : esc(v || "—");
+      td.innerHTML = f === "Статус" ? stPill(v)
+        : (isDate ? (fmtD(v) || "—") : esc(v || "—"));
       toast(`✅ ${f}: ${v || "очищено"}`);
     }catch(e){ td.innerHTML = keep; toast("⚠ Не збереглось: " + e.message); }
   };
