@@ -114,6 +114,9 @@
     font-size:15px; line-height:1.5; min-height:100vh;
   }
   button{font:inherit}
+  /* Усі form-контроли беруть шрифт сторінки. Без явного font-family браузер
+     підставляє свій системний — саме це було видно у випадайках фільтрів. */
+  input,select,textarea,button,option{font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
   :focus-visible{outline:2px solid var(--accent); outline-offset:2px; border-radius:4px}
   @media (prefers-reduced-motion: reduce){ *{transition:none!important;animation:none!important} }
   .article h2{font-size:15px;color:var(--accent-ink);margin:18px 0 6px}
@@ -475,8 +478,14 @@
 /* Фільтри компактні, щоб уміщались в один рядок і не з'їдали висоту над
    таблицею (зауваження користувачки 01.08.2026). */
   .filters{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:10px}
+  /* font-family задаємо ЯВНО: form-контроли беруть системний шрифт браузера,
+     і скорочення font:inherit його не завжди перебиває — у випадайках був
+     чужий шрифт (зауваження користувачки 01.08.2026). */
   .filters input,.filters select{padding:6px 8px;border:1px solid var(--line);border-radius:7px;
-    background:var(--surface);color:var(--ink);font:inherit;font-size:12.5px;font-weight:500}
+    background:var(--surface);color:var(--ink);
+    font-family:system-ui,-apple-system,"Segoe UI",sans-serif;
+    font-size:12.5px;font-weight:500;line-height:1.4}
+  .filters option{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;font-size:13px}
   /* Ширина випадайки задана жорстко: інакше браузер розтягує її під найдовший
      варіант списку («Вивантажений в порту прибуття») і поруч з'являється
      порожнеча, а самі фільтри не вміщаються в один рядок (01.08.2026). */
@@ -574,7 +583,7 @@
       <div class="spacer"></div>
       <!-- Позначка версії: по ній видно, чи браузер підтягнув свіжу сторінку.
            Оновлюється автоматично при кожному викладенні (scripts/stamp.sh). -->
-      <div class="buildstamp" id="buildstamp" title="версія сторінки — якщо не збігається з тим, що я назвала, натисни Ctrl+F5">в. 01.08 15:58</div>
+      <div class="buildstamp" id="buildstamp" title="версія сторінки — якщо не збігається з тим, що я назвала, натисни Ctrl+F5">в. 01.08 15:59</div>
     </nav>
     <div class="main">
       <div class="topbar">
