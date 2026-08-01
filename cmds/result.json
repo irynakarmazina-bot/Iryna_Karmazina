@@ -1,7 +1,7 @@
 {
-  "stdout": "page-title прибрано: 0\nCRM: 1 | Бухоблік: 1\nзначки в меню: 1\nUI 200\n",
+  "stdout": "DOC_TYPES: 1\ndoc-type select: 1\nUI 200\n--- скільки файлів уже прикріплено і як названі ---\nусього файлів: 0\n",
   "stderr": "",
   "returncode": 0,
-  "id": "deploy-nav-0801",
-  "ts": "2026-08-01T09:00:05Z"
+  "id": "deploy-doctypes-0801",
+  "ts": "2026-08-01T09:18:36Z"
 }
