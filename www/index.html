@@ -488,7 +488,7 @@
 <div id="app">
   <div class="shell">
     <nav class="sidebar">
-      <div class="brand"><img class="brand-logo" id="logo-side" alt="UNITEX" style="height:44px"></div>
+      <div class="brand"><img class="brand-logo" id="logo-side" alt="UNITEX" style="height:58px"></div>
       <div id="nav"></div>
       <div class="spacer"></div>
     </nav>
@@ -680,6 +680,7 @@ async function enter(){
     }
   } catch(e){ ROLE = "Перегляд"; }
   $("u-role").textContent = ROLE;
+  logAction("вхід у платформу", "", "", "", "");
   buildNav(); go(cfg().nav[0]);
 }
 $("login-btn").addEventListener("click", doLogin);
@@ -1223,9 +1224,11 @@ PAGES.dispatch = async () => {
       if (!save || v === val0){ td.innerHTML = keep; return; }
       td.classList.add("saving");
       try{
+        const was = row[col];
         await api(`/api/v2/tables/${T["Диспетчеризація"]}/records`, {method:"PATCH",
           body: JSON.stringify([{Id: row.Id, [col]: v || null}])});
         row[col] = v;                       // DISP_CACHE той самий об'єкт — таблиця і картка бачать нове
+        logAction("правка угоди", "Угода №" + (row["Угода"] || row.Id), col, was, v);
         toast(`✅ ${col}: ${v || "очищено"}`);
         draw();
       }catch(err){
@@ -1419,6 +1422,8 @@ $("doc-file").addEventListener("change", async ()=>{
     renderDocList();
     $("doc-status").textContent = "";
     toast(`✅ Прикріплено (${$("doc-type").value}): ${files.length}`);
+    logAction("додано документ", "Угода №" + (DOC_ROW["Угода"] || DOC_ROW.Id),
+      $("doc-type").value, "", added.map(a=>a.title).join(", "));
   } catch(e){
     $("doc-status").textContent = "⚠ Не вдалося завантажити (" + e.message + ")";
   }
@@ -1629,10 +1634,33 @@ const CARD_LONG = {"Коментар":1,"Коментар клієнту":1,"М�
 let MODE_OPTIONS = ["фрахт","фрахт+ТЕО","фрахт+ТЕО+МО","фрахт+ТЕО+авто","фрахт+ТЕО+залізниця",
                     "ТЕО+авто","ТЕО+залізниця","авто","авіа","авіа+ТЕО","авіа+ТЕО+МО"];
 
+/* ===== журнал дій =====
+   Пише, хто, коли і що змінив. Таблиця «Журнал дій» (створює create_audit_table.py).
+   Якщо таблиці немає або запис не вдався — мовчки пропускаємо: журнал не має
+   ламати саму роботу. Вхід, правки й завантаження документів фіксуються. */
+async function logAction(action, obj, field, before, after){
+  const tid = T["Журнал дій"];
+  if (!tid) return;
+  try{
+    await api(`/api/v2/tables/${tid}/records`, {method:"POST", body: JSON.stringify([{
+      "Час": new Date().toISOString(),
+      "Користувач": (sessionStorage.getItem("email") || UNAME || "—"),
+      "Роль": ROLE || "—",
+      "Дія": action,
+      "Обʼєкт": obj == null ? "" : String(obj),
+      "Поле": field == null ? "" : String(field),
+      "Було": before == null ? "" : String(before).slice(0, 500),
+      "Стало": after == null ? "" : String(after).slice(0, 500),
+    }])});
+  }catch(e){ /* журнал не критичний */ }
+}
+
 async function saveField(row, col, val){
+  const before = row[col];
   await api(`/api/v2/tables/${T["Диспетчеризація"]}/records`, {method:"PATCH",
     body: JSON.stringify([{Id: row.Id, [col]: val}])});
   row[col] = val;
+  logAction("правка угоди", "Угода №" + (row["Угода"] || row.Id), col, before, val);
 }
 
 function cardVal(r, f){
@@ -1771,7 +1799,45 @@ PAGES.finance = async () => {
   $("rep-oper").addEventListener("click", ()=>renderOper());
   $("rep-period").addEventListener("click", ()=>renderPeriod());
   renderOper();
+  renderAudit();
 };
+
+/* журнал подій: останні 500 записів, фільтри по користувачу, дії й тексту */
+async function renderAudit(){
+  const tid = T["Журнал дій"];
+  if (!tid){ $("lg-note").textContent = "Журнал ще не створено."; return; }
+  let list = [];
+  try{
+    const js = await api(`/api/v2/tables/${tid}/records?limit=500&sort=-Час`);
+    list = js.list || [];
+  }catch(e){ $("lg-note").textContent = "Не вдалося прочитати журнал: " + e.message; return; }
+  const users = [...new Set(list.map(r=>String(r["Користувач"]||"").trim()).filter(Boolean))].sort();
+  const acts  = [...new Set(list.map(r=>String(r["Дія"]||"").trim()).filter(Boolean))].sort();
+  $("lg-user").innerHTML = '<option value="">Усі користувачі</option>' + users.map(u=>`<option>${esc(u)}</option>`).join("");
+  $("lg-act").innerHTML  = '<option value="">Усі дії</option>' + acts.map(a=>`<option>${esc(a)}</option>`).join("");
+  const when = v => { const d = new Date(v); return isNaN(d) ? String(v||"") :
+    d.toLocaleString("uk-UA",{day:"2-digit",month:"2-digit",year:"2-digit",hour:"2-digit",minute:"2-digit"}); };
+  const draw = () => {
+    const u = $("lg-user").value, a = $("lg-act").value, q = $("lg-q").value.toLowerCase();
+    const rows = list.filter(r =>
+      (!u || String(r["Користувач"]||"") === u) &&
+      (!a || String(r["Дія"]||"") === a) &&
+      (!q || [r["Обʼєкт"],r["Поле"],r["Було"],r["Стало"]].join(" ").toLowerCase().includes(q)));
+    $("lg-rows").innerHTML = rows.length ? rows.map(r=>`<tr>
+      <td class="mono">${esc(when(r["Час"]))}</td>
+      <td>${esc(r["Користувач"]||"—")}</td>
+      <td class="cell-muted">${esc(r["Роль"]||"")}</td>
+      <td>${esc(r["Дія"]||"")}</td>
+      <td class="mono">${esc(r["Обʼєкт"]||"")}</td>
+      <td>${esc(r["Поле"]||"")}</td>
+      <td class="cell-muted">${esc(r["Було"]||"")}</td>
+      <td><b>${esc(r["Стало"]||"")}</b></td></tr>`).join("")
+      : '<tr><td colspan="8" class="cell-muted">Записів немає.</td></tr>';
+    $("lg-note").textContent = `показано ${rows.length} з ${list.length} записів`;
+  };
+  ["lg-user","lg-act","lg-q"].forEach(id=>$(id).addEventListener(id==="lg-q"?"input":"change", draw));
+  draw();
+}
 
 const fmtN = (v, dec=0) => {
   const n = Number(v)||0;
@@ -2268,8 +2334,19 @@ PAGES.users = async () => {
         <tr><td><b>Логіст</b></td><td>диспетчеризація: авто, водій, статус, пункт перетину</td></tr>
         <tr><td><b>Перегляд</b></td><td>тільки перегляд, фінансові цифри приховані</td></tr>
       </tbody></table></div></div>
+    <div class="card"><h3>🗂 Журнал подій</h3>
+      <p class="sub">хто заходив і що змінював — за часом, від найсвіжішого</p>
+      <div class="filters" style="margin:10px 0 0">
+        <select id="lg-user"><option value="">Усі користувачі</option></select>
+        <select id="lg-act"><option value="">Усі дії</option></select>
+        <input id="lg-q" placeholder="пошук: угода, поле, значення…">
+      </div>
+      <div class="tablewrap scrollbox" style="max-height:420px"><table>
+        <thead><tr><th>Час</th><th>Користувач</th><th>Роль</th><th>Дія</th><th>Обʼєкт</th><th>Поле</th><th>Було</th><th>Стало</th></tr></thead>
+        <tbody id="lg-rows"></tbody></table></div>
+      <p class="sub" id="lg-note" style="margin-top:8px"></p></div>
     <div class="card"><h3>🔐 Інші налаштування</h3>
-      <p class="sub">тут зʼявляться доступи клієнтів до кабінету, сповіщення, довідники й журнал дій</p>
+      <p class="sub">тут зʼявляться доступи клієнтів до кабінету, сповіщення й довідники</p>
       <div class="note">🛠 Розділ наповнюється. Скажи, що винести сюди першим.</div></div>
     <div class="note">➕ Щоб додати користувача: 1) скажи Клоду — він створить акаунт для входу; 2) додай рядок з email, ім'ям і роллю в таблицю «Користувачі» (через службову базу). Зміна ролі — просто зміни значення в рядку.</div>`;
 };
