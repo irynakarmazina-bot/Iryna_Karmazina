@@ -1,7 +1,7 @@
 {
-  "stdout": "TRACK_URL: 1 | trackLink: 3\nUI 200\n",
+  "stdout": "гама: 1 | пароль: 1\nUI 200\nендпоінт зміни пароля: 401\n",
   "stderr": "",
   "returncode": 0,
-  "id": "deploy-links-0801",
-  "ts": "2026-08-01T10:43:15Z"
+  "id": "deploy-settings-0801",
+  "ts": "2026-08-01T10:45:27Z"
 }
