@@ -1,7 +1,7 @@
 {
-  "stdout": "«Вивіз (Carrier/Merchant)»: {'': 221, 'Carrier': 46}\nТип обладнання: {'': 267}\n",
+  "stdout": "версія: в. 01.08 15:23\n",
   "stderr": "",
   "returncode": 0,
-  "id": "vyviz-check",
-  "ts": "2026-08-01T15:21:55Z"
+  "id": "deploy-haulage",
+  "ts": "2026-08-01T15:23:10Z"
 }
