@@ -28,6 +28,7 @@ CLIENT_COLS = [
     "Угода", "Напрямок", "Вид перевезення", "Тип", "FCL/LCL", "Маршрут", "Лінія",
     "BL", "HBL", "Контейнер", "Судно", "Вояж", "Гейт ін", "ETD (план)", "ETD (факт)",
     "ETA", "ETA порт (план)", "ETA порт (факт)", "Вивантаження в порту (факт)",
+    "Порт перевалки", "Перевалка (прибуття)", "Перевалка (відправлення)",
     "Гейт аут", "Подача авто (план)", "Подача авто (факт)", "Статус",
     "Вантаж", "Кількість", "Файли",
 ]
@@ -249,6 +250,7 @@ const I = {
  crane:'<path d="M4.5 20.5V4h11"/><path d="M15 4v3.6"/><path d="M12.4 8h6.6v5h-6.6z"/>',
  train:'<path d="M6 4.5h12v10H6z"/><path d="M8.6 7.4h6.8v4H8.6z"/><circle cx="9" cy="17.6" r="1.6"/><circle cx="15" cy="17.6" r="1.6"/><path d="M3.5 21h17"/>',
  home: '<path d="M3.5 11 12 3.8l8.5 7.2v9.5h-17z"/><path d="M9.6 20.5v-5.4h4.8v5.4"/>',
+ swap: '<path d="M3.5 9.2h15.5"/><path d="M15.6 5.8 19 9.2l-3.4 3.4"/><path d="M20.5 15.2H5"/><path d="M8.4 11.8 5 15.2l3.4 3.4"/>',
 };
 const svg = k => `<svg viewBox="0 0 24 24" width="21" height="21" fill="none"
   stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${I[k]}</svg>`;
@@ -262,15 +264,28 @@ function steps(r){
   const eta  = s(r,"ETA порт (факт)") || s(r,"ETA"),   etaF = !!s(r,"ETA порт (факт)");
   const car  = s(r,"Подача авто (факт)") || s(r,"Подача авто (план)") || s(r,"Гейт аут");
   const carF = !!(s(r,"Подача авто (факт)") || s(r,"Гейт аут"));
-  return [
+  const out = [
    {t:"Букінг",                       i:"doc",             d:"",                     f:true,  p:""},
    {t:A?"Прийом на термінал":"Заїзд у порт", i:"truck",     d:s(r,"Гейт ін"),         f:true,  p:from},
    {t:A?"У повітрі":"На судні",       i:A?"plane":"ship",  d:etd,                    f:etdF,  p:s(r,"Судно")},
+  ];
+  // порт перевалки — лише для морських, і лише де він справді є
+  const tp = s(r,"Порт перевалки");
+  if (!A && tp){
+    const ta = s(r,"Перевалка (прибуття)"), td = s(r,"Перевалка (відправлення)");
+    let note = tp;
+    if (ta && td){
+      const dw = Math.round((new Date(td) - new Date(ta))/864e5);
+      if (dw >= 3) note += " · простій " + dw + " дн";
+    }
+    out.push({t:"Перевалка", i:"swap", d:ta, d2:td, f:true, p:note});
+  }
+  out.push(
    {t:A?"Прибуття в аеропорт":"Прибуття в порт", i:"port",  d:eta,                    f:etaF,  p:to},
    {t:"Вивантаження",                 i:"crane",           d:s(r,"Вивантаження в порту (факт)"), f:true, p:""},
    {t:R?"Завантажено на потяг":"Подача авто", i:R?"train":"truck", d:car,             f:carF,  p:""},
-   {t:"Доставлено",                   i:"home",            d:"",                     f:true,  p:""},
-  ];
+   {t:"Доставлено",                   i:"home",            d:"",                     f:true,  p:""});
+  return out;
 }
 
 function routeHtml(r){
@@ -279,7 +294,7 @@ function routeHtml(r){
   const delivered = done(r);
   let cur = -1;
   const state = st.map((x,idx)=>{
-    const ok = delivered || (x.f && past(x.d));
+    const ok = delivered || (x.f && past(x.d2 || x.d));
     return ok ? "done" : "todo";
   });
   if (delivered) { state[state.length-1] = "done"; }
@@ -291,7 +306,8 @@ function routeHtml(r){
       <div class="rail"></div>
       <div class="dot">${svg(x.i)}</div>
       <div class="ttl">${esc(x.t)}</div>
-      ${x.d ? `<div class="dt">${fmt(x.d)}</div>${x.f&&past(x.d)?"":'<div class="plan">план</div>'}`
+      ${x.d ? `<div class="dt">${fmt(x.d)}${x.d2?" → "+fmt(x.d2):""}</div>${
+                 x.f&&past(x.d2||x.d)?"":'<div class="plan">план</div>'}`
             : `<div class="dt dim">—</div>`}
       ${x.p ? `<div class="place">${esc(x.p)}</div>` : ""}
     </div>`).join("") + `</div></div>`;
@@ -309,6 +325,7 @@ function panel(r){
     ["Кількість",  s(r,"Кількість") || "—"],
     ["Тип",        [s(r,"Вид перевезення"), s(r,"FCL/LCL")].filter(Boolean).join(", ") || "—"],
   ];
+  if (s(r,"Порт перевалки")) kv.splice(4, 0, ["Перевалка", esc(s(r,"Порт перевалки"))]);
   const docs = (r._docs||[]);
   return `<div class="panel">
     <div class="pbar">

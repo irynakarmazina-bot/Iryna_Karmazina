@@ -58,6 +58,7 @@ READ_FIELDS = ["Id", "Угода", "BL", "Контейнер", "Контейне
                "Зміни ETA (історія)", "Звірка", "Лінія",
                "Гейт ін", "Гейт аут", "ETD (факт)", "ETD (план)",
                "Вивантаження в порту (факт)",
+               "Порт перевалки", "Перевалка (прибуття)", "Перевалка (відправлення)",
                "Остання зміна", "Останнє оновлення"]
 
 
@@ -297,6 +298,39 @@ def parse_events(events, row, today_iso, statuses=frozenset()):
             out["Судно"] = vessel
         if voyage:
             out["Вояж"] = voyage
+
+    # ── порт перевалки (вимога користувачки 01.08.2026, для схеми руху в кабінеті)
+    # Перевалка = кожне вивантаження з судна (DISC), після якого є нове завантаження
+    # (LOAD). Останній DISC — це порт призначення, він перевалкою не є.
+    # Дві дати важливі: різниця між ними — скільки контейнер простояв у перевалці
+    # (угода 106: Bremerhaven 02.03 → 26.03, тобто 24 дні).
+    sea_legs = []
+    for e in sorted(events, key=_dt):
+        tc = e.get("transportCall") or {}
+        if tc.get("modeOfTransport") != "VESSEL":
+            continue
+        code = e.get("transportEventTypeCode") or e.get("equipmentEventTypeCode") or ""
+        if code not in ("LOAD", "DISC"):
+            continue
+        sea_legs.append((code, _dt(e)[:10], (tc.get("location") or {}).get("locationName") or ""))
+    disc_idx = [i for i, l in enumerate(sea_legs) if l[0] == "DISC"]
+    if len(disc_idx) > 1:
+        ports, arr, dep = [], "", ""
+        for i in disc_idx[:-1]:                      # усі, крім порту призначення
+            if sea_legs[i][2] and sea_legs[i][2] not in ports:
+                ports.append(sea_legs[i][2])
+            if not arr:
+                arr = sea_legs[i][1]
+            nxt = next((sea_legs[j][1] for j in range(i + 1, len(sea_legs))
+                        if sea_legs[j][0] == "LOAD"), "")
+            if nxt:
+                dep = nxt
+        if ports:
+            out["Порт перевалки"] = " → ".join(ports)
+        if arr:
+            out["Перевалка (прибуття)"] = arr
+        if dep:
+            out["Перевалка (відправлення)"] = dep
 
     if eta_iso:
         if actual:
