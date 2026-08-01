@@ -1,1 +1,1 @@
-{"id": "run-all-10", "cmd": "sleep 112; grep -E \"Оновити угод|Зміни по колонках|MAERSK_OK|FAIL\" /root/run_all.log; pgrep -f \"maersk_track_sync.py --all\" >/dev/null && echo STILL_RUNNING || echo FINISHED"}
+{"id": "audit-after", "cmd": "python3 /root/audit_gaps.py 2>&1 | sed -n \"1,32p\""}
