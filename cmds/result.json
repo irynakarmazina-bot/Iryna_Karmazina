@@ -1,7 +1,7 @@
 {
-  "stdout": "1\n0\n199056 /root/unitex-os-www/index.html\n",
+  "stdout": "2\n1\n1\n===SYNC===\nСкасованих (в таблицю не вносимо і не оновлюємо): 1 — угоди 223\nЗаписів у платформі: 267\n",
   "stderr": "",
   "returncode": 0,
-  "id": "deploy-vid-reliz",
-  "ts": "2026-08-01T13:56:37Z"
+  "id": "verify-and-sync",
+  "ts": "2026-08-01T13:59:24Z"
 }
