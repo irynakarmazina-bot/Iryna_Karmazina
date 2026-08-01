@@ -480,7 +480,7 @@
 <div class="overlay" id="row-overlay">
   <div class="modal" style="max-width:640px;max-height:85vh;overflow-y:auto">
     <h3 id="row-title"></h3>
-    <p class="sub">повна картка угоди · дані живі з бази</p>
+    <p class="sub" id="row-hint">повна картка угоди · дані живі з бази</p>
     <div id="row-body"></div>
     <button class="btn ghost full" id="row-close" style="margin-top:12px">Закрити</button>
   </div>
@@ -1111,6 +1111,7 @@ PAGES.dispatch = async () => {
         ${ALERTS.map(a=>`<span class="abadge ${a.cls} clickable" data-q="${a.q}">${esc(a.nm)} <b>${a.n}</b></span>`).join("")}
         ${quick? `<span class="quickchip">Фільтр: ${esc(quick.label)} — ${quickCount}<button id="quick-clear" title="скинути фільтр">✕</button></span>`:""}
       </div>
+      ${CAN_EDIT? `<p class="sub" style="margin:8px 0 0">✏️ Клітинки з підсвіткою можна правити прямо тут: <b>клік</b> — редагувати, <b>Enter</b> — зберегти, <b>Esc</b> — скасувати. Клік по решті рядка відкриває картку угоди.</p>`:""}
       <div class="filters" style="margin-top:12px">
         <input id="q" placeholder="Пошук: угода, клієнт, BL, контейнер, судно…">
         <select id="dirf"><option value="">Імпорт + експорт</option><option>Імпорт</option><option>Експорт</option><option>Транзит</option></select>
@@ -1216,8 +1217,11 @@ PAGES.dispatch = async () => {
       </tr>`).join("") : `<tr><td colspan="13" class="cell-muted">Нічого не знайдено.</td></tr>`;
     $("drows").querySelectorAll("tr[data-id]").forEach(tr=>tr.addEventListener("click",()=>openRow(all.find(x=>String(x.Id)===tr.dataset.id))));
     // клік по редагованій клітинці — правка на місці, картка угоди при цьому не відкривається
-    if (CAN_EDIT) $("drows").querySelectorAll("td.ed[data-ed]").forEach(td=>
-      td.addEventListener("click", e=>{ e.stopPropagation(); editCell(td); }));
+    if (CAN_EDIT) $("drows").querySelectorAll("td.ed[data-ed]").forEach(td=>{
+      if (!td.title) td.title = "клік — редагувати «" + td.dataset.ed +
+        "», Enter — зберегти, Esc — скасувати";
+      td.addEventListener("click", e=>{ e.stopPropagation(); editCell(td); });
+    });
     // прокручуємо так, щоб доставлені пішли за шапку, а першим видимим був
     // найраніший ETA серед активних угод
     const box = $("dscroll");
@@ -1536,6 +1540,9 @@ function openRow(r){
   const groups = cfg().cols === "logist" ? LOGIST_GROUPS : CARD_GROUPS;
   const canEdit = !!cfg().edit;
   $("row-title").textContent = `Угода №${r["Угода"]} · ${r["Клієнт"]||""}`;
+  $("row-hint").innerHTML = canEdit
+    ? 'дані живі з бази · <b>клік по значенню</b> — редагувати, <b>Enter</b> — зберегти, <b>Esc</b> — скасувати · галочки перемикаються одним кліком · <span title="це поле веде Експедитор">🔒</span> — поле з Експедитора, правити не можна'
+    : "повна картка угоди · дані живі з бази";
   $("row-body").innerHTML = groups.map(([g,fields])=>{
     const items = fields.map(f=>{
       const locked = !canEdit || CARD_LOCKED[f];
