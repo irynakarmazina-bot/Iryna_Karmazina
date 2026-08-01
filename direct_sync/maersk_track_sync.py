@@ -262,7 +262,6 @@ def parse_events(events, row, today_iso, statuses=frozenset()):
         out["Звірка"] = ""          # розбіжність зникла — прибираємо стару позначку
 
     ves = sorted([e for e in events if (e.get("transportCall") or {}).get("modeOfTransport") == "VESSEL"], key=_dt)
-    last_ves = ves[-1] if ves else None
     arr = sorted([e for e in events if e.get("transportEventTypeCode") == "ARRI"
                   or e.get("equipmentEventTypeCode") == "ARRI"], key=_dt)
     last_arr = arr[-1] if arr else None
@@ -272,15 +271,20 @@ def parse_events(events, row, today_iso, statuses=frozenset()):
         eta_iso = _dt(last_arr)[:10]
         actual = last_arr.get("eventClassifierCode") == "ACT"
 
-    days = 999
-    if re.match(r"^\d{4}-\d{2}-\d{2}$", eta_iso):
-        d0 = datetime.date.fromisoformat(today_iso)
-        days = (datetime.date.fromisoformat(eta_iso) - d0).days
-    else:
+    if not re.match(r"^\d{4}-\d{2}-\d{2}$", eta_iso):
         eta_iso = ""
 
-    if last_ves and days <= 7:
-        tc = last_ves.get("transportCall") or {}
+    # Судно і вояж — БЕЗ обмеження за датою (вимога користувачки 01.08.2026
+    # «простав дати та назви судна скрізь»). Раніше стояло `days <= 7`, тобто
+    # назва писалась лише коли до прибуття лишалось не більше тижня; через це
+    # 104 угоди лишались без судна, хоча Maersk назву віддавав (перевірка на
+    # 25 угодах: 253 → MAERSK SARAT, 238 → MAERSK VIRGINIA, 23 → MAERSK EINDHOVEN).
+    # Беремо ОСТАННЄ судно, у якого назва справді є: last_ves могла бути подія
+    # без vesselName, і тоді не писалось нічого.
+    named_ves = [e for e in ves
+                 if ((e.get("transportCall") or {}).get("vessel") or {}).get("vesselName")]
+    if named_ves:
+        tc = named_ves[-1].get("transportCall") or {}
         vessel = (tc.get("vessel") or {}).get("vesselName") or ""
         voyage = tc.get("carrierVoyageNumber") or tc.get("exportVoyageNumber") or tc.get("importVoyageNumber") or ""
         if vessel:
