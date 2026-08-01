@@ -560,7 +560,7 @@
       <div class="spacer"></div>
       <!-- Позначка версії: по ній видно, чи браузер підтягнув свіжу сторінку.
            Оновлюється автоматично при кожному викладенні (scripts/stamp.sh). -->
-      <div class="buildstamp" id="buildstamp" title="версія сторінки — якщо не збігається з тим, що я назвала, натисни Ctrl+F5">в. 01.08 14:43</div>
+      <div class="buildstamp" id="buildstamp" title="версія сторінки — якщо не збігається з тим, що я назвала, натисни Ctrl+F5">в. 01.08 14:49</div>
     </nav>
     <div class="main">
       <div class="topbar">
@@ -1278,7 +1278,7 @@ PAGES.dispatch = async () => {
   const syncBtn = cfg().sync ? '<button class="btn" id="sync-btn">⟳ Оновити з Експедитора</button>' : "";
   const head = logist
     ? "<th>Угода</th><th>Клієнт</th><th>Контейнер</th><th>Статус</th><th>Номер авто</th><th>Водій</th><th>Телефон</th><th>Перетин кордону</th><th></th>"
-    : "<th>Угода</th><th></th><th>Клієнт</th><th>Маршрут</th><th>Вид / лінія</th><th class=\"c-bl\">Коносамент / контейнер</th><th class=\"c-ves\">Судно</th><th>Gate in</th><th>ETD</th><th>ETA</th><th>ETA dry port</th><th>Gate out delivery</th><th>Статус</th><th>Авто</th><th>Коментар</th><th>Реліз</th><th>Позначки</th><th></th>";
+    : "<th>Угода</th><th></th><th>Клієнт</th><th>Маршрут</th><th>Вид / лінія</th><th class=\"c-bl\">Коносамент / контейнер</th><th class=\"c-ves\">Судно</th><th>Gate in</th><th>ETD</th><th>ETA</th><th>ETA dry port</th><th>Gate out delivery</th><th>Статус</th><th>Авто</th><th>Коментар</th><th></th>";
   // ── активні алерти над таблицею
   const uniq = k => [...new Set(all.map(r=>_s(r,k)).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"uk"));
   const nActive = all.filter(r=>!_done(r)).length;
@@ -1319,19 +1319,24 @@ PAGES.dispatch = async () => {
           <!-- Сума до «Коментаря» включно = 1324 px: усе вміщається на екран
                ~1360 px без обрізання. Реліз, Позначки й документи навмисно
                за межею — їх видно лише при прокрутці вбік (01.08.2026). -->
-          <col style="width:52px"><col style="width:56px"><col style="width:90px"><col style="width:118px">
-          <col style="width:126px"><col style="width:166px"><col style="width:80px"><col style="width:76px">
-          <col style="width:76px"><col style="width:76px"><col style="width:76px"><col style="width:78px">
-          <col style="width:120px"><col style="width:80px"><col style="width:84px"><col style="width:48px">
-          <col style="width:64px"><col style="width:36px">
+          <!-- 16 колонок, разом ~1324 px: вміщається без бічної прокрутки.
+               Реліз і Позначки з таблиці прибрані зовсім — вони в картці угоди
+               (двічі просила прибрати їх з екрана, 01.08.2026). Дати по 84 px:
+               жирний 13 px «12.06.26» потребує ~72 px разом із відступами. -->
+          <col style="width:52px"><col style="width:56px"><col style="width:92px"><col style="width:112px">
+          <col style="width:120px"><col style="width:158px"><col style="width:82px"><col style="width:84px">
+          <col style="width:84px"><col style="width:84px"><col style="width:84px"><col style="width:84px">
+          <col style="width:116px"><col style="width:80px"><col><col style="width:36px">
         </colgroup>`}
         <thead><tr>${head}</tr></thead>
         <tbody id="drows"></tbody></table></div>
     </div>`;
   if (cfg().sync) $("page-actions").innerHTML = syncBtn;
   // ── редагування клітинки на місці: Enter/клік поза межами — зберегти, Esc — скасувати
-  /* Галочка прямо в таблиці (поки лише «Реліз»): один клік ставить або знімає.
-     Пишемо в базу одразу, у журнал — теж, як і при звичайній правці клітинки. */
+  /* Галочка прямо в таблиці одним кліком. Зараз у таблиці таких клітинок НЕМАЄ:
+     «Реліз» прибрано з екрана на прохання користувачки (01.08.2026) і він живе
+     в картці угоди. Механізм лишаємо — щоб повернути колонку, досить додати
+     клітинці class="tog" і data-tog="<назва поля>". */
   const toggleFlag = async (td) => {
     if (td.classList.contains("saving")) return;
     const tr = td.closest("tr[data-id]");
@@ -1476,12 +1481,8 @@ PAGES.dispatch = async () => {
             : (truckLate(r) ? '<span style="color:#d1453b;font-weight:700">немає</span>' : '<span class="cell-muted">—</span>')}${
             _s(r,"Номер авто") ? `<br><span class="cell-muted">${esc(r["Номер авто"])}</span>` : ""}</td>
         <td class="cell-muted c-com${ED}" data-ed="Коментар" title="${esc(r["Коментар"]||"")}">${esc(r["Коментар"]||"")}</td>
-        <td class="c-rel${CAN_EDIT?" tog":""}" data-tog="Реліз" title="${
-            CAN_EDIT?"клік — поставити або зняти «Реліз»":"Реліз"}">${
-            r["Реліз"] ? '<span class="flag on">✓</span>' : '<span class="cell-muted">—</span>'}</td>
-        <td>${FLAGS.filter(f=>f!=="Реліз"&&r[f]).map(f=>`<span class="flag on">${f} ✓</span>`).join("")||'<span class="cell-muted">—</span>'}</td>
         <td>${docBtn(r)}</td>
-      </tr>`).join("") : `<tr><td colspan="18" class="cell-muted">Нічого не знайдено.</td></tr>`;
+      </tr>`).join("") : `<tr><td colspan="16" class="cell-muted">Нічого не знайдено.</td></tr>`;
     $("drows").querySelectorAll("tr[data-id]").forEach(tr=>tr.addEventListener("click",()=>openRow(all.find(x=>String(x.Id)===tr.dataset.id))));
     // клік по номеру відкриває трекінг лінії, а не картку угоди
     $("drows").querySelectorAll("a.tl").forEach(a=>a.addEventListener("click", e=>e.stopPropagation()));
