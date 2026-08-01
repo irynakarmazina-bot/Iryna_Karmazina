@@ -383,6 +383,10 @@
   /* BL і кожен контейнер — окремим рядком; сам номер НЕ розривається,
      якщо не влазить — три крапки (вимога користувачки 01.08.2026) */
   .dispscroll table.fixw td.c-bl{white-space:normal;word-break:normal;line-height:1.35}
+  /* Дата виводиться жирним 13 px: «12.06.26» займає ~78 px. Через це вона
+     обрізалась навіть у 84-піксельній колонці. Даємо колонкам 94 px і
+     звужуємо відступи саме в них (01.08.2026). */
+  .dispscroll table.fixw td.dt,.dispscroll table.fixw th.dt{padding-left:6px;padding-right:6px}
   td.c-bl .ln{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   a.tl{color:var(--accent);text-decoration:none;border-bottom:1px dashed rgba(37,99,235,.4)}
   a.tl:hover{border-bottom-style:solid}
@@ -560,7 +564,7 @@
       <div class="spacer"></div>
       <!-- Позначка версії: по ній видно, чи браузер підтягнув свіжу сторінку.
            Оновлюється автоматично при кожному викладенні (scripts/stamp.sh). -->
-      <div class="buildstamp" id="buildstamp" title="версія сторінки — якщо не збігається з тим, що я назвала, натисни Ctrl+F5">в. 01.08 14:49</div>
+      <div class="buildstamp" id="buildstamp" title="версія сторінки — якщо не збігається з тим, що я назвала, натисни Ctrl+F5">в. 01.08 14:52</div>
     </nav>
     <div class="main">
       <div class="topbar">
@@ -1278,7 +1282,7 @@ PAGES.dispatch = async () => {
   const syncBtn = cfg().sync ? '<button class="btn" id="sync-btn">⟳ Оновити з Експедитора</button>' : "";
   const head = logist
     ? "<th>Угода</th><th>Клієнт</th><th>Контейнер</th><th>Статус</th><th>Номер авто</th><th>Водій</th><th>Телефон</th><th>Перетин кордону</th><th></th>"
-    : "<th>Угода</th><th></th><th>Клієнт</th><th>Маршрут</th><th>Вид / лінія</th><th class=\"c-bl\">Коносамент / контейнер</th><th class=\"c-ves\">Судно</th><th>Gate in</th><th>ETD</th><th>ETA</th><th>ETA dry port</th><th>Gate out delivery</th><th>Статус</th><th>Авто</th><th>Коментар</th><th></th>";
+    : "<th>Угода</th><th></th><th>Клієнт</th><th>Маршрут</th><th>Вид / лінія</th><th class=\"c-bl\">Коносамент /<br>контейнер</th><th class=\"c-ves\">Судно</th><th class=\"dt\">Gate in</th><th class=\"dt\">ETD POL</th><th class=\"dt\">ETA POD</th><th class=\"dt\">ETA dry port</th><th class=\"dt\">Gate out delivery</th><th>Статус</th><th>Авто</th><th>Коментар</th><th></th>";
   // ── активні алерти над таблицею
   const uniq = k => [...new Set(all.map(r=>_s(r,k)).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"uk"));
   const nActive = all.filter(r=>!_done(r)).length;
@@ -1323,10 +1327,10 @@ PAGES.dispatch = async () => {
                Реліз і Позначки з таблиці прибрані зовсім — вони в картці угоди
                (двічі просила прибрати їх з екрана, 01.08.2026). Дати по 84 px:
                жирний 13 px «12.06.26» потребує ~72 px разом із відступами. -->
-          <col style="width:52px"><col style="width:56px"><col style="width:92px"><col style="width:112px">
-          <col style="width:120px"><col style="width:158px"><col style="width:82px"><col style="width:84px">
-          <col style="width:84px"><col style="width:84px"><col style="width:84px"><col style="width:84px">
-          <col style="width:116px"><col style="width:80px"><col><col style="width:36px">
+          <col style="width:50px"><col style="width:54px"><col style="width:88px"><col style="width:108px">
+          <col style="width:116px"><col style="width:132px"><col style="width:78px"><col style="width:94px">
+          <col style="width:94px"><col style="width:94px"><col style="width:94px"><col style="width:94px">
+          <col style="width:112px"><col style="width:78px"><col><col style="width:36px">
         </colgroup>`}
         <thead><tr>${head}</tr></thead>
         <tbody id="drows"></tbody></table></div>
@@ -1463,17 +1467,17 @@ PAGES.dispatch = async () => {
                 .map(c=>c.trim()).filter(Boolean)
                 .map(c=>`<span class="ln">${trackLink(r, c, "cell-muted")}</span>`).join("")}`}</td>
         <td class="c-ves${ED}" data-ed="Судно">${esc(r["Судно"]||"—")}</td>
-        <td class="mono${ED}" data-ed="Гейт ін">${dateB(r["Гейт ін"])}</td>
-        <td class="mono${ED}" data-ed="ETD (факт)">${etdOf(r)
+        <td class="mono dt${ED}" data-ed="Гейт ін">${dateB(r["Гейт ін"])}</td>
+        <td class="mono dt${ED}" data-ed="ETD (факт)">${etdOf(r)
             ? `${dateB(etdOf(r))}${_s(r,"ETD (факт)")?"":'<br><span class="cell-muted">план</span>'}`
             : '<span class="cell-muted">—</span>'}</td>
-        <td class="mono${ED}" data-ed="ETA">${dateB(r["ETA"])}</td>
-        <td class="mono${ED}" data-ed="ETA сухий порт" title="${
+        <td class="mono dt${ED}" data-ed="ETA">${dateB(r["ETA"])}</td>
+        <td class="mono dt${ED}" data-ed="ETA сухий порт" title="${
             isRail(r) ? "ETA сухий порт" : "сухий порт буває лише на залізничних перевезеннях"}">${
             _s(r,"ETA сухий порт") ? dateB(r["ETA сухий порт"])
               : (isRail(r) ? '<span class="cell-muted">—</span>'
                            : '<span class="cell-muted">—</span>')}</td>
-        <td class="mono${ED}" data-ed="Gate out for delivery" title="виїзд із сухого порту на авто — послуга «остання миля»">${
+        <td class="mono dt${ED}" data-ed="Gate out for delivery" title="виїзд із сухого порту на авто — послуга «остання миля»">${
             dateB(r["Gate out for delivery"])}</td>
         <td class="${ED.trim()}" data-ed="Статус">${stPill(r["Статус"])}</td>
         <td class="mono${ED}" data-ed="Подача авто (факт)" title="дата подачі авто">${truckDate(r)
