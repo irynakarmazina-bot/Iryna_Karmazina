@@ -667,7 +667,15 @@ async function enter(){
     (meta.list||[]).forEach(t=>{ T[t.title] = t.id; });
     if (T["Користувачі"]){
       const u = await api(`/api/v2/tables/${T["Користувачі"]}/records?limit=100`);
-      const me = (u.list||[]).find(x=>String(x["Email"]||"").toLowerCase() === em && x["Активний"] !== false);
+      const rec = (u.list||[]).find(x=>String(x["Email"]||"").toLowerCase() === em);
+      if (rec && rec["Активний"] === false){
+        // доступ заблоковано адміністратором — не пускаємо взагалі, а не «тільки перегляд»
+        doLogout();
+        $("login-err").textContent = "Доступ заблоковано. Зверніться до адміністратора.";
+        $("login-err").style.display = "block";
+        return;
+      }
+      const me = rec;
       if (me){
         ROLE = me["Роль"] || "Перегляд";
         // UNAME — тільки імʼя: по ньому зіставляється поле «Менеджер» в угодах.
@@ -877,6 +885,9 @@ const STATUS_MOVED = {"Стафіровка":1,"В порту відправле
   "В морі":1,"Вивантажений в порту прибуття":1,"Завантажений на потяг":1,
   "Завантажений на авто":1,"Вантаж доставлено":1};
 const stageStale = r => _s(r,"Етап (Експедитор)") === "Букинг" && !!STATUS_MOVED[_s(r,"Статус")];
+/* Експорт: дата заїзду в порт (Gate in) має стояти ОДРАЗУ після розміщення букінгу —
+   по ній планують заїзд контейнера (вимога користувачки 01.08.2026). */
+const gateInMissing = r => _s(r,"Напрямок") === "Експорт" && !isDone(r) && !_s(r,"Гейт ін");
 let toastTimer=null;
 function toast(m){ const t=$("toast"); t.textContent=m; t.style.display="block"; clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.style.display="none",4000); }
 
@@ -962,6 +973,8 @@ PAGES.dashboard = async () => {
   const ISSUES = [
     {q:"trucklate", crit:true, nm:"Імпорт у порту, а авто не подане понад 2 дні", n: rows.filter(truckLate).length,
      sub:"немає ні дати подачі авто, ні номера — вантаж стоїть, капає зберігання"},
+    {q:"nogatein", crit:true, nm:"Експорт без дати заїзду в порт (Gate in)", n: rows.filter(gateInMissing).length,
+     sub:"дата має стояти одразу після букінгу — по ній планують заїзд контейнера"},
     {q:"stagestale", crit:true, nm:"Менеджер не оновив угоду в Експедиторі", n: rows.filter(stageStale).length,
      sub: (()=>{ const m=[...new Set(rows.filter(stageStale).map(r=>_s(r,"Менеджер")).filter(Boolean))];
        return "вантаж уже їде, а етап досі «Букинг»" + (m.length? " · " + m.join(", ") : ""); })()},
@@ -1138,6 +1151,7 @@ PAGES.dispatch = async () => {
       return !!u && (_today-u)/86400000 > 7; }},
     trucklate:{label:"імпорт у порту без авто понад 2 дні", test:truckLate},
     stagestale:{label:"менеджер не оновив етап в Експедиторі", test:stageStale},
+    nogatein:{label:"експорт без дати заїзду в порт", test:gateInMissing},
   };
   // «st:<назва>» — клік по рядку статусу на дашборді; порожня назва = без статусу
   let quick = QUICK[DISP_QUICK] || null;
@@ -1166,6 +1180,7 @@ PAGES.dispatch = async () => {
   const ALERTS = [
     {q:"trucklate", cls:"a-red",   nm:"Імпорт у порту без авто >2 дн", n: all.filter(truckLate).length},
     {q:"stagestale",cls:"a-red",   nm:"Менеджер не оновив етап",         n: all.filter(stageStale).length},
+    {q:"nogatein",  cls:"a-red",   nm:"Експорт без Gate in",             n: all.filter(gateInMissing).length},
     {q:"inport",    cls:"a-amber", nm:"Стоять у порту",                n: all.filter(inPort).length},
     {q:"overdue",   cls:"a-amber", nm:"ETA минула",                    n: all.filter(QUICK.overdue.test).length},
     {q:"nostatus",  cls:"a-amber", nm:"Без статусу",                   n: all.filter(r=>!_s(r,"Статус")).length},
@@ -1265,9 +1280,10 @@ PAGES.dispatch = async () => {
         <td class="mono${ED}" data-ed="Перетин кордону (факт)">${dateB(r["Перетин кордону (факт)"])}</td>
         <td>${docBtn(r)}</td>
       </tr>` : `
-      <tr data-id="${r.Id}" class="${r["Статус"]==='Вантаж доставлено'?'done':''} ${truckLate(r)?'alertrow':(stageStale(r)?'warnrow':'')}" style="cursor:pointer"
+      <tr data-id="${r.Id}" class="${r["Статус"]==='Вантаж доставлено'?'done':''} ${truckLate(r)?'alertrow':((stageStale(r)||gateInMissing(r))?'warnrow':'')}" style="cursor:pointer"
           ${truckLate(r)?`title="Імпорт у порту ${daysIn(r)} дн, авто не подане і номера немає"`
-            :(stageStale(r)?`title="Статус «${esc(_s(r,"Статус"))}», а етап в Експедиторі досі «Букинг» — менеджер не вніс зміни"`:"")}>
+            :(stageStale(r)?`title="Статус «${esc(_s(r,"Статус"))}», а етап в Експедиторі досі «Букинг» — менеджер не вніс зміни"`
+              :(gateInMissing(r)?'title="Експорт без дати заїзду в порт — її ставлять одразу після букінгу"':""))}>
         <td class="mono"><b>${esc(r["Угода"])}</b></td>
         <td>${r["Напрямок"]?`<span class="dirchip ${r["Напрямок"]==="Імпорт"?"imp":"exp"}">${r["Напрямок"]==="Імпорт"?"ІМП":(r["Напрямок"]==="Експорт"?"ЕКС":"ТРН")}</span>`:""}</td>
         <td>${esc(r["Клієнт"]||"—")}</td>
@@ -1799,8 +1815,56 @@ PAGES.finance = async () => {
   $("rep-oper").addEventListener("click", ()=>renderOper());
   $("rep-period").addEventListener("click", ()=>renderPeriod());
   renderOper();
-  renderAudit();
+  if (isAdmin){ renderAudit(); bindUserEdit(rows); }
 };
+
+/* адмін править користувачів: імʼя, прізвище, роль, доступ */
+function bindUserEdit(rows){
+  const ROLE_LIST = Object.keys(RC);
+  $("us-rows").querySelectorAll("td.ed[data-uf]").forEach(td=>td.addEventListener("click", async ()=>{
+    if (td.querySelector(".edinput")) return;
+    const f = td.dataset.uf;
+    const u = rows.find(x=>String(x.Id) === td.closest("tr").dataset.uid);
+    if (!u) return;
+    const save = async (val, html) => {
+      const keep = td.innerHTML;
+      td.innerHTML = '<span class="cell-muted">…</span>';
+      try{
+        await api(`/api/v2/tables/${T["Користувачі"]}/records`, {method:"PATCH",
+          body: JSON.stringify([{Id: u.Id, [f]: val}])});
+        logAction("зміна користувача", u["Email"] || u.Id, f, u[f], val);
+        u[f] = val; td.innerHTML = html;
+        toast(`✅ ${u["Email"]||""}: ${f} — ${val === false ? "заблоковано" : (val || "очищено")}`);
+      }catch(e){ td.innerHTML = keep; toast("⚠ Не збереглось: " + e.message); }
+    };
+    if (f === "Активний"){
+      const nv = u["Активний"] === false;
+      return save(nv, nv ? '<span class="pill t-good">активний</span>'
+                         : '<span class="pill t-crit">заблоковано</span>');
+    }
+    const cur = String(u[f] || "");
+    const keep = td.innerHTML;
+    td.innerHTML = f === "Роль"
+      ? `<select class="edinput">${ROLE_LIST.map(o=>`<option${o===cur?" selected":""}>${esc(o)}</option>`).join("")}</select>`
+      : `<input class="edinput" type="text" value="${esc(cur)}">`;
+    const inp = td.querySelector(".edinput");
+    inp.focus();
+    let closed = false;
+    const finish = (ok) => {
+      if (closed) return; closed = true;
+      const v = String(inp.value || "").trim();
+      if (!ok || v === cur){ td.innerHTML = keep; return; }
+      save(v, f === "Роль" ? `<span class="role-badge">${esc(v)}</span>`
+                           : (f === "Ім'я" ? `<b>${esc(v)}</b>` : esc(v)));
+    };
+    inp.addEventListener("blur", ()=>finish(true));
+    inp.addEventListener("keydown", e=>{
+      if (e.key === "Enter"){ e.preventDefault(); finish(true); }
+      if (e.key === "Escape"){ e.preventDefault(); finish(false); }
+    });
+    if (f === "Роль") inp.addEventListener("change", ()=>finish(true));
+  }));
+}
 
 /* журнал подій: останні 500 записів, фільтри по користувачу, дії й тексту */
 async function renderAudit(){
@@ -2316,14 +2380,25 @@ PAGES.instr = async () => {
 
 PAGES.users = async () => {
   const rows = await loadAll(T["Користувачі"]);
+  const isAdmin = ROLE === "Адміністратор";
+  const UED = isAdmin ? " ed" : "";
   $("content").innerHTML = `
     <div class="card"><h3>👥 Користувачі</h3>
-      <p class="sub">роль визначає, що людина бачить у платформі</p>
+      <p class="sub">роль визначає, що людина бачить у платформі${isAdmin
+        ? ' · <b>клік по значенню</b> — змінити, <b>Enter</b> — зберегти, <b>Esc</b> — скасувати' : ""}</p>
       <div class="tablewrap"><table>
-        <thead><tr><th>Ім'я та прізвище</th><th>Email</th><th>Роль</th><th>Активний</th></tr></thead>
-        <tbody>${rows.map(u=>`<tr><td><b>${esc([u["Ім'я"],u["Прізвище"]].filter(Boolean).join(" ")||"—")}</b></td><td>${esc(u["Email"]||"—")}</td>
-          <td><span class="role-badge">${esc(u["Роль"]||"—")}</span></td><td>${u["Активний"]?'✓':'—'}</td></tr>`).join("")}</tbody>
-      </table></div></div>
+        <thead><tr><th>Ім'я</th><th>Прізвище</th><th>Email</th><th>Роль</th><th>Доступ</th></tr></thead>
+        <tbody id="us-rows">${rows.map(u=>`<tr data-uid="${u.Id}">
+          <td class="${UED.trim()}" data-uf="Ім'я"><b>${esc(u["Ім'я"]||"—")}</b></td>
+          <td class="${UED.trim()}" data-uf="Прізвище">${esc(u["Прізвище"]||"—")}</td>
+          <td class="mono">${esc(u["Email"]||"—")}</td>
+          <td class="${UED.trim()}" data-uf="Роль"><span class="role-badge">${esc(u["Роль"]||"—")}</span></td>
+          <td class="${UED.trim()}" data-uf="Активний">${u["Активний"]===false
+            ? '<span class="pill t-crit">заблоковано</span>' : '<span class="pill t-good">активний</span>'}</td>
+        </tr>`).join("")}</tbody>
+      </table></div>
+      ${isAdmin ? '<p class="sub" style="margin-top:8px">Щоб заблокувати людину — клікни «активний». Заблокований у платформу не заходить взагалі.</p>' : ""}
+    </div>
     <div class="card"><h3>Ролі (довідка)</h3>
       <div class="tablewrap"><table><tbody>
         <tr><td><b>Адміністратор</b></td><td>повний доступ до всього</td></tr>
@@ -2334,7 +2409,7 @@ PAGES.users = async () => {
         <tr><td><b>Логіст</b></td><td>диспетчеризація: авто, водій, статус, пункт перетину</td></tr>
         <tr><td><b>Перегляд</b></td><td>тільки перегляд, фінансові цифри приховані</td></tr>
       </tbody></table></div></div>
-    <div class="card"><h3>🗂 Журнал подій</h3>
+    ${isAdmin ? `<div class="card"><h3>🗂 Журнал подій</h3>
       <p class="sub">хто заходив і що змінював — за часом, від найсвіжішого</p>
       <div class="filters" style="margin:10px 0 0">
         <select id="lg-user"><option value="">Усі користувачі</option></select>
@@ -2344,7 +2419,8 @@ PAGES.users = async () => {
       <div class="tablewrap scrollbox" style="max-height:420px"><table>
         <thead><tr><th>Час</th><th>Користувач</th><th>Роль</th><th>Дія</th><th>Обʼєкт</th><th>Поле</th><th>Було</th><th>Стало</th></tr></thead>
         <tbody id="lg-rows"></tbody></table></div>
-      <p class="sub" id="lg-note" style="margin-top:8px"></p></div>
+      <p class="sub" id="lg-note" style="margin-top:8px"></p>
+      <div class="note">🔒 Журнал доступний лише адміністратору й нічого в ньому змінити не можна — він фіксує все.</div></div>` : ""}
     <div class="card"><h3>🔐 Інші налаштування</h3>
       <p class="sub">тут зʼявляться доступи клієнтів до кабінету, сповіщення й довідники</p>
       <div class="note">🛠 Розділ наповнюється. Скажи, що винести сюди першим.</div></div>
