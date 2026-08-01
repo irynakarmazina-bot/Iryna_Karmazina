@@ -399,12 +399,19 @@
      бурштиновий — розбіжність із Експедитором (це неточність у даних, не аварія) */
 /* Легенда підсвітки рядків — квадратики беруть ТІ САМІ кольори, що й рядки,
    щоб підказка збігалася з тим, що видно в таблиці (прохання користувачки 01.08.2026). */
-  .legend{display:flex;flex-wrap:wrap;gap:6px 16px;margin:8px 0 0;align-items:center}
-  .legend .lg{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;white-space:nowrap}
-  .legend .sw{width:11px;height:11px;border-radius:3px;border:1px solid var(--line);flex:none}
-  .legend .sw-red{background:#fdeeee;box-shadow:inset 3px 0 0 #d1453b}
-  .legend .sw-amber{background:#fff8ec;box-shadow:inset 3px 0 0 #e6a817}
-  .legend .sw-done{background:var(--surface-2)}
+/* Підказка про підсвітку рядків не висить над таблицею постійно (вона з'їдала
+   рядок і все одно не читалась) — відкривається кнопкою «?» у смузі алертів. */
+  .hbtn{width:20px;height:20px;border-radius:50%;border:1px solid var(--line);
+    background:var(--surface);color:var(--ink-2);font-size:12px;font-weight:700;
+    cursor:pointer;flex:none;line-height:1;padding:0}
+  .hbtn:hover{border-color:#b9c2d0;background:var(--surface-2)}
+  .helppop{margin:10px 0 0;padding:10px 14px;border:1px solid var(--line);
+    border-radius:10px;background:var(--surface-2);display:flex;flex-direction:column;gap:6px}
+  .helppop .lg{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--ink-2)}
+  .helppop .sw{width:12px;height:12px;border-radius:3px;border:1px solid var(--line);flex:none}
+  .helppop .sw-red{background:#fdeeee;box-shadow:inset 3px 0 0 #d1453b}
+  .helppop .sw-amber{background:#fff8ec;box-shadow:inset 3px 0 0 #e6a817}
+  .helppop .sw-done{background:var(--surface-2)}
   tr.alertrow td{background:#fdeeee}
   tr.alertrow td:first-child{box-shadow:inset 3px 0 0 #d1453b}
   tr.warnrow td{background:#fff8ec}
@@ -536,7 +543,7 @@
       <div class="spacer"></div>
       <!-- Позначка версії: по ній видно, чи браузер підтягнув свіжу сторінку.
            Оновлюється автоматично при кожному викладенні (scripts/stamp.sh). -->
-      <div class="buildstamp" id="buildstamp" title="версія сторінки — якщо не збігається з тим, що я назвала, натисни Ctrl+F5">в. 01.08 14:23</div>
+      <div class="buildstamp" id="buildstamp" title="версія сторінки — якщо не збігається з тим, що я назвала, натисни Ctrl+F5">в. 01.08 14:25</div>
     </nav>
     <div class="main">
       <div class="topbar">
@@ -1272,17 +1279,20 @@ PAGES.dispatch = async () => {
         <span class="abadge">Активних <b>${nActive}</b><span class="cell-muted" style="font-size:11px">з ${all.length}</span></span>
         ${ALERTS.map(a=>`<span class="abadge ${a.cls} clickable" data-q="${a.q}">${esc(a.nm)} <b>${a.n}</b></span>`).join("")}
         ${quick? `<span class="quickchip">Фільтр: ${esc(quick.label)} — ${quickCount}<button id="quick-clear" title="скинути фільтр">✕</button></span>`:""}
+        <button class="hbtn" id="help-btn" title="що означає підсвітка рядків">?</button>
       </div>
-      <p class="sub legend">
-        <span class="lg"><i class="sw sw-red"></i>імпорт стоїть у порту 2+ дні, авто не подане</span>
-        <span class="lg"><i class="sw sw-amber"></i>етап в Експедиторі не оновлено або експорт без Gate in</span>
-        <span class="lg"><i class="sw sw-done"></i>доставлено</span>
-        ${CAN_EDIT? `<span class="lg">✏️ клік по підсвіченій клітинці — правка (<b>Enter</b> зберегти, <b>Esc</b> скасувати), клік по рядку — картка угоди</span>`:""}
-      </p>
+      <div class="helppop" id="helppop" hidden>
+        <div class="lg"><i class="sw sw-red"></i>рядок червоний — імпорт стоїть у порту 2+ дні, авто не подане і номера немає</div>
+        <div class="lg"><i class="sw sw-amber"></i>рядок бурштиновий — етап в Експедиторі не оновлено або експорт без дати Gate in</div>
+        <div class="lg"><i class="sw sw-done"></i>рядок сірий — вантаж доставлено, такі угоди згорнуті вгорі списку</div>
+        ${CAN_EDIT? `<div class="lg">✏️ клік по підсвіченій клітинці — правка (<b>Enter</b> зберегти, <b>Esc</b> скасувати); клік по решті рядка — картка угоди</div>`:""}
+      </div>
       <div class="filters" style="margin-top:12px">
         <input id="q" placeholder="Пошук: угода, клієнт, BL, контейнер, судно…">
         <select id="dirf"><option value="">Імпорт + експорт</option><option>Імпорт</option><option>Експорт</option><option>Транзит</option></select>
         <select id="stf"><option value="">Усі статуси</option>${Object.keys(STATUSES).map(s=>`<option>${s}</option>`).join("")}</select>
+        <select id="modef"><option value="">Усі види перевезення</option>${
+          uniq("Вид перевезення").map(c=>`<option>${esc(c)}</option>`).join("")}</select>
         <select id="linef"><option value="">Усі лінії</option><option>Maersk</option><option>MSC</option><option>CMA CGM</option><option>Інша</option></select>
         <select id="clif"><option value="">Усі клієнти</option>${uniq("Клієнт").map(c=>`<option>${esc(c)}</option>`).join("")}</select>
         <select id="manf"><option value="">Усі менеджери</option>${uniq("Менеджер").map(c=>`<option>${esc(c)}</option>`).join("")}</select>
@@ -1384,12 +1394,13 @@ PAGES.dispatch = async () => {
   const draw = () => {
     const q=$("q").value.toLowerCase(), st=$("stf").value;
     const dir=$("dirf").value, line=$("linef").value, cli=$("clif").value;
-    const man=$("manf").value, opm=$("opmf").value;
+    const man=$("manf").value, opm=$("opmf").value, mode=$("modef").value;
     const list = all.filter(r =>
       (!quick || quick.test(r)) &&
       (!st || r["Статус"]===st) &&
       (!dir || r["Напрямок"]===dir) && (!line || r["Лінія"]===line) && (!cli || _s(r,"Клієнт")===cli) &&
       (!man || _s(r,"Менеджер")===man) && (!opm || _s(r,"Оп. менеджер")===opm) &&
+      (!mode || _s(r,"Вид перевезення")===mode) &&
       (!q || [r["Угода"],r["Клієнт"],r["BL"],r["HBL"],r["Контейнер"],r["Судно"],r["Номер авто"],r["Водій (ПІБ)"]].join(" ").toLowerCase().includes(q)));
     $("drows").innerHTML = list.length ? list.map(r=> logist ? `
       <tr data-id="${r.Id}" class="${r["Статус"]==='Вантаж доставлено'?'done':''}" style="cursor:pointer">
@@ -1471,12 +1482,18 @@ PAGES.dispatch = async () => {
     }
     $("drows").querySelectorAll(".docs-btn").forEach(b=>b.addEventListener("click",(e)=>{ e.stopPropagation(); openDocs(all.find(x=>String(x.Id)===b.dataset.doc)); }));
   };
-  ["q","dirf","stf","linef","clif","manf","opmf"].forEach(id=>$(id).addEventListener(id==="q"?"input":"change",draw));
+  ["q","dirf","stf","modef","linef","clif","manf","opmf"].forEach(id=>$(id).addEventListener(id==="q"?"input":"change",draw));
   $("content").querySelectorAll(".abadge[data-q]").forEach(b=>b.addEventListener("click",()=>{
     DISP_QUICK = (DISP_QUICK === b.dataset.q) ? null : b.dataset.q; go("dispatch");
   }));
   const qc = $("quick-clear");
   if (qc) qc.addEventListener("click",()=>{ DISP_QUICK=null; go("dispatch"); });
+  const hb = $("help-btn");
+  if (hb) hb.addEventListener("click", ()=>{
+    const box = $("helppop");
+    box.hidden = !box.hidden;
+    fitDispScroll();                 // висота таблиці підлаштовується під підказку
+  });
   draw();
   const sb = $("sync-btn");
   if (sb) sb.addEventListener("click", async ()=>{
@@ -1768,8 +1785,8 @@ $("gen-btn").addEventListener("click", async ()=>{
 
 const CARD_GROUPS = [
   ["Основне", ["Угода","Напрямок","Клієнт","Лінія","Вид перевезення","FCL/LCL","Тип","Перевізник","Агент","Маршрут","HBL","BL","Контейнер","Вантаж","Тип обладнання","Кількість","Вивіз (Carrier/Merchant)","Сухий порт","Адреса розмитнення"]],
-  ["Море", ["Судно","Вояж","Контейнер (лінія)","Звірка","Статус","Етап (Експедитор)","ETA","ETD (план)","ETD (факт)","ETA порт (план)","ETA порт (факт)","Зміни ETA (історія)","Остання зміна","Останнє оновлення"]],
-  ["Дати на землі", ["Подача авто (план)","Подача авто (факт)","Port Cut Off","Гейт ін","Вивантаження в порту (факт)","Постановка/завантаження (план)","Постановка/завантаження (факт)","Перетин кордону (факт)","Планова до клієнта (план)","Планова до клієнта (факт)","Вивантаження у отримувача (факт)"]],
+  ["Море", ["Судно","Вояж","Контейнер (лінія)","Звірка","Статус","Етап (Експедитор)","ETA","ETD (план)","ETD (факт)","ETA порт (план)","ETA порт (факт)","Порт перевалки","Перевалка (прибуття)","Перевалка (відправлення)","Зміни ETA (історія)","Остання зміна","Останнє оновлення"]],
+  ["Дати на землі", ["Подача авто (план)","Подача авто (факт)","Port Cut Off","Гейт ін","Вивантаження в порту (факт)","Гейт аут","ETA сухий порт","Постановка/завантаження (план)","Постановка/завантаження (факт)","Перетин кордону (факт)","Планова до клієнта (план)","Планова до клієнта (факт)","Вивантаження у отримувача (факт)"]],
   ["Авто і документи", ["Номер авто","Номер ЦМР","Водій (ПІБ)","Водій (телефон)","Телекс","Т1","ДО","Документи","SI","Замитнення","Реліз"]],
   ["Команда і коментарі", ["Менеджер","Оп. менеджер","Лист (джерело)","Нагадування","Коментар","Коментар клієнту"]],
 ];
