@@ -368,8 +368,10 @@
   /* Підпис перед номером: HBL — домашній коносамент, BL — лінійний.
      Без нього після об'єднання колонок їх було не відрізнити (питання
      користувачки 01.08.2026 «а куди подівся дом конос?»). */
-  .blt{display:inline-block;min-width:26px;font-style:normal;font-size:9.5px;
-    text-transform:uppercase;letter-spacing:.03em;color:var(--muted);margin-right:4px}
+  /* Без min-width: інакше коротке «BL» доповнювалось до ширини «HBL» і між
+     підписом та номером зяяв пробіл на пів сантиметра (01.08.2026). */
+  .blt{font-style:normal;font-size:9.5px;text-transform:uppercase;
+    letter-spacing:.03em;color:var(--muted);margin-right:5px}
   .buildstamp{font-size:10.5px;color:var(--muted);padding:6px 14px 10px;letter-spacing:.02em}
   /* Назва клієнта переноситься на два рядки, а не розтягує колонку
      (прохання користувачки 01.08.2026). Обрізання по висоті не робимо —
@@ -558,7 +560,7 @@
       <div class="spacer"></div>
       <!-- Позначка версії: по ній видно, чи браузер підтягнув свіжу сторінку.
            Оновлюється автоматично при кожному викладенні (scripts/stamp.sh). -->
-      <div class="buildstamp" id="buildstamp" title="версія сторінки — якщо не збігається з тим, що я назвала, натисни Ctrl+F5">в. 01.08 14:40</div>
+      <div class="buildstamp" id="buildstamp" title="версія сторінки — якщо не збігається з тим, що я назвала, натисни Ctrl+F5">в. 01.08 14:41</div>
     </nav>
     <div class="main">
       <div class="topbar">
