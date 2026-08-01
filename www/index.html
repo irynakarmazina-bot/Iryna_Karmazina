@@ -631,12 +631,12 @@ async function loadAll(table){
 /* ===== ролі ===== */
 const RC = {
   "Адміністратор":        { nav:["dashboard","tasks","dispatch","calc","finance","clients","crm","accounting","instr","users"], scope:"all", fin:"full", sync:true, edit:true },
-  "Сейлз-менеджер":       { nav:["dashboard","tasks","dispatch","calc","finance","clients","crm","instr"], scope:"mgr", fin:"personal", sync:false, edit:true },
-  "Бухгалтер":            { nav:["dashboard","tasks","dispatch","calc","finance","clients","accounting","instr"], scope:"all", fin:"acct", sync:true },
-  "Фінансист":            { nav:["dashboard","tasks","dispatch","calc","finance","clients","accounting","instr"], scope:"all", fin:"full", sync:true },
-  "Операційний менеджер": { nav:["dashboard","tasks","dispatch","clients","crm","instr"], scope:"ops", fin:"none", sync:true, edit:true },
-  "Логіст":               { nav:["dispatch","instr"], scope:"all", cols:"logist", fin:"none", sync:false, edit:true },
-  "Перегляд":             { nav:["dashboard","tasks","dispatch","calc","finance","clients","instr"], scope:"all", fin:"blur", sync:false },
+  "Сейлз-менеджер":       { nav:["dashboard","tasks","dispatch","calc","finance","clients","crm","instr","users"], scope:"mgr", fin:"personal", sync:false, edit:true },
+  "Бухгалтер":            { nav:["dashboard","tasks","dispatch","calc","finance","clients","accounting","instr","users"], scope:"all", fin:"acct", sync:true },
+  "Фінансист":            { nav:["dashboard","tasks","dispatch","calc","finance","clients","accounting","instr","users"], scope:"all", fin:"full", sync:true },
+  "Операційний менеджер": { nav:["dashboard","tasks","dispatch","clients","crm","instr","users"], scope:"ops", fin:"none", sync:true, edit:true },
+  "Логіст":               { nav:["dispatch","instr","users"], scope:"all", cols:"logist", fin:"none", sync:false, edit:true },
+  "Перегляд":             { nav:["dashboard","tasks","dispatch","calc","finance","clients","instr","users"], scope:"all", fin:"blur", sync:false },
 };
 function cfg(){ return RC[ROLE] || RC["Перегляд"]; }
 function scoped(rows){
@@ -1840,8 +1840,51 @@ PAGES.finance = async () => {
   $("rep-oper").addEventListener("click", ()=>renderOper());
   $("rep-period").addEventListener("click", ()=>renderPeriod());
   renderOper();
+  bindPalette();
+  bindPasswordChange();
   if (isAdmin){ renderAudit(); bindUserEdit(rows); }
 };
+
+function bindPalette(){
+  const box = $("pal-page");
+  if (!box) return;
+  box.innerHTML = PALETTES.map(([p,n])=>
+    `<button class="pal-dot ${p===palette?"sel":""}" data-pal="${p}" title="${esc(n)}"></button>`).join("");
+  const nm = () => { $("pal-page-name").textContent =
+    "Обрано: " + (PALETTES.find(x=>x[0]===palette)||["",""])[1]; };
+  box.querySelectorAll(".pal-dot").forEach(b=>b.addEventListener("click", ()=>{
+    setPalette(b.dataset.pal);
+    box.querySelectorAll(".pal-dot").forEach(x=>x.classList.toggle("sel", x.dataset.pal===palette));
+    nm();
+  }));
+  nm();
+}
+
+/* зміна ВЛАСНОГО пароля — через штатний ендпоінт бази, чужі паролі тут не міняються */
+function bindPasswordChange(){
+  const btn = $("pw-save");
+  if (!btn) return;
+  btn.addEventListener("click", async ()=>{
+    const o = $("pw-old").value, n1 = $("pw-new").value, n2 = $("pw-new2").value;
+    const msg = t => { $("pw-msg").textContent = t; };
+    if (!o || !n1){ return msg("⚠ Заповни поточний і новий пароль."); }
+    if (n1.length < 8){ return msg("⚠ Новий пароль закороткий — треба щонайменше 8 символів."); }
+    if (n1 !== n2){ return msg("⚠ Новий пароль і підтвердження не збігаються."); }
+    btn.disabled = true; msg("⏳ Змінюю…");
+    try{
+      const r = await fetch("/api/v1/auth/password/change", {method:"POST",
+        headers:{"Content-Type":"application/json", "xc-auth": JWT||""},
+        body: JSON.stringify({currentPassword:o, newPassword:n1, verifyPassword:n2})});
+      const js = await r.json().catch(()=>({}));
+      if (!r.ok) throw new Error(js.msg || js.message || ("HTTP " + r.status));
+      msg("✅ Пароль змінено.");
+      ["pw-old","pw-new","pw-new2"].forEach(id=>$(id).value = "");
+      logAction("зміна пароля", "", "", "", "");
+      toast("✅ Пароль змінено");
+    }catch(e){ msg("⚠ Не вдалося: " + e.message); }
+    btn.disabled = false;
+  });
+}
 
 /* адмін править користувачів: імʼя, прізвище, роль, доступ */
 function bindUserEdit(rows){
@@ -2404,11 +2447,26 @@ PAGES.instr = async () => {
 };
 
 PAGES.users = async () => {
-  const rows = await loadAll(T["Користувачі"]);
   const isAdmin = ROLE === "Адміністратор";
+  const rows = isAdmin ? await loadAll(T["Користувачі"]) : [];
   const UED = isAdmin ? " ed" : "";
   $("content").innerHTML = `
-    <div class="card"><h3>👥 Користувачі</h3>
+    <div class="card"><h3>🎨 Кольорова гама</h3>
+      <p class="sub">вибір зберігається у твоєму браузері й не впливає на інших</p>
+      <div id="pal-page" style="display:flex;gap:10px;margin-top:10px"></div>
+      <p class="sub" id="pal-page-name" style="margin-top:8px"></p></div>
+
+    <div class="card"><h3>🔑 Зміна пароля</h3>
+      <p class="sub">пароль від входу в платформу · мінімум 8 символів</p>
+      <div class="filters" style="margin:10px 0 0;max-width:520px">
+        <input id="pw-old" type="password" placeholder="поточний пароль" autocomplete="current-password">
+        <input id="pw-new" type="password" placeholder="новий пароль" autocomplete="new-password">
+        <input id="pw-new2" type="password" placeholder="ще раз новий" autocomplete="new-password">
+      </div>
+      <button class="btn" id="pw-save" style="margin-top:10px">Змінити пароль</button>
+      <p class="sub" id="pw-msg" style="margin-top:8px"></p></div>
+
+    ${isAdmin ? `<div class="card"><h3>👥 Користувачі</h3>
       <p class="sub">роль визначає, що людина бачить у платформі${isAdmin
         ? ' · <b>клік по значенню</b> — змінити, <b>Enter</b> — зберегти, <b>Esc</b> — скасувати' : ""}</p>
       <div class="tablewrap"><table>
@@ -2422,8 +2480,8 @@ PAGES.users = async () => {
             ? '<span class="pill t-crit">заблоковано</span>' : '<span class="pill t-good">активний</span>'}</td>
         </tr>`).join("")}</tbody>
       </table></div>
-      ${isAdmin ? '<p class="sub" style="margin-top:8px">Щоб заблокувати людину — клікни «активний». Заблокований у платформу не заходить взагалі.</p>' : ""}
-    </div>
+      <p class="sub" style="margin-top:8px">Щоб заблокувати людину — клікни «активний». Заблокований у платформу не заходить взагалі.</p>
+    </div>` : ""}
     <div class="card"><h3>Ролі (довідка)</h3>
       <div class="tablewrap"><table><tbody>
         <tr><td><b>Адміністратор</b></td><td>повний доступ до всього</td></tr>
@@ -2446,10 +2504,10 @@ PAGES.users = async () => {
         <tbody id="lg-rows"></tbody></table></div>
       <p class="sub" id="lg-note" style="margin-top:8px"></p>
       <div class="note">🔒 Журнал доступний лише адміністратору й нічого в ньому змінити не можна — він фіксує все.</div></div>` : ""}
-    <div class="card"><h3>🔐 Інші налаштування</h3>
+    ${isAdmin ? `<div class="card"><h3>🔐 Інші налаштування</h3>
       <p class="sub">тут зʼявляться доступи клієнтів до кабінету, сповіщення й довідники</p>
-      <div class="note">🛠 Розділ наповнюється. Скажи, що винести сюди першим.</div></div>
-    <div class="note">➕ Щоб додати користувача: 1) скажи Клоду — він створить акаунт для входу; 2) додай рядок з email, ім'ям і роллю в таблицю «Користувачі» (через службову базу). Зміна ролі — просто зміни значення в рядку.</div>`;
+      <div class="note">🛠 Розділ наповнюється. Скажи, що винести сюди першим.</div></div>` : ""}
+    ${isAdmin ? `<div class="note">➕ Щоб додати користувача: 1) скажи Клоду — він створить акаунт для входу; 2) додай рядок з email, ім'ям і роллю в таблицю «Користувачі» (через службову базу). Зміна ролі — просто зміни значення в рядку.</div>` : ""}`;
 };
 
 /* ===== старт ===== */
