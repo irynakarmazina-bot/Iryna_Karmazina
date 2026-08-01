@@ -377,6 +377,9 @@
      (прохання користувачки 01.08.2026). Обрізання по висоті не робимо —
      назва має читатись повністю. */
   td.c-cli{white-space:normal;line-height:1.25;overflow:visible;text-overflow:clip}
+  /* «було 19.07» під новою ETA — видно, що дата прибуття зсунулась (01.08.2026) */
+  .wasdt{display:block;font-size:10.5px;font-weight:600;color:#c8811f;
+    text-decoration:line-through;text-decoration-color:rgba(200,129,31,.5)}
   td.c-rel{text-align:center}
   td.c-rel.tog{cursor:pointer}
   td.c-rel.tog:hover{background:var(--accent-soft)}
@@ -565,7 +568,7 @@
       <div class="spacer"></div>
       <!-- Позначка версії: по ній видно, чи браузер підтягнув свіжу сторінку.
            Оновлюється автоматично при кожному викладенні (scripts/stamp.sh). -->
-      <div class="buildstamp" id="buildstamp" title="версія сторінки — якщо не збігається з тим, що я назвала, натисни Ctrl+F5">в. 01.08 15:23</div>
+      <div class="buildstamp" id="buildstamp" title="версія сторінки — якщо не збігається з тим, що я назвала, натисни Ctrl+F5">в. 01.08 15:29</div>
     </nav>
     <div class="main">
       <div class="topbar">
@@ -924,6 +927,28 @@ const fmtD = v => { const m=/(\d{4})-(\d{2})-(\d{2})/.exec(String(v||""));
   return m ? `${m[3]}.${m[2]}.${m[1].slice(2)}` : ""; };
 const dateB = v => { const d=fmtD(v); return d ? `<b>${d}</b>` : '<span class="cell-muted">—</span>'; };
 const dOf = v => { const m=/(\d{4})-(\d{2})-(\d{2})/.exec(String(v||"")); return m? new Date(+m[1],+m[2]-1,+m[3]) : null; };
+/* Зміна дати прибуття. Трекер Maersk пише в «Зміни ETA (історія)» рядки виду
+   «2026-07-15: ETA порт: 2026-05-19 → 2026-06-01 (Maersk)». Беремо ОСТАННІЙ
+   рядок — він і показує, яка дата була і яка стала. */
+const ETA_CHG_DAYS = 14;                    // за скільки днів зміна вважається свіжою
+const etaChange = r => {
+  const h = String(r["Зміни ETA (історія)"] || "").trim();
+  if (!h) return null;
+  const last = h.split("\n").map(x=>x.trim()).filter(Boolean).pop() || "";
+  const m = /(\d{4}-\d{2}-\d{2})\s*→\s*(\d{4}-\d{2}-\d{2})/.exec(last);
+  if (!m) return null;
+  const w = /^(\d{4}-\d{2}-\d{2})/.exec(last);
+  return { from: m[1], to: m[2], when: w ? w[1] : "" };
+};
+const etaChanged = r => {
+  if (isDone(r)) return false;
+  const c = etaChange(r);
+  if (!c || !c.when) return false;
+  const d = dOf(c.when);
+  if (!d) return false;
+  const t = new Date(); t.setHours(0,0,0,0);
+  return Math.round((t - d) / 86400000) <= ETA_CHG_DAYS;
+};
 /* вантаж уже в порту прибуття і ще не вивезений → капають зберігання/демередж */
 /* Статуси, за яких вантаж уже НЕ стоїть у порту прибуття — алерт про простій
    для них не має сенсу. «Вивантажений в сухому порту» додано 01.08.2026:
@@ -1263,6 +1288,7 @@ PAGES.dispatch = async () => {
       if(!e) return false; const dd=(e-_today)/86400000; return dd>=0 && dd<=7; }},
     nobl:{label:"без коносамента / авіанакладної", test:r=>!_done(r) && needsBL(r) && !shipDoc(r)},
     inport:{label:"у порту — не вивезено", test:inPort},
+    etachg:{label:"змінилася дата прибуття", test:etaChanged},
     nostatus:{label:"без статусу", test:r=>!_s(r,"Статус")},
     noeta:{label:"без ETA", test:r=>!_s(r,"ETA")},
     overdue:{label:"ETA минула, угода не закрита", test:r=>{ if(_done(r)) return false;
@@ -1309,6 +1335,7 @@ PAGES.dispatch = async () => {
     {q:"stagestale",cls:"a-red",   nm:"Етап не оновлено",  n: all.filter(stageStale).length},
     {q:"nogatein",  cls:"a-red",   nm:"Експорт без Gate in",             n: all.filter(gateInMissing).length},
     {q:"inport",    cls:"a-amber", nm:"Стоять у порту",                n: all.filter(inPort).length},
+    {q:"etachg",    cls:"a-amber", nm:"Змінилася дата прибуття",       n: all.filter(etaChanged).length},
     {q:"overdue",   cls:"a-amber", nm:"ETA минула",                    n: all.filter(QUICK.overdue.test).length},
     {q:"nostatus",  cls:"a-amber", nm:"Без статусу",                   n: all.filter(r=>!_s(r,"Статус")).length},
     {q:"nobl",      cls:"a-amber", nm:"Без BL",           n: all.filter(QUICK.nobl.test).length},
@@ -1492,7 +1519,10 @@ PAGES.dispatch = async () => {
         <td class="mono dt${ED}" data-ed="ETD (факт)">${etdOf(r)
             ? `${dateB(etdOf(r))}${_s(r,"ETD (факт)")?"":'<br><span class="cell-muted">план</span>'}`
             : '<span class="cell-muted">—</span>'}</td>
-        <td class="mono dt${ED}" data-ed="ETA">${dateB(r["ETA"])}</td>
+        <td class="mono dt${ED}" data-ed="ETA">${dateB(r["ETA"])}${(()=>{
+            const c = etaChanged(r) ? etaChange(r) : null;
+            return c ? `<br><span class="wasdt" title="дата прибуття змінилася ${fmtD(c.when)}">було ${fmtD(c.from)}</span>` : "";
+          })()}</td>
         <td class="mono dt${ED}" data-ed="ETA сухий порт" title="${
             isRail(r) ? "ETA сухий порт" : "сухий порт буває лише на залізничних перевезеннях"}">${
             _s(r,"ETA сухий порт") ? dateB(r["ETA сухий порт"])
