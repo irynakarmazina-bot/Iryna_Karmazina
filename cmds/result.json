@@ -1,7 +1,7 @@
 {
-  "stdout": "code 000 size 0\n",
-  "stderr": "grep: /tmp/live.html: No such file or directory\n",
-  "returncode": 2,
-  "id": "verify-cma-live2",
-  "ts": "2026-08-01T11:01:25Z"
+  "stdout": "АКТИВНІ угоди: 56\nлінія         угод ETA             ETD (факт)      Гейт ін         Вивантаження в  Судно         \nCMA CGM          5 4/5             0/5             0/5             0/5             0/5           \nCOSCO            2 2/2             2/2             0/2             2/2             2/2           \nEMC              1 0/1             0/1             0/1             0/1             0/1           \nHLC              2 0/2             0/2             0/2             0/2             0/2           \nMSC             10 4/10            1/10            0/10            0/10            0/10          \nMaersk          27 27/27           13/27           12/27           11/27           10/27         \n—                9 0/9             0/9             0/9             0/9             0/9           \n",
+  "stderr": "",
+  "returncode": 0,
+  "id": "byline-cover",
+  "ts": "2026-08-01T11:07:44Z"
 }
