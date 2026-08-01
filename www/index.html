@@ -380,6 +380,12 @@
   /* «було 19.07» під новою ETA — видно, що дата прибуття зсунулась (01.08.2026) */
   .wasdt{display:block;font-size:10.5px;font-weight:600;color:#c8811f;
     text-decoration:line-through;text-decoration-color:rgba(200,129,31,.5)}
+  /* два рядки-дати в одній клітинці, кожен клікається окремо */
+  .ln2{display:block}
+  .ln2.sub2{font-size:11px;color:var(--muted);font-weight:600}
+  /* ключова дата угоди: експорт дивиться на ETD, імпорт — на ETA */
+  .dispscroll td.keydt{background:var(--accent-soft)}
+  .dispscroll td.keydt b{color:var(--accent-ink)}
   td.c-rel{text-align:center}
   td.c-rel.tog{cursor:pointer}
   td.c-rel.tog:hover{background:var(--accent-soft)}
@@ -568,7 +574,7 @@
       <div class="spacer"></div>
       <!-- Позначка версії: по ній видно, чи браузер підтягнув свіжу сторінку.
            Оновлюється автоматично при кожному викладенні (scripts/stamp.sh). -->
-      <div class="buildstamp" id="buildstamp" title="версія сторінки — якщо не збігається з тим, що я назвала, натисни Ctrl+F5">в. 01.08 15:48</div>
+      <div class="buildstamp" id="buildstamp" title="версія сторінки — якщо не збігається з тим, що я назвала, натисни Ctrl+F5">в. 01.08 15:58</div>
     </nav>
     <div class="main">
       <div class="topbar">
@@ -1344,13 +1350,14 @@ PAGES.dispatch = async () => {
   const ED_KIND = {"ETA":"date", "ETD (факт)":"date", "Гейт ін":"date",
                    "Подача авто (факт)":"date", "Перетин кордону (факт)":"date",
                    "ETA сухий порт":"date", "Gate out for delivery":"date", "Stuffing":"date",
+                   "Здача в порт (факт)":"date",
                    "Статус":"select", "Вид перевезення":"select"};
   // варіанти для випадайок у таблиці — свої для кожної колонки
   const ED_OPTS = {"Статус": ()=>Object.keys(STATUSES), "Вид перевезення": ()=>MODE_OPTIONS};
   const syncBtn = cfg().sync ? '<button class="btn" id="sync-btn">⟳ Оновити з Експедитора</button>' : "";
   const head = logist
     ? "<th>Угода</th><th>Клієнт</th><th>Контейнер</th><th>Статус</th><th>Номер авто</th><th>Водій</th><th>Телефон</th><th>Перетин кордону</th><th></th>"
-    : "<th>Угода</th><th></th><th>Клієнт</th><th>Маршрут</th><th>Вид / лінія</th><th class=\"c-bl\">Коносамент /<br>контейнер</th><th class=\"c-ves\">Судно</th><th class=\"dt\">Stuffing</th><th class=\"dt\">Gate in</th><th class=\"dt\">ETD POL</th><th class=\"dt\">ETA POD</th><th class=\"dt\">ETA dry port</th><th class=\"dt\">Gate out delivery</th><th>Статус</th><th>Авто</th><th>Коментар</th><th></th>";
+    : "<th>Угода</th><th></th><th>Клієнт</th><th>Маршрут</th><th>Вид / лінія</th><th class=\"c-bl\">Коносамент /<br>контейнер</th><th class=\"c-ves\">Судно</th><th class=\"dt\">Stuffing</th><th class=\"dt\">Gate in /<br>здача</th><th class=\"dt\">ETD POL</th><th class=\"dt\">ETA POD</th><th class=\"dt\">ETA dry port</th><th class=\"dt\">Gate out delivery</th><th>Статус</th><th>Авто</th><th>Коментар</th><th></th>";
   // ── активні алерти над таблицею
   const uniq = k => [...new Set(all.map(r=>_s(r,k)).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"uk"));
   const nActive = all.filter(r=>!_done(r)).length;
@@ -1544,14 +1551,21 @@ PAGES.dispatch = async () => {
                 .map(c=>`<span class="ln">${trackLink(r, c, "cell-muted")}</span>`).join("")}`}</td>
         <td class="c-ves${ED}" data-ed="Судно">${esc(r["Судно"]||"—")}</td>
         <td class="mono dt${ED}" data-ed="Stuffing" title="дата стафіровки">${dateB(r["Stuffing"])}</td>
-        <td class="mono dt${ED}" data-ed="Гейт ін">${dateB(r["Гейт ін"])}</td>
-        <td class="mono dt${ED}" data-ed="ETD (факт)">${etdOf(r)
+        <td class="mono dt">${
+            /* Дві дати в одній колонці, кожна редагується окремо: верхня —
+               заїзд у порт (з Maersk), нижня — фактична здача терміналу, до
+               неї прив'яжемо демередж і зберігання (01.08.2026). */
+            ""}<span class="ln2${ED}" data-ed="Гейт ін" title="Gate in — заїзд у порт">${
+              dateB(r["Гейт ін"])}</span><span class="ln2 sub2${ED}" data-ed="Здача в порт (факт)"
+              title="фактична здача в порт — від неї рахуємо демередж і зберігання">${
+              _s(r,"Здача в порт (факт)") ? fmtD(r["Здача в порт (факт)"]) : "—"}</span></td>
+        <td class="mono dt${ED}${_s(r,"Напрямок")==="Експорт"?" keydt":""}" data-ed="ETD (факт)">${etdOf(r)
             /* Підпис «план» прибрано 01.08.2026: ETD і так планова дата, доки
                немає фактичної. Значення береться з «ETD (факт)», а якщо його
                немає — з «ETD (план)», тому окремо позначати нічого не треба. */
             ? dateB(etdOf(r))
             : '<span class="cell-muted">—</span>'}</td>
-        <td class="mono dt${ED}" data-ed="ETA">${dateB(r["ETA"])}${(()=>{
+        <td class="mono dt${ED}${_s(r,"Напрямок")==="Імпорт"?" keydt":""}" data-ed="ETA">${dateB(r["ETA"])}${(()=>{
             const c = etaChanged(r) ? etaChange(r) : null;
             return c ? `<br><span class="wasdt" title="дата прибуття змінилася ${fmtD(c.when)}">було ${fmtD(c.from)}</span>` : "";
           })()}</td>
@@ -1578,7 +1592,7 @@ PAGES.dispatch = async () => {
       td.addEventListener("click", e=>{ e.stopPropagation(); toggleFlag(td); });
     });
     // клік по редагованій клітинці — правка на місці, картка угоди при цьому не відкривається
-    if (CAN_EDIT) $("drows").querySelectorAll("td.ed[data-ed]").forEach(td=>{
+    if (CAN_EDIT) $("drows").querySelectorAll(".ed[data-ed]").forEach(td=>{
       if (!td.title) td.title = "клік — редагувати «" + td.dataset.ed +
         "», Enter — зберегти, Esc — скасувати";
       td.addEventListener("click", e=>{ e.stopPropagation(); editCell(td); });
