@@ -1,7 +1,7 @@
 {
-  "stdout": "",
+  "stdout": "-rw-r--r-- 1 root root 569 Aug  1 14:41 /root/vesprobe.log\n---\nУгод без судна для проби: 25\nугода 23   подій=9   VESSEL=2   з назвою=2   ARRI=0  → MAERSK EINDHOVEN\nугода 36   подій=4   VESSEL=0   з назвою=0   ARRI=0  → —\nугода 253  подій=18  VESSEL=8   з назвою=8   ARRI=3  → MAERSK SARAT\nугода 238  подій=17  VESSEL=10  з назвою=9   ARRI=3  → MAERSK VIRGINIA\n\nнемає подій (HTTP 400)       13\nнемає подій (404 немає да)   8\nє назва судна                3\nнемає VESSEL-подій           1\n---END\n",
   "stderr": "",
   "returncode": 0,
-  "id": "vessel-probe-log",
-  "ts": "2026-08-01T11:41:16Z"
+  "id": "vessel-probe-log2",
+  "ts": "2026-08-01T11:41:43Z"
 }
