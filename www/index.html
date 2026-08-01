@@ -893,8 +893,10 @@ const STATUS_MOVED = {"Стафіровка":1,"В порту відправле
    сайтами ліній тут ролі не грає. Працює і по коносаменту, і по контейнеру. */
 const TRACK_URL = {
   "Maersk":  n => "https://www.maersk.com/tracking/" + encodeURIComponent(n),
+  /* MSC: перевірено 01.08.2026 — 5 форматів посилання, жоден не підставляє номер.
+     Лишаємо відкриття сторінки трекінгу, номер доводиться вставляти вручну. */
   "MSC":     n => "https://www.msc.com/en/track-a-shipment?trackingNumber=" + encodeURIComponent(n),
-  "CMA CGM": n => "https://www.cma-cgm.com/ebusiness/tracking/search?SearchBy=Container&Reference=" + encodeURIComponent(n),
+  "CMA CGM": n => "https://www.cma-cgm.com/ebusiness/tracking/detail/" + encodeURIComponent(n),
   "HLC":     n => "https://www.hapag-lloyd.com/en/online-business/track/track-by-container-solution.html?container=" + encodeURIComponent(n),
   "COSCO":   n => "https://elines.coscoshipping.com/ebtracking/public/bill/" + encodeURIComponent(String(n).replace(/^COSU/i, "")),
   "EMC":     n => "https://www.shipmentlink.com/servlet/TDB1_CargoTracking.do?BL=" + encodeURIComponent(n),
