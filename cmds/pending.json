@@ -1,1 +1,1 @@
-{"id": "maersk-dry-all", "cmd": "cd /root/direct-sync && nohup python3 maersk_track_sync.py --dry-run --all > /root/dry_all.log 2>&1 & echo STARTED"}
+{"id": "maersk-dry-all-log", "cmd": "sleep 90; tail -n 30 /root/dry_all.log"}
