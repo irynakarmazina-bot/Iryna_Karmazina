@@ -1,1 +1,1 @@
-{"id": "vessel-probe-log", "cmd": "sleep 100; cat /root/vesprobe.log"}
+{"id": "vessel-probe-log2", "cmd": "ls -la /root/vesprobe.log; echo ---; cat /root/vesprobe.log; echo ---END"}
