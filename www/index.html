@@ -668,7 +668,14 @@ async function enter(){
     if (T["Користувачі"]){
       const u = await api(`/api/v2/tables/${T["Користувачі"]}/records?limit=100`);
       const me = (u.list||[]).find(x=>String(x["Email"]||"").toLowerCase() === em && x["Активний"] !== false);
-      if (me){ ROLE = me["Роль"] || "Перегляд"; UNAME = me["Ім'я"] || $("u-name").textContent; }
+      if (me){
+        ROLE = me["Роль"] || "Перегляд";
+        // UNAME — тільки імʼя: по ньому зіставляється поле «Менеджер» в угодах.
+        // Для показу в шапці беремо повне «Імʼя Прізвище» (вимога 01.08.2026).
+        UNAME = me["Ім'я"] || $("u-name").textContent;
+        const full = [me["Ім'я"], me["Прізвище"]].filter(Boolean).join(" ");
+        if (full) $("u-name").textContent = full;
+      }
       else ROLE = "Перегляд";
     }
   } catch(e){ ROLE = "Перегляд"; }
@@ -2247,8 +2254,8 @@ PAGES.users = async () => {
     <div class="card"><h3>👥 Користувачі</h3>
       <p class="sub">роль визначає, що людина бачить у платформі</p>
       <div class="tablewrap"><table>
-        <thead><tr><th>Ім'я</th><th>Email</th><th>Роль</th><th>Активний</th></tr></thead>
-        <tbody>${rows.map(u=>`<tr><td><b>${esc(u["Ім'я"]||"—")}</b></td><td>${esc(u["Email"]||"—")}</td>
+        <thead><tr><th>Ім'я та прізвище</th><th>Email</th><th>Роль</th><th>Активний</th></tr></thead>
+        <tbody>${rows.map(u=>`<tr><td><b>${esc([u["Ім'я"],u["Прізвище"]].filter(Boolean).join(" ")||"—")}</b></td><td>${esc(u["Email"]||"—")}</td>
           <td><span class="role-badge">${esc(u["Роль"]||"—")}</span></td><td>${u["Активний"]?'✓':'—'}</td></tr>`).join("")}</tbody>
       </table></div></div>
     <div class="card"><h3>Ролі (довідка)</h3>

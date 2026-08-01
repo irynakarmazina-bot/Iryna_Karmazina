@@ -302,6 +302,45 @@ def parse_events(events, row, today_iso, statuses=frozenset()):
         # головна колонка ETA = факт, якщо є, інакше план (як робив старий ланцюг)
         out["ETA"] = eta_iso
 
+    # ── дати з подій Maersk (запит користувачки 01.08.2026 «гейт ін також бери там»)
+    def pick(codes, classifier=None, mode=None, last=False):
+        sel = []
+        for e in events:
+            c = e.get("equipmentEventTypeCode") or e.get("transportEventTypeCode") or ""
+            if c not in codes:
+                continue
+            if classifier and e.get("eventClassifierCode") != classifier:
+                continue
+            if mode and (e.get("transportCall") or {}).get("modeOfTransport") != mode:
+                continue
+            sel.append(e)
+        if not sel:
+            return ""
+        sel.sort(key=_dt)
+        return _dt(sel[-1] if last else sel[0])[:10]
+
+    # GATE IN — контейнер заїхав у порт відправлення. Беремо ПЕРШУ таку подію:
+    # остання GTIN може бути вже видачею отримувачу.
+    gate_in = pick(("GTIN",), "ACT") or pick(("GTIN",))
+    if gate_in:
+        out["Гейт ін"] = gate_in
+    # ETD — відхід судна з порту завантаження (перший рейс морем)
+    etd_act = pick(("DEPA",), "ACT", "VESSEL")
+    if etd_act:
+        out["ETD (факт)"] = etd_act
+    else:
+        etd_est = pick(("DEPA",), "EST", "VESSEL")
+        if etd_est:
+            out["ETD (план)"] = etd_est
+    # вивантаження в порту прибуття (останнє DISC із судна)
+    disc = pick(("DISC",), "ACT", "VESSEL", last=True)
+    if disc:
+        out["Вивантаження в порту (факт)"] = disc
+    # виїзд із порту — контейнер забрали
+    gtot = pick(("GTOT",), "ACT", last=True)
+    if gtot:
+        out["Гейт аут"] = gtot
+
     # статус: 8-модель, «Завантажений» розділений на авто/потяг
     last = sorted(events, key=_dt)[-1]
     mode = (last.get("transportCall") or {}).get("modeOfTransport") or ""
