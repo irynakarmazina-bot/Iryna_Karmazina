@@ -349,6 +349,10 @@
      якщо не влазить — три крапки (вимога користувачки 01.08.2026) */
   .dispscroll table.fixw td.c-bl{white-space:normal;word-break:normal;line-height:1.35}
   td.c-bl .ln{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  a.tl{color:var(--accent);text-decoration:none;border-bottom:1px dashed rgba(37,99,235,.4)}
+  a.tl:hover{border-bottom-style:solid}
+  a.tl.cell-muted{color:var(--ink-2);border-bottom-color:rgba(120,120,120,.35)}
+  a.tl.cell-muted:hover{color:var(--accent);border-bottom-color:var(--accent)}
   .dispscroll td{vertical-align:middle}
   /* смужки через рядок — око не збивається на широкій таблиці */
   .dispscroll tbody tr:nth-child(even) td{background:var(--surface-2)}
@@ -884,6 +888,25 @@ const truckLate = r => {
 const STATUS_MOVED = {"Стафіровка":1,"В порту відправлення":1,"Завантажений на судно":1,
   "В морі":1,"Вивантажений в порту прибуття":1,"Завантажений на потяг":1,
   "Завантажений на авто":1,"Вантаж доставлено":1};
+/* ===== посилання на трекінг лінії =====
+   Відкривається в браузері користувача, тому блокування нашого сервера
+   сайтами ліній тут ролі не грає. Працює і по коносаменту, і по контейнеру. */
+const TRACK_URL = {
+  "Maersk":  n => "https://www.maersk.com/tracking/" + encodeURIComponent(n),
+  "MSC":     n => "https://www.msc.com/en/track-a-shipment?trackingNumber=" + encodeURIComponent(n),
+  "CMA CGM": n => "https://www.cma-cgm.com/ebusiness/tracking/search?SearchBy=Container&Reference=" + encodeURIComponent(n),
+  "HLC":     n => "https://www.hapag-lloyd.com/en/online-business/track/track-by-container-solution.html?container=" + encodeURIComponent(n),
+  "COSCO":   n => "https://elines.coscoshipping.com/ebtracking/public/bill/" + encodeURIComponent(String(n).replace(/^COSU/i, "")),
+  "EMC":     n => "https://www.shipmentlink.com/servlet/TDB1_CargoTracking.do?BL=" + encodeURIComponent(n),
+};
+const trackHref = (r, n) => { const f = TRACK_URL[_s(r, "Лінія")]; return (f && n) ? f(n) : ""; };
+const trackLink = (r, n, cls) => {
+  const href = trackHref(r, n);
+  const txt = esc(n);
+  return href ? `<a class="tl ${cls||""}" href="${esc(href)}" target="_blank" rel="noopener"
+      title="відкрити трекінг ${esc(_s(r,"Лінія"))} по ${txt}">${txt}</a>`
+    : `<span class="${cls||""}">${txt}</span>`;
+};
 const stageStale = r => _s(r,"Етап (Експедитор)") === "Букинг" && !!STATUS_MOVED[_s(r,"Статус")];
 /* Експорт: дата заїзду в порт (Gate in) має стояти ОДРАЗУ після розміщення букінгу —
    по ній планують заїзд контейнера (вимога користувачки 01.08.2026). */
@@ -1293,9 +1316,9 @@ PAGES.dispatch = async () => {
         <td class="mono c-bl">${isAir(r)
             ? (_s(r,"Авіанакладна") ? `${esc(r["Авіанакладна"])}<br><span class="cell-muted">авіанакладна</span>`
                                     : '<span class="cell-muted">авіа — накладної немає</span>')
-            : `<span class="ln">${esc(r["BL"]||"—")}</span>${_s(r,"Контейнер").split(",")
+            : `<span class="ln">${_s(r,"BL") ? trackLink(r, r["BL"]) : "—"}</span>${_s(r,"Контейнер").split(",")
                 .map(c=>c.trim()).filter(Boolean)
-                .map(c=>`<span class="ln cell-muted">${esc(c)}</span>`).join("")}`}</td>
+                .map(c=>`<span class="ln">${trackLink(r, c, "cell-muted")}</span>`).join("")}`}</td>
         <td class="c-ves${ED}" data-ed="Судно">${esc(r["Судно"]||"—")}</td>
         <td class="mono${ED}" data-ed="Гейт ін">${dateB(r["Гейт ін"])}</td>
         <td class="mono${ED}" data-ed="ETD (факт)">${etdOf(r)
@@ -1313,6 +1336,8 @@ PAGES.dispatch = async () => {
         <td>${docBtn(r)}</td>
       </tr>`).join("") : `<tr><td colspan="17" class="cell-muted">Нічого не знайдено.</td></tr>`;
     $("drows").querySelectorAll("tr[data-id]").forEach(tr=>tr.addEventListener("click",()=>openRow(all.find(x=>String(x.Id)===tr.dataset.id))));
+    // клік по номеру відкриває трекінг лінії, а не картку угоди
+    $("drows").querySelectorAll("a.tl").forEach(a=>a.addEventListener("click", e=>e.stopPropagation()));
     // клік по редагованій клітинці — правка на місці, картка угоди при цьому не відкривається
     if (CAN_EDIT) $("drows").querySelectorAll("td.ed[data-ed]").forEach(td=>{
       if (!td.title) td.title = "клік — редагувати «" + td.dataset.ed +
