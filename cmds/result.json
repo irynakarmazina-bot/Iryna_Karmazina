@@ -1,7 +1,7 @@
 {
-  "stdout": "== synergy+CK             HTTP 403  <HTML><HEAD> <TITLE>Access Denied</TITLE> </HEAD><BODY> <H1>Access Denied</H1>   You don't have permission to access \"http&#58;&#47;&#47;api&#46;maersk&#46;com&#47;synergy&#47;tracking&#47;272050345&#\n== synergy no-auth        HTTP 403  <HTML><HEAD> <TITLE>Access Denied</TITLE> </HEAD><BODY> <H1>Access Denied</H1>   You don't have permission to access \"http&#58;&#47;&#47;api&#46;maersk&#46;com&#47;synergy&#47;tracking&#47;272050345&#\n== synergy cont           HTTP 403  <HTML><HEAD> <TITLE>Access Denied</TITLE> </HEAD><BODY> <H1>Access Denied</H1>   You don't have permission to access \"http&#58;&#47;&#47;api&#46;maersk&#46;com&#47;synergy&#47;tracking&#47;MRSU5393627\n== track-events public    HTTP 401  {\"fault\":{\"faultstring\":\"Invalid token: policy(Verify-JWT-1)\",\"detail\":{\"errorcode\":\"steps.jwt.InvalidToken\"}}}\n== shipment-tracking      HTTP 404  {\"fault\":{\"faultstring\":\"Unable to identify proxy for host: maersk-host and url: \\/shipment-tracking\\/shipments\",\"detail\":{\"errorcode\":\"messaging.adaptors.http.flow.ApplicationNotFound\"}}}\n",
+  "stdout": "transportDocumentReference   MAEU272050345    -> HTTP 400\ntransportDocumentReference   272050345        -> 404 немає даних\ncarrierBookingReference      MAEU272050345    -> HTTP 400\nequipmentReference           MRSU5393627      -> 404 немає даних\ntransportDocumentReference   271364164        -> 404 немає даних\nMIRANDOR 126 угод, 81045 байт\n",
   "stderr": "",
   "returncode": 0,
-  "id": "maersk-synergy",
-  "ts": "2026-08-01T13:14:28Z"
+  "id": "variants-mirandor",
+  "ts": "2026-08-01T13:17:23Z"
 }
