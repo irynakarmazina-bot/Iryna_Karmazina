@@ -386,9 +386,10 @@
   /* два рядки-дати в одній клітинці, кожен клікається окремо */
   .ln2{display:block}
   .ln2.sub2{font-size:11px;color:var(--muted);font-weight:600}
-  /* ключова дата угоди: експорт дивиться на ETD, імпорт — на ETA */
+  /* Ключова дата угоди: експорт дивиться на ETD, імпорт — на ETA.
+     Виділяємо ТІЛЬКИ фоном — колір цифр лишається звичайним
+     (прохання користувачки 01.08.2026). */
   .dispscroll td.keydt{background:var(--accent-soft)}
-  .dispscroll td.keydt b{color:var(--accent-ink)}
   td.c-rel{text-align:center}
   td.c-rel.tog{cursor:pointer}
   td.c-rel.tog:hover{background:var(--accent-soft)}
@@ -583,7 +584,7 @@
       <div class="spacer"></div>
       <!-- Позначка версії: по ній видно, чи браузер підтягнув свіжу сторінку.
            Оновлюється автоматично при кожному викладенні (scripts/stamp.sh). -->
-      <div class="buildstamp" id="buildstamp" title="версія сторінки — якщо не збігається з тим, що я назвала, натисни Ctrl+F5">в. 01.08 16:13</div>
+      <div class="buildstamp" id="buildstamp" title="версія сторінки — якщо не збігається з тим, що я назвала, натисни Ctrl+F5">в. 01.08 16:18</div>
     </nav>
     <div class="main">
       <div class="topbar">
