@@ -1,7 +1,7 @@
 {
-  "stdout": "гама: 1 | пароль: 1\nUI 200\nендпоінт зміни пароля: 401\n",
+  "stdout": "FOUND 1\n-----\n  Угода: '251'\n  Клієнт: 'ГРАНД МАРИН ООО'\n  Лінія: 'Maersk'\n  BL: '274014640'\n  HBL: None\n  Контейнер: 'MRSU9195960'\n  Напрямок: 'Експорт'\n  Статус: 'В морі'\n  Етап (Експедитор): 'Выполняется'\n  ETD (план): '2026-07-27'\n  ETD (факт): None\n  ETA: '2026-07-27'\n  ETA порт (план): None\n  ETA порт (факт): None\n  Гейт ін: None\n  Гейт аут: None\n  Вивантаження в порту (факт): None\n  Судно: None\n  Останнє оновлення: None\n  Звірка: None\nERR transportDocumentReference HTTP Error 404: Not Found\n",
   "stderr": "",
   "returncode": 0,
-  "id": "deploy-settings-0801",
-  "ts": "2026-08-01T10:45:27Z"
+  "id": "probe-etd-274014640",
+  "ts": "2026-08-01T10:55:05Z"
 }
