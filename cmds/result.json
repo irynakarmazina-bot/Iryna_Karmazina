@@ -1,7 +1,7 @@
 {
-  "stdout": "1\n195925 /root/unitex-os-www/index.html\nUI 000\n",
+  "stdout": "local 301\n0\n",
   "stderr": "",
-  "returncode": 6,
-  "id": "deploy-cma-track",
-  "ts": "2026-08-01T11:00:47Z"
+  "returncode": 1,
+  "id": "verify-cma-live",
+  "ts": "2026-08-01T11:01:03Z"
 }
