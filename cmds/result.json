@@ -1,7 +1,7 @@
 {
-  "stdout": "Створено колонку «Gate out for delivery»\nверсія: в. 01.08 14:43\n",
+  "stdout": "версія: в. 01.08 14:49\nколонок: 16\n",
   "stderr": "",
   "returncode": 0,
-  "id": "deploy-gateout",
-  "ts": "2026-08-01T14:43:30Z"
+  "id": "deploy-16col",
+  "ts": "2026-08-01T14:49:28Z"
 }
