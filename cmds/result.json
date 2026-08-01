@@ -1,7 +1,7 @@
 {
-  "stdout": "версія: в. 01.08 14:28\nHBL/BL підписи: 2\n",
+  "stdout": "таблиця Інструкції: mvm5xu2mcidt1j3\nколонки: Id, CreatedAt, UpdatedAt, __nc_deleted, Назва, Категорія, Іконка, Зміст, Джерело\nстворено 200 [{'Id': 7}]\n",
   "stderr": "",
   "returncode": 0,
-  "id": "deploy-bl",
-  "ts": "2026-08-01T14:28:23Z"
+  "id": "instr-hint",
+  "ts": "2026-08-01T14:32:52Z"
 }
