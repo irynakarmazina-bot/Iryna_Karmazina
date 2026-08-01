@@ -1,7 +1,7 @@
 {
-  "stdout": "STARTED\nCOMPILED\n",
+  "stdout": "STILL_RUNNING\n",
   "stderr": "",
   "returncode": 0,
-  "id": "deploy-readfields",
-  "ts": "2026-08-01T12:54:04Z"
+  "id": "dry3-1",
+  "ts": "2026-08-01T12:56:18Z"
 }
