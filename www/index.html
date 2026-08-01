@@ -568,7 +568,7 @@
       <div class="spacer"></div>
       <!-- Позначка версії: по ній видно, чи браузер підтягнув свіжу сторінку.
            Оновлюється автоматично при кожному викладенні (scripts/stamp.sh). -->
-      <div class="buildstamp" id="buildstamp" title="версія сторінки — якщо не збігається з тим, що я назвала, натисни Ctrl+F5">в. 01.08 15:44</div>
+      <div class="buildstamp" id="buildstamp" title="версія сторінки — якщо не збігається з тим, що я назвала, натисни Ctrl+F5">в. 01.08 15:45</div>
     </nav>
     <div class="main">
       <div class="topbar">
@@ -894,6 +894,16 @@ const STATUSES = {
   "Завантажений на авто":"t-good","Завантажений на потяг":"t-good",
   "Вивантажений в сухому порту":"t-good","На кордоні":"t-info",
   "Вантаж доставлено":"t-del",
+};
+/* Назва клієнта для ПОКАЗУ: прибираємо організаційну форму «ООО»/«ТОВ»
+   (прохання користувачки 01.08.2026 — «ГРАНД МАРИН ООО» читається як
+   «ГРАНД МАРИН»). У базі значення НЕ чіпаємо: поле «Клієнт» приходить з
+   Експедитора і синхронізація перезапише його назад. У картці угоди й у
+   значеннях фільтра лишається повна назва. */
+const cliName = v => {
+  const full = String(v || "").trim();
+  const cut = full.replace(/(^|\s)(ООО|ТОВ)(?=\s|$)/gi, "$1").replace(/\s{2,}/g, " ").trim();
+  return cut || full;          // якщо після чистки нічого не лишилось — показуємо як є
 };
 const stPill = st => st ? `<span class="pill ${STATUSES[st]||"t-neutral"}">${esc(st)}</span>` : '<span class="cell-muted">—</span>';
 
@@ -1368,7 +1378,7 @@ PAGES.dispatch = async () => {
         <select id="modef"><option value="">Усі види перевезення</option>${
           uniq("Вид перевезення").map(c=>`<option>${esc(c)}</option>`).join("")}</select>
         <select id="linef"><option value="">Усі лінії</option><option>Maersk</option><option>MSC</option><option>CMA CGM</option><option>Інша</option></select>
-        <select id="clif"><option value="">Усі клієнти</option>${uniq("Клієнт").map(c=>`<option>${esc(c)}</option>`).join("")}</select>
+        <select id="clif"><option value="">Усі клієнти</option>${uniq("Клієнт").map(c=>`<option value="${esc(c)}">${esc(cliName(c))}</option>`).join("")}</select>
         <select id="manf"><option value="">Усі менеджери</option>${uniq("Менеджер").map(c=>`<option>${esc(c)}</option>`).join("")}</select>
         <select id="opmf"><option value="">Усі оп. менеджери</option>${uniq("Оп. менеджер").map(c=>`<option>${esc(c)}</option>`).join("")}</select>
       </div>
@@ -1506,7 +1516,7 @@ PAGES.dispatch = async () => {
               :(gateInMissing(r)?'title="Експорт без дати заїзду в порт — її ставлять одразу після букінгу"':""))}>
         <td class="mono"><b>${esc(r["Угода"])}</b></td>
         <td>${r["Напрямок"]?`<span class="dirchip ${r["Напрямок"]==="Імпорт"?"imp":"exp"}">${r["Напрямок"]==="Імпорт"?"ІМП":(r["Напрямок"]==="Експорт"?"ЕКС":"ТРН")}</span>`:""}</td>
-        <td class="c-cli">${esc(r["Клієнт"]||"—")}</td>
+        <td class="c-cli" title="${esc(r["Клієнт"]||"")}">${esc(cliName(r["Клієнт"])||"—")}</td>
         <td class="c-rt${ED}" data-ed="Маршрут" title="${esc(r["Маршрут"]||"")}">${
             _s(r,"Маршрут")
               ? _s(r,"Маршрут").split(/→|->/).map(x=>x.trim()).filter(Boolean)
