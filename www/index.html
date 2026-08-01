@@ -344,7 +344,10 @@
      повний текст — при наведенні і в картці угоди */
   .dispscroll table.fixw{table-layout:fixed;width:100%}
   .dispscroll table.fixw td,.dispscroll table.fixw th{overflow:hidden;text-overflow:ellipsis}
-  td.c-com,td.c-rt{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  td.c-com,td.c-rt,td.c-md{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  td.c-rel{text-align:center}
+  td.c-rel.tog{cursor:pointer}
+  td.c-rel.tog:hover{background:var(--accent-soft)}
   /* BL і кожен контейнер — окремим рядком; сам номер НЕ розривається,
      якщо не влазить — три крапки (вимога користувачки 01.08.2026) */
   .dispscroll table.fixw td.c-bl{white-space:normal;word-break:normal;line-height:1.35}
@@ -1204,11 +1207,13 @@ PAGES.dispatch = async () => {
   const ED = CAN_EDIT ? " ed" : "";
   const ED_KIND = {"ETA":"date", "ETD (факт)":"date", "Гейт ін":"date",
                    "Подача авто (факт)":"date", "Перетин кордону (факт)":"date",
-                   "Статус":"select"};
+                   "Статус":"select", "Вид перевезення":"select"};
+  // варіанти для випадайок у таблиці — свої для кожної колонки
+  const ED_OPTS = {"Статус": ()=>Object.keys(STATUSES), "Вид перевезення": ()=>MODE_OPTIONS};
   const syncBtn = cfg().sync ? '<button class="btn" id="sync-btn">⟳ Оновити з Експедитора</button>' : "";
   const head = logist
     ? "<th>Угода</th><th>Клієнт</th><th>Контейнер</th><th>Статус</th><th>Номер авто</th><th>Водій</th><th>Телефон</th><th>Перетин кордону</th><th></th>"
-    : "<th>Угода</th><th></th><th>Клієнт</th><th>Маршрут</th><th>Лінія</th><th>HBL</th><th class=\"c-bl\">BL / Контейнер</th><th class=\"c-ves\">Судно</th><th>Gate in</th><th>ETD</th><th>ETA</th><th>Статус</th><th>Подача авто</th><th>Номер авто</th><th>Позначки</th><th>Коментар</th><th></th>";
+    : "<th>Угода</th><th></th><th>Клієнт</th><th>Маршрут</th><th>Вид</th><th>Лінія</th><th>HBL</th><th class=\"c-bl\">BL / Контейнер</th><th class=\"c-ves\">Судно</th><th>Gate in</th><th>ETD</th><th>ETA</th><th>Статус</th><th>Подача авто</th><th>Номер авто</th><th>Реліз</th><th>Позначки</th><th>Коментар</th><th></th>";
   // ── активні алерти над таблицею
   const uniq = k => [...new Set(all.map(r=>_s(r,k)).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"uk"));
   const nActive = all.filter(r=>!_done(r)).length;
@@ -1241,15 +1246,39 @@ PAGES.dispatch = async () => {
       <div class="tablewrap dispscroll" id="dscroll"><table class="${logist?"":"fixw"}">
         ${logist? "" : `<colgroup>
           <col style="width:58px"><col style="width:54px"><col style="width:150px"><col style="width:158px">
-          <col style="width:76px"><col style="width:118px"><col style="width:182px"><col style="width:122px">
-          <col style="width:84px"><col style="width:84px"><col style="width:92px"><col style="width:176px">
-          <col style="width:108px"><col style="width:100px"><col style="width:116px"><col><col style="width:44px">
+          <col style="width:132px"><col style="width:76px"><col style="width:118px"><col style="width:182px">
+          <col style="width:122px"><col style="width:84px"><col style="width:84px"><col style="width:92px">
+          <col style="width:176px"><col style="width:108px"><col style="width:100px"><col style="width:62px">
+          <col style="width:116px"><col><col style="width:44px">
         </colgroup>`}
         <thead><tr>${head}</tr></thead>
         <tbody id="drows"></tbody></table></div>
     </div>`;
   if (cfg().sync) $("page-actions").innerHTML = syncBtn;
   // ── редагування клітинки на місці: Enter/клік поза межами — зберегти, Esc — скасувати
+  /* Галочка прямо в таблиці (поки лише «Реліз»): один клік ставить або знімає.
+     Пишемо в базу одразу, у журнал — теж, як і при звичайній правці клітинки. */
+  const toggleFlag = async (td) => {
+    if (td.classList.contains("saving")) return;
+    const tr = td.closest("tr[data-id]");
+    const row = all.find(x => String(x.Id) === tr.dataset.id);
+    if (!row) return;
+    const col = td.dataset.tog;
+    const was = !!row[col], now = !was;
+    td.classList.add("saving");
+    try{
+      await api(`/api/v2/tables/${T["Диспетчеризація"]}/records`, {method:"PATCH",
+        body: JSON.stringify([{Id: row.Id, [col]: now}])});
+      row[col] = now;
+      logAction("правка угоди", "Угода №" + (row["Угода"] || row.Id), col, was, now);
+      toast(`✅ ${col}: ${now ? "поставлено" : "знято"}`);
+      draw();
+    }catch(err){
+      toast("⚠ Не збереглось: " + err.message);
+    }
+    td.classList.remove("saving");
+  };
+
   const editCell = (td) => {
     if (td.querySelector(".edinput")) return;
     const col = td.dataset.ed;
@@ -1260,7 +1289,7 @@ PAGES.dispatch = async () => {
     const val0 = kind === "date" ? cur.slice(0,10) : cur;
     const keep = td.innerHTML;
     td.innerHTML = kind === "select"
-      ? `<select class="edinput"><option value=""></option>${Object.keys(STATUSES).map(o=>
+      ? `<select class="edinput"><option value=""></option>${(ED_OPTS[col]||(()=>[]))().map(o=>
           `<option${o===cur?" selected":""}>${esc(o)}</option>`).join("")}</select>`
       : `<input class="edinput" type="${kind==="date"?"date":"text"}" value="${esc(val0)}">`;
     const inp = td.querySelector(".edinput");
@@ -1323,6 +1352,8 @@ PAGES.dispatch = async () => {
         <td>${r["Напрямок"]?`<span class="dirchip ${r["Напрямок"]==="Імпорт"?"imp":"exp"}">${r["Напрямок"]==="Імпорт"?"ІМП":(r["Напрямок"]==="Експорт"?"ЕКС":"ТРН")}</span>`:""}</td>
         <td>${esc(r["Клієнт"]||"—")}</td>
         <td class="c-rt${ED}" data-ed="Маршрут" title="${esc(r["Маршрут"]||"")}">${esc(r["Маршрут"]||"—")}</td>
+        <td class="c-md${ED}" data-ed="Вид перевезення" title="${esc(_s(r,"Вид перевезення"))}">${
+            _s(r,"Вид перевезення") ? esc(r["Вид перевезення"]) : '<span class="cell-muted">—</span>'}</td>
         <td>${isAir(r)||_s(r,"Вид перевезення")==="авто" ? '<span class="cell-muted">—</span>' : esc(r["Лінія"]||"—")}</td>
         <td class="mono${ED}" data-ed="HBL">${isAir(r) ? '<span class="cell-muted">—</span>' : (esc(r["HBL"]||"") || '<span class="cell-muted">—</span>')}</td>
         <td class="mono c-bl">${isAir(r)
@@ -1343,13 +1374,20 @@ PAGES.dispatch = async () => {
             : (truckLate(r) ? '<span style="color:#d1453b;font-weight:700">немає</span>' : '<span class="cell-muted">—</span>')}</td>
         <td class="mono${ED}" data-ed="Номер авто">${r["Номер авто"] ? esc(r["Номер авто"])
             : (truckLate(r) ? '<span style="color:#d1453b;font-weight:700">немає</span>' : '<span class="cell-muted">—</span>')}</td>
-        <td>${FLAGS.filter(f=>r[f]).map(f=>`<span class="flag on">${f} ✓</span>`).join("")||'<span class="cell-muted">—</span>'}</td>
+        <td class="c-rel${CAN_EDIT?" tog":""}" data-tog="Реліз" title="${
+            CAN_EDIT?"клік — поставити або зняти «Реліз»":"Реліз"}">${
+            r["Реліз"] ? '<span class="flag on">✓</span>' : '<span class="cell-muted">—</span>'}</td>
+        <td>${FLAGS.filter(f=>f!=="Реліз"&&r[f]).map(f=>`<span class="flag on">${f} ✓</span>`).join("")||'<span class="cell-muted">—</span>'}</td>
         <td class="cell-muted c-com${ED}" data-ed="Коментар" title="${esc(r["Коментар"]||"")}">${esc(r["Коментар"]||"")}</td>
         <td>${docBtn(r)}</td>
-      </tr>`).join("") : `<tr><td colspan="17" class="cell-muted">Нічого не знайдено.</td></tr>`;
+      </tr>`).join("") : `<tr><td colspan="19" class="cell-muted">Нічого не знайдено.</td></tr>`;
     $("drows").querySelectorAll("tr[data-id]").forEach(tr=>tr.addEventListener("click",()=>openRow(all.find(x=>String(x.Id)===tr.dataset.id))));
     // клік по номеру відкриває трекінг лінії, а не картку угоди
     $("drows").querySelectorAll("a.tl").forEach(a=>a.addEventListener("click", e=>e.stopPropagation()));
+    // клік по галочці «Реліз» — перемикається одразу, картка не відкривається
+    if (CAN_EDIT) $("drows").querySelectorAll("td.tog[data-tog]").forEach(td=>{
+      td.addEventListener("click", e=>{ e.stopPropagation(); toggleFlag(td); });
+    });
     // клік по редагованій клітинці — правка на місці, картка угоди при цьому не відкривається
     if (CAN_EDIT) $("drows").querySelectorAll("td.ed[data-ed]").forEach(td=>{
       if (!td.title) td.title = "клік — редагувати «" + td.dataset.ed +
