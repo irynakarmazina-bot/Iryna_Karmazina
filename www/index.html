@@ -568,7 +568,7 @@
       <div class="spacer"></div>
       <!-- Позначка версії: по ній видно, чи браузер підтягнув свіжу сторінку.
            Оновлюється автоматично при кожному викладенні (scripts/stamp.sh). -->
-      <div class="buildstamp" id="buildstamp" title="версія сторінки — якщо не збігається з тим, що я назвала, натисни Ctrl+F5">в. 01.08 15:45</div>
+      <div class="buildstamp" id="buildstamp" title="версія сторінки — якщо не збігається з тим, що я назвала, натисни Ctrl+F5">в. 01.08 15:48</div>
     </nav>
     <div class="main">
       <div class="topbar">
@@ -1546,7 +1546,10 @@ PAGES.dispatch = async () => {
         <td class="mono dt${ED}" data-ed="Stuffing" title="дата стафіровки">${dateB(r["Stuffing"])}</td>
         <td class="mono dt${ED}" data-ed="Гейт ін">${dateB(r["Гейт ін"])}</td>
         <td class="mono dt${ED}" data-ed="ETD (факт)">${etdOf(r)
-            ? `${dateB(etdOf(r))}${_s(r,"ETD (факт)")?"":'<br><span class="cell-muted">план</span>'}`
+            /* Підпис «план» прибрано 01.08.2026: ETD і так планова дата, доки
+               немає фактичної. Значення береться з «ETD (факт)», а якщо його
+               немає — з «ETD (план)», тому окремо позначати нічого не треба. */
+            ? dateB(etdOf(r))
             : '<span class="cell-muted">—</span>'}</td>
         <td class="mono dt${ED}" data-ed="ETA">${dateB(r["ETA"])}${(()=>{
             const c = etaChanged(r) ? etaChange(r) : null;
