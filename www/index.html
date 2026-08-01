@@ -326,7 +326,7 @@
   .pill.t-good{background:var(--good-bg);color:var(--good-text)}
   .pill.t-crit{background:var(--crit-bg);color:var(--crit-text)}
   .pill.t-del{background:var(--del-bg);color:var(--del-text)}
-  .dirchip{font-size:11px;font-weight:700;letter-spacing:.04em;border-radius:5px;padding:1px 6px}
+  .dirchip{font-size:11px;font-weight:700;letter-spacing:.02em;border-radius:5px;padding:1px 5px;white-space:nowrap}
   .dirchip.imp{background:var(--info-bg);color:var(--info-text)}
   .dirchip.exp{background:var(--vio-bg);color:var(--vio-text)}
   .flag{display:inline-block;font-size:11.5px;font-weight:600;border-radius:5px;padding:1px 6px;margin:1px 2px 1px 0;white-space:nowrap}
@@ -568,7 +568,7 @@
       <div class="spacer"></div>
       <!-- Позначка версії: по ній видно, чи браузер підтягнув свіжу сторінку.
            Оновлюється автоматично при кожному викладенні (scripts/stamp.sh). -->
-      <div class="buildstamp" id="buildstamp" title="версія сторінки — якщо не збігається з тим, що я назвала, натисни Ctrl+F5">в. 01.08 15:41</div>
+      <div class="buildstamp" id="buildstamp" title="версія сторінки — якщо не збігається з тим, що я назвала, натисни Ctrl+F5">в. 01.08 15:44</div>
     </nav>
     <div class="main">
       <div class="topbar">
@@ -1388,7 +1388,7 @@ PAGES.dispatch = async () => {
                жирний 13 px «12.06.26» потребує ~72 px разом із відступами. -->
           <!-- 17 колонок, шість із них дати по 86 px (кегль дат 12.5 px).
                Сума фіксованих ~1232 px, решта — «Коментар» (01.08.2026). -->
-          <col style="width:46px"><col style="width:50px"><col style="width:84px"><col style="width:102px">
+          <col style="width:46px"><col style="width:62px"><col style="width:84px"><col style="width:102px">
           <col style="width:110px"><col style="width:124px"><col style="width:74px"><col style="width:86px">
           <col style="width:86px"><col style="width:86px"><col style="width:86px"><col style="width:86px">
           <col style="width:86px"><col style="width:106px"><col style="width:74px"><col><col style="width:32px">
@@ -1516,7 +1516,12 @@ PAGES.dispatch = async () => {
               ? `<br><span class="fin" title="кінцева точка доставки">⌂ ${esc(r["Кінцева точка доставки"])}</span>`
               : ""}</td>
         <td class="c-md${ED}" data-ed="Вид перевезення" title="${esc(_s(r,"Вид перевезення"))}">${
-            _s(r,"Вид перевезення") ? esc(r["Вид перевезення"]) : '<span class="cell-muted">—</span>'}${
+            _s(r,"Вид перевезення")
+              /* «фрахт+ТЕО+залізниця» — один суцільний токен без пробілів, тому
+                 звичайний перенос не спрацьовував і текст обрізався. <wbr> каже
+                 браузеру, що після «+» переносити можна (01.08.2026). */
+              ? esc(r["Вид перевезення"]).replace(/\+/g, "+<wbr>")
+              : '<span class="cell-muted">—</span>'}${
             (isAir(r)||_s(r,"Вид перевезення")==="авто"||!_s(r,"Лінія")) ? ""
               : `<br><span class="cell-muted">${esc(r["Лінія"])}</span>`}</td>
         <td class="mono c-bl">${isAir(r)
