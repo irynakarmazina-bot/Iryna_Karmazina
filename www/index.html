@@ -816,6 +816,13 @@ const isSea = r => {
   return t.includes("море") || t.includes("фрахт") || t.includes("збірн");
 };
 const isRail  = r => /залізни/i.test(_s(r,"Вид перевезення")) || /залізни/i.test(_s(r,"Тип"));
+const isAir   = r => /авіа/i.test(_s(r,"Вид перевезення"));
+/* Чого при якому виді перевезення НЕ буває (зауваження користувачки 01.08.2026):
+   авіа — немає ні контейнера, ні морської лінії, замість коносамента авіанакладна;
+   авто — немає ні коносамента, ні контейнера, ні лінії, ні судна. */
+const needsBL   = r => isAir(r) || hasLine(r);
+const needsCont = r => isSea(r);
+const shipDoc   = r => isAir(r) ? _s(r,"Авіанакладна") : _s(r,"BL");
 const hasLine = r => isSea(r) || isRail(r);
 const isDone  = r => r["Статус"] === "Вантаж доставлено";
 /* дата у звичному вигляді: 05.08.26, жирним — щоб читалась з першого погляду */
@@ -876,7 +883,7 @@ PAGES.dashboard = async () => {
   const d = v => { const m=/(\d{4})-(\d{2})-(\d{2})/.exec(String(v||"")); return m? new Date(+m[1],+m[2]-1,+m[3]) : null; };
   const sea = active.filter(r=>r["Статус"]==="В морі").length;
   const week = active.filter(r=>{ const e=d(r["ETA"]); return e && (e-today)/86400000>=0 && (e-today)/86400000<=7; }).length;
-  const noBL = active.filter(r=>!String(r["BL"]||"").trim()).length;
+  const noBL = active.filter(r=>needsBL(r) && !shipDoc(r)).length;
   // у порту прибуття і ще не вивезені — тут капають зберігання і демередж
   const inPortRows = rows.filter(inPort).sort((a,b)=>(daysIn(b)||0)-(daysIn(a)||0));
   const inPortMax = inPortRows.length ? (daysIn(inPortRows[0]) || 0) : 0;
@@ -950,13 +957,14 @@ PAGES.dashboard = async () => {
        return "вантаж уже їде, а етап досі «Букинг»" + (m.length? " · " + m.join(", ") : ""); })()},
     {q:"nostatus", nm:"Без статусу", n: rows.filter(r=>!_s(r,"Статус")).length,
      sub:"етап в Експедиторі є, але ми його ще не мапимо в статус платформи"},
-    {q:"nobl", nm:"Без BL", n: noBL, sub:"трекінг лінії не вмикається — впиши коносамент"},
+    {q:"nobl", nm:"Без коносамента / авіанакладної", n: noBL,
+     sub:"трекінг не вмикається. Авто в цей рахунок не входить — там документа перевезення не буває"},
     {q:"noeta", nm:"Без ETA", n: rows.filter(r=>!_s(r,"ETA")).length,
      sub:"немає дати прибуття — угода не потрапляє в план і в сортування"},
     {q:"overdue", nm:"ETA минула, а угода не закрита", n: overdueAll.length,
      sub:"або вантаж затримався, або не оновлено статус чи дати"},
-    {q:"nocont", nm:"Без номера контейнера", n: rows.filter(r=>!_s(r,"Контейнер")).length,
-     sub:"не визначається FCL і не працює запасний трекінг по контейнеру"},
+    {q:"nocont", nm:"Без номера контейнера", n: rows.filter(r=>needsCont(r) && !_s(r,"Контейнер")).length,
+     sub:"тільки морські — при авіа та авто контейнера не буває"},
     {q:"noline", nm:"Без лінії (морські й залізничні)", n: lineRows.filter(r=>!_s(r,"Лінія")).length,
      sub:"невідомо, чиїм трекінгом тягнути дані"},
     {q:"nomode", nm:"Без виду перевезення", n: noMode,
@@ -1106,13 +1114,13 @@ PAGES.dispatch = async () => {
     sea:{label:"в морі зараз", test:r=>r["Статус"]==="В морі"},
     eta7:{label:"прибуття за 7 днів", test:r=>{ if(_done(r)) return false; const e=_dt(r["ETA"]);
       if(!e) return false; const dd=(e-_today)/86400000; return dd>=0 && dd<=7; }},
-    nobl:{label:"без BL (не трекаються)", test:r=>!_done(r) && !String(r["BL"]||"").trim()},
+    nobl:{label:"без коносамента / авіанакладної", test:r=>!_done(r) && needsBL(r) && !shipDoc(r)},
     inport:{label:"у порту — не вивезено", test:inPort},
     nostatus:{label:"без статусу", test:r=>!_s(r,"Статус")},
     noeta:{label:"без ETA", test:r=>!_s(r,"ETA")},
     overdue:{label:"ETA минула, угода не закрита", test:r=>{ if(_done(r)) return false;
       const e=_dt(r["ETA"]); return !!e && e<_today; }},
-    nocont:{label:"без номера контейнера", test:r=>!_s(r,"Контейнер")},
+    nocont:{label:"без номера контейнера", test:r=>needsCont(r) && !_s(r,"Контейнер")},
     noline:{label:"без лінії (морські й залізничні)", test:r=>hasLine(r) && !_s(r,"Лінія")},
     nomode:{label:"без виду перевезення", test:r=>!_s(r,"Вид перевезення")},
     stale:{label:"не оновлювалось понад 7 днів", test:r=>{ if(_done(r)) return false;
@@ -1151,7 +1159,7 @@ PAGES.dispatch = async () => {
     {q:"inport",    cls:"a-amber", nm:"Стоять у порту",                n: all.filter(inPort).length},
     {q:"overdue",   cls:"a-amber", nm:"ETA минула",                    n: all.filter(QUICK.overdue.test).length},
     {q:"nostatus",  cls:"a-amber", nm:"Без статусу",                   n: all.filter(r=>!_s(r,"Статус")).length},
-    {q:"nobl",      cls:"a-amber", nm:"Без BL",                        n: all.filter(QUICK.nobl.test).length},
+    {q:"nobl",      cls:"a-amber", nm:"Без коносамента",                n: all.filter(QUICK.nobl.test).length},
   ].filter(a=>a.n > 0);
   $("content").innerHTML = `
     <div class="card">
@@ -1252,9 +1260,12 @@ PAGES.dispatch = async () => {
         <td>${r["Напрямок"]?`<span class="dirchip ${r["Напрямок"]==="Імпорт"?"imp":"exp"}">${r["Напрямок"]==="Імпорт"?"ІМП":(r["Напрямок"]==="Експорт"?"ЕКС":"ТРН")}</span>`:""}</td>
         <td>${esc(r["Клієнт"]||"—")}</td>
         <td>${esc(r["Лінія"]||"—")}</td>
-        <td class="mono c-bl">${_s(r,"HBL")
-            ? `${esc(r["HBL"])}<br><span class="cell-muted">${esc(r["BL"]||"")}${r["BL"]&&r["Контейнер"]?" · ":""}${esc(r["Контейнер"]||"")}</span>`
-            : `${esc(r["BL"]||"—")}<br><span class="cell-muted">${esc(r["Контейнер"]||"")}</span>`}</td>
+        <td class="mono c-bl">${isAir(r)
+            ? (_s(r,"Авіанакладна") ? `${esc(r["Авіанакладна"])}<br><span class="cell-muted">авіанакладна</span>`
+                                    : '<span class="cell-muted">авіа — накладної немає</span>')
+            : _s(r,"HBL")
+              ? `${esc(r["HBL"])}<br><span class="cell-muted">${esc(r["BL"]||"")}${r["BL"]&&r["Контейнер"]?" · ":""}${esc(r["Контейнер"]||"")}</span>`
+              : `${esc(r["BL"]||"—")}<br><span class="cell-muted">${esc(r["Контейнер"]||"")}</span>`}</td>
         <td class="c-ves${ED}" data-ed="Судно">${esc(r["Судно"]||"—")}</td>
         <td class="mono${ED}" data-ed="Гейт ін">${dateB(r["Гейт ін"])}</td>
         <td class="mono${ED}" data-ed="ETD (факт)">${etdOf(r)
