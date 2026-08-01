@@ -387,6 +387,7 @@
      обрізалась навіть у 84-піксельній колонці. Даємо колонкам 94 px і
      звужуємо відступи саме в них (01.08.2026). */
   .dispscroll table.fixw td.dt,.dispscroll table.fixw th.dt{padding-left:6px;padding-right:6px}
+  .dispscroll table.fixw td.dt{font-size:12.5px}
   td.c-bl .ln{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   a.tl{color:var(--accent);text-decoration:none;border-bottom:1px dashed rgba(37,99,235,.4)}
   a.tl:hover{border-bottom-style:solid}
@@ -564,7 +565,7 @@
       <div class="spacer"></div>
       <!-- Позначка версії: по ній видно, чи браузер підтягнув свіжу сторінку.
            Оновлюється автоматично при кожному викладенні (scripts/stamp.sh). -->
-      <div class="buildstamp" id="buildstamp" title="версія сторінки — якщо не збігається з тим, що я назвала, натисни Ctrl+F5">в. 01.08 15:05</div>
+      <div class="buildstamp" id="buildstamp" title="версія сторінки — якщо не збігається з тим, що я назвала, натисни Ctrl+F5">в. 01.08 15:16</div>
     </nav>
     <div class="main">
       <div class="topbar">
@@ -936,8 +937,11 @@ const inPort = r => !isDone(r) && !_s(r,"Вивантаження у отрим�
   (!!portSince(r) || r["Статус"] === "Вивантажений в порту прибуття");
 const daysIn = r => { const p=portSince(r); if(!p) return null;
   const t=new Date(); t.setHours(0,0,0,0); return Math.round((t-p)/86400000); };
-/* імпорт вивантажили в порту, минуло 2+ дні, а авто не подане й номера немає —
-   вантаж стоїть, капає зберігання (вимога користувачки 31.07.2026) */
+/* Імпорт вивантажили в порту, минуло 2+ дні, а авто не подане й номера немає.
+   Це СИГНАЛ ПЕРЕВІРИТИ, а не факт витрат: вільний час (free time) залежить від
+   лінії, порту й напрямку, і на 2-й день зазвичай ще не вичерпаний
+   (уточнення користувачки 01.08.2026). Облік строків демереджу й детеншену —
+   окрема наступна задача. */
 const truckDate = r => _s(r,"Подача авто (факт)") || _s(r,"Подача авто (план)");
 /* ETD показуємо фактом, а якщо факту немає — планом із підписом «план» */
 const etdOf = r => _s(r,"ETD (факт)") || _s(r,"ETD (план)");
@@ -1281,14 +1285,14 @@ PAGES.dispatch = async () => {
   const ED = CAN_EDIT ? " ed" : "";
   const ED_KIND = {"ETA":"date", "ETD (факт)":"date", "Гейт ін":"date",
                    "Подача авто (факт)":"date", "Перетин кордону (факт)":"date",
-                   "ETA сухий порт":"date", "Gate out for delivery":"date",
+                   "ETA сухий порт":"date", "Gate out for delivery":"date", "Stuffing":"date",
                    "Статус":"select", "Вид перевезення":"select"};
   // варіанти для випадайок у таблиці — свої для кожної колонки
   const ED_OPTS = {"Статус": ()=>Object.keys(STATUSES), "Вид перевезення": ()=>MODE_OPTIONS};
   const syncBtn = cfg().sync ? '<button class="btn" id="sync-btn">⟳ Оновити з Експедитора</button>' : "";
   const head = logist
     ? "<th>Угода</th><th>Клієнт</th><th>Контейнер</th><th>Статус</th><th>Номер авто</th><th>Водій</th><th>Телефон</th><th>Перетин кордону</th><th></th>"
-    : "<th>Угода</th><th></th><th>Клієнт</th><th>Маршрут</th><th>Вид / лінія</th><th class=\"c-bl\">Коносамент /<br>контейнер</th><th class=\"c-ves\">Судно</th><th class=\"dt\">Gate in</th><th class=\"dt\">ETD POL</th><th class=\"dt\">ETA POD</th><th class=\"dt\">ETA dry port</th><th class=\"dt\">Gate out delivery</th><th>Статус</th><th>Авто</th><th>Коментар</th><th></th>";
+    : "<th>Угода</th><th></th><th>Клієнт</th><th>Маршрут</th><th>Вид / лінія</th><th class=\"c-bl\">Коносамент /<br>контейнер</th><th class=\"c-ves\">Судно</th><th class=\"dt\">Stuffing</th><th class=\"dt\">Gate in</th><th class=\"dt\">ETD POL</th><th class=\"dt\">ETA POD</th><th class=\"dt\">ETA dry port</th><th class=\"dt\">Gate out delivery</th><th>Статус</th><th>Авто</th><th>Коментар</th><th></th>";
   // ── активні алерти над таблицею
   const uniq = k => [...new Set(all.map(r=>_s(r,k)).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"uk"));
   const nActive = all.filter(r=>!_done(r)).length;
@@ -1333,10 +1337,12 @@ PAGES.dispatch = async () => {
                Реліз і Позначки з таблиці прибрані зовсім — вони в картці угоди
                (двічі просила прибрати їх з екрана, 01.08.2026). Дати по 84 px:
                жирний 13 px «12.06.26» потребує ~72 px разом із відступами. -->
-          <col style="width:50px"><col style="width:54px"><col style="width:88px"><col style="width:108px">
-          <col style="width:116px"><col style="width:132px"><col style="width:78px"><col style="width:94px">
-          <col style="width:94px"><col style="width:94px"><col style="width:94px"><col style="width:94px">
-          <col style="width:112px"><col style="width:78px"><col><col style="width:36px">
+          <!-- 17 колонок, шість із них дати по 86 px (кегль дат 12.5 px).
+               Сума фіксованих ~1232 px, решта — «Коментар» (01.08.2026). -->
+          <col style="width:46px"><col style="width:50px"><col style="width:84px"><col style="width:102px">
+          <col style="width:110px"><col style="width:124px"><col style="width:74px"><col style="width:86px">
+          <col style="width:86px"><col style="width:86px"><col style="width:86px"><col style="width:86px">
+          <col style="width:86px"><col style="width:106px"><col style="width:74px"><col><col style="width:32px">
         </colgroup>`}
         <thead><tr>${head}</tr></thead>
         <tbody id="drows"></tbody></table></div>
@@ -1473,6 +1479,7 @@ PAGES.dispatch = async () => {
                 .map(c=>c.trim()).filter(Boolean)
                 .map(c=>`<span class="ln">${trackLink(r, c, "cell-muted")}</span>`).join("")}`}</td>
         <td class="c-ves${ED}" data-ed="Судно">${esc(r["Судно"]||"—")}</td>
+        <td class="mono dt${ED}" data-ed="Stuffing" title="дата стафіровки">${dateB(r["Stuffing"])}</td>
         <td class="mono dt${ED}" data-ed="Гейт ін">${dateB(r["Гейт ін"])}</td>
         <td class="mono dt${ED}" data-ed="ETD (факт)">${etdOf(r)
             ? `${dateB(etdOf(r))}${_s(r,"ETD (факт)")?"":'<br><span class="cell-muted">план</span>'}`
@@ -1492,7 +1499,7 @@ PAGES.dispatch = async () => {
             _s(r,"Номер авто") ? `<br><span class="cell-muted">${esc(r["Номер авто"])}</span>` : ""}</td>
         <td class="cell-muted c-com${ED}" data-ed="Коментар" title="${esc(r["Коментар"]||"")}">${esc(r["Коментар"]||"")}</td>
         <td>${docBtn(r)}</td>
-      </tr>`).join("") : `<tr><td colspan="16" class="cell-muted">Нічого не знайдено.</td></tr>`;
+      </tr>`).join("") : `<tr><td colspan="17" class="cell-muted">Нічого не знайдено.</td></tr>`;
     $("drows").querySelectorAll("tr[data-id]").forEach(tr=>tr.addEventListener("click",()=>openRow(all.find(x=>String(x.Id)===tr.dataset.id))));
     // клік по номеру відкриває трекінг лінії, а не картку угоди
     $("drows").querySelectorAll("a.tl").forEach(a=>a.addEventListener("click", e=>e.stopPropagation()));
@@ -1814,7 +1821,7 @@ $("gen-btn").addEventListener("click", async ()=>{
 const CARD_GROUPS = [
   ["Основне", ["Угода","Напрямок","Клієнт","Лінія","Вид перевезення","FCL/LCL","Тип","Перевізник","Агент","Маршрут","Кінцева точка доставки","HBL","BL","Контейнер","Вантаж","Тип обладнання","Кількість","Вивіз (Carrier/Merchant)","Сухий порт","Адреса розмитнення"]],
   ["Море", ["Судно","Вояж","Контейнер (лінія)","Звірка","Статус","Етап (Експедитор)","ETA","ETD (план)","ETD (факт)","ETA порт (план)","ETA порт (факт)","Порт перевалки","Перевалка (прибуття)","Перевалка (відправлення)","Зміни ETA (історія)","Остання зміна","Останнє оновлення"]],
-  ["Дати на землі", ["Подача авто (план)","Подача авто (факт)","Port Cut Off","Гейт ін","Вивантаження в порту (факт)","Гейт аут","ETA сухий порт","Gate out for delivery","Постановка/завантаження (план)","Постановка/завантаження (факт)","Перетин кордону (факт)","Планова до клієнта (план)","Планова до клієнта (факт)","Вивантаження у отримувача (факт)"]],
+  ["Дати на землі", ["Stuffing","Подача авто (план)","Подача авто (факт)","Port Cut Off","Гейт ін","Вивантаження в порту (факт)","Гейт аут","ETA сухий порт","Gate out for delivery","Постановка/завантаження (план)","Постановка/завантаження (факт)","Перетин кордону (факт)","Планова до клієнта (план)","Планова до клієнта (факт)","Вивантаження у отримувача (факт)"]],
   ["Авто і документи", ["Номер авто","Номер ЦМР","Водій (ПІБ)","Водій (телефон)","Телекс","Т1","ДО","Документи","SI","Замитнення","Реліз"]],
   ["Команда і коментарі", ["Менеджер","Оп. менеджер","Лист (джерело)","Нагадування","Коментар","Коментар клієнту"]],
 ];
