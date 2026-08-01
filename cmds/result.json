@@ -1,7 +1,7 @@
 {
-  "stdout": "1\n2459:  const isAdmin = ROLE === \"Адміністратор\";\n2460:  const rows = isAdmin ? await loadAll(T[\"Користувачі\"]) : [];\n2461:  const UED = isAdmin ? \" ed\" : \"\";\n196732 /root/unitex-os-www/index.html\n",
+  "stdout": "0\n196568 /root/unitex-os-www/index.html\n",
   "stderr": "",
   "returncode": 0,
-  "id": "deploy-finfix",
-  "ts": "2026-08-01T13:47:14Z"
+  "id": "deploy-nosub",
+  "ts": "2026-08-01T13:49:06Z"
 }
