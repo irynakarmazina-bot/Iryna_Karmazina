@@ -1,7 +1,7 @@
 {
-  "stdout": "версія: в. 01.08 15:23\n",
+  "stdout": "версія: в. 01.08 15:29\nалерт: 1\n",
   "stderr": "",
   "returncode": 0,
-  "id": "deploy-haulage",
-  "ts": "2026-08-01T15:23:10Z"
+  "id": "deploy-etachg",
+  "ts": "2026-08-01T15:29:12Z"
 }
