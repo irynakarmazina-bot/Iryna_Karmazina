@@ -584,7 +584,7 @@
       <div class="spacer"></div>
       <!-- Позначка версії: по ній видно, чи браузер підтягнув свіжу сторінку.
            Оновлюється автоматично при кожному викладенні (scripts/stamp.sh). -->
-      <div class="buildstamp" id="buildstamp" title="версія сторінки — якщо не збігається з тим, що я назвала, натисни Ctrl+F5">в. 01.08 16:33</div>
+      <div class="buildstamp" id="buildstamp" title="версія сторінки — якщо не збігається з тим, що я назвала, натисни Ctrl+F5">в. 01.08 16:36</div>
     </nav>
     <div class="main">
       <div class="topbar">
@@ -1094,16 +1094,14 @@ PAGES.dashboard = async () => {
   const sea = active.filter(r=>r["Статус"]==="В морі").length;
   const week = active.filter(r=>{ const e=d(r["ETA"]); return e && (e-today)/86400000>=0 && (e-today)/86400000<=7; }).length;
   const noBL = active.filter(r=>needsBL(r) && !shipDoc(r)).length;
-  // у порту прибуття і ще не вивезені — тут капають зберігання і демередж
-  const inPortRows = rows.filter(inPort).sort((a,b)=>(daysIn(b)||0)-(daysIn(a)||0));
-  const inPortMax = inPortRows.length ? (daysIn(inPortRows[0]) || 0) : 0;
+  /* Розрахунки «скільки днів стоїть у порту» і «ETA минула» прибрані 01.08.2026.
+     Це були МОЇ припущення про терміни вивозу — користувачка їх не задавала:
+     «я тобі взагалі не задавала терміни». Повернуться разом з обліком демереджу
+     й детеншену, коли будуть норми free time по лініях і портах. */
   const fmtRow = r => `<tr><td class="mono"><b>${esc(r["Угода"])}</b></td><td>${esc(r["Клієнт"]||"—")}</td>
     <td>${esc(r["Судно"]||"—")}</td><td>${stPill(r["Статус"])}</td><td class="mono">${dateB(r["ETA"])}</td></tr>`;
   const upcoming = active.filter(r=>{ const e=d(r["ETA"]); return e && e>=today; })
     .sort((a,b)=>String(a["ETA"]).localeCompare(String(b["ETA"]))).slice(0,8);
-  const overdueAll = active.filter(r=>{ const e=d(r["ETA"]); return e && e<today; })
-    .sort((a,b)=>String(a["ETA"]).localeCompare(String(b["ETA"])));
-  const overdue = overdueAll.slice(0,8);
   const scopeNote = cfg().scope!=="all" ? `<div class="note">👤 Показано лише твої угоди (${esc(UNAME)}).</div>` : "";
 
   // розподіл по лініях — лише там, де лінія взагалі буває:
@@ -1173,8 +1171,6 @@ PAGES.dashboard = async () => {
      sub:"трекінг не вмикається. Авто в цей рахунок не входить — там документа перевезення не буває"},
     {q:"noeta", nm:"Без ETA", n: rows.filter(r=>!_s(r,"ETA")).length,
      sub:"немає дати прибуття — угода не потрапляє в план і в сортування"},
-    {q:"overdue", nm:"ETA минула, а угода не закрита", n: overdueAll.length,
-     sub:"або вантаж затримався, або не оновлено статус чи дати"},
     {q:"nocont", nm:"Без номера контейнера", n: rows.filter(r=>needsCont(r) && !_s(r,"Контейнер")).length,
      sub:"тільки морські — при авіа та авто контейнера не буває"},
     {q:"noline", nm:"Без лінії (морські й залізничні)", n: lineRows.filter(r=>!_s(r,"Лінія")).length,
@@ -1196,7 +1192,6 @@ PAGES.dashboard = async () => {
       <div class="tile clickable" data-jump="active"><div class="lbl">📦 Активні перевезення</div><div class="val">${active.length}</div><div class="delta">з ${rows.length} угод усього</div></div>
       <div class="tile clickable" data-jump="sea"><div class="lbl">🌊 В морі зараз</div><div class="val">${sea}</div><div class="delta">${active.length? Math.round(sea/active.length*100):0}% активних</div></div>
       <div class="tile clickable" data-jump="eta7"><div class="lbl">📅 Прибуття за 7 днів</div><div class="val">${week}</div><div class="delta">потребують уваги</div></div>
-      <div class="tile ${inPortMax>=14?"warn":""} clickable" data-jump="inport"><div class="lbl">⏳ У порту — не вивезено</div><div class="val">${inPortRows.length}</div><div class="delta">${inPortRows.length? `найдовше — ${inPortMax} дн · ризик зберігання` : "простою немає"}</div></div>
     </div>
 
     <div class="dashgrid">
@@ -1239,22 +1234,7 @@ PAGES.dashboard = async () => {
       <p class="sub">натисни рядок, щоб побачити ці угоди в диспетчеризації</p>
       <div class="isslist">${ISSUES.map(issRow).join("")}</div></div>
 
-    ${inPortRows.length? `<div class="card" style="margin-top:12px"><h3>⏳ Стоять у порту прибуття</h3>
-      <p class="sub">прибули, але ще не вивезені — за кожен день капає зберігання і демередж</p>
-      <div class="tablewrap"><table>
-        <thead><tr><th>Угода</th><th>Клієнт</th><th>Контейнер</th><th>Статус</th><th>У порту з</th><th>Днів</th></tr></thead>
-        <tbody>${inPortRows.map(r=>{ const dd=daysIn(r);
-          return `<tr><td class="mono"><b>${esc(r["Угода"])}</b></td><td>${esc(r["Клієнт"]||"—")}</td>
-            <td class="mono">${esc(r["Контейнер"]||"—")}</td><td>${stPill(r["Статус"])}</td>
-            <td class="mono">${dateB(_s(r,"Вивантаження в порту (факт)")||_s(r,"ETA порт (факт)"))}</td>
-            <td class="mono" style="font-weight:700;color:${dd>=14?"#d1453b":"inherit"}">${dd==null?"—":dd}</td></tr>`;}).join("")}</tbody>
-      </table></div></div>`:""}
-
-    <div class="card" style="margin-top:12px"><h3>⚠️ ETA минуло — перевірити</h3><p class="sub">дата прибуття вже позаду, а угода не закрита: оновити статус або дати</p>
-      <div class="tablewrap"><table>
-        <thead><tr><th>Угода</th><th>Клієнт</th><th>Судно</th><th>Статус</th><th>ETA</th></tr></thead>
-        <tbody>${overdue.map(fmtRow).join("") || '<tr><td colspan="5" class="cell-muted">Таких немає — все під контролем ✅</td></tr>'}</tbody>
-      </table></div></div>`;
+`;
 
   const DONUT = {maintainAspectRatio:false, cutout:"60%",
     plugins:{ legend:{position:"right", labels:{boxWidth:8, boxHeight:8, usePointStyle:true,
@@ -1387,13 +1367,18 @@ PAGES.dispatch = async () => {
   // ── активні алерти над таблицею
   const uniq = k => [...new Set(all.map(r=>_s(r,k)).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"uk"));
   const nActive = all.filter(r=>!_done(r)).length;
+  /* Прибрано 01.08.2026: «Стоять у порту» і «ETA минула». Обидві плитки були
+     МОЇМ припущенням про терміни вивозу, а не правилом компанії. Користувачка:
+     «більшість вантажів тільки прибули, їх ще не встигли ні розмитнити ні
+     доставити — прибери терміни, які ти сам собі виставив по вивозу».
+     Повернемо разом з обліком демереджу й детеншену, коли будуть норми free time. */
   const ALERTS = [
     {q:"trucklate", cls:"a-red",   nm:"У порту без авто >2дн", n: all.filter(truckLate).length},
     {q:"stagestale",cls:"a-red",   nm:"Етап не оновлено",  n: all.filter(stageStale).length},
     {q:"nogatein",  cls:"a-red",   nm:"Експорт без Gate in",             n: all.filter(gateInMissing).length},
-    {q:"inport",    cls:"a-amber", nm:"Стоять у порту",                n: all.filter(inPort).length},
+
     {q:"etachg",    cls:"a-amber", nm:"Змінилася дата прибуття",       n: all.filter(etaChanged).length},
-    {q:"overdue",   cls:"a-amber", nm:"ETA минула",                    n: all.filter(QUICK.overdue.test).length},
+
     {q:"nostatus",  cls:"a-amber", nm:"Без статусу",                   n: all.filter(r=>!_s(r,"Статус")).length},
     {q:"nobl",      cls:"a-amber", nm:"Без BL",           n: all.filter(QUICK.nobl.test).length},
   ].filter(a=>a.n > 0);
