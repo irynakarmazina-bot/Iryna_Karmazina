@@ -1,7 +1,7 @@
 {
-  "stdout": "fmtD: 1\nсмужки: 2\nзначки меню: 2\nUI 200\n",
+  "stdout": "Налаштування: 1\nUI 200\n",
   "stderr": "",
   "returncode": 0,
-  "id": "deploy-contrast-0801",
-  "ts": "2026-08-01T09:28:22Z"
+  "id": "deploy-navorder-0801",
+  "ts": "2026-08-01T09:29:27Z"
 }
