@@ -1,1 +1,1 @@
-{"id": "tship-log-3", "cmd": "sleep 112; grep -E \"Оновити угод|Зміни по колонках|MAERSK_OK\" /root/run_tship.log; pgrep -f \"maersk_track_sync.py --all\" >/dev/null && echo STILL_RUNNING || echo FINISHED"}
+{"id": "tship-log-4", "cmd": "sleep 112; grep -E \"Оновити угод|Зміни по колонках|MAERSK_OK\" /root/run_tship.log; pgrep -f \"maersk_track_sync.py --all\" >/dev/null && echo STILL_RUNNING || echo FINISHED"}
