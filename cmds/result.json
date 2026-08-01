@@ -1,7 +1,7 @@
 {
-  "stdout": "transportDocumentReference   MAEU272050345    -> HTTP 400\ntransportDocumentReference   272050345        -> 404 немає даних\ncarrierBookingReference      MAEU272050345    -> HTTP 400\nequipmentReference           MRSU5393627      -> 404 немає даних\ntransportDocumentReference   271364164        -> 404 немає даних\nMIRANDOR 126 угод, 81045 байт\n",
+  "stdout": "OK /root/unitex-os-www/cabinet.html — 126 угод, 118694 байт\n",
   "stderr": "",
   "returncode": 0,
-  "id": "variants-mirandor",
-  "ts": "2026-08-01T13:17:23Z"
+  "id": "build-cabinet",
+  "ts": "2026-08-01T13:22:08Z"
 }
