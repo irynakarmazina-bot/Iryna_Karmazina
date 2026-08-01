@@ -1,1 +1,1 @@
-{"id": "maersk-dry-all-log", "cmd": "sleep 90; tail -n 30 /root/dry_all.log"}
+{"id": "maersk-dry-log2", "cmd": "sleep 115; tail -n 25 /root/dry_all.log"}
