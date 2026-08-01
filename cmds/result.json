@@ -1,7 +1,7 @@
 {
-  "stdout": "editCardField: 2\nCARD_LOCKED: 3\nUI 200\n",
+  "stdout": "row-hint: 2\nпідказка таблиці: 1\nUI 200\n",
   "stderr": "",
   "returncode": 0,
-  "id": "deploy-card-0731",
-  "ts": "2026-08-01T07:31:16Z"
+  "id": "deploy-hint-0731",
+  "ts": "2026-08-01T08:50:12Z"
 }
