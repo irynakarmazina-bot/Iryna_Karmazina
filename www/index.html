@@ -345,8 +345,10 @@
   .dispscroll table.fixw{table-layout:fixed;width:100%}
   .dispscroll table.fixw td,.dispscroll table.fixw th{overflow:hidden;text-overflow:ellipsis}
   td.c-com,td.c-rt{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  /* BL і Контейнер — два рядки, тому їм переніс дозволений */
-  .dispscroll table.fixw td.c-bl{white-space:normal;word-break:break-all}
+  /* BL і кожен контейнер — окремим рядком; сам номер НЕ розривається,
+     якщо не влазить — три крапки (вимога користувачки 01.08.2026) */
+  .dispscroll table.fixw td.c-bl{white-space:normal;word-break:normal;line-height:1.35}
+  td.c-bl .ln{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .dispscroll td{vertical-align:middle}
   /* смужки через рядок — око не збивається на широкій таблиці */
   .dispscroll tbody tr:nth-child(even) td{background:var(--surface-2)}
@@ -1181,7 +1183,7 @@ PAGES.dispatch = async () => {
       <div class="tablewrap dispscroll" id="dscroll"><table class="${logist?"":"fixw"}">
         ${logist? "" : `<colgroup>
           <col style="width:58px"><col style="width:54px"><col style="width:150px"><col style="width:158px">
-          <col style="width:76px"><col style="width:124px"><col style="width:168px"><col style="width:126px">
+          <col style="width:76px"><col style="width:118px"><col style="width:182px"><col style="width:122px">
           <col style="width:84px"><col style="width:84px"><col style="width:92px"><col style="width:176px">
           <col style="width:108px"><col style="width:100px"><col style="width:116px"><col><col style="width:44px">
         </colgroup>`}
@@ -1265,7 +1267,9 @@ PAGES.dispatch = async () => {
         <td class="mono c-bl">${isAir(r)
             ? (_s(r,"Авіанакладна") ? `${esc(r["Авіанакладна"])}<br><span class="cell-muted">авіанакладна</span>`
                                     : '<span class="cell-muted">авіа — накладної немає</span>')
-            : `${esc(r["BL"]||"—")}<br><span class="cell-muted">${esc(r["Контейнер"]||"")}</span>`}</td>
+            : `<span class="ln">${esc(r["BL"]||"—")}</span>${_s(r,"Контейнер").split(",")
+                .map(c=>c.trim()).filter(Boolean)
+                .map(c=>`<span class="ln cell-muted">${esc(c)}</span>`).join("")}`}</td>
         <td class="c-ves${ED}" data-ed="Судно">${esc(r["Судно"]||"—")}</td>
         <td class="mono${ED}" data-ed="Гейт ін">${dateB(r["Гейт ін"])}</td>
         <td class="mono${ED}" data-ed="ETD (факт)">${etdOf(r)
