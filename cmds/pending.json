@@ -1,1 +1,1 @@
-{"id": "run-cancelled", "cmd": "cd /root/direct-sync && timeout 110 python3 expeditor_direct_sync.py 2>&1 | grep -iE \"скасован|Позначено|Додано варіанти|Записів у платформі|FAIL\""}
+{"id": "verify-facade", "cmd": "grep -c \"CANCELLED_ST\" /root/unitex-os-www/index.html; grep -c \"tracking/detail\" /root/unitex-os-www/index.html; wc -c /root/unitex-os-www/index.html"}
