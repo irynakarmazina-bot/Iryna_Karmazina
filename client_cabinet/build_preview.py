@@ -1,0 +1,443 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""Генератор ПРОТОТИПУ клієнтського кабінету (лише для показу користувачці).
+
+Це НЕ робочий кабінет: тут немає ні входу, ні сервера-посередника. Скрипт бере
+угоди одного клієнта з NocoDB і зашиває їх у статичну сторінку, щоб узгодити
+вигляд — насамперед схему руху вантажу — перш ніж будувати справжній кабінет.
+
+Клієнтські дані фільтруються ТУТ, на сервері: у сторінку потрапляють лише
+дозволені колонки одного клієнта. Внутрішніх полів (агент, маржа, службові
+коментарі) у файлі немає взагалі.
+
+Запуск: python3 build_preview.py [--client Мірандор] [--out /root/unitex-os-www/cabinet.html]
+"""
+import argparse
+import json
+import re
+import urllib.request
+
+NC = "http://localhost:8080"
+TABLE = "m58xsjo6at01ohl"
+TOKEN_FILE = "/root/nocodb-token.txt"
+FACADE = "/root/unitex-os-www/index.html"
+CANCELLED = "Скасована"
+
+# Єдині колонки, які взагалі виходять із бази для клієнта.
+CLIENT_COLS = [
+    "Угода", "Напрямок", "Вид перевезення", "Тип", "FCL/LCL", "Маршрут", "Лінія",
+    "BL", "HBL", "Контейнер", "Судно", "Вояж", "Гейт ін", "ETD (план)", "ETD (факт)",
+    "ETA", "ETA порт (план)", "ETA порт (факт)", "Вивантаження в порту (факт)",
+    "Гейт аут", "Подача авто (план)", "Подача авто (факт)", "Статус",
+    "Вантаж", "Кількість", "Файли",
+]
+# Документи, які бачить клієнт (префікс у назві файла). «Внутрішній» — не бачить.
+CLIENT_DOCS = ["Домашній коносамент", "Лінійний коносамент", "Т1", "Реліз", "ЦМР",
+               "Рахунок", "Інвойс", "Довідка", "Акт"]
+
+
+def nc_all():
+    tok = open(TOKEN_FILE).read().strip()
+    out, off = [], 0
+    while True:
+        req = urllib.request.Request(
+            "%s/api/v2/tables/%s/records?limit=1000&offset=%d" % (NC, TABLE, off),
+            headers={"xc-token": tok})
+        js = json.load(urllib.request.urlopen(req, timeout=180))
+        out += js["list"]
+        if js.get("pageInfo", {}).get("isLastPage"):
+            return out
+        off += 1000
+
+
+def logo():
+    try:
+        html = open(FACADE, encoding="utf-8").read()
+        m = re.search(r'const LOGO_SRC = "(data:image/png;base64,[^"]+)"', html)
+        return m.group(1) if m else ""
+    except Exception:  # noqa: BLE001
+        return ""
+
+
+def nz(v):
+    return re.sub(r"\s+", " ", str(v or "")).strip()
+
+
+def files_of(row):
+    """Клієнтські документи з поля «Файли»: тип беремо з префікса [Тип] у назві."""
+    raw = row.get("Файли")
+    if isinstance(raw, str):
+        try:
+            raw = json.loads(raw)
+        except Exception:  # noqa: BLE001
+            raw = []
+    out = []
+    for f in raw or []:
+        title = nz(f.get("title") or f.get("fileName"))
+        m = re.match(r"^\s*\[([^\]]+)\]\s*(.*)$", title)
+        kind = m.group(1).strip() if m else ""
+        if kind and kind not in CLIENT_DOCS:
+            continue                      # внутрішній документ — клієнту не віддаємо
+        out.append({"kind": kind or "Документ", "name": (m.group(2) if m else title) or title})
+    return out
+
+
+TPL = r"""<!doctype html>
+<meta charset="utf-8">
+<title>UNITEX — особистий кабінет (прототип)</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+:root{
+  --paper:#f9f9f7; --surface:#fff; --surface-2:#f4f4f0;
+  --ink:#0b0b0b; --ink-2:#52514e; --muted:#898781;
+  --line:#e1e0d9; --line-soft:#eeede8;
+  --accent:#2a78d6; --accent-soft:#e7f0fb; --accent-ink:#1c5cab;
+  --pos:#1a8f5c; --warn:#c8811f; --neg:#d1453b;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);
+  font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+header{background:var(--surface);border-bottom:1px solid var(--line);
+  padding:12px 26px;display:flex;align-items:center;gap:18px;position:sticky;top:0;z-index:5}
+header img{height:42px}
+.hdr-t{font-weight:700;font-size:15px}
+.hdr-s{color:var(--muted);font-size:13px}
+.spacer{flex:1}
+.who{text-align:right;line-height:1.3}
+.who b{display:block;font-size:14px}
+.who span{color:var(--muted);font-size:12px}
+main{max-width:1500px;margin:0 auto;padding:22px 26px 60px}
+.proto{background:#fff6e3;border:1px solid #eccf94;color:#7a5a1b;border-radius:10px;
+  padding:9px 14px;font-size:12.5px;margin-bottom:18px}
+.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.tile .n{font-size:26px;font-weight:700;letter-spacing:-.5px}
+.tile .l{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.04em;margin-top:2px}
+.bar{display:flex;gap:10px;align-items:center;margin-bottom:12px;flex-wrap:wrap}
+.bar input{flex:1;min-width:220px;padding:9px 12px;border:1px solid var(--line);
+  border-radius:9px;background:var(--surface);font:inherit;color:var(--ink)}
+.seg{display:flex;border:1px solid var(--line);border-radius:9px;overflow:hidden;background:var(--surface)}
+.seg button{border:0;background:transparent;padding:9px 15px;font:inherit;cursor:pointer;color:var(--ink-2)}
+.seg button.on{background:var(--accent-soft);color:var(--accent-ink);font-weight:600}
+table{width:100%;border-collapse:collapse;background:var(--surface);
+  border:1px solid var(--line);border-radius:12px;overflow:hidden}
+th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.05em;
+  color:var(--muted);font-weight:600;padding:11px 12px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:11px 12px;border-bottom:1px solid var(--line-soft);vertical-align:middle}
+tr.deal{cursor:pointer}
+tr.deal:hover td{background:var(--surface-2)}
+tr.deal.open td{background:var(--accent-soft)}
+.mono{font-variant-numeric:tabular-nums}
+.num{font-weight:700}
+.chip{display:inline-block;font-size:11px;font-weight:700;padding:2px 7px;border-radius:6px;
+  background:var(--accent-soft);color:var(--accent-ink)}
+.chip.exp{background:#e9f4ec;color:#1a6b42}
+.d{font-weight:700;white-space:nowrap}
+.dim{color:var(--muted)}
+.pill{display:inline-block;font-size:12px;font-weight:600;padding:3px 10px;border-radius:99px;
+  background:var(--surface-2);color:var(--ink-2);white-space:nowrap}
+.pill.sea{background:#e7f0fb;color:#1c5cab}
+.pill.ok{background:#e9f4ec;color:#1a6b42}
+.pill.wait{background:#fdf3e2;color:#8a5d13}
+.docn{display:inline-flex;align-items:center;gap:5px;color:var(--accent-ink);font-weight:600}
+/* ── розгортка ─────────────────────────────────────────── */
+tr.exp>td{padding:0;background:var(--surface-2)}
+.panel{padding:22px 24px 26px;border-top:2px solid var(--accent)}
+.pbar{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:20px}
+.pbar .st{font-size:17px;font-weight:700}
+.pbar .sub{color:var(--ink-2)}
+/* схема руху */
+.route{background:var(--surface);border:1px solid var(--line);border-radius:12px;
+  padding:26px 20px 18px;overflow-x:auto}
+.steps{display:flex;min-width:760px}
+.step{flex:1;position:relative;text-align:center;padding:0 4px}
+.step .rail{position:absolute;top:22px;left:-50%;width:100%;height:3px;background:var(--line);border-radius:2px}
+.step:first-child .rail{display:none}
+.step.done .rail,.step.now .rail{background:var(--accent)}
+.step .dot{position:relative;width:44px;height:44px;margin:0 auto;border-radius:50%;
+  background:var(--surface);border:2px solid var(--line);color:var(--muted);
+  display:flex;align-items:center;justify-content:center;z-index:1}
+.step.done .dot{background:var(--accent);border-color:var(--accent);color:#fff}
+.step.now .dot{border-color:var(--accent);color:var(--accent-ink);
+  box-shadow:0 0 0 5px var(--accent-soft)}
+.step .ttl{font-size:11.5px;font-weight:600;margin-top:9px;color:var(--ink-2);line-height:1.3}
+.step.now .ttl{color:var(--accent-ink)}
+.step .dt{font-size:13px;font-weight:700;margin-top:3px;font-variant-numeric:tabular-nums}
+.step .plan{font-size:11px;color:var(--muted);font-weight:500}
+.step .place{font-size:11px;color:var(--muted);margin-top:2px}
+.step.todo .dot{border-style:dashed}
+.step.todo .dt{color:var(--muted);font-weight:600}
+/* деталі + документи */
+.cols{display:grid;grid-template-columns:1.15fr 1fr;gap:18px;margin-top:18px}
+@media(max-width:1000px){.cols{grid-template-columns:1fr}}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+.card h4{margin:0 0 12px;font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:7px 16px;font-size:13.5px}
+.kv .k{color:var(--muted)}
+.kv .v{font-weight:600;word-break:break-word}
+.doc{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--line-soft)}
+.doc:last-child{border-bottom:0}
+.doc .nm{flex:1}
+.doc .nm b{display:block;font-size:13.5px}
+.doc .nm span{font-size:11.5px;color:var(--muted)}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:8px;
+  padding:6px 12px;font:inherit;font-size:12.5px;cursor:pointer;color:var(--accent-ink);font-weight:600}
+.btn:hover{background:var(--accent-soft)}
+.btn.prim{background:var(--accent);border-color:var(--accent);color:#fff}
+.empty{color:var(--muted);font-size:13px;padding:8px 0}
+.msg textarea{width:100%;min-height:74px;border:1px solid var(--line);border-radius:9px;
+  padding:10px 12px;font:inherit;resize:vertical;background:var(--surface);color:var(--ink)}
+.msg .row{display:flex;justify-content:space-between;align-items:center;margin-top:10px;gap:10px}
+.up{border:1.5px dashed var(--line);border-radius:10px;padding:14px;text-align:center;
+  color:var(--muted);font-size:12.5px;margin-top:12px}
+.foot{margin-top:26px;color:var(--muted);font-size:12px;text-align:center}
+</style>
+
+<header>
+  <img src="__LOGO__" alt="UNITEX">
+  <div><div class="hdr-t">Особистий кабінет</div>
+       <div class="hdr-s">відстеження вантажів</div></div>
+  <div class="spacer"></div>
+  <div class="who"><b>__CLIENT__</b><span>клієнт UNITEX</span></div>
+</header>
+
+<main>
+  <div class="proto"><b>Прототип.</b> Сторінка зібрана з реальних даних клієнта «__CLIENT__»
+    для узгодження вигляду. Входу і збереження тут ще немає — кнопки нічого не роблять.</div>
+
+  <div class="tiles" id="tiles"></div>
+
+  <div class="bar">
+    <input id="q" placeholder="Пошук: номер угоди, коносамент, контейнер, судно, маршрут…">
+    <div class="seg" id="seg">
+      <button data-f="act" class="on">В дорозі</button>
+      <button data-f="done">Доставлені</button>
+      <button data-f="all">Усі</button>
+    </div>
+  </div>
+
+  <table>
+    <thead><tr>
+      <th>Угода</th><th></th><th>Маршрут</th><th>Коносамент / контейнер</th>
+      <th>Судно</th><th>Відправлення</th><th>Прибуття</th><th>Статус</th><th>Документи</th>
+    </tr></thead>
+    <tbody id="rows"></tbody>
+  </table>
+
+  <div class="foot">Дані оновлюються автоматично з систем ліній. Питання — через форму в картці вантажу.</div>
+</main>
+
+<script>
+const DEALS = __DATA__;
+const TODAY = "__TODAY__";
+
+const s = (r,k) => String(r[k]||"").trim();
+const fmt = v => { const m=/(\d{4})-(\d{2})-(\d{2})/.exec(String(v||"")); return m?`${m[3]}.${m[2]}.${m[1].slice(2)}`:""; };
+const esc = t => String(t==null?"":t).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const air  = r => /авіа/i.test(s(r,"Вид перевезення"));
+const rail = r => /залізни/i.test(s(r,"Вид перевезення"));
+const done = r => s(r,"Статус")==="Вантаж доставлено";
+const past = d => d && d <= TODAY;
+
+/* ── іконки: прості лінійні фігури, 24×24 ─────────────── */
+const I = {
+ doc : '<path d="M6.5 3h7l4 4v14h-11z"/><path d="M13.5 3v4h4"/><path d="M9 12h6M9 16h6"/>',
+ truck:'<path d="M2.5 7h10.5v9H2.5z"/><path d="M13 10.5h3.6l3.4 3.2V16H13z"/><circle cx="6.6" cy="18" r="1.9"/><circle cx="16.6" cy="18" r="1.9"/>',
+ ship: '<path d="M3.5 16h17l-2.2 4.2H5.7z"/><path d="M8 9h6v7H8z"/><path d="M14 6h4l-4 2.4z"/><path d="M14 6v3"/>',
+ plane:'<path d="M2.5 13.2 21.5 7l-5.6 11.4-2.9-4.6z"/><path d="M13 13.8 21.5 7"/>',
+ port: '<circle cx="12" cy="5" r="2"/><path d="M12 7.2V19"/><path d="M8.2 10.2h7.6"/><path d="M5 13.4a7 7 0 0 0 14 0"/>',
+ crane:'<path d="M4.5 20.5V4h11"/><path d="M15 4v3.6"/><path d="M12.4 8h6.6v5h-6.6z"/>',
+ train:'<path d="M6 4.5h12v10H6z"/><path d="M8.6 7.4h6.8v4H8.6z"/><circle cx="9" cy="17.6" r="1.6"/><circle cx="15" cy="17.6" r="1.6"/><path d="M3.5 21h17"/>',
+ home: '<path d="M3.5 11 12 3.8l8.5 7.2v9.5h-17z"/><path d="M9.6 20.5v-5.4h4.8v5.4"/>',
+};
+const svg = k => `<svg viewBox="0 0 24 24" width="21" height="21" fill="none"
+  stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${I[k]}</svg>`;
+
+/* ── схема руху ───────────────────────────────────────── */
+function steps(r){
+  const A=air(r), R=rail(r);
+  const route = s(r,"Маршрут").split(/→|->/).map(x=>x.trim()).filter(Boolean);
+  const from = route[0]||"", to = route[route.length-1]||"";
+  const etd  = s(r,"ETD (факт)") || s(r,"ETD (план)"), etdF = !!s(r,"ETD (факт)");
+  const eta  = s(r,"ETA порт (факт)") || s(r,"ETA"),   etaF = !!s(r,"ETA порт (факт)");
+  const car  = s(r,"Подача авто (факт)") || s(r,"Подача авто (план)") || s(r,"Гейт аут");
+  const carF = !!(s(r,"Подача авто (факт)") || s(r,"Гейт аут"));
+  return [
+   {t:"Букінг",                       i:"doc",             d:"",                     f:true,  p:""},
+   {t:A?"Прийом на термінал":"Заїзд у порт", i:"truck",     d:s(r,"Гейт ін"),         f:true,  p:from},
+   {t:A?"У повітрі":"На судні",       i:A?"plane":"ship",  d:etd,                    f:etdF,  p:s(r,"Судно")},
+   {t:A?"Прибуття в аеропорт":"Прибуття в порт", i:"port",  d:eta,                    f:etaF,  p:to},
+   {t:"Вивантаження",                 i:"crane",           d:s(r,"Вивантаження в порту (факт)"), f:true, p:""},
+   {t:R?"Завантажено на потяг":"Подача авто", i:R?"train":"truck", d:car,             f:carF,  p:""},
+   {t:"Доставлено",                   i:"home",            d:"",                     f:true,  p:""},
+  ];
+}
+
+function routeHtml(r){
+  const st = steps(r);
+  // етап пройдено, якщо є ФАКТИЧНА дата в минулому; «Доставлено» закриває все
+  const delivered = done(r);
+  let cur = -1;
+  const state = st.map((x,idx)=>{
+    const ok = delivered || (x.f && past(x.d));
+    return ok ? "done" : "todo";
+  });
+  if (delivered) { state[state.length-1] = "done"; }
+  else { cur = state.indexOf("todo"); if (cur >= 0) state[cur] = "now"; }
+  // «Букінг» завжди пройдено, «Доставлено» — лише за статусом
+  if (state[0] !== "done") state[0] = "done";
+  return `<div class="route"><div class="steps">` + st.map((x,i)=>`
+    <div class="step ${state[i]}">
+      <div class="rail"></div>
+      <div class="dot">${svg(x.i)}</div>
+      <div class="ttl">${esc(x.t)}</div>
+      ${x.d ? `<div class="dt">${fmt(x.d)}</div>${x.f&&past(x.d)?"":'<div class="plan">план</div>'}`
+            : `<div class="dt dim">—</div>`}
+      ${x.p ? `<div class="place">${esc(x.p)}</div>` : ""}
+    </div>`).join("") + `</div></div>`;
+}
+
+/* ── картка ───────────────────────────────────────────── */
+function panel(r){
+  const conts = s(r,"Контейнер").split(",").map(x=>x.trim()).filter(Boolean);
+  const kv = [
+    ["Коносамент", s(r,"HBL") || s(r,"BL") || "—"],
+    ["Контейнер",  conts.length ? conts.join("<br>") : "—"],
+    ["Лінія",      s(r,"Лінія") || "—"],
+    ["Судно / рейс", [s(r,"Судно"), s(r,"Вояж")].filter(Boolean).join(" / ") || "—"],
+    ["Вантаж",     s(r,"Вантаж") || "—"],
+    ["Кількість",  s(r,"Кількість") || "—"],
+    ["Тип",        [s(r,"Вид перевезення"), s(r,"FCL/LCL")].filter(Boolean).join(", ") || "—"],
+  ];
+  const docs = (r._docs||[]);
+  return `<div class="panel">
+    <div class="pbar">
+      <span class="st">${esc(s(r,"Статус")||"—")}</span>
+      <span class="sub">${esc(s(r,"Маршрут")||"маршрут не вказано")}</span>
+    </div>
+    ${routeHtml(r)}
+    <div class="cols">
+      <div class="card"><h4>Дані вантажу</h4>
+        <div class="kv">${kv.map(([k,v])=>`<div class="k">${esc(k)}</div><div class="v">${v}</div>`).join("")}</div>
+      </div>
+      <div>
+        <div class="card"><h4>Документи</h4>
+          ${docs.length ? docs.map(d=>`<div class="doc">
+              <span style="color:var(--accent-ink)">${svg("doc")}</span>
+              <span class="nm"><b>${esc(d.kind)}</b><span>${esc(d.name)}</span></span>
+              <button class="btn">Завантажити</button></div>`).join("")
+            : `<div class="empty">Документів поки немає. Щойно вони з'являться, ви отримаєте сповіщення.</div>`}
+          <div class="up">Перетягніть сюди файл, щоб додати документ до вантажу</div>
+        </div>
+        <div class="card msg" style="margin-top:14px"><h4>Питання по вантажу</h4>
+          <textarea placeholder="Напишіть менеджеру…"></textarea>
+          <div class="row"><span class="dim" style="font-size:12px">Відповідь надійде на вашу пошту</span>
+            <button class="btn prim">Надіслати</button></div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ── таблиця ──────────────────────────────────────────── */
+let FILTER="act", Q="";
+function visible(){
+  const q=Q.toLowerCase();
+  return DEALS.filter(r=>{
+    if (FILTER==="act"  && done(r)) return false;
+    if (FILTER==="done" && !done(r)) return false;
+    if (!q) return true;
+    return ["Угода","BL","HBL","Контейнер","Судно","Маршрут"].some(k=>s(r,k).toLowerCase().includes(q));
+  });
+}
+function stCls(r){ const x=s(r,"Статус");
+  if (x==="Вантаж доставлено") return "ok";
+  if (x==="Букінг"||x==="Виконується") return "wait";
+  return "sea"; }
+
+function render(){
+  const rows = visible();
+  const act = DEALS.filter(r=>!done(r));
+  const soon = act.filter(r=>{const e=s(r,"ETA"); return e && e>=TODAY && e<=addDays(TODAY,7);});
+  const docs = DEALS.reduce((n,r)=>n+(r._docs||[]).length,0);
+  document.getElementById("tiles").innerHTML = [
+    [act.length,"вантажів у дорозі"],
+    [soon.length,"прибувають за 7 днів"],
+    [DEALS.length-act.length,"доставлено"],
+    [docs,"документів доступно"],
+  ].map(([n,l])=>`<div class="tile"><div class="n">${n}</div><div class="l">${l}</div></div>`).join("");
+
+  document.getElementById("rows").innerHTML = rows.length ? rows.map(r=>{
+    const conts = s(r,"Контейнер").split(",").map(x=>x.trim()).filter(Boolean);
+    const bl = s(r,"HBL")||s(r,"BL");
+    const etd = s(r,"ETD (факт)")||s(r,"ETD (план)");
+    const nd = (r._docs||[]).length;
+    return `<tr class="deal" data-id="${esc(s(r,"Угода"))}">
+      <td class="mono num">${esc(s(r,"Угода"))}</td>
+      <td><span class="chip ${s(r,"Напрямок")==="Експорт"?"exp":""}">${
+          s(r,"Напрямок")==="Імпорт"?"ІМП":(s(r,"Напрямок")==="Експорт"?"ЕКС":"ТРН")}</span></td>
+      <td>${esc(s(r,"Маршрут")||"—")}</td>
+      <td class="mono">${bl?`<b>${esc(bl)}</b>`:'<span class="dim">—</span>'}${
+          conts.map(c=>`<br><span class="dim">${esc(c)}</span>`).join("")}</td>
+      <td>${esc(s(r,"Судно")||"—")}</td>
+      <td class="mono">${etd?`<span class="d">${fmt(etd)}</span>`:'<span class="dim">—</span>'}</td>
+      <td class="mono">${s(r,"ETA")?`<span class="d">${fmt(s(r,"ETA"))}</span>`:'<span class="dim">—</span>'}</td>
+      <td><span class="pill ${stCls(r)}">${esc(s(r,"Статус")||"—")}</span></td>
+      <td>${nd?`<span class="docn">${svg("doc")}${nd}</span>`:'<span class="dim">—</span>'}</td>
+    </tr>`;
+  }).join("") : `<tr><td colspan="9" class="empty" style="padding:20px 12px">Нічого не знайдено.</td></tr>`;
+
+  document.querySelectorAll("tr.deal").forEach(tr=>tr.addEventListener("click",()=>toggle(tr)));
+}
+function addDays(iso,n){const d=new Date(iso);d.setDate(d.getDate()+n);return d.toISOString().slice(0,10);}
+function toggle(tr){
+  const open = tr.nextElementSibling && tr.nextElementSibling.classList.contains("exp");
+  document.querySelectorAll("tr.exp").forEach(x=>x.remove());
+  document.querySelectorAll("tr.deal.open").forEach(x=>x.classList.remove("open"));
+  if (open) return;
+  tr.classList.add("open");
+  const r = DEALS.find(d=>String(d["Угода"])===tr.dataset.id);
+  const e = document.createElement("tr");
+  e.className="exp"; e.innerHTML=`<td colspan="9">${panel(r)}</td>`;
+  tr.after(e);
+}
+document.getElementById("q").addEventListener("input",e=>{Q=e.target.value;render();});
+document.getElementById("seg").addEventListener("click",e=>{
+  const b=e.target.closest("button"); if(!b) return;
+  document.querySelectorAll("#seg button").forEach(x=>x.classList.remove("on"));
+  b.classList.add("on"); FILTER=b.dataset.f; render();
+});
+render();
+</script>
+"""
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--client", default="Мірандор")
+    ap.add_argument("--out", default="/root/unitex-os-www/cabinet.html")
+    a = ap.parse_args()
+
+    rows = [r for r in nc_all()
+            if a.client.lower() in nz(r.get("Клієнт")).lower()
+            and nz(r.get("Статус")) != CANCELLED]
+    data = []
+    for r in rows:
+        d = {k: r.get(k) for k in CLIENT_COLS if k != "Файли"}
+        d["_docs"] = files_of(r)
+        data.append(d)
+    # найближчі прибуття зверху, доставлені — в кінець
+    data.sort(key=lambda d: (nz(d.get("Статус")) == "Вантаж доставлено",
+                             nz(d.get("ETA")) or "9999"))
+
+    import datetime
+    html = (TPL.replace("__LOGO__", logo())
+               .replace("__CLIENT__", a.client)
+               .replace("__TODAY__", datetime.date.today().isoformat())
+               .replace("__DATA__", json.dumps(data, ensure_ascii=False)))
+    open(a.out, "w", encoding="utf-8").write(html)
+    print("OK %s — %d угод, %d байт" % (a.out, len(data), len(html)))
+
+
+if __name__ == "__main__":
+    main()
