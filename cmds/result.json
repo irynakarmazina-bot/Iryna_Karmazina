@@ -1,7 +1,7 @@
 {
-  "stdout": "версія: в. 01.08 15:44\nwbr: 2\n",
+  "stdout": "версія: в. 01.08 15:45\ncliName: 3\n",
   "stderr": "",
   "returncode": 0,
-  "id": "deploy-wbr",
-  "ts": "2026-08-01T15:44:23Z"
+  "id": "deploy-cli",
+  "ts": "2026-08-01T15:45:53Z"
 }
