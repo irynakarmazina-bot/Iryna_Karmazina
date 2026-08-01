@@ -1,7 +1,7 @@
 {
-  "stdout": "Створено колонку «Stuffing»\nверсія: в. 01.08 15:16\nStuffing у шапці: 1\n",
+  "stdout": "версія: в. 01.08 15:17\nалерт авто вимкнено: 1\n",
   "stderr": "",
   "returncode": 0,
-  "id": "deploy-stuffing",
-  "ts": "2026-08-01T15:16:47Z"
+  "id": "deploy-notruck",
+  "ts": "2026-08-01T15:17:36Z"
 }
