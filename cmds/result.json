@@ -1,7 +1,7 @@
 {
-  "stdout": "2\n1\n196732 /root/unitex-os-www/index.html\n",
+  "stdout": "=== угода 250\n   BL                   '272050345'\n   Контейнер            'MRSU5393627'\n   Контейнер (лінія)    None\n   Лінія                'Maersk'\n   Статус               'Букінг'\n   ETA                  '2026-07-15'\n   ETA порт (план)      '2026-07-15'\n   ETA порт (факт)      None\n   Судно                None\n   Звірка               None\n   Останнє оновлення    None\n=== угода 245\n   BL                   '272050345'\n   Контейнер            'MRSU5393627'\n   Контейнер (лінія)    None\n   Лінія                'Maersk'\n   Статус               'Букінг'\n   ETA                  '2026-04-27'\n   ETA порт (план)      '2026-04-27'\n   ETA порт (факт)      None\n   Судно                None\n   Звірка               None\n   Останнє оновлення    '2026-06-29'\n--- запити для угоди 250 BL 272050345 cont MRSU5393627\n   transportDocumentReference   272050345      -> 404 немає даних\n   carrierBookingReference      272050345      -> 404 немає даних\n   equipmentReference           MRSU5393627    -> 404 немає даних\n--- запити для угоди 245 BL 272050345 cont MRSU5393627\n   transportDocumentReference   272050345      -> 404 немає даних\n   carrierBookingReference      272050345      -> 404 немає даних\n   equipmentReference           MRSU5393627    -> 404 немає даних\n",
   "stderr": "",
   "returncode": 0,
-  "id": "verify-facade",
-  "ts": "2026-08-01T13:07:37Z"
+  "id": "probe-245",
+  "ts": "2026-08-01T13:10:57Z"
 }
