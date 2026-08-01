@@ -1,7 +1,7 @@
 {
-  "stdout": "STARTED\n",
+  "stdout": "STILL_RUNNING\n",
   "stderr": "",
   "returncode": 0,
-  "id": "maersk-run-all",
-  "ts": "2026-08-01T12:07:33Z"
+  "id": "run-all-1",
+  "ts": "2026-08-01T12:09:47Z"
 }
