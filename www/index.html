@@ -351,17 +351,17 @@
      і вид перевезення були видні повністю (зауваження користувачки 01.08.2026). */
   .dispscroll table.fixw td,.dispscroll table.fixw th{padding-left:8px;padding-right:8px}
   /* Довгі значення переносяться, а не обрізаються */
-  .dispscroll td.c-md,.dispscroll th.c-md{white-space:normal}
+  td.c-md{white-space:normal;line-height:1.3}
   .dispscroll td .pill{white-space:normal;text-align:left;line-height:1.25}
-  td.c-com,td.c-md{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  td.c-com{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   /* Маршрут — кожна ланка окремим рядком, щоб колонка була вузька, а назви
      портів читались повністю (прохання користувачки 01.08.2026). */
   td.c-rt{white-space:normal;line-height:1.3}
   td.c-rt .rtar{color:var(--muted);margin-right:3px}
-  /* Підпис перед номером: «дом» — домашній коносамент, «лін» — лінійний.
+  /* Підпис перед номером: HBL — домашній коносамент, BL — лінійний.
      Без нього після об'єднання колонок їх було не відрізнити (питання
      користувачки 01.08.2026 «а куди подівся дом конос?»). */
-  .blt{display:inline-block;min-width:22px;font-style:normal;font-size:9.5px;
+  .blt{display:inline-block;min-width:26px;font-style:normal;font-size:9.5px;
     text-transform:uppercase;letter-spacing:.03em;color:var(--muted);margin-right:4px}
   .buildstamp{font-size:10.5px;color:var(--muted);padding:6px 14px 10px;letter-spacing:.02em}
   /* Назва клієнта переноситься на два рядки, а не розтягує колонку
@@ -543,7 +543,7 @@
       <div class="spacer"></div>
       <!-- Позначка версії: по ній видно, чи браузер підтягнув свіжу сторінку.
            Оновлюється автоматично при кожному викладенні (scripts/stamp.sh). -->
-      <div class="buildstamp" id="buildstamp" title="версія сторінки — якщо не збігається з тим, що я назвала, натисни Ctrl+F5">в. 01.08 14:25</div>
+      <div class="buildstamp" id="buildstamp" title="версія сторінки — якщо не збігається з тим, що я назвала, натисни Ctrl+F5">в. 01.08 14:28</div>
     </nav>
     <div class="main">
       <div class="topbar">
@@ -1431,8 +1431,8 @@ PAGES.dispatch = async () => {
         <td class="mono c-bl">${isAir(r)
             ? (_s(r,"Авіанакладна") ? `${esc(r["Авіанакладна"])}<br><span class="cell-muted">авіанакладна</span>`
                                     : '<span class="cell-muted">авіа — накладної немає</span>')
-            : `${_s(r,"HBL") ? `<span class="ln" title="домашній коносамент"><i class="blt">дом</i>${esc(r["HBL"])}</span>` : ""}${
-                _s(r,"BL") ? `<span class="ln" title="лінійний коносамент"><i class="blt">лін</i>${trackLink(r, r["BL"])}</span>` : ""}${
+            : `${_s(r,"HBL") ? `<span class="ln" title="домашній коносамент"><i class="blt">HBL</i>${esc(r["HBL"])}</span>` : ""}${
+                _s(r,"BL") ? `<span class="ln" title="лінійний коносамент"><i class="blt">BL</i>${trackLink(r, r["BL"])}</span>` : ""}${
                 (!_s(r,"HBL") && !_s(r,"BL")) ? '<span class="ln cell-muted">—</span>' : ""}${_s(r,"Контейнер").split(",")
                 .map(c=>c.trim()).filter(Boolean)
                 .map(c=>`<span class="ln">${trackLink(r, c, "cell-muted")}</span>`).join("")}`}</td>
