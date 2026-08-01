@@ -1,1 +1,1 @@
-{"id": "dry2-b", "cmd": "sleep 112; tail -n 6 /root/dry_all2.log; pgrep -f \"maersk_track_sync.py --dry-run\" >/dev/null && echo STILL_RUNNING || echo FINISHED"}
+{"id": "dry2-c", "cmd": "sleep 112; tail -n 6 /root/dry_all2.log; pgrep -f \"maersk_track_sync.py --dry-run\" >/dev/null && echo STILL_RUNNING || echo FINISHED"}
