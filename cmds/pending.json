@@ -1,1 +1,1 @@
-{"id": "audit-after-act", "cmd": "python3 /root/audit_gaps.py 2>&1 | sed -n \"33,60p\""}
+{"id": "deploy-readfields", "cmd": "cd /root/Iryna_Karmazina && git fetch origin claude/direct-automation-expeditor-671esy -q && git show origin/claude/direct-automation-expeditor-671esy:direct_sync/maersk_track_sync.py > /root/direct-sync/maersk_track_sync.py && python3 -m py_compile /root/direct-sync/maersk_track_sync.py && echo COMPILED && cd /root/direct-sync && nohup python3 maersk_track_sync.py --dry-run --all > /root/dry_all3.log 2>&1 & echo STARTED"}
