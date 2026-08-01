@@ -1,7 +1,7 @@
 {
-  "stdout": "0\n196568 /root/unitex-os-www/index.html\n",
+  "stdout": "1\n0\n199056 /root/unitex-os-www/index.html\n",
   "stderr": "",
   "returncode": 0,
-  "id": "deploy-nosub",
-  "ts": "2026-08-01T13:49:06Z"
+  "id": "deploy-vid-reliz",
+  "ts": "2026-08-01T13:56:37Z"
 }
