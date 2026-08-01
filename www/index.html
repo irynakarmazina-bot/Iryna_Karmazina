@@ -382,6 +382,14 @@
   /* рядок-алерт: імпорт стоїть у порту без авто */
   /* червоний — тільки коли вантаж реально стоїть у порту без авто (це гроші);
      бурштиновий — розбіжність із Експедитором (це неточність у даних, не аварія) */
+/* Легенда підсвітки рядків — квадратики беруть ТІ САМІ кольори, що й рядки,
+   щоб підказка збігалася з тим, що видно в таблиці (прохання користувачки 01.08.2026). */
+  .legend{display:flex;flex-wrap:wrap;gap:6px 16px;margin:8px 0 0;align-items:center}
+  .legend .lg{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;white-space:nowrap}
+  .legend .sw{width:11px;height:11px;border-radius:3px;border:1px solid var(--line);flex:none}
+  .legend .sw-red{background:#fdeeee;box-shadow:inset 3px 0 0 #d1453b}
+  .legend .sw-amber{background:#fff8ec;box-shadow:inset 3px 0 0 #e6a817}
+  .legend .sw-done{background:var(--surface-2)}
   tr.alertrow td{background:#fdeeee}
   tr.alertrow td:first-child{box-shadow:inset 3px 0 0 #d1453b}
   tr.warnrow td{background:#fff8ec}
@@ -513,7 +521,7 @@
       <div class="spacer"></div>
       <!-- Позначка версії: по ній видно, чи браузер підтягнув свіжу сторінку.
            Оновлюється автоматично при кожному викладенні (scripts/stamp.sh). -->
-      <div class="buildstamp" id="buildstamp" title="версія сторінки — якщо не збігається з тим, що я назвала, натисни Ctrl+F5">в. 01.08 14:13</div>
+      <div class="buildstamp" id="buildstamp" title="версія сторінки — якщо не збігається з тим, що я назвала, натисни Ctrl+F5">в. 01.08 14:14</div>
     </nav>
     <div class="main">
       <div class="topbar">
@@ -1250,7 +1258,12 @@ PAGES.dispatch = async () => {
         ${ALERTS.map(a=>`<span class="abadge ${a.cls} clickable" data-q="${a.q}">${esc(a.nm)} <b>${a.n}</b></span>`).join("")}
         ${quick? `<span class="quickchip">Фільтр: ${esc(quick.label)} — ${quickCount}<button id="quick-clear" title="скинути фільтр">✕</button></span>`:""}
       </div>
-      ${CAN_EDIT? `<p class="sub" style="margin:8px 0 0">✏️ Клітинки з підсвіткою можна правити прямо тут: <b>клік</b> — редагувати, <b>Enter</b> — зберегти, <b>Esc</b> — скасувати. Клік по решті рядка відкриває картку угоди.</p>`:""}
+      <p class="sub legend">
+        <span class="lg"><i class="sw sw-red"></i>імпорт стоїть у порту 2+ дні, авто не подане</span>
+        <span class="lg"><i class="sw sw-amber"></i>етап в Експедиторі не оновлено або експорт без Gate in</span>
+        <span class="lg"><i class="sw sw-done"></i>доставлено</span>
+        ${CAN_EDIT? `<span class="lg">✏️ клік по підсвіченій клітинці — правка (<b>Enter</b> зберегти, <b>Esc</b> скасувати), клік по рядку — картка угоди</span>`:""}
+      </p>
       <div class="filters" style="margin-top:12px">
         <input id="q" placeholder="Пошук: угода, клієнт, BL, контейнер, судно…">
         <select id="dirf"><option value="">Імпорт + експорт</option><option>Імпорт</option><option>Експорт</option><option>Транзит</option></select>
