@@ -2,6 +2,6 @@
   "stdout": "Оновити угод: 166; без даних: 32; помилки: 0\nЗміни по колонках: ETD (факт)=162, Гейт ін=156, Гейт аут=156, Вивантаження в порту (факт)=155, Судно=7, Вояж=7, ETD (план)=2\nMAERSK_OK tracked=237 updated=166 nodata=32 foreign=36 api_errors=0 write_fails=0\nSTILL_RUNNING\n",
   "stderr": "",
   "returncode": 0,
-  "id": "run-all-9",
-  "ts": "2026-08-01T12:26:41Z"
+  "id": "run-all-10",
+  "ts": "2026-08-01T12:28:49Z"
 }
