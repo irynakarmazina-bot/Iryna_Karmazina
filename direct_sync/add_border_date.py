@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Одноразово: колонка «На кордоні (факт)».
+"""Одноразово: колонка «На кордоні».
 
 Вимога користувачки 01.08.2026. Дата під статус «На кордоні» — показує, коли
 авто стало на кордоні. Це ІНФОРМАЦІЯ ДЛЯ КЛІЄНТА про те, де зараз вантаж,
@@ -17,7 +17,7 @@ import urllib.request
 NC = "http://localhost:8080"
 TABLE = "m58xsjo6at01ohl"
 TOK = open("/root/nocodb-token.txt").read().strip()
-COL = "На кордоні (факт)"
+COL = "На кордоні"
 
 
 def nc(method, path, data=None):
