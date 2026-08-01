@@ -1,1 +1,14 @@
-{"id": "deploy-dates2-0801", "cmd": "set -e\ncd /root/unitex-finrep\npython3 -c \"\nimport json,urllib.request,urllib.error\nTOK=open('/root/nocodb-token.txt').read().strip()\ndef nc(m,p,d=None):\n    b=json.dumps(d,ensure_ascii=False).encode() if d is not None else None\n    r=urllib.request.Request('http://localhost:8080'+p,data=b,method=m,headers={'Content-Type':'application/json','xc-token':TOK})\n    try:\n        with urllib.request.urlopen(r,timeout=60) as x: return x.status, json.loads(x.read().decode() or '{}')\n    except urllib.error.HTTPError as e: return e.code, e.read().decode()[:200]\nst,meta=nc('GET','/api/v2/meta/tables/m58xsjo6at01ohl')\nhave={c['title'] for c in meta['columns']}\nif 'Гейт аут' in have: print('Гейт аут уже є')\nelse: print('Гейт аут:', nc('POST','/api/v2/meta/tables/m58xsjo6at01ohl/columns',{'title':'Гейт аут','column_name':'gate_out','uidt':'SingleLineText'})[0])\n\"\nrm -f /root/track_dates.log\nnohup .venv/bin/python /root/direct-sync/maersk_track_sync.py --all > /root/track_dates.log 2>&1 &\nfor i in $(seq 1 9); do sleep 10; pgrep -f maersk_track_sync >/dev/null || break; done\ntail -n 5 /root/track_dates.log"}
+{"id": "track-dates-log-0801", "cmd": "for i in $(seq 1 11); do pgrep -f maersk_track_sync >/dev/null || break; sleep 10; done; tail -n 6 /root/track_dates.log; echo '--- заповненість дат ---'; python3 -c \"
+import json,urllib.request
+TOK=open('/root/nocodb-token.txt').read().strip()
+def g(p):
+    r=urllib.request.Request('http://localhost:8080'+p,headers={'xc-token':TOK}); return json.load(urllib.request.urlopen(r,timeout=120))
+rows=[];off=0
+while True:
+    js=g('/api/v2/tables/m58xsjo6at01ohl/records?limit=200&offset=%d'%off); rows+=js.get('list',[])
+    if js.get('pageInfo',{}).get('isLastPage'): break
+    off+=200
+F=lambda r,k: str(r.get(k) or '').strip()
+for f in ['Гейт ін','Гейт аут','ETD (факт)','ETD (план)','Вивантаження в порту (факт)','ETA порт (факт)']:
+    print('   %-28s %d з %d'%(f, sum(1 for r in rows if F(r,f)), len(rows)))
+\""}
