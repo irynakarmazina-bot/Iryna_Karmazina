@@ -492,7 +492,12 @@
     <p class="sub">прикріплені файли угоди · зберігаються в платформі</p>
     <div id="doc-list" style="display:flex;flex-direction:column;gap:8px"></div>
     <div style="margin-top:12px" id="doc-upload-wrap">
-      <button class="btn" id="doc-upload-btn">➕ Прикріпити файл</button>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <select id="doc-type" class="inp" style="padding:8px 10px;border:1px solid var(--line);border-radius:8px;
+          background:var(--paper);color:var(--ink);font-size:13.5px;min-width:210px"></select>
+        <button class="btn" id="doc-upload-btn">➕ Прикріпити файл</button>
+      </div>
+      <p class="sub" style="margin:6px 0 0">Тип потрапляє в назву файлу — <b>[Т1] scan.pdf</b>. Клієнт у кабінеті бачить лише дозволені типи.</p>
       <input type="file" id="doc-file" multiple style="display:none">
     </div>
     <p class="sub" id="doc-status" style="margin-top:8px"></p>
@@ -1265,6 +1270,20 @@ PAGES.dispatch = async () => {
   });
 };
 
+/* ===== типи документів =====
+   Тип зберігається ПРЕФІКСОМ у назві вкладення: «[Т1] scan.pdf» (рішення користувачки
+   01.08.2026). Так тип видно людині і в платформі, і в базі, і він не губиться,
+   якщо файли чіпають руками. Клієнтський кабінет показуватиме лише CLIENT_DOCS.
+   «Рахунок» — наш рахунок клієнту; «Інвойс» — інвойс на вантаж від клієнта
+   (різні документи, уточнення користувачки 01.08.2026). */
+const DOC_TYPES = ["Домашній коносамент","Лінійний коносамент","Т1","Реліз","ЦМР",
+                   "Рахунок","Інвойс","Довідка","Акт","Внутрішній"];
+const CLIENT_DOCS = new Set(["Домашній коносамент","Лінійний коносамент","Т1","Реліз","ЦМР",
+                             "Рахунок","Інвойс","Довідка","Акт"]);
+const DOC_TYPE_RE = /^\s*\[([^\]]+)\]\s*/;
+const docType = a => { const m = DOC_TYPE_RE.exec(String(a.title||"")); return m ? m[1].trim() : ""; };
+const docName = a => String(a.title||"файл").replace(DOC_TYPE_RE, "");
+
 function attList(r){
   let f = r["Файли"];
   if (typeof f === "string"){ try{ f = JSON.parse(f); }catch(e){ f = []; } }
@@ -1285,8 +1304,14 @@ function renderDocList(){
   const files = attList(DOC_ROW);
   $("doc-list").innerHTML = files.length ? files.map(a=>{
     const kb = a.size ? Math.round(a.size/1024) + " КБ" : "";
+    const t = docType(a);
+    const chip = t
+      ? `<span class="pill ${CLIENT_DOCS.has(t)?"t-info":"t-neutral"}" title="${CLIENT_DOCS.has(t)
+          ? "клієнт бачить цей документ у кабінеті" : "внутрішній — клієнту не показується"}">${esc(t)}</span>`
+      : '<span class="pill t-warn" title="тип не вказаний — клієнту не показується">без типу</span>';
     return `<div class="acct-chip" style="flex:none;display:flex;align-items:center;gap:10px;cursor:default">
-      <span style="flex:1"><b>${esc(a.title||"файл")}</b> <span class="cell-muted">${kb}</span></span>
+      ${chip}
+      <span style="flex:1"><b>${esc(docName(a))}</b> <span class="cell-muted">${kb}</span></span>
       <a class="btn ghost" style="padding:4px 12px;text-decoration:none" target="_blank" href="${esc(fileUrl(a))}">Відкрити</a></div>`;
   }).join("") : '<p class="sub">Поки нічого не прикріплено.</p>';
 }
@@ -1298,6 +1323,7 @@ function openDocs(r){
   $("gen-type").value = ""; $("gen-form").style.display = "none"; $("gen-form").innerHTML = "";
   $("gen-btn").style.display = "none"; $("gen-status").textContent = "";
   $("doc-status").textContent = "";
+  $("doc-type").innerHTML = DOC_TYPES.map(t=>`<option${t==="Внутрішній"?"":""}>${esc(t)}</option>`).join("");
   renderDocList();
   $("doc-overlay").classList.add("open");
 }
@@ -1317,13 +1343,19 @@ $("doc-file").addEventListener("change", async ()=>{
       if (!r.ok) throw new Error((js && js.msg) || "upload");
       added = added.concat(Array.isArray(js) ? js : [js]);
     }
+    // тип у назву: «[Т1] scan.pdf». Якщо префікс уже є — не дублюємо.
+    const ttype = $("doc-type").value || "Внутрішній";
+    added.forEach(a=>{
+      const nm = String(a.title || "файл").replace(DOC_TYPE_RE, "");
+      a.title = "[" + ttype + "] " + nm;
+    });
     const merged = attList(DOC_ROW).concat(added);
     await api(`/api/v2/tables/${T["Диспетчеризація"]}/records`, {method:"PATCH",
       body: JSON.stringify([{Id: DOC_ROW.Id, "Файли": merged}])});
     DOC_ROW["Файли"] = merged;
     renderDocList();
     $("doc-status").textContent = "";
-    toast("✅ Прикріплено: " + files.length);
+    toast(`✅ Прикріплено (${$("doc-type").value}): ${files.length}`);
   } catch(e){
     $("doc-status").textContent = "⚠ Не вдалося завантажити (" + e.message + ")";
   }
