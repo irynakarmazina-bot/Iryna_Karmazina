@@ -584,7 +584,7 @@
       <div class="spacer"></div>
       <!-- Позначка версії: по ній видно, чи браузер підтягнув свіжу сторінку.
            Оновлюється автоматично при кожному викладенні (scripts/stamp.sh). -->
-      <div class="buildstamp" id="buildstamp" title="версія сторінки — якщо не збігається з тим, що я назвала, натисни Ctrl+F5">в. 01.08 16:28</div>
+      <div class="buildstamp" id="buildstamp" title="версія сторінки — якщо не збігається з тим, що я назвала, натисни Ctrl+F5">в. 01.08 16:33</div>
     </nav>
     <div class="main">
       <div class="topbar">
@@ -1459,7 +1459,7 @@ PAGES.dispatch = async () => {
       row[col] = now;
       logAction("правка угоди", "Угода №" + (row["Угода"] || row.Id), col, was, now);
       toast(`✅ ${col}: ${now ? "поставлено" : "знято"}`);
-      draw();
+      draw(rowSpot(row.Id));          // рядок лишається на тому самому місці
     }catch(err){
       toast("⚠ Не збереглось: " + err.message);
     }
@@ -1476,6 +1476,13 @@ PAGES.dispatch = async () => {
     box.style.maxHeight = Math.max(300, window.innerHeight - top - 24) + "px";
   };
   window.addEventListener("resize", fitDispScroll);
+
+  /* Де саме рядок стоїть на екрані зараз — щоб після перемальовування
+     повернути його на те саме місце. */
+  const rowSpot = (id) => {
+    const box = $("dscroll"), tr = $("drows").querySelector('tr[data-id="' + id + '"]');
+    return (box && tr) ? { id: id, delta: tr.offsetTop - box.scrollTop } : null;
+  };
 
   const editCell = (td) => {
     if (td.querySelector(".edinput")) return;
@@ -1507,7 +1514,7 @@ PAGES.dispatch = async () => {
         row[col] = v;                       // DISP_CACHE той самий об'єкт — таблиця і картка бачать нове
         logAction("правка угоди", "Угода №" + (row["Угода"] || row.Id), col, was, v);
         toast(`✅ ${col}: ${v || "очищено"}`);
-        draw();
+        draw(rowSpot(row.Id));        // рядок лишається на тому самому місці
       }catch(err){
         td.innerHTML = keep;
         toast("⚠ Не збереглось: " + err.message);
@@ -1522,7 +1529,8 @@ PAGES.dispatch = async () => {
     if (kind === "select") inp.addEventListener("change", ()=>finish(true));
   };
 
-  const draw = () => {
+  let firstDraw = true;
+  const draw = (keep) => {
     const q=$("q").value.toLowerCase(), st=$("stf").value;
     const dir=$("dirf").value, line=$("linef").value, cli=$("clif").value;
     const man=$("manf").value, opm=$("opmf").value, mode=$("modef").value;
@@ -1623,13 +1631,23 @@ PAGES.dispatch = async () => {
         "», Enter — зберегти, Esc — скасувати";
       td.addEventListener("click", e=>{ e.stopPropagation(); editCell(td); });
     });
-    // прокручуємо так, щоб доставлені пішли за шапку, а першим видимим був
-    // найраніший ETA серед активних угод
+    /* Прокрутка. При ПЕРШОМУ відкритті ховаємо доставлені за шапку, щоб зверху
+       був найближчий за ключовою датою вантаж. Далі — не смикаємо: після правки
+       клітинки таблиця перемальовується, і раніше вона щоразу стрибала на початок
+       (зауваження користувачки 01.08.2026). Якщо передано keep — повертаємо
+       відредагований рядок рівно туди, де він був на екрані, навіть якщо
+       пересортування зсунуло його вище або нижче. */
     fitDispScroll();
     const box = $("dscroll");
     if (box){
-      const firstOpen = $("drows").querySelector("tr:not(.done)");
-      box.scrollTop = firstOpen ? Math.max(0, firstOpen.offsetTop - 2) : 0;
+      if (keep){
+        const tr = $("drows").querySelector('tr[data-id="' + keep.id + '"]');
+        if (tr) box.scrollTop = Math.max(0, tr.offsetTop - keep.delta);
+      } else if (firstDraw){
+        const firstOpen = $("drows").querySelector("tr:not(.done)");
+        box.scrollTop = firstOpen ? Math.max(0, firstOpen.offsetTop - 2) : 0;
+      }
+      firstDraw = false;
     }
     $("drows").querySelectorAll(".docs-btn").forEach(b=>b.addEventListener("click",(e)=>{ e.stopPropagation(); openDocs(all.find(x=>String(x.Id)===b.dataset.doc)); }));
   };
