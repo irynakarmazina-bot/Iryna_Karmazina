@@ -454,8 +454,13 @@
   .filters{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:10px}
   .filters input,.filters select{padding:6px 8px;border:1px solid var(--line);border-radius:7px;
     background:var(--surface);color:var(--ink);font:inherit;font-size:12.5px;font-weight:500}
-  .filters select{max-width:150px}
-  .filters input{flex:1;min-width:180px}
+  /* Ширина випадайки задана жорстко: інакше браузер розтягує її під найдовший
+     варіант списку («Вивантажений в порту прибуття») і поруч з'являється
+     порожнеча, а самі фільтри не вміщаються в один рядок (01.08.2026). */
+  .filters select{width:128px;flex:none;text-overflow:ellipsis}
+  .filters select#modef{width:150px}
+  .filters select#dirf{width:126px}
+  .filters input{flex:1;min-width:150px}
 
   .docbtn{background:var(--accent-soft);color:var(--accent-ink);border:none;border-radius:7px;
     padding:4px 9px;cursor:pointer;font-size:12.5px;font-weight:600;white-space:nowrap}
@@ -546,7 +551,7 @@
       <div class="spacer"></div>
       <!-- Позначка версії: по ній видно, чи браузер підтягнув свіжу сторінку.
            Оновлюється автоматично при кожному викладенні (scripts/stamp.sh). -->
-      <div class="buildstamp" id="buildstamp" title="версія сторінки — якщо не збігається з тим, що я назвала, натисни Ctrl+F5">в. 01.08 14:32</div>
+      <div class="buildstamp" id="buildstamp" title="версія сторінки — якщо не збігається з тим, що я назвала, натисни Ctrl+F5">в. 01.08 14:35</div>
     </nav>
     <div class="main">
       <div class="topbar">
@@ -1263,7 +1268,7 @@ PAGES.dispatch = async () => {
   const syncBtn = cfg().sync ? '<button class="btn" id="sync-btn">⟳ Оновити з Експедитора</button>' : "";
   const head = logist
     ? "<th>Угода</th><th>Клієнт</th><th>Контейнер</th><th>Статус</th><th>Номер авто</th><th>Водій</th><th>Телефон</th><th>Перетин кордону</th><th></th>"
-    : "<th>Угода</th><th></th><th>Клієнт</th><th>Маршрут</th><th>Вид / лінія</th><th class=\"c-bl\">Коносамент / контейнер</th><th class=\"c-ves\">Судно</th><th>Gate in</th><th>ETD</th><th>ETA</th><th>ETA dry port</th><th>Статус</th><th>Авто</th><th>Реліз</th><th>Позначки</th><th>Коментар</th><th></th>";
+    : "<th>Угода</th><th></th><th>Клієнт</th><th>Маршрут</th><th>Вид / лінія</th><th class=\"c-bl\">Коносамент / контейнер</th><th class=\"c-ves\">Судно</th><th>Gate in</th><th>ETD</th><th>ETA</th><th>ETA dry port</th><th>Статус</th><th>Авто</th><th>Коментар</th><th>Реліз</th><th>Позначки</th><th></th>";
   // ── активні алерти над таблицею
   const uniq = k => [...new Set(all.map(r=>_s(r,k)).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"uk"));
   const nActive = all.filter(r=>!_done(r)).length;
@@ -1298,10 +1303,14 @@ PAGES.dispatch = async () => {
         ${logist? "" : `<colgroup>
           <!-- 17 колонок; ширини підібрані так, щоб таблиця вміщалась без бічної
                прокрутки на ~1360 px робочої області (зауваження користувачки 01.08.2026) -->
-          <col style="width:52px"><col style="width:58px"><col style="width:92px"><col style="width:88px">
-          <col style="width:106px"><col style="width:140px"><col style="width:82px"><col style="width:78px">
-          <col style="width:78px"><col style="width:78px"><col style="width:80px"><col style="width:120px">
-          <col style="width:82px"><col style="width:54px"><col style="width:74px"><col><col style="width:36px">
+          <!-- Реліз і Позначки навмисно в кінці: вони потрібні рідко, тому йдуть
+               за межу екрана, а місце віддано виду перевезення, коносаменту
+               й номерам контейнерів (прохання користувачки 01.08.2026). -->
+          <col style="width:52px"><col style="width:58px"><col style="width:88px"><col style="width:84px">
+          <col style="width:138px"><col style="width:176px"><col style="width:78px"><col style="width:78px">
+          <col style="width:78px"><col style="width:78px"><col style="width:76px"><col style="width:120px">
+          <col style="width:78px"><col style="width:104px"><col style="width:48px"><col style="width:64px">
+          <col style="width:36px">
         </colgroup>`}
         <thead><tr>${head}</tr></thead>
         <tbody id="drows"></tbody></table></div>
@@ -1448,11 +1457,11 @@ PAGES.dispatch = async () => {
             ? `${dateB(truckDate(r))}${_s(r,"Подача авто (факт)")?"":'<span class="cell-muted"> план</span>'}`
             : (truckLate(r) ? '<span style="color:#d1453b;font-weight:700">немає</span>' : '<span class="cell-muted">—</span>')}${
             _s(r,"Номер авто") ? `<br><span class="cell-muted">${esc(r["Номер авто"])}</span>` : ""}</td>
+        <td class="cell-muted c-com${ED}" data-ed="Коментар" title="${esc(r["Коментар"]||"")}">${esc(r["Коментар"]||"")}</td>
         <td class="c-rel${CAN_EDIT?" tog":""}" data-tog="Реліз" title="${
             CAN_EDIT?"клік — поставити або зняти «Реліз»":"Реліз"}">${
             r["Реліз"] ? '<span class="flag on">✓</span>' : '<span class="cell-muted">—</span>'}</td>
         <td>${FLAGS.filter(f=>f!=="Реліз"&&r[f]).map(f=>`<span class="flag on">${f} ✓</span>`).join("")||'<span class="cell-muted">—</span>'}</td>
-        <td class="cell-muted c-com${ED}" data-ed="Коментар" title="${esc(r["Коментар"]||"")}">${esc(r["Коментар"]||"")}</td>
         <td>${docBtn(r)}</td>
       </tr>`).join("") : `<tr><td colspan="17" class="cell-muted">Нічого не знайдено.</td></tr>`;
     $("drows").querySelectorAll("tr[data-id]").forEach(tr=>tr.addEventListener("click",()=>openRow(all.find(x=>String(x.Id)===tr.dataset.id))));
