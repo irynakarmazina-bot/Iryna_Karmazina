@@ -1,7 +1,7 @@
 {
-  "stdout": "local 301\n0\n",
-  "stderr": "",
-  "returncode": 1,
-  "id": "verify-cma-live",
-  "ts": "2026-08-01T11:01:03Z"
+  "stdout": "code 000 size 0\n",
+  "stderr": "grep: /tmp/live.html: No such file or directory\n",
+  "returncode": 2,
+  "id": "verify-cma-live2",
+  "ts": "2026-08-01T11:01:25Z"
 }
