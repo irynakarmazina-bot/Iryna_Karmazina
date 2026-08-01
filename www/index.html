@@ -401,17 +401,14 @@
    щоб підказка збігалася з тим, що видно в таблиці (прохання користувачки 01.08.2026). */
 /* Підказка про підсвітку рядків не висить над таблицею постійно (вона з'їдала
    рядок і все одно не читалась) — відкривається кнопкою «?» у смузі алертів. */
-  .hbtn{width:20px;height:20px;border-radius:50%;border:1px solid var(--line);
-    background:var(--surface);color:var(--ink-2);font-size:12px;font-weight:700;
-    cursor:pointer;flex:none;line-height:1;padding:0}
-  .hbtn:hover{border-color:#b9c2d0;background:var(--surface-2)}
-  .helppop{margin:10px 0 0;padding:10px 14px;border:1px solid var(--line);
-    border-radius:10px;background:var(--surface-2);display:flex;flex-direction:column;gap:6px}
-  .helppop .lg{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--ink-2)}
-  .helppop .sw{width:12px;height:12px;border-radius:3px;border:1px solid var(--line);flex:none}
-  .helppop .sw-red{background:#fdeeee;box-shadow:inset 3px 0 0 #d1453b}
-  .helppop .sw-amber{background:#fff8ec;box-shadow:inset 3px 0 0 #e6a817}
-  .helppop .sw-done{background:var(--surface-2)}
+/* Кольорові квадратики для статті «Підказки» в Інструкціях: беруть ТІ САМІ
+   кольори, що й рядки таблиці, щоб підказка збігалася з тим, що видно.
+   Над таблицею підказки більше немає — вона з'їдала висоту (01.08.2026). */
+  .lg{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink);margin:6px 0}
+  .sw{width:13px;height:13px;border-radius:3px;border:1px solid var(--line);flex:none}
+  .sw-red{background:#fdeeee;box-shadow:inset 3px 0 0 #d1453b}
+  .sw-amber{background:#fff8ec;box-shadow:inset 3px 0 0 #e6a817}
+  .sw-done{background:var(--surface-2)}
   tr.alertrow td{background:#fdeeee}
   tr.alertrow td:first-child{box-shadow:inset 3px 0 0 #d1453b}
   tr.warnrow td{background:#fff8ec}
@@ -439,9 +436,12 @@
     box-shadow:inset 0 -1px 0 var(--line)}
   tr.done td{color:var(--ink-2)}
   table{border-collapse:collapse;width:100%;font-size:13px}
-  th{font-size:11.5px;letter-spacing:.2px;color:var(--ink-2);
-    background:transparent;text-align:left;font-weight:600;padding:7px 8px;white-space:nowrap;
-    border-bottom:1px solid var(--line)}
+/* Шапка таблиці: темніший і жирніший текст замість дрібного сірого,
+   нижчі відступи (зауваження користувачки 01.08.2026 — «купа дрібного
+   неконтрастного тексту»). */
+  th{font-size:11.5px;letter-spacing:.1px;color:var(--ink);
+    background:transparent;text-align:left;font-weight:700;padding:6px 8px;white-space:nowrap;
+    border-bottom:1.5px solid var(--line)}
   td{padding:7px 8px;border-bottom:1px solid var(--line-soft);vertical-align:top;color:var(--ink)}
   tr:last-child td{border-bottom:none}
   td.num,th.num{font-variant-numeric:tabular-nums;text-align:right}
@@ -449,10 +449,13 @@
   .cell-muted{color:var(--ink-2);font-size:12px}
   .mono{font-variant-numeric:tabular-nums; white-space:nowrap}
 
-  .filters{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
-  .filters input,.filters select{padding:8px 10px;border:1px solid var(--line);border-radius:8px;
-    background:var(--surface);color:var(--ink);font:inherit;font-size:13.5px}
-  .filters input{flex:1;min-width:150px}
+/* Фільтри компактні, щоб уміщались в один рядок і не з'їдали висоту над
+   таблицею (зауваження користувачки 01.08.2026). */
+  .filters{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:10px}
+  .filters input,.filters select{padding:6px 8px;border:1px solid var(--line);border-radius:7px;
+    background:var(--surface);color:var(--ink);font:inherit;font-size:12.5px;font-weight:500}
+  .filters select{max-width:150px}
+  .filters input{flex:1;min-width:180px}
 
   .docbtn{background:var(--accent-soft);color:var(--accent-ink);border:none;border-radius:7px;
     padding:4px 9px;cursor:pointer;font-size:12.5px;font-weight:600;white-space:nowrap}
@@ -543,7 +546,7 @@
       <div class="spacer"></div>
       <!-- Позначка версії: по ній видно, чи браузер підтягнув свіжу сторінку.
            Оновлюється автоматично при кожному викладенні (scripts/stamp.sh). -->
-      <div class="buildstamp" id="buildstamp" title="версія сторінки — якщо не збігається з тим, що я назвала, натисни Ctrl+F5">в. 01.08 14:28</div>
+      <div class="buildstamp" id="buildstamp" title="версія сторінки — якщо не збігається з тим, що я назвала, натисни Ctrl+F5">в. 01.08 14:32</div>
     </nav>
     <div class="main">
       <div class="topbar">
@@ -1279,13 +1282,6 @@ PAGES.dispatch = async () => {
         <span class="abadge">Активних <b>${nActive}</b><span class="cell-muted" style="font-size:11px">з ${all.length}</span></span>
         ${ALERTS.map(a=>`<span class="abadge ${a.cls} clickable" data-q="${a.q}">${esc(a.nm)} <b>${a.n}</b></span>`).join("")}
         ${quick? `<span class="quickchip">Фільтр: ${esc(quick.label)} — ${quickCount}<button id="quick-clear" title="скинути фільтр">✕</button></span>`:""}
-        <button class="hbtn" id="help-btn" title="що означає підсвітка рядків">?</button>
-      </div>
-      <div class="helppop" id="helppop" hidden>
-        <div class="lg"><i class="sw sw-red"></i>рядок червоний — імпорт стоїть у порту 2+ дні, авто не подане і номера немає</div>
-        <div class="lg"><i class="sw sw-amber"></i>рядок бурштиновий — етап в Експедиторі не оновлено або експорт без дати Gate in</div>
-        <div class="lg"><i class="sw sw-done"></i>рядок сірий — вантаж доставлено, такі угоди згорнуті вгорі списку</div>
-        ${CAN_EDIT? `<div class="lg">✏️ клік по підсвіченій клітинці — правка (<b>Enter</b> зберегти, <b>Esc</b> скасувати); клік по решті рядка — картка угоди</div>`:""}
       </div>
       <div class="filters" style="margin-top:12px">
         <input id="q" placeholder="Пошук: угода, клієнт, BL, контейнер, судно…">
@@ -1488,12 +1484,6 @@ PAGES.dispatch = async () => {
   }));
   const qc = $("quick-clear");
   if (qc) qc.addEventListener("click",()=>{ DISP_QUICK=null; go("dispatch"); });
-  const hb = $("help-btn");
-  if (hb) hb.addEventListener("click", ()=>{
-    const box = $("helppop");
-    box.hidden = !box.hidden;
-    fitDispScroll();                 // висота таблиці підлаштовується під підказку
-  });
   draw();
   const sb = $("sync-btn");
   if (sb) sb.addEventListener("click", async ()=>{
