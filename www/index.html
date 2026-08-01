@@ -352,6 +352,7 @@
   .dispscroll tbody tr:nth-child(even) td{background:var(--surface-2)}
   .dispscroll tbody tr:hover td{background:var(--hover-bg,#eef2f8)}
   .dispscroll tbody tr.alertrow:nth-child(even) td{background:#fce9e9}
+  .dispscroll tbody tr.warnrow:nth-child(even) td{background:#fdf3e2}
   .dispscroll td:first-child b{font-size:13.5px;font-weight:700}
   /* редагування прямо в таблиці */
   td.ed{cursor:cell}
@@ -362,9 +363,14 @@
   td.cardedit{cursor:cell;border-radius:5px}
   td.cardedit:hover{box-shadow:inset 0 0 0 1.5px var(--accent)}
   /* рядок-алерт: імпорт стоїть у порту без авто */
+  /* червоний — тільки коли вантаж реально стоїть у порту без авто (це гроші);
+     бурштиновий — розбіжність із Експедитором (це неточність у даних, не аварія) */
   tr.alertrow td{background:#fdeeee}
   tr.alertrow td:first-child{box-shadow:inset 3px 0 0 #d1453b}
+  tr.warnrow td{background:#fff8ec}
+  tr.warnrow td:first-child{box-shadow:inset 3px 0 0 #e6a817}
   :root[data-theme="dark"] tr.alertrow td{background:#2a1618}
+  :root[data-theme="dark"] tr.warnrow td{background:#2a2113}
   /* смуга алертів над таблицею */
   .alertbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
   /* алерти навмисно НЕ кольорові плашки: кольором тільки крапка й число,
@@ -826,6 +832,8 @@ const daysIn = r => { const p=portSince(r); if(!p) return null;
 /* імпорт вивантажили в порту, минуло 2+ дні, а авто не подане й номера немає —
    вантаж стоїть, капає зберігання (вимога користувачки 31.07.2026) */
 const truckDate = r => _s(r,"Подача авто (факт)") || _s(r,"Подача авто (план)");
+/* ETD показуємо фактом, а якщо факту немає — планом із підписом «план» */
+const etdOf = r => _s(r,"ETD (факт)") || _s(r,"ETD (план)");
 /* Уточнення від користувачки 31.07.2026 — три обмеження, без них були хибні спрацювання:
    1) вантаж, уже завантажений на авто або на потяг, із порту поїхав — це не простій;
    2) авто ні до чого, якщо доставка не автомобільна (залізниця, авіа) — угода 227
@@ -1127,12 +1135,13 @@ PAGES.dispatch = async () => {
   // Експедитор перезаписує лише для етапів Завершена / Букинг / Выполняется.
   const CAN_EDIT = !!cfg().edit;
   const ED = CAN_EDIT ? " ed" : "";
-  const ED_KIND = {"ETA":"date", "Подача авто (факт)":"date", "Перетин кордону (факт)":"date",
+  const ED_KIND = {"ETA":"date", "ETD (факт)":"date", "Гейт ін":"date",
+                   "Подача авто (факт)":"date", "Перетин кордону (факт)":"date",
                    "Статус":"select"};
   const syncBtn = cfg().sync ? '<button class="btn" id="sync-btn">⟳ Оновити з Експедитора</button>' : "";
   const head = logist
     ? "<th>Угода</th><th>Клієнт</th><th>Контейнер</th><th>Статус</th><th>Номер авто</th><th>Водій</th><th>Телефон</th><th>Перетин кордону</th><th></th>"
-    : "<th>Угода</th><th></th><th>Клієнт</th><th>Лінія</th><th class=\"c-bl\">BL / Контейнер</th><th class=\"c-ves\">Судно</th><th>ETA</th><th>Статус</th><th>Подача авто</th><th>Номер авто</th><th>Позначки</th><th>Коментар</th><th></th>";
+    : "<th>Угода</th><th></th><th>Клієнт</th><th>Лінія</th><th class=\"c-bl\">BL / Контейнер</th><th class=\"c-ves\">Судно</th><th>Гейт ін</th><th>ETD</th><th>ETA</th><th>Статус</th><th>Подача авто</th><th>Номер авто</th><th>Позначки</th><th>Коментар</th><th></th>";
   // ── активні алерти над таблицею
   const uniq = k => [...new Set(all.map(r=>_s(r,k)).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"uk"));
   const nActive = all.filter(r=>!_done(r)).length;
@@ -1164,7 +1173,8 @@ PAGES.dispatch = async () => {
       <div class="tablewrap dispscroll" id="dscroll"><table class="${logist?"":"fixw"}">
         ${logist? "" : `<colgroup>
           <col style="width:58px"><col style="width:54px"><col style="width:150px"><col style="width:76px">
-          <col style="width:172px"><col style="width:128px"><col style="width:92px"><col style="width:176px">
+          <col style="width:172px"><col style="width:128px"><col style="width:84px"><col style="width:84px">
+          <col style="width:92px"><col style="width:176px">
           <col style="width:108px"><col style="width:100px"><col style="width:116px"><col><col style="width:44px">
         </colgroup>`}
         <thead><tr>${head}</tr></thead>
@@ -1235,7 +1245,7 @@ PAGES.dispatch = async () => {
         <td class="mono${ED}" data-ed="Перетин кордону (факт)">${dateB(r["Перетин кордону (факт)"])}</td>
         <td>${docBtn(r)}</td>
       </tr>` : `
-      <tr data-id="${r.Id}" class="${r["Статус"]==='Вантаж доставлено'?'done':''} ${(truckLate(r)||stageStale(r))?'alertrow':''}" style="cursor:pointer"
+      <tr data-id="${r.Id}" class="${r["Статус"]==='Вантаж доставлено'?'done':''} ${truckLate(r)?'alertrow':(stageStale(r)?'warnrow':'')}" style="cursor:pointer"
           ${truckLate(r)?`title="Імпорт у порту ${daysIn(r)} дн, авто не подане і номера немає"`
             :(stageStale(r)?`title="Статус «${esc(_s(r,"Статус"))}», а етап в Експедиторі досі «Букинг» — менеджер не вніс зміни"`:"")}>
         <td class="mono"><b>${esc(r["Угода"])}</b></td>
@@ -1246,6 +1256,10 @@ PAGES.dispatch = async () => {
             ? `${esc(r["HBL"])}<br><span class="cell-muted">${esc(r["BL"]||"")}${r["BL"]&&r["Контейнер"]?" · ":""}${esc(r["Контейнер"]||"")}</span>`
             : `${esc(r["BL"]||"—")}<br><span class="cell-muted">${esc(r["Контейнер"]||"")}</span>`}</td>
         <td class="c-ves${ED}" data-ed="Судно">${esc(r["Судно"]||"—")}</td>
+        <td class="mono${ED}" data-ed="Гейт ін">${dateB(r["Гейт ін"])}</td>
+        <td class="mono${ED}" data-ed="ETD (факт)">${etdOf(r)
+            ? `${dateB(etdOf(r))}${_s(r,"ETD (факт)")?"":'<br><span class="cell-muted">план</span>'}`
+            : '<span class="cell-muted">—</span>'}</td>
         <td class="mono${ED}" data-ed="ETA">${dateB(r["ETA"])}</td>
         <td class="${ED.trim()}" data-ed="Статус">${stPill(r["Статус"])}</td>
         <td class="mono${ED}" data-ed="Подача авто (факт)">${truckDate(r)
@@ -1256,7 +1270,7 @@ PAGES.dispatch = async () => {
         <td>${FLAGS.filter(f=>r[f]).map(f=>`<span class="flag on">${f} ✓</span>`).join("")||'<span class="cell-muted">—</span>'}</td>
         <td class="cell-muted c-com${ED}" data-ed="Коментар" title="${esc(r["Коментар"]||"")}">${esc(r["Коментар"]||"")}</td>
         <td>${docBtn(r)}</td>
-      </tr>`).join("") : `<tr><td colspan="13" class="cell-muted">Нічого не знайдено.</td></tr>`;
+      </tr>`).join("") : `<tr><td colspan="15" class="cell-muted">Нічого не знайдено.</td></tr>`;
     $("drows").querySelectorAll("tr[data-id]").forEach(tr=>tr.addEventListener("click",()=>openRow(all.find(x=>String(x.Id)===tr.dataset.id))));
     // клік по редагованій клітинці — правка на місці, картка угоди при цьому не відкривається
     if (CAN_EDIT) $("drows").querySelectorAll("td.ed[data-ed]").forEach(td=>{
