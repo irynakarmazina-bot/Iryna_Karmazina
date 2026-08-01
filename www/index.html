@@ -338,6 +338,8 @@
   td.ed.saving{opacity:.45}
   .edinput{width:100%;box-sizing:border-box;border:1px solid var(--accent);border-radius:5px;
     padding:3px 5px;font-family:inherit;font-size:12px;background:var(--paper);color:var(--ink)}
+  td.cardedit{cursor:cell;border-radius:5px}
+  td.cardedit:hover{box-shadow:inset 0 0 0 1.5px var(--accent)}
   /* рядок-алерт: імпорт стоїть у порту без авто */
   tr.alertrow td{background:#fdeeee}
   tr.alertrow td:first-child{box-shadow:inset 3px 0 0 #d1453b}
@@ -1502,19 +1504,100 @@ const LOGIST_GROUPS = [
   ["Основне", ["Угода","Клієнт","Контейнер","Статус","Маршрут","Сухий порт"]],
   ["Авто", ["Номер авто","Номер ЦМР","Водій (ПІБ)","Водій (телефон)","Перетин кордону (факт)","Постановка/завантаження (план)","Постановка/завантаження (факт)"]],
 ];
+/* ===== картка угоди: перегляд + редагування =====
+   Поля, які веде Експедитор (AUTHORITATIVE у expeditor_direct_sync.py), редагувати
+   не даємо — синхронізація о 07:00 їх усе одно перезапише. Решту можна правити:
+   клік по значенню → поле, Enter/клік поза межами — зберегти, Esc — скасувати.
+   Галочки (Позначки) перемикаються одним кліком. */
+const CARD_LOCKED = {"Угода":1,"Клієнт":1,"Напрямок":1,"Лінія":1,"Менеджер":1,"Агент":1,
+                     "Контейнер":1,"Етап (Експедитор)":1,"Зміни ETA (історія)":1,
+                     "Остання зміна":1,"Останнє оновлення":1,"Файли":1};
+const CARD_DATE = /^(ETA|ETD|Факт|Подача|Постановка|Перетин|Планова|Вивантаження|Гейт|Port Cut Off|Замитнення)/;
+const CARD_SELECT = {"Статус":()=>Object.keys(STATUSES),
+                     "Вид перевезення":()=>MODE_OPTIONS,
+                     "FCL/LCL":()=>["FCL","LCL","FTL","LTL"]};
+const CARD_LONG = {"Коментар":1,"Коментар клієнту":1,"Маршрут":1,"Адреса розмитнення":1,"Вантаж":1};
+let MODE_OPTIONS = ["фрахт","фрахт+ТЕО","фрахт+ТЕО+МО","фрахт+ТЕО+авто","фрахт+ТЕО+залізниця",
+                    "ТЕО+авто","ТЕО+залізниця","авто","авіа","авіа+ТЕО","авіа+ТЕО+МО"];
+
+async function saveField(row, col, val){
+  await api(`/api/v2/tables/${T["Диспетчеризація"]}/records`, {method:"PATCH",
+    body: JSON.stringify([{Id: row.Id, [col]: val}])});
+  row[col] = val;
+}
+
+function cardVal(r, f){
+  if (FLAGS.includes(f)) return r[f] ? "✓ так" : "—";
+  const v = r[f];
+  return (v===null || v===undefined || v==="") ? "—" : String(v);
+}
+
 function openRow(r){
   const groups = cfg().cols === "logist" ? LOGIST_GROUPS : CARD_GROUPS;
+  const canEdit = !!cfg().edit;
   $("row-title").textContent = `Угода №${r["Угода"]} · ${r["Клієнт"]||""}`;
   $("row-body").innerHTML = groups.map(([g,fields])=>{
     const items = fields.map(f=>{
-      let v = r[f];
-      if (typeof v === "boolean" || FLAGS.includes(f)) v = r[f] ? "✓ так" : "—";
-      if (v===null || v===undefined || v==="") v = "—";
-      return `<tr><td class="cell-muted" style="width:45%">${esc(f)}</td><td>${f==="Статус"?stPill(r["Статус"]):esc(v)}</td></tr>`;
+      const locked = !canEdit || CARD_LOCKED[f];
+      const cell = f === "Статус" ? stPill(r["Статус"])
+        : FLAGS.includes(f) ? `<span class="flag ${r[f]?"on":""}">${r[f]?"✓ так":"—"}</span>`
+        : esc(cardVal(r, f));
+      return `<tr><td class="cell-muted" style="width:45%">${esc(f)}${locked && canEdit && CARD_LOCKED[f]
+          ? ' <span class="cell-muted" title="це поле веде Експедитор — правити тут немає сенсу">🔒</span>' : ""}</td>
+        <td class="${locked?"":"cardedit"}" data-f="${esc(f)}">${cell}</td></tr>`;
     }).join("");
     return `<h3 style="margin-top:14px">${g}</h3><div class="tablewrap"><table><tbody>${items}</tbody></table></div>`;
   }).join("");
+  if (canEdit) $("row-body").querySelectorAll("td.cardedit").forEach(td=>
+    td.addEventListener("click", ()=>editCardField(td, r)));
   $("row-overlay").classList.add("open");
+}
+
+function editCardField(td, r){
+  const f = td.dataset.f;
+  if (td.querySelector(".edinput")) return;
+  // галочка — просто перемикаємо
+  if (FLAGS.includes(f)){
+    const nv = !r[f];
+    td.innerHTML = '<span class="cell-muted">…</span>';
+    saveField(r, f, nv)
+      .then(()=>{ td.innerHTML = `<span class="flag ${nv?"on":""}">${nv?"✓ так":"—"}</span>`;
+                  toast(`✅ ${f}: ${nv?"так":"ні"}`); DISP_CACHE = DISP_CACHE; })
+      .catch(e=>{ td.innerHTML = `<span class="flag ${r[f]?"on":""}">${r[f]?"✓ так":"—"}</span>`;
+                  toast("⚠ Не збереглось: " + e.message); });
+    return;
+  }
+  const cur = r[f] === null || r[f] === undefined ? "" : String(r[f]);
+  const isDate = CARD_DATE.test(f) && !CARD_SELECT[f];
+  const val0 = isDate ? cur.slice(0,10) : cur;
+  const keep = td.innerHTML;
+  td.innerHTML = CARD_SELECT[f]
+    ? `<select class="edinput"><option value=""></option>${CARD_SELECT[f]().map(o=>
+        `<option${o===cur?" selected":""}>${esc(o)}</option>`).join("")}</select>`
+    : CARD_LONG[f]
+      ? `<textarea class="edinput" rows="3">${esc(val0)}</textarea>`
+      : `<input class="edinput" type="${isDate?"date":"text"}" value="${esc(val0)}">`;
+  const inp = td.querySelector(".edinput");
+  inp.focus();
+  if (inp.tagName === "INPUT" && !isDate) inp.select();
+  let closed = false;
+  const finish = async (save) => {
+    if (closed) return;
+    closed = true;
+    const v = String(inp.value || "").trim();
+    if (!save || v === val0){ td.innerHTML = keep; return; }
+    try{
+      await saveField(r, f, v || null);
+      td.innerHTML = f === "Статус" ? stPill(v) : esc(v || "—");
+      toast(`✅ ${f}: ${v || "очищено"}`);
+    }catch(e){ td.innerHTML = keep; toast("⚠ Не збереглось: " + e.message); }
+  };
+  inp.addEventListener("blur", ()=>finish(true));
+  inp.addEventListener("keydown", e=>{
+    if (e.key === "Enter" && inp.tagName !== "TEXTAREA"){ e.preventDefault(); finish(true); }
+    if (e.key === "Escape"){ e.preventDefault(); finish(false); }
+  });
+  if (CARD_SELECT[f]) inp.addEventListener("change", ()=>finish(true));
 }
 $("row-close").addEventListener("click",()=>$("row-overlay").classList.remove("open"));
 $("row-overlay").addEventListener("click",e=>{ if(e.target===$("row-overlay")) $("row-overlay").classList.remove("open"); });
