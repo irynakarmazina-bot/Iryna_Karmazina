@@ -1,1 +1,1 @@
-{"id": "dry2-cols", "cmd": "grep -E \"Оновити угод|Зміни по колонках|MAERSK_DRY\" /root/dry_all2.log"}
+{"id": "maersk-run-all", "cmd": "cd /root/direct-sync && nohup python3 maersk_track_sync.py --all > /root/run_all.log 2>&1 & echo STARTED"}
