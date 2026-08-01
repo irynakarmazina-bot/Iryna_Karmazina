@@ -1,7 +1,7 @@
 {
-  "stdout": "Створено колонку «Прізвище» у таблиці «Користувачі» (id meqpi0r197bz14n)\n",
-  "stderr": "Traceback (most recent call last):\n  File \"<string>\", line 11, in <module>\n  File \"<string>\", line 6, in nc\nUnboundLocalError: cannot access local variable 'urllib' where it is not associated with a value\n",
-  "returncode": 1,
-  "id": "deploy-dates-0801",
-  "ts": "2026-08-01T09:41:46Z"
+  "stdout": "Гейт аут: 200\nБез коносамента і без номера контейнера — не трекаються: 29\nПропущено скасованих в Експедиторі: 1\nУгод для трекінгу: 237 (усього в платформі 267)\nТокен Maersk отримано\n",
+  "stderr": "",
+  "returncode": 0,
+  "id": "deploy-dates2-0801",
+  "ts": "2026-08-01T09:43:49Z"
 }
