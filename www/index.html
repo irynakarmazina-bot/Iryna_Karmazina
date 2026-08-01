@@ -618,13 +618,13 @@ async function loadAll(table){
 
 /* ===== ролі ===== */
 const RC = {
-  "Адміністратор":        { nav:["dashboard","calc","dispatch","crm","clients","finance","accounting","tasks","instr","users"], scope:"all", fin:"full", sync:true, edit:true },
-  "Сейлз-менеджер":       { nav:["dashboard","calc","dispatch","crm","clients","finance","tasks","instr"], scope:"mgr", fin:"personal", sync:false, edit:true },
-  "Бухгалтер":            { nav:["dashboard","calc","dispatch","clients","finance","accounting","tasks","instr"], scope:"all", fin:"acct", sync:true },
-  "Фінансист":            { nav:["dashboard","calc","dispatch","clients","finance","accounting","tasks","instr"], scope:"all", fin:"full", sync:true },
-  "Операційний менеджер": { nav:["dashboard","calc","dispatch","crm","clients","tasks","instr"], scope:"ops", fin:"none", sync:true, edit:true },
+  "Адміністратор":        { nav:["dashboard","tasks","dispatch","calc","finance","clients","crm","accounting","instr","users"], scope:"all", fin:"full", sync:true, edit:true },
+  "Сейлз-менеджер":       { nav:["dashboard","tasks","dispatch","calc","finance","clients","crm","instr"], scope:"mgr", fin:"personal", sync:false, edit:true },
+  "Бухгалтер":            { nav:["dashboard","tasks","dispatch","calc","finance","clients","accounting","instr"], scope:"all", fin:"acct", sync:true },
+  "Фінансист":            { nav:["dashboard","tasks","dispatch","calc","finance","clients","accounting","instr"], scope:"all", fin:"full", sync:true },
+  "Операційний менеджер": { nav:["dashboard","tasks","dispatch","clients","crm","instr"], scope:"ops", fin:"none", sync:true, edit:true },
   "Логіст":               { nav:["dispatch","instr"], scope:"all", cols:"logist", fin:"none", sync:false, edit:true },
-  "Перегляд":             { nav:["dashboard","calc","dispatch","clients","finance","tasks","instr"], scope:"all", fin:"blur", sync:false },
+  "Перегляд":             { nav:["dashboard","tasks","dispatch","calc","finance","clients","instr"], scope:"all", fin:"blur", sync:false },
 };
 function cfg(){ return RC[ROLE] || RC["Перегляд"]; }
 function scoped(rows){
@@ -690,7 +690,7 @@ const MODMAP = {
   accounting:{label:"Бух. облік",ico:"book",      c:"violet"},
   tasks:    {label:"Задачі",     ico:"check",     c:"green"},
   instr:    {label:"Інструкції", ico:"doc",       c:"slate"},
-  users:    {label:"Користувачі",ico:"shield",    c:"red"},
+  users:    {label:"Налаштування",ico:"gear",   c:"slate"},
 };
 function buildNav(){
   $("nav").innerHTML = cfg().nav.map(id=>`<button class="nav-item" data-page="${id}"><span class="ico nav-ico-${MODMAP[id].c||"slate"}"><svg viewBox="0 0 24 24">${ICONS[MODMAP[id].ico]||""}</svg></span>${MODMAP[id].label}</button>`).join("");
@@ -722,6 +722,7 @@ const ICONS = {
   check:'<circle cx="12" cy="12" r="8.5"/><path d="m8.4 12.2 2.5 2.5 4.7-4.9"/>',
   calculator:'<rect x="4.5" y="2.8" width="15" height="18.4" rx="2.6"/><rect x="7.6" y="6" width="8.8" height="3.4" rx="1"/><path d="M8.2 13h.01M12 13h.01M15.8 13h.01M8.2 17h.01M12 17h.01M15.8 17h.01"/>',
   funnel:'<path d="M3.5 4.5h17l-6.6 7.8v6.4l-3.8 2v-8.4z"/>',
+  gear:'<circle cx="12" cy="12" r="3.1"/><path d="M19.4 14.5a1.6 1.6 0 0 0 .32 1.77l.06.06a1.9 1.9 0 1 1-2.7 2.7l-.05-.06a1.6 1.6 0 0 0-1.78-.32 1.6 1.6 0 0 0-.97 1.47v.17a1.9 1.9 0 1 1-3.8 0v-.09a1.6 1.6 0 0 0-1.05-1.47 1.6 1.6 0 0 0-1.77.32l-.06.06a1.9 1.9 0 1 1-2.7-2.7l.06-.06a1.6 1.6 0 0 0 .32-1.77 1.6 1.6 0 0 0-1.47-.97H3.5a1.9 1.9 0 1 1 0-3.8h.09a1.6 1.6 0 0 0 1.47-1.05 1.6 1.6 0 0 0-.32-1.77l-.06-.06a1.9 1.9 0 1 1 2.7-2.7l.06.06a1.6 1.6 0 0 0 1.77.32h.08a1.6 1.6 0 0 0 .97-1.47V3.5a1.9 1.9 0 1 1 3.8 0v.09a1.6 1.6 0 0 0 .97 1.47 1.6 1.6 0 0 0 1.78-.32l.05-.06a1.9 1.9 0 1 1 2.7 2.7l-.06.06a1.6 1.6 0 0 0-.32 1.77v.08a1.6 1.6 0 0 0 1.47.97h.17a1.9 1.9 0 1 1 0 3.8h-.09a1.6 1.6 0 0 0-1.47.97z"/>',
   book:'<path d="M4 4.6A2.1 2.1 0 0 1 6.1 2.5H20v14.4H6.1A2.1 2.1 0 0 0 4 19v-14.4z"/><path d="M4 19a2.1 2.1 0 0 0 2.1 2.1H20v-4.2"/><path d="M8.5 7.2h7M8.5 10.6h4.5"/>',
 };
 const EMOJI_ICON = {
@@ -2214,7 +2215,7 @@ PAGES.instr = async () => {
 PAGES.users = async () => {
   const rows = await loadAll(T["Користувачі"]);
   $("content").innerHTML = `
-    <div class="card">
+    <div class="card"><h3>👥 Користувачі</h3>
       <p class="sub">роль визначає, що людина бачить у платформі</p>
       <div class="tablewrap"><table>
         <thead><tr><th>Ім'я</th><th>Email</th><th>Роль</th><th>Активний</th></tr></thead>
@@ -2231,6 +2232,9 @@ PAGES.users = async () => {
         <tr><td><b>Логіст</b></td><td>диспетчеризація: авто, водій, статус, пункт перетину</td></tr>
         <tr><td><b>Перегляд</b></td><td>тільки перегляд, фінансові цифри приховані</td></tr>
       </tbody></table></div></div>
+    <div class="card"><h3>🔐 Інші налаштування</h3>
+      <p class="sub">тут зʼявляться доступи клієнтів до кабінету, сповіщення, довідники й журнал дій</p>
+      <div class="note">🛠 Розділ наповнюється. Скажи, що винести сюди першим.</div></div>
     <div class="note">➕ Щоб додати користувача: 1) скажи Клоду — він створить акаунт для входу; 2) додай рядок з email, ім'ям і роллю в таблицю «Користувачі» (через службову базу). Зміна ролі — просто зміни значення в рядку.</div>`;
 };
 
