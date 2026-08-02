@@ -105,8 +105,7 @@ header img{height:42px}
 .hdr-s{color:var(--muted);font-size:13px}
 .spacer{flex:1}
 .who{text-align:right;line-height:1.3}
-.who b{display:block;font-size:14px}
-.who span{color:var(--muted);font-size:12px}
+.who b{display:block;font-size:15px;font-weight:700}
 main{max-width:1500px;margin:0 auto;padding:22px 26px 60px}
 .proto{background:#fff6e3;border:1px solid #eccf94;color:#7a5a1b;border-radius:10px;
   padding:9px 14px;font-size:12.5px;margin-bottom:18px}
@@ -147,27 +146,40 @@ tr.exp>td{padding:0;background:var(--surface-2)}
 .pbar{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:20px}
 .pbar .st{font-size:17px;font-weight:700}
 .pbar .sub{color:var(--ink-2)}
-/* схема руху */
+/* схема руху — стиль за макетом користувачки 01.08.2026: колір за видом
+   перевезення, «КОРДОН» пунктирним роздільником, тривалість переходу,
+   легенда внизу. */
 .route{background:var(--surface);border:1px solid var(--line);border-radius:12px;
-  padding:26px 20px 18px;overflow-x:auto}
-.steps{display:flex;min-width:760px}
-.step{flex:1;position:relative;text-align:center;padding:0 4px}
-.step .rail{position:absolute;top:22px;left:-50%;width:100%;height:3px;background:var(--line);border-radius:2px}
-.step:first-child .rail{display:none}
-.step.done .rail,.step.now .rail{background:var(--accent)}
-.step .dot{position:relative;width:44px;height:44px;margin:0 auto;border-radius:50%;
+  padding:24px 18px 14px;overflow-x:auto}
+.chain{display:flex;align-items:flex-start;min-width:900px}
+.nd{flex:0 0 104px;text-align:center;position:relative}
+.cn{flex:1 1 auto;height:2px;background:var(--line);margin-top:23px;border-radius:2px;min-width:14px}
+.cn.on{background:var(--mc)}
+.nd .dot{width:46px;height:46px;margin:0 auto;border-radius:50%;
   background:var(--surface);border:2px solid var(--line);color:var(--muted);
-  display:flex;align-items:center;justify-content:center;z-index:1}
-.step.done .dot{background:var(--accent);border-color:var(--accent);color:#fff}
-.step.now .dot{border-color:var(--accent);color:var(--accent-ink);
-  box-shadow:0 0 0 5px var(--accent-soft)}
-.step .ttl{font-size:11.5px;font-weight:600;margin-top:9px;color:var(--ink-2);line-height:1.3}
-.step.now .ttl{color:var(--accent-ink)}
-.step .dt{font-size:13px;font-weight:700;margin-top:3px;font-variant-numeric:tabular-nums}
-.step .plan{font-size:11px;color:var(--muted);font-weight:500}
-.step .place{font-size:11px;color:var(--muted);margin-top:2px}
-.step.todo .dot{border-style:dashed}
-.step.todo .dt{color:var(--muted);font-weight:600}
+  display:flex;align-items:center;justify-content:center}
+.nd.done .dot{background:var(--mbg);border-color:var(--mc);color:var(--mc)}
+.nd.now  .dot{background:var(--mc);border-color:var(--mc);color:#fff;
+  box-shadow:0 0 0 5px var(--mbg)}
+.nd.todo .dot{border-style:dashed}
+.nd .ttl{font-size:11.5px;font-weight:700;margin-top:8px;line-height:1.25;color:var(--ink-2)}
+.nd.now .ttl{color:var(--mc)}
+.nd .place{font-size:10.5px;color:var(--muted);margin-top:2px;line-height:1.25}
+.nd .dur{font-size:12px;font-weight:700;color:var(--mc);margin-top:3px}
+.nd .dt{font-size:12px;font-weight:700;margin-top:3px;font-variant-numeric:tabular-nums}
+.nd .dt.dim{color:var(--muted);font-weight:600}
+.nd .plan{font-size:10px;color:var(--muted)}
+/* «Кордон» — не вузол маршруту, а роздільник: без заливки, пунктиром */
+.nd.brd .dot{border-style:dashed;background:transparent}
+.nd.brd .ttl{text-transform:uppercase;letter-spacing:.05em;font-size:10.5px;color:var(--muted)}
+.lgnd{display:flex;flex-wrap:wrap;align-items:center;gap:6px 16px;margin-top:16px;
+  padding-top:12px;border-top:1px solid var(--line-soft);font-size:11.5px;color:var(--muted)}
+.lgnd span{display:inline-flex;align-items:center;gap:6px}
+.lgnd .sp{flex:1 1 20px}
+.lgnd i{display:inline-block;width:18px;height:2px;background:var(--ink-2)}
+.lgnd .ln-dot{background:none;border-top:2px dashed var(--ink-2);height:0}
+.lgnd .ln-pale{background:var(--line)}
+.lgnd .sw{width:11px;height:11px;border-radius:3px}
 /* деталі + документи */
 .cols{display:grid;grid-template-columns:1.15fr 1fr;gap:18px;margin-top:18px}
 @media(max-width:1000px){.cols{grid-template-columns:1fr}}
@@ -196,10 +208,8 @@ tr.exp>td{padding:0;background:var(--surface-2)}
 
 <header>
   <img src="__LOGO__" alt="UNITEX">
-  <div><div class="hdr-t">Особистий кабінет</div>
-       <div class="hdr-s">відстеження вантажів</div></div>
   <div class="spacer"></div>
-  <div class="who"><b>__CLIENT__</b><span>клієнт UNITEX</span></div>
+  <div class="who"><b>__CLIENT__</b></div>
 </header>
 
 <main>
@@ -251,66 +261,151 @@ const I = {
  train:'<path d="M6 4.5h12v10H6z"/><path d="M8.6 7.4h6.8v4H8.6z"/><circle cx="9" cy="17.6" r="1.6"/><circle cx="15" cy="17.6" r="1.6"/><path d="M3.5 21h17"/>',
  home: '<path d="M3.5 11 12 3.8l8.5 7.2v9.5h-17z"/><path d="M9.6 20.5v-5.4h4.8v5.4"/>',
  swap: '<path d="M3.5 9.2h15.5"/><path d="M15.6 5.8 19 9.2l-3.4 3.4"/><path d="M20.5 15.2H5"/><path d="M8.4 11.8 5 15.2l3.4 3.4"/>',
+ warehouse:'<path d="M3 9.4 12 4.2l9 5.2"/><path d="M4.8 9.4v10M9.6 9.4v10M14.4 9.4v10M19.2 9.4v10"/><path d="M2.5 19.6h19"/>',
+ customs:'<path d="M6.4 3h7.2L18 6.6V21H6.4z"/><path d="M13.6 3v3.6H18"/><path d="M9.2 13.4l2 2 3.6-3.6"/>',
+ border:'<path d="M5.5 3.2v17.6"/><path d="M5.5 4.6h11l-2.2 3.2 2.2 3.2h-11"/>',
+ box:'<path d="M12 3.4 20.4 7.7v8.6L12 20.6 3.6 16.3V7.7z"/><path d="M3.6 7.7 12 12l8.4-4.3"/><path d="M12 12v8.6"/>',
 };
 const svg = k => `<svg viewBox="0 0 24 24" width="21" height="21" fill="none"
   stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${I[k]}</svg>`;
 
-/* ── схема руху ───────────────────────────────────────── */
+/* ── колір за видом перевезення (як у макеті користувачки) ──────────── */
+const MODE_PAL = {
+  sea : {c:"#1a6fc4", bg:"#e8f1fb", nm:"Море"},
+  air : {c:"#8b3fa8", bg:"#f4e9f8", nm:"Авіа"},
+  road: {c:"#b8651b", bg:"#fbeee0", nm:"Авто"},
+  rail: {c:"#1f7a5a", bg:"#e4f3ed", nm:"Залізниця"},
+};
+const modeOf = r => air(r) ? "air"
+  : (/^авто$/i.test(s(r,"Вид перевезення")) ? "road" : (rail(r) ? "rail" : "sea"));
+const pal = r => MODE_PAL[modeOf(r)];
+const plural = (n, one, few, many) => {
+  const a = Math.abs(n) % 100, b = a % 10;
+  if (a > 10 && a < 20) return many; if (b > 1 && b < 5) return few;
+  return b === 1 ? one : many;
+};
+const days = (a, b) => {
+  if (!a || !b) return null;
+  const d = Math.round((new Date(b) - new Date(a)) / 864e5);
+  return d >= 0 ? d : null;
+};
+
+/* ── схема руху ─────────────────────────────────────────────────────────
+   Ланцюжки продиктувала користувачка 01.08.2026, дослівно:
+   ІМПОРТ: стафіровка → митне оформлення → порт відправлення → в морі/в повітрі/
+     в дорозі → [перевалка] → порт/аеропорт прибуття → завантаження на авто/потяг
+     → [сухий порт] → кордон → митне оформлення → вантаж доставлено.
+   ЕКСПОРТ: стафіровка (авто/потяг) → митне оформлення → кордон → порт/аеропорт
+     відправлення → в морі/повітрі/дорозі → [перевалка] → митне оформлення →
+     вантаж доставлено.
+   Перевалка буває і для АВІА теж — обмеження на море прибрано на її зауваження.
+   Дат митного оформлення в системі НЕМАЄ (ні експортного, ні імпортного) —
+   ці кроки малюємо без дати, лише як етап. */
 function steps(r){
-  const A=air(r), R=rail(r);
+  const A = air(r), R = rail(r), imp = s(r,"Напрямок") !== "Експорт";
   const route = s(r,"Маршрут").split(/→|->/).map(x=>x.trim()).filter(Boolean);
-  const from = route[0]||"", to = route[route.length-1]||"";
+  const from = route[0] || "", to = route.length > 1 ? route[1] : "";
+  const fin  = s(r,"Кінцева точка доставки") || (route.length > 2 ? route[route.length-1] : "");
   const etd  = s(r,"ETD (факт)") || s(r,"ETD (план)"), etdF = !!s(r,"ETD (факт)");
   const eta  = s(r,"ETA порт (факт)") || s(r,"ETA"),   etaF = !!s(r,"ETA порт (факт)");
+  const moveI = A ? "plane" : (R ? "train" : (modeOf(r) === "road" ? "truck" : "ship"));
+  const moveT = A ? "В повітрі" : (modeOf(r) === "road" ? "В дорозі" : "В морі");
+
+  const transship = () => {
+    const tp = s(r,"Порт перевалки");
+    if (!tp) return [];
+    const ta = s(r,"Перевалка (прибуття)"), td = s(r,"Перевалка (відправлення)");
+    return [{ t:"Перевалка", i:"swap", d:ta, d2:td, f:true, p:tp }];
+  };
+
+  if (!imp){
+    /* ЕКСПОРТ */
+    return [
+      { t:"Стафіровка",          i:"warehouse", d:s(r,"Stuffing"), f:true, p:from },
+      { t:"Митне оформлення",    i:"customs",   d:"",              f:true, p:"експорт" },
+      { t:"Кордон",              i:"border",    d:s(r,"На кордоні") || s(r,"Перетин кордону (факт)"), f:true, p:"" },
+      { t:A?"Аеропорт відправлення":"Порт відправлення", i:"crane",
+        d:s(r,"Здача в порт (факт)") || s(r,"Гейт ін"), f:true, p:from },
+      { t:moveT, i:moveI, d:etd, f:etdF, p:s(r,"Судно"), dur:days(etd, eta) },
+    ].concat(transship(), [
+      { t:"Митне оформлення",    i:"customs",   d:"",  f:true, p:"імпорт" },
+      { t:"Вантаж доставлено",   i:"box",
+        d:s(r,"Вивантаження у отримувача (факт)") || s(r,"Планова до клієнта (факт)") || eta,
+        f:!!s(r,"Вивантаження у отримувача (факт)"), p:fin || to },
+    ]);
+  }
+
+  /* ІМПОРТ */
   const car  = s(r,"Подача авто (факт)") || s(r,"Подача авто (план)") || s(r,"Гейт аут");
   const carF = !!(s(r,"Подача авто (факт)") || s(r,"Гейт аут"));
-  const out = [
-   {t:"Букінг",                       i:"doc",             d:"",                     f:true,  p:""},
-   {t:A?"Прийом на термінал":"Заїзд у порт", i:"truck",     d:s(r,"Гейт ін"),         f:true,  p:from},
-   {t:A?"У повітрі":"На судні",       i:A?"plane":"ship",  d:etd,                    f:etdF,  p:s(r,"Судно")},
-  ];
-  // порт перевалки — лише для морських, і лише де він справді є
-  const tp = s(r,"Порт перевалки");
-  if (!A && tp){
-    const ta = s(r,"Перевалка (прибуття)"), td = s(r,"Перевалка (відправлення)");
-    let note = tp;
-    if (ta && td){
-      const dw = Math.round((new Date(td) - new Date(ta))/864e5);
-      if (dw >= 3) note += " · простій " + dw + " дн";
-    }
-    out.push({t:"Перевалка", i:"swap", d:ta, d2:td, f:true, p:note});
-  }
-  out.push(
-   {t:A?"Прибуття в аеропорт":"Прибуття в порт", i:"port",  d:eta,                    f:etaF,  p:to},
-   {t:"Вивантаження",                 i:"crane",           d:s(r,"Вивантаження в порту (факт)"), f:true, p:""},
-   {t:R?"Завантажено на потяг":"Подача авто", i:R?"train":"truck", d:car,             f:carF,  p:""},
-   {t:"Доставлено",                   i:"home",            d:"",                     f:true,  p:""});
-  return out;
+  const land = [];
+  land.push({ t: R ? "Завантажений на потяг" : "Завантажений на авто",
+              i: R ? "train" : "truck", d: car, f: carF, p:"" });
+  if (R || s(r,"ETA сухий порт"))
+    land.push({ t:"Сухий порт", i:"crane", d:s(r,"ETA сухий порт"),
+                f:false, p:s(r,"Сухий порт") });
+  return [
+    { t:"Стафіровка",         i:"warehouse", d:s(r,"Stuffing"), f:true, p:from },
+    { t:"Митне оформлення",   i:"customs",   d:"",              f:true, p:"експорт" },
+    { t:A?"Аеропорт відправлення":"Порт відправлення", i:"crane",
+      d:s(r,"Здача в порт (факт)") || s(r,"Гейт ін"), f:true, p:from },
+    { t:moveT, i:moveI, d:etd, f:etdF, p:s(r,"Судно"), dur:days(etd, eta) },
+  ].concat(transship(), [
+    { t:A?"Аеропорт прибуття":"Порт прибуття", i:"port", d:eta, f:etaF, p:to },
+  ], land, [
+    { t:"Кордон",             i:"border",  d:s(r,"На кордоні") || s(r,"Перетин кордону (факт)"), f:true, p:"" },
+    { t:"Митне оформлення",   i:"customs", d:"", f:true, p:"імпорт" },
+    { t:"Вантаж доставлено",  i:"box",
+      d:s(r,"Вивантаження у отримувача (факт)") || s(r,"Планова до клієнта (факт)"),
+      f:true, p:fin },
+  ]);
 }
 
 function routeHtml(r){
-  const st = steps(r);
-  // етап пройдено, якщо є ФАКТИЧНА дата в минулому; «Доставлено» закриває все
-  const delivered = done(r);
-  let cur = -1;
-  const state = st.map((x,idx)=>{
-    const ok = delivered || (x.f && past(x.d2 || x.d));
-    return ok ? "done" : "todo";
+  const st = steps(r), P = pal(r), delivered = done(r);
+  /* Пройденим вважаємо крок із ФАКТИЧНОЮ датою в минулому. Кроки без дати
+     (митне оформлення) пройдені, якщо пройдено наступний крок із датою. */
+  const okAt = i => {
+    const x = st[i];
+    if (delivered) return true;
+    return !!(x.f && past(x.d2 || x.d));
+  };
+  const state = st.map((x, i) => {
+    if (okAt(i)) return "done";
+    if (!x.d){                                   // крок без власної дати
+      for (let j = i + 1; j < st.length; j++) if (st[j].d) return okAt(j) ? "done" : "todo";
+    }
+    return "todo";
   });
-  if (delivered) { state[state.length-1] = "done"; }
-  else { cur = state.indexOf("todo"); if (cur >= 0) state[cur] = "now"; }
-  // «Букінг» завжди пройдено, «Доставлено» — лише за статусом
-  if (state[0] !== "done") state[0] = "done";
-  return `<div class="route"><div class="steps">` + st.map((x,i)=>`
-    <div class="step ${state[i]}">
-      <div class="rail"></div>
+  let cur = state.indexOf("todo");
+  if (!delivered && cur >= 0) state[cur] = "now";
+  if (state[0] === "todo") state[0] = st[0].d ? state[0] : "done";
+
+  const cells = [];
+  st.forEach((x, i) => {
+    if (i) cells.push(`<div class="cn ${state[i-1]==="done"?"on":""}"></div>`);
+    const border = x.i === "border";
+    cells.push(`<div class="nd ${state[i]} ${border?"brd":""}">
       <div class="dot">${svg(x.i)}</div>
       <div class="ttl">${esc(x.t)}</div>
-      ${x.d ? `<div class="dt">${fmt(x.d)}${x.d2?" → "+fmt(x.d2):""}</div>${
-                 x.f&&past(x.d2||x.d)?"":'<div class="plan">план</div>'}`
-            : `<div class="dt dim">—</div>`}
       ${x.p ? `<div class="place">${esc(x.p)}</div>` : ""}
-    </div>`).join("") + `</div></div>`;
+      ${x.dur != null ? `<div class="dur">${x.dur} ${plural(x.dur,"день","дні","днів")}</div>` : ""}
+      ${x.d ? `<div class="dt">${fmt(x.d)}${x.d2?" → "+fmt(x.d2):""}</div>${
+                x.f && past(x.d2||x.d) ? "" : '<div class="plan">план</div>'}`
+            : (x.dur == null ? `<div class="dt dim">—</div>` : "")}
+    </div>`);
+  });
+
+  return `<div class="route" style="--mc:${P.c};--mbg:${P.bg}">
+    <div class="chain">${cells.join("")}</div>
+    <div class="lgnd">
+      <span><i class="ln-solid"></i>виконано</span>
+      <span><i class="ln-dot"></i>у процесі</span>
+      <span><i class="ln-pale"></i>заплановано</span>
+      <span class="sp"></span>
+      ${Object.keys(MODE_PAL).map(k=>`<span><i class="sw" style="background:${MODE_PAL[k].c}"></i>${MODE_PAL[k].nm}</span>`).join("")}
+    </div>
+  </div>`;
 }
 
 /* ── картка ───────────────────────────────────────────── */
