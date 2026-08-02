@@ -1,7 +1,7 @@
 {
-  "stdout": "угода 224: статус=В морі\n    ETA                            2026-08-02\n    ETA порт (факт)                —\n    Вивантаження в порту (факт)    2026-07-24\n    Порт перевалки                 Wilhelmshaven Eurogate CT\n    Перевалка (прибуття)           2026-07-24\n    Перевалка (відправлення)       2026-07-27\n    Вивантаження у отримувача (факт) —\nугода 253: статус=В морі\n    ETA                            2026-09-19\n    ETA порт (факт)                —\n    Вивантаження в порту (факт)    2026-07-31\n    Порт перевалки                 —\n    Перевалка (прибуття)           —\n    Перевалка (відправлення)       —\n    Вивантаження у отримувача (факт) —\n",
+  "stdout": "GET   /api/v1/users                                  → 401  {\"error\":\"ERR_API_TOKEN_NOT_ALLOWED\",\"message\":\"This request is not allowed with API token\"}\nGET   /api/v2/meta/users                             → 404  {\"msg\":\"Cannot GET /api/v2/meta/users\"}\nGET   /api/v1/auth/user/me                           → 200  {\"is_api_token\":true,\"id\":\"usqjz5koe7s5ay5d\",\"email\":\"irynakarmazina@gmail.com\",\"display_name\":\"Ірина Кармазіна\",\"roles\":{\"org-level-creator\":true,\"su\nPOST  /api/v1/users/00000000/generate-reset-url      → 401  {\"error\":\"ERR_API_TOKEN_NOT_ALLOWED\",\"message\":\"This request is not allowed with API token\"}\nGET   /api/v1/db/meta/projects                       → 200  {\"list\":[{\"is_meta\":1,\"id\":\"pbhr1qkpvx09z8m\",\"title\":\"Юнітекс OS\",\"prefix\":\"nc_bpfs__\",\"status\":null,\"description\":null,\"meta\":{\"iconColor\":\"#36BFFF\"}\n",
   "stderr": "",
   "returncode": 0,
-  "id": "p224",
-  "ts": "2026-08-01T16:41:03Z"
+  "id": "nc-users-api",
+  "ts": "2026-08-02T04:33:54Z"
 }
