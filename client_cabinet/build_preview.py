@@ -333,6 +333,83 @@ tr.exp>td{padding:0;background:var(--surface-2)}
 .up{border:1.5px dashed var(--line);border-radius:12px;padding:16px;text-align:center;
   color:var(--muted);font-size:13px;margin-top:14px}
 .foot{margin-top:28px;color:var(--muted);font-size:12.5px;text-align:center}
+
+/* ===== ТЕЛЕФОН (≤720 px) ==========================================
+   На телефоні сторінка їхала вбік: таблиця з 10 колонок ширша за екран,
+   плитки в 4 колонки не влазили (скріни користувачки 02.08.2026).
+   Рішення: плитки 2×2, пошук і перемикач на всю ширину, а таблиця
+   перетворюється на список карток — кожна угода окремою карткою з
+   підписами полів. Горизонтальна прокрутка лишається ТІЛЬКИ всередині
+   схеми руху, де вона доречна. */
+@media (max-width:720px){
+  html,body{overflow-x:hidden}
+  header{padding:10px 14px;gap:10px}
+  header img{height:38px}
+  .who b{font-size:13.5px} .who span{font-size:11px}
+  main{padding:14px 12px 48px}
+  .proto{font-size:12px;padding:9px 12px;margin-bottom:14px}
+
+  .tiles{grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+  .tile{padding:12px;gap:10px}
+  .ic{width:34px;height:34px;border-radius:9px}
+  .ic svg,.ic i.msk{width:18px;height:18px}
+  .tile .n{font-size:21px}
+  .tile .l{font-size:11.5px}
+
+  .bar{flex-direction:column;align-items:stretch;gap:8px}
+  .bar input{min-width:0;width:100%}
+  .seg{width:100%;justify-content:space-between}
+  .seg button{flex:1;padding:8px 6px;font-size:13px}
+
+  /* таблиця → список карток */
+  .tw{border:0;background:transparent;box-shadow:none;overflow:visible}
+  table,thead,tbody,tr,td{display:block;width:auto}
+  thead{display:none}
+  tbody tr.deal{background:var(--surface);border:1px solid var(--line);border-radius:14px;
+    box-shadow:var(--shadow);padding:12px 14px;margin-bottom:10px}
+  tbody tr.deal:nth-child(odd) td{background:transparent}
+  tr.deal td{border:0;padding:3px 0;font-size:14px}
+  /* номер угоди і напрямок — в один рядок-заголовок картки */
+  tr.deal td:first-child{display:inline-block;font-size:18px;font-weight:700}
+  tr.deal td:nth-child(2){display:inline-block;margin-left:8px;vertical-align:3px}
+  /* Підпис зліва «плаває», значення тече праворуч і за потреби переноситься
+     під нього. Через flex довгий номер контейнера вилазив за край картки. */
+  tr.deal td[data-l]{display:block;text-align:right;overflow:hidden}
+  tr.deal td[data-l]::before{content:attr(data-l);float:left;color:var(--muted);
+    font-size:12px;font-weight:400;margin-right:12px}
+  th.cmt,td.cmt{width:auto;max-width:none}
+  tr.exp>td{padding:0;border:0}
+
+  /* розгорнута картка */
+  .panel{padding:14px 12px 16px}
+  .phead{padding-right:0}
+  .pttl b{font-size:17px}
+  .peta{position:static;margin-top:12px;min-width:0;text-align:left;padding:10px 14px}
+  .cols{grid-template-columns:1fr;gap:12px}
+  /* Схема руху на телефоні — ВЕРТИКАЛЬНА: кружок зліва, підписи справа.
+     Горизонтальна стрічка на 390 px показувала лише два кроки. */
+  .route{padding:16px 14px;overflow-x:visible}
+  .chain{display:block;min-width:0}
+  .nd{display:flex;align-items:flex-start;gap:14px;text-align:left;flex:none;width:auto}
+  .nd .dot{width:56px;height:56px;margin:0;flex:none}
+  .nd.now .dot{width:60px;height:60px;margin:0}
+  .nd .dot svg,.nd .dot i.msk,.nd .dot.big svg{width:34px!important;height:34px!important}
+  .nd.now .dot svg,.nd.now .dot.big svg{width:37px!important;height:37px!important}
+  .ndtxt{flex:1;min-width:0;padding-top:4px}
+  .nd .ttl{margin-top:0;font-size:15px}
+  .nd.now .ttl{font-size:15.5px}
+  .nd .place,.nd .dt,.nd .plan,.nd .dur{margin-top:3px;font-size:14px}
+  /* min-width з десктопної версії робив із вертикальної лінії синій прямокутник */
+  .cn{width:2px;min-width:0;height:16px;margin:0 0 0 27px;flex:none;border-radius:2px}
+  .brd{display:flex;align-items:center;gap:14px;flex:none;width:auto;padding:4px 0}
+  .brd .bln{height:0;width:56px;border-left:0;border-top:1.5px dashed var(--mc);margin:0;flex:none}
+  .brd .blb{margin-top:0}
+  .brd .bld{margin-top:0;margin-left:8px}
+  .card{padding:14px}
+  .kv{grid-template-columns:auto 1fr;gap:7px 12px;font-size:13.5px}
+  .foot{font-size:11.5px}
+}
+
 </style>
 
 <header>
@@ -711,6 +788,7 @@ function routeHtml(r){
     if (i) cells.push(`<div class="cn ${i <= cur || delivered ? "on" : ""}"></div>`);
     cells.push(`<div class="nd ${state[i]}">
       <div class="dot ${x.i === "ship" || x.i === "plane" ? "big" : ""}">${svg(x.i)}</div>
+      <div class="ndtxt">
       <div class="ttl">${x.t}</div>
       ${x.p ? `<div class="place">${esc(x.p)}</div>` : ""}
       ${x.dur != null ? `<div class="dur">${x.dur} ${plural(x.dur,"день","дні","днів")}</div>` : ""}
@@ -718,6 +796,7 @@ function routeHtml(r){
                  ? `<div class="dt">${fmtY(x.d)}${x.d2 ? " → " + fmtY(x.d2) : ""}</div>`
                  : `<div class="plan">план ${fmtDM(x.d)}${x.d2 ? " → " + fmtDM(x.d2) : ""}</div>`)
             : ""}
+      </div>
     </div>`);
   });
 
@@ -847,15 +926,15 @@ function render(){
       <td class="mono num">${esc(s(r,"Угода"))}</td>
       <td><span class="chip ${s(r,"Напрямок")==="Експорт"?"exp":""}">${
           s(r,"Напрямок")==="Імпорт"?"ІМП":(s(r,"Напрямок")==="Експорт"?"ЕКС":"ТРН")}</span></td>
-      <td>${esc(routeArrows(s(r,"Маршрут"))||"—")}</td>
-      <td class="mono">${bl?`<b>${esc(bl)}</b>`:'<span class="dim">—</span>'}${
+      <td data-l="Маршрут">${esc(routeArrows(s(r,"Маршрут"))||"—")}</td>
+      <td class="mono" data-l="Коносамент / контейнер">${bl?`<b>${esc(bl)}</b>`:'<span class="dim">—</span>'}${
           conts.map(c=>`<br><span class="dim">${esc(c)}</span>`).join("")}</td>
-      <td>${esc(s(r,"Судно")||"—")}</td>
-      <td class="mono">${etd?`<span class="d">${fmt(etd)}</span>`:'<span class="dim">—</span>'}</td>
-      <td class="mono">${s(r,"ETA")?`<span class="d">${fmt(s(r,"ETA"))}</span>`:'<span class="dim">—</span>'}</td>
-      <td><span class="pill ${stCls(r)}">${esc(s(r,"Статус")||"—")}</span></td>
-      <td>${nd?`<span class="docn">${svg("doc")}${nd}</span>`:'<span class="dim">—</span>'}</td>
-      <td class="cmt">${s(r,"Коментар клієнту")
+      <td data-l="Судно">${esc(s(r,"Судно")||"—")}</td>
+      <td class="mono" data-l="Відправлення">${etd?`<span class="d">${fmt(etd)}</span>`:'<span class="dim">—</span>'}</td>
+      <td class="mono" data-l="Прибуття">${s(r,"ETA")?`<span class="d">${fmt(s(r,"ETA"))}</span>`:'<span class="dim">—</span>'}</td>
+      <td data-l="Статус"><span class="pill ${stCls(r)}">${esc(s(r,"Статус")||"—")}</span></td>
+      <td data-l="Документи">${nd?`<span class="docn">${svg("doc")}${nd}</span>`:'<span class="dim">—</span>'}</td>
+      <td class="cmt" data-l="Коментар">${s(r,"Коментар клієнту")
           ? esc(s(r,"Коментар клієнту")) : '<span class="dim">—</span>'}</td>
     </tr>`;
   }).join("") : `<tr><td colspan="10" class="empty" style="padding:20px 12px">Нічого не знайдено.</td></tr>`;
