@@ -195,17 +195,20 @@ tr.exp>td{padding:0;background:var(--surface-2)}
   padding:26px 20px 18px;overflow-x:auto}
 .chain{display:flex;align-items:flex-start;min-width:980px}
 .nd{flex:0 0 112px;text-align:center;position:relative}
-.cn{flex:1 1 auto;height:2px;background:var(--line);margin-top:31px;border-radius:2px;min-width:16px}
-.cn.on{background:var(--mc)}
+.cn{flex:1 1 auto;height:2px;background:var(--mc);opacity:.22;margin-top:31px;border-radius:2px;min-width:16px}
+.cn.on{opacity:1}
+/* Усі кола — у відтінку лінії. Майбутні кроки НЕ сірі, лише блідіші:
+   так само, як у макеті користувачки (02.08.2026). */
 .nd .dot{width:62px;height:62px;margin:0 auto;border-radius:50%;
   background:var(--mbg);border:none;color:var(--mc);
   display:flex;align-items:center;justify-content:center}
 .nd .dot svg{width:28px;height:28px;stroke-width:1.5}
 .nd.now  .dot{background:var(--mc);color:#fff}
-.nd.todo .dot{background:var(--surface-2);color:var(--muted)}
+.nd.todo .dot{opacity:.55}
 .nd .ttl{font-size:12.5px;font-weight:700;margin-top:10px;line-height:1.25;color:var(--ink)}
 .nd.now .ttl{color:var(--mc)}
 .nd.todo .ttl{color:var(--ink-2)}
+.nd.todo .place,.nd.todo .dt{opacity:.8}
 .nd .place{font-size:11.5px;color:var(--ink-2);margin-top:3px;line-height:1.3}
 .nd .dur{font-size:13px;font-weight:700;color:var(--mc);margin-top:4px}
 .nd .dt{font-size:13px;font-weight:700;margin-top:4px;font-variant-numeric:tabular-nums}
@@ -355,21 +358,21 @@ function steps(r){
     const tp = s(r,"Порт перевалки");
     if (!tp) return [];
     const ta = s(r,"Перевалка (прибуття)"), td = s(r,"Перевалка (відправлення)");
-    return [{ t:"Перевалка", i:"swap", d:ta, d2:td, f:true, p:tp }];
+    return [{ k:"tship", t:"Перевалка", i:"swap", d:ta, d2:td, f:true, p:tp }];
   };
 
   if (!imp){
     /* ЕКСПОРТ */
     return [
-      { t:"Стафіровка",          i:"warehouse", d:s(r,"Stuffing"), f:true, p:from },
-      { t:"Митне оформлення",    i:"customs",   d:"",              f:true, p:"експорт" },
-      { t:"Кордон",              i:"border",    d:s(r,"На кордоні") || s(r,"Перетин кордону (факт)"), f:true, p:"" },
-      { t:A?"Аеропорт відправлення":"Порт відправлення", i:"crane",
+      { k:"stuff", t:"Стафіровка",          i:"warehouse", d:s(r,"Stuffing"), f:true, p:from },
+      { k:"cust1", t:"Митне оформлення",    i:"customs",   d:"",              f:true, p:"експорт" },
+      { k:"border", t:"Кордон",              i:"border",    d:s(r,"На кордоні") || s(r,"Перетин кордону (факт)"), f:true, p:"" },
+      { k:"pol", t:A?"Аеропорт відправлення":"Порт відправлення", i:"crane",
         d:s(r,"Здача в порт (факт)") || s(r,"Гейт ін"), f:true, p:from },
-      { t:moveT, i:moveI, d:etd, f:etdF, p:s(r,"Судно"), dur:days(etd, eta) },
+      { k:"move", t:moveT, i:moveI, d:etd, f:etdF, p:s(r,"Судно"), dur:days(etd, eta) },
     ].concat(transship(), [
-      { t:"Митне оформлення",    i:"customs",   d:"",  f:true, p:"імпорт" },
-      { t:"Вантаж доставлено",   i:"box",
+      { k:"cust2", t:"Митне оформлення",    i:"customs",   d:"",  f:true, p:"імпорт" },
+      { k:"done", t:"Вантаж доставлено",   i:"box",
         d:s(r,"Вивантаження у отримувача (факт)") || s(r,"Планова до клієнта (факт)") || eta,
         f:!!s(r,"Вивантаження у отримувача (факт)"), p:fin || to },
     ]);
@@ -385,23 +388,23 @@ function steps(r){
   const st = s(r,"Статус");
   const byTrain = /потяг/i.test(st) ? true : (/на авто/i.test(st) ? false : R);
   const land = [];
-  land.push({ t: byTrain ? "Завантажений на потяг" : "Завантажений на авто",
+  land.push({ k:"land", t: byTrain ? "Завантажений на потяг" : "Завантажений на авто",
               i: byTrain ? "train" : "truck", d: car, f: carF, p:"" });
   if (R || s(r,"ETA сухий порт"))
-    land.push({ t:"Сухий порт", i:"crane", d:s(r,"ETA сухий порт"),
+    land.push({ k:"dry", t:"Сухий порт", i:"crane", d:s(r,"ETA сухий порт"),
                 f:false, p:s(r,"Сухий порт") });
   return [
-    { t:"Стафіровка",         i:"warehouse", d:s(r,"Stuffing"), f:true, p:from },
-    { t:"Митне оформлення",   i:"customs",   d:"",              f:true, p:"експорт" },
-    { t:A?"Аеропорт відправлення":"Порт відправлення", i:"crane",
+    { k:"stuff", t:"Стафіровка",         i:"warehouse", d:s(r,"Stuffing"), f:true, p:from },
+    { k:"cust1", t:"Митне оформлення",   i:"customs",   d:"",              f:true, p:"експорт" },
+    { k:"pol", t:A?"Аеропорт відправлення":"Порт відправлення", i:"crane",
       d:s(r,"Здача в порт (факт)") || s(r,"Гейт ін"), f:true, p:from },
-    { t:moveT, i:moveI, d:etd, f:etdF, p:s(r,"Судно"), dur:days(etd, eta) },
+    { k:"move", t:moveT, i:moveI, d:etd, f:etdF, p:s(r,"Судно"), dur:days(etd, eta) },
   ].concat(transship(), [
-    { t:A?"Аеропорт прибуття":"Порт прибуття", i:"port", d:eta, f:etaF, p:to },
+    { k:"pod", t:A?"Аеропорт прибуття":"Порт прибуття", i:"port", d:eta, f:etaF, p:to },
   ], land, [
-    { t:"Кордон",             i:"border",  d:s(r,"На кордоні") || s(r,"Перетин кордону (факт)"), f:true, p:"" },
-    { t:"Митне оформлення",   i:"customs", d:"", f:true, p:"імпорт" },
-    { t:"Вантаж доставлено",  i:"box",
+    { k:"border", t:"Кордон",             i:"border",  d:s(r,"На кордоні") || s(r,"Перетин кордону (факт)"), f:true, p:"" },
+    { k:"cust2", t:"Митне оформлення",   i:"customs", d:"", f:true, p:"імпорт" },
+    { k:"done", t:"Вантаж доставлено",  i:"box",
       d:s(r,"Вивантаження у отримувача (факт)") || s(r,"Планова до клієнта (факт)"),
       f:true, p:fin },
   ]);
@@ -409,36 +412,36 @@ function steps(r){
 
 function routeHtml(r){
   const st = steps(r), P = pal(r), delivered = done(r);
-  /* Пройденим вважаємо крок із ФАКТИЧНОЮ датою в минулому. Кроки без дати
-     (митне оформлення) пройдені, якщо пройдено наступний крок із датою. */
-  const okAt = i => {
-    const x = st[i];
-    if (delivered) return true;
-    return !!(x.f && past(x.d2 || x.d));
+  /* ПОТОЧНИЙ КРОК визначаємо за СТАТУСОМ угоди, а не «перший без дати».
+     Причина (угода 256, 02.08.2026): дат майже немає, і підсвічувалась
+     «Стафіровка», хоча вантаж уже в морі. Статус — найнадійніше джерело. */
+  const ST_STEP = {
+    "Букінг":"stuff", "Виконується":"stuff", "Стафіровка":"stuff",
+    "В порту відправлення":"pol", "Завантажений на судно":"move", "В морі":"move",
+    "Вивантажений в порту прибуття":"pod",
+    "Завантажений на авто":"land", "Завантажений на потяг":"land",
+    "Вивантажений в сухому порту":"dry", "На кордоні":"border",
+    "Вантаж доставлено":"done",
   };
-  const state = st.map((x, i) => {
-    if (okAt(i)) return "done";
-    if (!x.d){                                   // крок без власної дати
-      for (let j = i + 1; j < st.length; j++) if (st[j].d) return okAt(j) ? "done" : "todo";
-    }
-    return "todo";
-  });
-  let cur = state.indexOf("todo");
-  if (!delivered && cur >= 0) state[cur] = "now";
-  if (state[0] === "todo") state[0] = st[0].d ? state[0] : "done";
+  let cur = st.findIndex(x => x.k === ST_STEP[s(r,"Статус")]);
+  if (cur < 0){                               // статусу немає в мапі — за датами
+    cur = st.findIndex(x => !(x.f && past(x.d2 || x.d)));
+    if (cur < 0) cur = st.length - 1;
+  }
+  if (delivered) cur = st.length - 1;
+
+  const state = st.map((x, i) =>
+    delivered ? "done" : (i < cur ? "done" : (i === cur ? "now" : "todo")));
 
   const cells = [];
   st.forEach((x, i) => {
-    /* «КОРДОН» — не вузол маршруту, а роздільник між ділянками: тонка
-       пунктирна лінія з підписом, як у макеті користувачки (02.08.2026).
-       Кола з іконкою в нього немає. */
     if (x.i === "border"){
       cells.push(`<div class="brd"><div class="bln"></div>
         <div class="blb">КОРДОН</div>
         ${x.d ? `<div class="bld">${fmt(x.d)}</div>` : ""}</div>`);
       return;
     }
-    if (i) cells.push(`<div class="cn ${state[i-1]==="done"?"on":""}"></div>`);
+    if (i) cells.push(`<div class="cn ${i <= cur || delivered ? "on" : ""}"></div>`);
     cells.push(`<div class="nd ${state[i]}">
       <div class="dot">${svg(x.i)}</div>
       <div class="ttl">${esc(x.t)}</div>
