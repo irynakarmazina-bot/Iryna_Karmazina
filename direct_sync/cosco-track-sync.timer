@@ -1,0 +1,9 @@
+[Unit]
+Description=Щоденний трекінг COSCO (07:25 за Києвом, після Maersk)
+
+[Timer]
+OnCalendar=*-*-* 07:25:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target

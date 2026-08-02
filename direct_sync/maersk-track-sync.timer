@@ -1,0 +1,9 @@
+[Unit]
+Description=Щоденний трекінг Maersk (07:20 за Києвом, після синхронізації з Експедитором)
+
+[Timer]
+OnCalendar=*-*-* 07:20:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target

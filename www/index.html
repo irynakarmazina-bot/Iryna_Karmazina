@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Юнітекс OS</title>
+<title>UNITEX ERP</title>
 <style>
   :root{
     color-scheme: light;
@@ -15,7 +15,8 @@
     --side-bg:#ffffff; --side-ink:var(--ink); --side-muted:var(--ink-2);
     --side-active-bg:var(--accent-soft); --side-active-ink:var(--accent-ink); --side-line:var(--line-soft);
     --tile-bg:var(--surface); --tile-warn-bg:var(--surface); --tile-warn-ink:#d03b3b;
-    --th-bg:#2a78d6; --th-ink:#ffffff;
+    --th-bg:transparent; --th-ink:var(--muted);
+    --pos:#1a8f5c; --neg:#d1453b;
     --chart-surface:#fcfcfb;
     --s1:#2a78d6; --s2:#eb6834;
     --good:#0ca30c; --good-text:#006300; --warn:#fab219; --warn-text:#854F0B;
@@ -47,6 +48,7 @@
     --paper:#0e1319; --surface:#171e26; --surface-2:#1c242e;
     --ink:#f2f5f7; --ink-2:#aeb9c2; --muted:#7d8893;
     --line:#2a333d; --line-soft:#222b34;
+    --pos:#4ade80; --neg:#f87171;
     --accent:#4fa3bd; --accent-soft:#173341; --accent-ink:#8ecadd;
     --chart-surface:#1a1a19;
     --s1:#3987e5; --s2:#008300;
@@ -112,6 +114,9 @@
     font-size:15px; line-height:1.5; min-height:100vh;
   }
   button{font:inherit}
+  /* Усі form-контроли беруть шрифт сторінки. Без явного font-family браузер
+     підставляє свій системний — саме це було видно у випадайках фільтрів. */
+  input,select,textarea,button,option{font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
   :focus-visible{outline:2px solid var(--accent); outline-offset:2px; border-radius:4px}
   @media (prefers-reduced-motion: reduce){ *{transition:none!important;animation:none!important} }
   .article h2{font-size:15px;color:var(--accent-ink);margin:18px 0 6px}
@@ -133,6 +138,8 @@
     border:1px solid var(--line); border-radius:14px; box-shadow:var(--shadow); padding:32px 28px}
   .brand{display:flex; align-items:center; gap:12px; margin-bottom:6px}
   .brand-logo{height:34px;width:auto;display:block;background:#fff;padding:4px 8px;border-radius:8px}
+  .brand-login{justify-content:flex-start;margin:2px 0}
+  .brand-login .brand-logo{height:74px;padding:0}
   .brand-mark{width:40px;height:40px;border-radius:9px;background:var(--accent);
     color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px}
   .brand h1{font-size:20px;margin:0;letter-spacing:-.2px}
@@ -157,11 +164,6 @@
   .btn:hover{filter:brightness(1.08)}
   .btn.full{width:100%;margin-top:16px}
   .btn.ghost{background:transparent;color:var(--ink-2);border:1px solid var(--line);font-weight:500}
-  /* кнопки сторінки у верхній панелі (напр. звіти у «Фінансах») */
-  #page-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-  #page-actions .btn{padding:7px 13px;font-size:13px}
-  #page-actions .btn.on{box-shadow:inset 0 0 0 2px rgba(255,255,255,.55)}
-  #page-actions .btn[disabled]{opacity:.65;cursor:default}
   .btn.ghost:hover{color:var(--ink);border-color:var(--muted);filter:none}
   .login-err{display:none;margin-top:12px;background:var(--crit-bg);color:var(--crit-text);
     border-radius:8px;padding:9px 12px;font-size:13.5px}
@@ -191,14 +193,32 @@
     color:var(--side-muted); cursor:pointer; font-size:14px; font-weight:500}
   .nav-item:hover{background:var(--side-active-bg); color:var(--side-ink)}
   .nav-item.active{background:var(--side-active-bg); color:var(--side-active-ink); font-weight:600}
-  .nav-item .ico{width:20px;text-align:center}
+  .nav-item .ico{width:28px;height:28px;border-radius:8px;display:inline-flex;align-items:center;
+    justify-content:center;flex:none;background:var(--nav-ico-bg,#eef2f8)}
+  .nav-item .ico svg{width:17px;height:17px;fill:none;stroke:var(--nav-ico,#475467);stroke-width:1.9;
+    stroke-linecap:round;stroke-linejoin:round}
+  .nav-item.active .ico{box-shadow:0 0 0 1.5px rgba(37,99,235,.25)}
+  .nav-ico-blue{--nav-ico-bg:#e8f0fe;--nav-ico:#2563eb}
+  .nav-ico-green{--nav-ico-bg:#e6f6ec;--nav-ico:#12924f}
+  .nav-ico-violet{--nav-ico-bg:#f0ebfe;--nav-ico:#7c3aed}
+  .nav-ico-amber{--nav-ico-bg:#fff3de;--nav-ico:#b45309}
+  .nav-ico-slate{--nav-ico-bg:#eceff4;--nav-ico:#475467}
+  .nav-ico-red{--nav-ico-bg:#fdeaea;--nav-ico:#c22b2b}
+  :root[data-theme="dark"] .nav-ico-blue{--nav-ico-bg:#16233f} 
+  :root[data-theme="dark"] .nav-ico-green{--nav-ico-bg:#12281d}
+  :root[data-theme="dark"] .nav-ico-violet{--nav-ico-bg:#221a3a}
+  :root[data-theme="dark"] .nav-ico-amber{--nav-ico-bg:#2e2410}
+  :root[data-theme="dark"] .nav-ico-slate{--nav-ico-bg:#20262f}
+  :root[data-theme="dark"] .nav-ico-red{--nav-ico-bg:#2c1717}
   .sidebar .spacer{flex:1}
   .sidebar .foot{font-size:11.5px;color:var(--side-muted);padding:8px 10px;border-top:1px solid var(--side-line)}
 
   .main{flex:1; display:flex; flex-direction:column; min-width:0}
   .topbar{display:flex; align-items:center; gap:14px;
     padding:12px 24px; background:var(--surface); border-bottom:1px solid var(--line)}
-  .topbar h2{font-size:17px;margin:0;flex:1;letter-spacing:-.2px}
+  .topbar h2{font-size:17px;margin:0;letter-spacing:-.2px}
+  #page-actions{display:flex;align-items:center;gap:10px;flex:1}
+  #page-actions .btn{padding:7px 14px;font-size:13px}
   .topbar .pal-mini{display:flex;gap:6px;align-items:center}
   .topbar .pal-mini .pal-dot{width:20px;height:20px}
   .user-chip{display:flex;align-items:center;gap:10px}
@@ -207,23 +227,39 @@
   .user-chip .who b{display:block;font-size:13.5px;line-height:1.2}
   .role-badge{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;
     color:var(--accent-ink);background:var(--accent-soft);border-radius:20px;padding:1px 8px}
-  .content{padding:24px; max-width:1820px; width:100%; margin:0 auto; display:flex;flex-direction:column;gap:20px}
+  .content{padding:18px; max-width:1820px; width:100%; margin:0 auto; display:flex;flex-direction:column;gap:14px}
 
-  .card{background:var(--surface);border:1px solid var(--line);border-radius:16px;
-    box-shadow:0 1px 2px rgba(16,24,40,.04),0 4px 12px rgba(16,24,40,.05); padding:18px 20px}
-  .card h3{margin:0 0 4px;font-size:16px;font-weight:650;color:var(--ink);letter-spacing:-.2px}
-  .card .sub{color:var(--muted);font-size:12.5px;margin:0 0 14px}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:12px;
+    box-shadow:none; padding:12px 16px}
+  .card h3{margin:0 0 4px;font-size:14px;font-weight:700;color:var(--ink);letter-spacing:0}
+  .card h3.h3ico{display:flex;align-items:center;gap:9px}
+  .card h3.h3ico .ic{width:26px;height:26px;border-radius:7px}
+  .card h3.h3ico .ic svg{width:14px;height:14px}
+  .card .sub{color:var(--muted);font-size:11px;margin:0 0 10px}
 
-  .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:16px}
-  .tile{background:var(--tile-bg);border:1px solid var(--line);border-radius:16px;padding:16px 18px;
-    box-shadow:0 1px 2px rgba(16,24,40,.04),0 4px 12px rgba(16,24,40,.05);transition:box-shadow .15s,transform .15s}
-  .tile:hover{box-shadow:0 2px 4px rgba(16,24,40,.06),0 10px 24px rgba(16,24,40,.08);transform:translateY(-1px)}
-  .tile.warn .val{color:var(--tile-warn-ink)}
-  .tile .lbl{font-size:12.5px;color:var(--ink-2);display:flex;align-items:center;gap:9px;line-height:1.3}
-  .tile .val{font-size:29px;font-weight:700;letter-spacing:-.6px;margin-top:11px}
-  .tile .delta{font-size:12.5px;margin-top:3px;color:var(--muted)}
-  .ic{width:32px;height:32px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;flex:none}
-  .ic svg{width:17px;height:17px;stroke-width:1.9;fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round}
+  .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}
+  .tile.clickable{cursor:pointer}
+  .tile.clickable:hover{box-shadow:0 2px 10px rgba(16,24,40,.08);border-color:#d5dae4}
+  .tile.clickable .delta::after{content:" ›";font-weight:700}
+  .quickchip{display:inline-flex;align-items:center;gap:8px;background:var(--accent-bg,#eef4ff);color:var(--accent);
+    border:1px solid var(--line);border-radius:999px;padding:5px 12px;font-size:13px;font-weight:600}
+  .quickchip button{border:0;background:transparent;color:inherit;cursor:pointer;font-size:15px;line-height:1;padding:0}
+  /* плитка — той самий вигляд, що картки у фінансовому звіті:
+     квадратна іконка ліворуч, праворуч стовпчик «підпис / число / уточнення» */
+  /* до перебудови (enhanceTiles) плитка — звичайний блок, після — рядок «іконка + текст».
+     Без цього між першим малюванням і перебудовою підпис/число з'їжджають в один рядок. */
+  .tile{background:var(--tile-bg);border:1px solid var(--line);border-radius:12px;padding:12px 14px;
+    display:block;box-shadow:none;transition:box-shadow .15s,border-color .15s}
+  .tile.tready{display:flex;align-items:flex-start;gap:10px}
+  .tile .tbody{flex:1;min-width:0}
+  .tile>.ic{width:38px;height:38px;border-radius:10px}
+  .tile>.ic svg{width:20px;height:20px}
+  .tile.warn .val{color:var(--neg)}
+  .tile .lbl{font-size:11px;color:var(--ink-2);line-height:1.3;min-height:28px;display:flex;align-items:flex-end}
+  .tile .val{font-size:22px;font-weight:700;letter-spacing:-.3px;margin-top:3px}
+  .tile .delta{font-size:10.5px;margin-top:3px;color:var(--muted)}
+  .ic{width:28px;height:28px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;flex:none}
+  .ic svg{width:15px;height:15px;stroke-width:1.9;fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round}
   .ic-blue{background:#eef4ff;color:#2563eb} .ic-green{background:#e9f9ef;color:#12924f}
   .ic-violet{background:#f2eeff;color:#7c3aed} .ic-amber{background:#fff5e6;color:#b45309}
   .ic-red{background:#fdeeee;color:#c22b2b}   .ic-slate{background:#eef1f6;color:#475467}
@@ -237,6 +273,29 @@
   /* рамка з дашбордом фінзвіту (findash.html / finperiod.html) */
   .finframe{width:100%;display:block;border:0;border-radius:16px;background:#f4f5f7;height:900px}
   .chartgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px}
+  /* дашборд: рівно 3 картки в ряд, компактні — щоб усі 6 влізли на один екран */
+  .dashgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:12px}
+  .dashgrid .card{padding:10px 12px}
+  .dashgrid .card h3{font-size:13px}
+  .dashgrid .card .sub{font-size:10.5px;margin-bottom:6px}
+  .dashgrid .chartbox{height:168px}
+  .dashgrid .scrollbox{max-height:168px;overflow-y:auto}
+  .dashgrid table td,.dashgrid table th{padding:3px 4px;font-size:11.5px}
+  @media (max-width:1180px){ .dashgrid{grid-template-columns:repeat(2,1fr)} }
+  @media (max-width:820px){ .dashgrid{grid-template-columns:1fr} }
+  /* блок «потребує уваги» */
+  .isslist{display:flex;flex-direction:column}
+  .issrow{display:flex;align-items:center;gap:10px;padding:7px 2px;border-bottom:1px solid var(--line)}
+  .issrow:last-child{border-bottom:0}
+  .issrow.clickable{cursor:pointer} .issrow.clickable:hover{background:var(--hover-bg,#f7f8fa)}
+  /* рядок статусу в картці «Статуси активних перевезень» — теж клікабельний */
+  .strow{display:flex;align-items:center;gap:10px;cursor:pointer;padding:3px 4px;border-radius:7px}
+  .strow:hover{background:var(--hover-bg,#f7f8fa)}
+  .issrow .dotw{width:8px;height:8px;border-radius:50%;flex:none}
+  .issrow .nm{flex:1;min-width:0;font-size:12.5px}
+  .issrow .nm small{display:block;color:var(--muted);font-size:10.5px}
+  .issrow .cnt{font-weight:700;font-size:14px;font-variant-numeric:tabular-nums}
+  .issrow .go{color:var(--muted);font-size:13px}
   .delta.up{color:var(--good-text)} .delta.down{color:var(--crit-text)}
   /* згортання таблиць-деталізацій під графіками */
   details.det{margin-top:12px}
@@ -260,9 +319,9 @@
   tr.subrow>td{background:var(--neutral-bg);padding:4px 10px}
 
   /* pills */
-  .pill{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;
-    border-radius:20px;padding:2px 9px;white-space:nowrap}
-  .pill::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor;flex-shrink:0}
+  .pill{display:inline-flex;align-items:center;gap:5px;font-size:10.5px;font-weight:600;
+    border-radius:9px;padding:1px 8px;white-space:nowrap}
+  .pill::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor;flex-shrink:0}
   .pill.t-neutral{background:var(--neutral-bg);color:var(--ink-2)}
   .pill.t-info{background:var(--info-bg);color:var(--info-text)}
   .pill.t-vio{background:var(--vio-bg);color:var(--vio-text)}
@@ -270,7 +329,7 @@
   .pill.t-good{background:var(--good-bg);color:var(--good-text)}
   .pill.t-crit{background:var(--crit-bg);color:var(--crit-text)}
   .pill.t-del{background:var(--del-bg);color:var(--del-text)}
-  .dirchip{font-size:11px;font-weight:700;letter-spacing:.04em;border-radius:5px;padding:1px 6px}
+  .dirchip{font-size:11px;font-weight:700;letter-spacing:.02em;border-radius:5px;padding:1px 5px;white-space:nowrap}
   .dirchip.imp{background:var(--info-bg);color:var(--info-text)}
   .dirchip.exp{background:var(--vio-bg);color:var(--vio-text)}
   .flag{display:inline-block;font-size:11.5px;font-weight:600;border-radius:5px;padding:1px 6px;margin:1px 2px 1px 0;white-space:nowrap}
@@ -280,24 +339,163 @@
 
   /* table */
   .tablewrap{overflow-x:auto}
-  .dispscroll{max-height:calc(100vh - 300px);min-height:340px;overflow:auto}
+  /* Висоту задає JS (fitDispScroll) від реального положення таблиці — інакше
+     при двох рядках фільтрів низ таблиці йде за екран разом із горизонтальною
+     смугою прокрутки (зауваження користувачки 01.08.2026). */
+  .dispscroll{max-height:calc(100vh - 218px);min-height:300px;overflow:auto}
+  /* колонки BL/Контейнер і Судно — щільніше одна до одної */
+  td.c-bl,th.c-bl{width:1%;white-space:nowrap;padding-right:6px}
+  td.c-ves,th.c-ves{padding-left:6px;max-width:150px}
+  /* довгий коментар не роздуває рядок: один рядок з трьома точками,
+     повний текст — при наведенні і в картці угоди */
+  .dispscroll table.fixw{table-layout:fixed;width:100%}
+  .dispscroll table.fixw td,.dispscroll table.fixw th{overflow:hidden;text-overflow:ellipsis}
+  /* Вужчі бічні відступи: місце йде на самі дані, щоб рік у датах, статус
+     і вид перевезення були видні повністю (зауваження користувачки 01.08.2026). */
+  .dispscroll table.fixw td,.dispscroll table.fixw th{padding-left:8px;padding-right:8px}
+  /* Усе, що можна перенести на другий рядок — переносимо, замість обрізати
+     трьома крапками (вимога користувачки 01.08.2026). */
+  .dispscroll thead th{white-space:normal;line-height:1.2;vertical-align:bottom}
+  .dispscroll td.c-ves{white-space:normal;line-height:1.3}
+  /* Довгі значення переносяться, а не обрізаються */
+  td.c-md{white-space:normal;line-height:1.3}
+  .dispscroll td .pill{white-space:normal;text-align:left;line-height:1.25}
+  td.c-com{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  /* Маршрут — кожна ланка окремим рядком, щоб колонка була вузька, а назви
+     портів читались повністю (прохання користувачки 01.08.2026). */
+  td.c-rt{white-space:normal;line-height:1.3}
+  td.c-rt .rtar{color:var(--muted);margin-right:3px}
+  /* Кінцева точка доставки — окремо від маршруту: остання ланка маршруту
+     часто сухий порт (напр. Мостиська), а далі ще автодоставка (01.08.2026). */
+  td.c-rt .fin{color:var(--accent-ink);font-weight:600}
+  /* Підпис перед номером: HBL — домашній коносамент, BL — лінійний.
+     Без нього після об'єднання колонок їх було не відрізнити (питання
+     користувачки 01.08.2026 «а куди подівся дом конос?»). */
+  /* Без min-width: інакше коротке «BL» доповнювалось до ширини «HBL» і між
+     підписом та номером зяяв пробіл на пів сантиметра (01.08.2026). */
+  .blt{font-style:normal;font-size:9.5px;text-transform:uppercase;
+    letter-spacing:.03em;color:var(--muted);margin-right:5px}
+  .pwbox{display:flex;flex-wrap:wrap;gap:4px 14px;margin-top:8px}
+  .pwr{font-size:11.5px;color:var(--muted)}
+  .pwr.ok{color:var(--pos);font-weight:600}
+  .buildstamp{font-size:10.5px;color:var(--muted);padding:6px 14px 10px;letter-spacing:.02em}
+  /* Назва клієнта переноситься на два рядки, а не розтягує колонку
+     (прохання користувачки 01.08.2026). Обрізання по висоті не робимо —
+     назва має читатись повністю. */
+  td.c-cli{white-space:normal;line-height:1.25;overflow:visible;text-overflow:clip}
+  /* «було 19.07» під новою ETA — видно, що дата прибуття зсунулась (01.08.2026) */
+  .wasdt{display:block;font-size:10.5px;font-weight:600;color:#c8811f;
+    text-decoration:line-through;text-decoration-color:rgba(200,129,31,.5)}
+  /* два рядки-дати в одній клітинці, кожен клікається окремо */
+  .ln2{display:block}
+  .ln2.sub2{font-size:11px;color:var(--muted);font-weight:600}
+  /* Ключова дата угоди: експорт дивиться на ETD, імпорт — на ETA.
+     Виділяємо ТІЛЬКИ фоном — колір цифр лишається звичайним
+     (прохання користувачки 01.08.2026). */
+  .dispscroll td.keydt{background:var(--accent-soft)}
+  td.c-rel{text-align:center}
+  td.c-rel.tog{cursor:pointer}
+  td.c-rel.tog:hover{background:var(--accent-soft)}
+  /* BL і кожен контейнер — окремим рядком; сам номер НЕ розривається,
+     якщо не влазить — три крапки (вимога користувачки 01.08.2026) */
+  .dispscroll table.fixw td.c-bl{white-space:normal;word-break:normal;line-height:1.35}
+  /* Дата виводиться жирним 13 px: «12.06.26» займає ~78 px. Через це вона
+     обрізалась навіть у 84-піксельній колонці. Даємо колонкам 94 px і
+     звужуємо відступи саме в них (01.08.2026). */
+  .dispscroll table.fixw td.dt,.dispscroll table.fixw th.dt{padding-left:6px;padding-right:6px}
+  .dispscroll table.fixw td.dt{font-size:12.5px}
+  td.c-bl .ln{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  a.tl{color:var(--accent);text-decoration:none;border-bottom:1px dashed rgba(37,99,235,.4)}
+  a.tl:hover{border-bottom-style:solid}
+  a.tl.cell-muted{color:var(--ink-2);border-bottom-color:rgba(120,120,120,.35)}
+  a.tl.cell-muted:hover{color:var(--accent);border-bottom-color:var(--accent)}
+  .dispscroll td{vertical-align:middle}
+  /* смужки через рядок — око не збивається на широкій таблиці */
+  .dispscroll tbody tr:nth-child(even) td{background:var(--surface-2)}
+  .dispscroll tbody tr:hover td{background:var(--hover-bg,#eef2f8)}
+  .dispscroll tbody tr.alertrow:nth-child(even) td{background:#fce9e9}
+  .dispscroll tbody tr.warnrow:nth-child(even) td{background:#fdf3e2}
+  .dispscroll td:first-child b{font-size:13.5px;font-weight:700}
+  /* редагування прямо в таблиці */
+  td.ed{cursor:cell}
+  td.ed:hover{box-shadow:inset 0 0 0 1.5px var(--accent)}
+  td.ed.saving{opacity:.45}
+  .edinput{width:100%;box-sizing:border-box;border:1px solid var(--accent);border-radius:5px;
+    padding:3px 5px;font-family:inherit;font-size:12px;background:var(--paper);color:var(--ink)}
+  td.cardedit{cursor:cell;border-radius:5px}
+  td.cardedit:hover{box-shadow:inset 0 0 0 1.5px var(--accent)}
+  /* рядок-алерт: імпорт стоїть у порту без авто */
+  /* червоний — тільки коли вантаж реально стоїть у порту без авто (це гроші);
+     бурштиновий — розбіжність із Експедитором (це неточність у даних, не аварія) */
+/* Легенда підсвітки рядків — квадратики беруть ТІ САМІ кольори, що й рядки,
+   щоб підказка збігалася з тим, що видно в таблиці (прохання користувачки 01.08.2026). */
+/* Підказка про підсвітку рядків не висить над таблицею постійно (вона з'їдала
+   рядок і все одно не читалась) — відкривається кнопкою «?» у смузі алертів. */
+/* Кольорові квадратики для статті «Підказки» в Інструкціях: беруть ТІ САМІ
+   кольори, що й рядки таблиці, щоб підказка збігалася з тим, що видно.
+   Над таблицею підказки більше немає — вона з'їдала висоту (01.08.2026). */
+  .lg{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink);margin:6px 0}
+  .sw{width:13px;height:13px;border-radius:3px;border:1px solid var(--line);flex:none}
+  .sw-red{background:#fdeeee;box-shadow:inset 3px 0 0 #d1453b}
+  .sw-amber{background:#fff8ec;box-shadow:inset 3px 0 0 #e6a817}
+  .sw-done{background:var(--surface-2)}
+  tr.alertrow td{background:#fdeeee}
+  tr.alertrow td:first-child{box-shadow:inset 3px 0 0 #d1453b}
+  tr.warnrow td{background:#fff8ec}
+  tr.warnrow td:first-child{box-shadow:inset 3px 0 0 #e6a817}
+  :root[data-theme="dark"] tr.alertrow td{background:#2a1618}
+  :root[data-theme="dark"] tr.warnrow td{background:#2a2113}
+  /* смуга алертів над таблицею */
+  /* Один рядок, без переносу: алерти не мають з'їдати висоту над таблицею
+   (зауваження користувачки 01.08.2026 — «статуси розкидані на дві строки»).
+   Якщо алертів забагато — смуга гортається вбік, а не росте вниз. */
+  .alertbar{display:flex;align-items:center;gap:6px;flex-wrap:nowrap;
+    overflow-x:auto;overflow-y:hidden;scrollbar-width:thin;padding-bottom:2px}
+  .alertbar>*{flex:none}
+  /* алерти навмисно НЕ кольорові плашки: кольором тільки крапка й число,
+     щоб увага лишалась на самій таблиці (зауваження користувачки 01.08.2026) */
+  .abadge{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;padding:3px 9px;white-space:nowrap;
+    border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink-2)}
+  .abadge::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--line);flex:none}
+  .abadge b{font-size:13px;color:var(--ink);font-variant-numeric:tabular-nums}
+  .abadge.clickable{cursor:pointer}
+  .abadge.clickable:hover{border-color:#b9c2d0;background:var(--surface-2)}
+  .abadge.a-red::before{background:#d1453b}    .abadge.a-red b{color:#d1453b}
+  .abadge.a-amber::before{background:#e6a817}  .abadge.a-amber b{color:#b45309}
   .dispscroll thead th{position:sticky;top:0;z-index:3;background:var(--surface);
     box-shadow:inset 0 -1px 0 var(--line)}
-  tr.done td{color:var(--muted)}
-  table{border-collapse:collapse;width:100%;font-size:13.5px}
-  th{font-size:12px;letter-spacing:0;color:var(--muted);
-    background:transparent;text-align:left;font-weight:600;padding:9px 10px;white-space:nowrap;
-    border-bottom:1px solid var(--line)}
-  td{padding:9px 10px;border-bottom:1px solid var(--line-soft);vertical-align:top}
+  tr.done td{color:var(--ink-2)}
+  table{border-collapse:collapse;width:100%;font-size:13px}
+/* Шапка таблиці: темніший і жирніший текст замість дрібного сірого,
+   нижчі відступи (зауваження користувачки 01.08.2026 — «купа дрібного
+   неконтрастного тексту»). */
+  th{font-size:11.5px;letter-spacing:.1px;color:var(--ink);
+    background:transparent;text-align:left;font-weight:700;padding:6px 8px;white-space:nowrap;
+    border-bottom:1.5px solid var(--line)}
+  td{padding:7px 8px;border-bottom:1px solid var(--line-soft);vertical-align:top;color:var(--ink)}
   tr:last-child td{border-bottom:none}
   td.num,th.num{font-variant-numeric:tabular-nums;text-align:right}
   tbody tr:hover{background:var(--surface-2)}
-  .cell-muted{color:var(--muted);font-size:12.5px}
+  .cell-muted{color:var(--ink-2);font-size:12px}
   .mono{font-variant-numeric:tabular-nums; white-space:nowrap}
 
-  .filters{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
-  .filters input,.filters select{padding:8px 10px;border:1px solid var(--line);border-radius:8px;
-    background:var(--surface);color:var(--ink);font:inherit;font-size:13.5px}
+/* Фільтри компактні, щоб уміщались в один рядок і не з'їдали висоту над
+   таблицею (зауваження користувачки 01.08.2026). */
+  .filters{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:10px}
+  /* font-family задаємо ЯВНО: form-контроли беруть системний шрифт браузера,
+     і скорочення font:inherit його не завжди перебиває — у випадайках був
+     чужий шрифт (зауваження користувачки 01.08.2026). */
+  .filters input,.filters select{padding:6px 8px;border:1px solid var(--line);border-radius:7px;
+    background:var(--surface);color:var(--ink);
+    font-family:system-ui,-apple-system,"Segoe UI",sans-serif;
+    font-size:12.5px;font-weight:500;line-height:1.4}
+  .filters option{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;font-size:13px}
+  /* Ширина випадайки задана жорстко: інакше браузер розтягує її під найдовший
+     варіант списку («Вивантажений в порту прибуття») і поруч з'являється
+     порожнеча, а самі фільтри не вміщаються в один рядок (01.08.2026). */
+  .filters select{width:128px;flex:none;text-overflow:ellipsis}
+  .filters select#modef{width:150px}
+  .filters select#dirf{width:126px}
   .filters input{flex:1;min-width:150px}
 
   .docbtn{background:var(--accent-soft);color:var(--accent-ink);border:none;border-radius:7px;
@@ -367,11 +565,10 @@
 <!-- ============ ВХІД ============ -->
 <div id="login-screen">
   <div class="login-card">
-    <div class="brand">
+    <div class="brand brand-login">
       <img class="brand-logo" id="logo-login" alt="UNITEX">
-      <div><h1>Юнітекс OS<small>ERP-система компанії</small></h1></div>
     </div>
-    <p class="hint">Вхід для співробітників.</p>
+    <p class="hint" style="margin:16px 0 20px">Вхід для співробітників.</p>
     <div class="field"><label for="em">Email</label>
       <input id="em" type="email" autocomplete="username" placeholder="name@unitex.od.ua"></div>
     <div class="field" style="margin-top:10px"><label for="pw">Пароль</label>
@@ -385,14 +582,15 @@
 <div id="app">
   <div class="shell">
     <nav class="sidebar">
-      <div class="brand"><img class="brand-logo" id="logo-side" alt="UNITEX" style="height:28px"></div>
+      <div class="brand"><img class="brand-logo" id="logo-side" alt="UNITEX" style="height:58px"></div>
       <div id="nav"></div>
       <div class="spacer"></div>
-      <div class="foot">Юнітекс OS · жива система</div>
+      <!-- Позначка версії: по ній видно, чи браузер підтягнув свіжу сторінку.
+           Оновлюється автоматично при кожному викладенні (scripts/stamp.sh). -->
+      <div class="buildstamp" id="buildstamp" title="версія сторінки — якщо не збігається з тим, що я назвала, натисни Ctrl+F5">в. 02.08 04:54</div>
     </nav>
     <div class="main">
       <div class="topbar">
-        <h2 id="page-title"></h2>
         <div id="page-actions"></div>
         <div class="user-chip">
           <div class="avatar" id="u-avatar"></div>
@@ -408,7 +606,7 @@
 <div class="overlay" id="row-overlay">
   <div class="modal" style="max-width:640px;max-height:85vh;overflow-y:auto">
     <h3 id="row-title"></h3>
-    <p class="sub">повна картка угоди · дані живі з бази</p>
+    <p class="sub" id="row-hint">повна картка угоди · дані живі з бази</p>
     <div id="row-body"></div>
     <button class="btn ghost full" id="row-close" style="margin-top:12px">Закрити</button>
   </div>
@@ -419,7 +617,12 @@
     <p class="sub">прикріплені файли угоди · зберігаються в платформі</p>
     <div id="doc-list" style="display:flex;flex-direction:column;gap:8px"></div>
     <div style="margin-top:12px" id="doc-upload-wrap">
-      <button class="btn" id="doc-upload-btn">➕ Прикріпити файл</button>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <select id="doc-type" class="inp" style="padding:8px 10px;border:1px solid var(--line);border-radius:8px;
+          background:var(--paper);color:var(--ink);font-size:13.5px;min-width:210px"></select>
+        <button class="btn" id="doc-upload-btn">➕ Прикріпити файл</button>
+      </div>
+      <p class="sub" style="margin:6px 0 0">Тип потрапляє в назву файлу — <b>[Т1] scan.pdf</b>. Клієнт у кабінеті бачить лише дозволені типи.</p>
       <input type="file" id="doc-file" multiple style="display:none">
     </div>
     <p class="sub" id="doc-status" style="margin-top:8px"></p>
@@ -520,13 +723,13 @@ async function loadAll(table){
 
 /* ===== ролі ===== */
 const RC = {
-  "Адміністратор":        { nav:["dashboard","calc","dispatch","clients","finance","tasks","instr","users"], scope:"all", fin:"full", sync:true },
-  "Сейлз-менеджер":       { nav:["dashboard","calc","dispatch","clients","finance","tasks","instr"], scope:"mgr", fin:"personal", sync:false },
-  "Бухгалтер":            { nav:["dashboard","calc","dispatch","clients","finance","tasks","instr"], scope:"all", fin:"acct", sync:true },
-  "Фінансист":            { nav:["dashboard","calc","dispatch","clients","finance","tasks","instr"], scope:"all", fin:"full", sync:true },
-  "Операційний менеджер": { nav:["dashboard","calc","dispatch","clients","tasks","instr"], scope:"ops", fin:"none", sync:true },
-  "Логіст":               { nav:["dispatch","instr"], scope:"all", cols:"logist", fin:"none", sync:false },
-  "Перегляд":             { nav:["dashboard","calc","dispatch","clients","finance","tasks","instr"], scope:"all", fin:"blur", sync:false },
+  "Адміністратор":        { nav:["dashboard","tasks","dispatch","calc","finance","clients","crm","accounting","instr","users"], scope:"all", fin:"full", sync:true, edit:true },
+  "Сейлз-менеджер":       { nav:["dashboard","tasks","dispatch","calc","finance","clients","crm","instr","users"], scope:"mgr", fin:"personal", sync:false, edit:true },
+  "Бухгалтер":            { nav:["dashboard","tasks","dispatch","calc","finance","clients","accounting","instr","users"], scope:"all", fin:"acct", sync:true },
+  "Фінансист":            { nav:["dashboard","tasks","dispatch","calc","finance","clients","accounting","instr","users"], scope:"all", fin:"full", sync:true },
+  "Операційний менеджер": { nav:["dashboard","tasks","dispatch","clients","crm","instr","users"], scope:"ops", fin:"none", sync:true, edit:true },
+  "Логіст":               { nav:["dispatch","instr","users"], scope:"all", cols:"logist", fin:"none", sync:false, edit:true },
+  "Перегляд":             { nav:["dashboard","tasks","dispatch","calc","finance","clients","instr","users"], scope:"all", fin:"blur", sync:false },
 };
 function cfg(){ return RC[ROLE] || RC["Перегляд"]; }
 function scoped(rows){
@@ -561,12 +764,28 @@ async function enter(){
     (meta.list||[]).forEach(t=>{ T[t.title] = t.id; });
     if (T["Користувачі"]){
       const u = await api(`/api/v2/tables/${T["Користувачі"]}/records?limit=100`);
-      const me = (u.list||[]).find(x=>String(x["Email"]||"").toLowerCase() === em && x["Активний"] !== false);
-      if (me){ ROLE = me["Роль"] || "Перегляд"; UNAME = me["Ім'я"] || $("u-name").textContent; }
+      const rec = (u.list||[]).find(x=>String(x["Email"]||"").toLowerCase() === em);
+      if (rec && rec["Активний"] === false){
+        // доступ заблоковано адміністратором — не пускаємо взагалі, а не «тільки перегляд»
+        doLogout();
+        $("login-err").textContent = "Доступ заблоковано. Зверніться до адміністратора.";
+        $("login-err").style.display = "block";
+        return;
+      }
+      const me = rec;
+      if (me){
+        ROLE = me["Роль"] || "Перегляд";
+        // UNAME — тільки імʼя: по ньому зіставляється поле «Менеджер» в угодах.
+        // Для показу в шапці беремо повне «Імʼя Прізвище» (вимога 01.08.2026).
+        UNAME = me["Ім'я"] || $("u-name").textContent;
+        const full = [me["Ім'я"], me["Прізвище"]].filter(Boolean).join(" ");
+        if (full) $("u-name").textContent = full;
+      }
       else ROLE = "Перегляд";
     }
   } catch(e){ ROLE = "Перегляд"; }
   $("u-role").textContent = ROLE;
+  logAction("вхід у платформу", "", "", "", "");
   buildNav(); go(cfg().nav[0]);
 }
 $("login-btn").addEventListener("click", doLogin);
@@ -581,21 +800,27 @@ $("calc-overlay").addEventListener("click", e=>{ if(e.target===$("calc-overlay")
 $("set-overlay").addEventListener("click", e=>{ if(e.target===$("set-overlay")) $("set-overlay").classList.remove("open"); });
 
 /* ===== навігація ===== */
+/* меню: лінійні значки в одному стилі з фінзвітом (емодзі прибрано 31.07.2026) */
 const MODMAP = {
-  dashboard:{label:"Дашборд",ico:"📊"}, dispatch:{label:"Диспетчеризація",ico:"🚢"},
-  clients:{label:"Клієнти",ico:"👥"}, finance:{label:"Фінанси",ico:"💰"},
-  calc:{label:"Калькуляція",ico:"🧮"},
-  tasks:{label:"Задачі",ico:"✅"}, instr:{label:"Інструкції",ico:"📚"}, users:{label:"Користувачі",ico:"🔐"},
+  dashboard:{label:"Дашборд",   ico:"chart",     c:"blue"},
+  calc:     {label:"Калькуляція",ico:"calculator",c:"violet"},
+  dispatch: {label:"Диспетчеризація",ico:"ship",  c:"blue"},
+  crm:      {label:"CRM",        ico:"funnel",    c:"amber"},
+  clients:  {label:"Клієнти",    ico:"users",     c:"green"},
+  finance:  {label:"Фінанси",    ico:"cash",      c:"green"},
+  accounting:{label:"Бух. облік",ico:"book",      c:"violet"},
+  tasks:    {label:"Задачі",     ico:"check",     c:"green"},
+  instr:    {label:"Інструкції", ico:"doc",       c:"slate"},
+  users:    {label:"Налаштування",ico:"gear",   c:"slate"},
 };
 function buildNav(){
-  $("nav").innerHTML = cfg().nav.map(id=>`<button class="nav-item" data-page="${id}"><span class="ico">${MODMAP[id].ico}</span>${MODMAP[id].label}</button>`).join("");
-  $("nav").querySelectorAll(".nav-item").forEach(b=>b.addEventListener("click",()=>go(b.dataset.page)));
+  $("nav").innerHTML = cfg().nav.map(id=>`<button class="nav-item" data-page="${id}"><span class="ico nav-ico-${MODMAP[id].c||"slate"}"><svg viewBox="0 0 24 24">${ICONS[MODMAP[id].ico]||""}</svg></span>${MODMAP[id].label}</button>`).join("");
+  $("nav").querySelectorAll(".nav-item").forEach(b=>b.addEventListener("click",()=>{ DISP_QUICK=null; go(b.dataset.page); }));
 }
 function go(page){
   if (!cfg().nav.includes(page)) page = cfg().nav[0];
   $("nav").querySelectorAll(".nav-item").forEach(b=>b.classList.toggle("active", b.dataset.page===page));
-  $("page-title").textContent = MODMAP[page].label;
-  $("page-actions").innerHTML = "";     // кнопки верхньої панелі належать конкретній сторінці
+  $("page-actions").innerHTML = "";
   $("content").innerHTML = '<div class="card"><p class="sub">Завантаження…</p></div>';
   PAGES[page]().catch(e=>{ $("content").innerHTML = '<div class="note">⚠ Не вдалося завантажити дані ('+esc(e.message)+'). Спробуй оновити сторінку.</div>'; });
 }
@@ -616,6 +841,10 @@ const ICONS = {
   chart:'<path d="M3.5 20.5h17"/><rect x="5" y="11" width="3.4" height="7" rx="1"/><rect x="10.3" y="6.5" width="3.4" height="11.5" rx="1"/><rect x="15.6" y="9" width="3.4" height="9" rx="1"/>',
   doc:'<path d="M14 3H7a2.5 2.5 0 0 0-2.5 2.5v13A2.5 2.5 0 0 0 7 21h10a2.5 2.5 0 0 0 2.5-2.5V8.5z"/><path d="M14 3v5.5h5.5M8.5 13h7M8.5 17h5"/>',
   check:'<circle cx="12" cy="12" r="8.5"/><path d="m8.4 12.2 2.5 2.5 4.7-4.9"/>',
+  calculator:'<rect x="4.5" y="2.8" width="15" height="18.4" rx="2.6"/><rect x="7.6" y="6" width="8.8" height="3.4" rx="1"/><path d="M8.2 13h.01M12 13h.01M15.8 13h.01M8.2 17h.01M12 17h.01M15.8 17h.01"/>',
+  funnel:'<path d="M3.5 4.5h17l-6.6 7.8v6.4l-3.8 2v-8.4z"/>',
+  gear:'<circle cx="12" cy="12" r="3.1"/><path d="M19.4 14.5a1.6 1.6 0 0 0 .32 1.77l.06.06a1.9 1.9 0 1 1-2.7 2.7l-.05-.06a1.6 1.6 0 0 0-1.78-.32 1.6 1.6 0 0 0-.97 1.47v.17a1.9 1.9 0 1 1-3.8 0v-.09a1.6 1.6 0 0 0-1.05-1.47 1.6 1.6 0 0 0-1.77.32l-.06.06a1.9 1.9 0 1 1-2.7-2.7l.06-.06a1.6 1.6 0 0 0 .32-1.77 1.6 1.6 0 0 0-1.47-.97H3.5a1.9 1.9 0 1 1 0-3.8h.09a1.6 1.6 0 0 0 1.47-1.05 1.6 1.6 0 0 0-.32-1.77l-.06-.06a1.9 1.9 0 1 1 2.7-2.7l.06.06a1.6 1.6 0 0 0 1.77.32h.08a1.6 1.6 0 0 0 .97-1.47V3.5a1.9 1.9 0 1 1 3.8 0v.09a1.6 1.6 0 0 0 .97 1.47 1.6 1.6 0 0 0 1.78-.32l.05-.06a1.9 1.9 0 1 1 2.7 2.7l-.06.06a1.6 1.6 0 0 0-.32 1.77v.08a1.6 1.6 0 0 0 1.47.97h.17a1.9 1.9 0 1 1 0 3.8h-.09a1.6 1.6 0 0 0-1.47.97z"/>',
+  book:'<path d="M4 4.6A2.1 2.1 0 0 1 6.1 2.5H20v14.4H6.1A2.1 2.1 0 0 0 4 19v-14.4z"/><path d="M4 19a2.1 2.1 0 0 0 2.1 2.1H20v-4.2"/><path d="M8.5 7.2h7M8.5 10.6h4.5"/>',
 };
 const EMOJI_ICON = {
   "📦":["box","blue"], "🌊":["ship","blue"], "🚢":["ship","blue"], "📅":["calendar","violet"],
@@ -623,18 +852,42 @@ const EMOJI_ICON = {
   "💳":["wallet","blue"], "📤":["users","amber"], "🧊":["truck","violet"], "🧮":["layers","red"],
   "💰":["cash","green"], "📊":["chart","blue"], "👥":["users","green"], "✅":["check","green"],
   "📚":["doc","violet"], "🔐":["shield","slate"], "📄":["doc","slate"], "🛡":["shield","violet"],
+  "🚚":["truck","amber"], "📈":["chart","green"], "📉":["chart","red"], "🧾":["doc","blue"],
+  "⟳":["chart","slate"], "🔎":["chart","slate"], "🗂":["layers","violet"], "⏳":["calendar","amber"],
 };
 const EMO_RE = /^([\u203C-\u3299\u{1F000}-\u{1FAFF}\u2600-\u27BF][\uFE0F\u200D]*)\s*/u;
+function enhanceHeads(root){
+  (root || document).querySelectorAll(".card h3").forEach(h=>{
+    if (h.dataset.ico) return;
+    h.dataset.ico = "1";
+    const m = EMO_RE.exec(h.textContent.trim());
+    if (!m) return;
+    const def = EMOJI_ICON[m[1].replace(/\uFE0F/g,"")] || EMOJI_ICON[m[1]];
+    const rest = h.textContent.trim().replace(EMO_RE, "");
+    h.innerHTML = def
+      ? '<span class="ic ic-'+def[1]+'"><svg viewBox="0 0 24 24">'+ICONS[def[0]]+'</svg></span><span>'+esc(rest)+'</span>'
+      : esc(rest);
+    h.classList.add("h3ico");
+  });
+}
 function enhanceTiles(root){
-  (root || document).querySelectorAll(".tile .lbl").forEach(l=>{
-    if (l.dataset.ico) return;
+  enhanceHeads(root);
+  // \u043F\u043B\u0438\u0442\u043A\u0430 \u043F\u0435\u0440\u0435\u0431\u0443\u0434\u043E\u0432\u0443\u0454\u0442\u044C\u0441\u044F \u0432 \u0441\u0442\u0440\u0443\u043A\u0442\u0443\u0440\u0443 \u0444\u0456\u043D\u0437\u0432\u0456\u0442\u0443: [\u0456\u043A\u043E\u043D\u043A\u0430] [\u043F\u0456\u0434\u043F\u0438\u0441 / \u0447\u0438\u0441\u043B\u043E / \u0443\u0442\u043E\u0447\u043D\u0435\u043D\u043D\u044F]
+  (root || document).querySelectorAll(".tile").forEach(t=>{
+    if (t.dataset.ico) return;
+    t.dataset.ico = "1";
+    const l = t.querySelector(".lbl");
+    if (!l) return;
     const m = EMO_RE.exec(l.textContent.trim());
     const key = m ? m[1].replace(/\uFE0F/g,"") : null;
     const def = key && (EMOJI_ICON[key] || EMOJI_ICON[m[1]]);
-    l.dataset.ico = "1";
-    if (!def) return;
-    const rest = l.textContent.trim().replace(EMO_RE, "");
-    l.innerHTML = '<span class="ic ic-'+def[1]+'"><svg viewBox="0 0 24 24">'+ICONS[def[0]]+'</svg></span><span>'+esc(rest)+'</span>';
+    if (def) l.textContent = l.textContent.trim().replace(EMO_RE, "");
+    const body = document.createElement("div");
+    body.className = "tbody";
+    while (t.firstChild) body.appendChild(t.firstChild);
+    if (def) t.innerHTML = '<span class="ic ic-'+def[1]+'"><svg viewBox="0 0 24 24">'+ICONS[def[0]]+'</svg></span>';
+    t.appendChild(body);
+    t.classList.add("tready");
   });
 }
 new MutationObserver(()=>enhanceTiles()).observe(document.body, {childList:true, subtree:true});
@@ -654,19 +907,187 @@ function drawChart(id, cfg){
 
 /* ===== статуси ===== */
 const STATUSES = {
-  "Букінг":"t-neutral","Стафіровка":"t-info","В порту відправлення":"t-info",
+  "Букінг":"t-neutral","Виконується":"t-warn","Стафіровка":"t-info","В порту відправлення":"t-info",
   "Завантажений на судно":"t-info","В морі":"t-info",
-  "Вивантажений в порту прибуття":"t-vio","Завантажений на авто/потяг":"t-good",
+  "Вивантажений в порту прибуття":"t-vio",
+  "Завантажений на авто":"t-good","Завантажений на потяг":"t-good",
+  "Вивантажений в сухому порту":"t-good","На кордоні":"t-info",
   "Вантаж доставлено":"t-del",
 };
+/* Назва клієнта для ПОКАЗУ: прибираємо організаційну форму «ООО»/«ТОВ»
+   (прохання користувачки 01.08.2026 — «ГРАНД МАРИН ООО» читається як
+   «ГРАНД МАРИН»). У базі значення НЕ чіпаємо: поле «Клієнт» приходить з
+   Експедитора і синхронізація перезапише його назад. У картці угоди й у
+   значеннях фільтра лишається повна назва. */
+const cliName = v => {
+  const full = String(v || "").trim();
+  const cut = full.replace(/(^|\s)(ООО|ТОВ)(?=\s|$)/gi, "$1").replace(/\s{2,}/g, " ").trim();
+  return cut || full;          // якщо після чистки нічого не лишилось — показуємо як є
+};
 const stPill = st => st ? `<span class="pill ${STATUSES[st]||"t-neutral"}">${esc(st)}</span>` : '<span class="cell-muted">—</span>';
+
+/* ===== класифікація перевезень (спільна для дашборда і швидких фільтрів) =====
+   Правила від користувачки 31.07.2026:
+   * FCL — морське перевезення з номером контейнера; LCL — позначено «Збірний»;
+   * лінія буває лише там, де є морське або залізничне плече
+     (мультимодальні на FOB/CIF — «ТЕО+авто» — теж), тож авіа й авто не рахуємо. */
+const _s = (r,k) => String(r[k]||"").trim();
+const SEA_MODES = {"фрахт":1,"фрахт+ТЕО+авто":1,"фрахт+ТЕО+залізниця":1,"ТЕО+авто":1};
+const isLCL = r => /збірн/i.test(_s(r,"Тип")) || /lcl/i.test(_s(r,"FCL/LCL"));
+const isSea = r => {
+  const m = _s(r,"Вид перевезення");
+  if (SEA_MODES[m]) return true;
+  if (m === "авіа" || m === "авто") return false;
+  const t = _s(r,"Тип").toLowerCase();
+  return t.includes("море") || t.includes("фрахт") || t.includes("збірн");
+};
+const isRail  = r => /залізни/i.test(_s(r,"Вид перевезення")) || /залізни/i.test(_s(r,"Тип"));
+const isAir   = r => /авіа/i.test(_s(r,"Вид перевезення"));
+/* Чого при якому виді перевезення НЕ буває (зауваження користувачки 01.08.2026):
+   авіа — немає ні контейнера, ні морської лінії, замість коносамента авіанакладна;
+   авто — немає ні коносамента, ні контейнера, ні лінії, ні судна. */
+const needsBL   = r => isAir(r) || hasLine(r);
+const needsCont = r => isSea(r);
+const shipDoc   = r => isAir(r) ? _s(r,"Авіанакладна") : _s(r,"BL");
+const hasLine = r => isSea(r) || isRail(r);
+const isDone  = r => r["Статус"] === "Вантаж доставлено";
+/* дата у звичному вигляді: 05.08.26, жирним — щоб читалась з першого погляду */
+const fmtD = v => { const m=/(\d{4})-(\d{2})-(\d{2})/.exec(String(v||""));
+  return m ? `${m[3]}.${m[2]}.${m[1].slice(2)}` : ""; };
+const dateB = v => { const d=fmtD(v); return d ? `<b>${d}</b>` : '<span class="cell-muted">—</span>'; };
+const dOf = v => { const m=/(\d{4})-(\d{2})-(\d{2})/.exec(String(v||"")); return m? new Date(+m[1],+m[2]-1,+m[3]) : null; };
+/* Зміна дати прибуття. Трекер Maersk пише в «Зміни ETA (історія)» рядки виду
+   «2026-07-15: ETA порт: 2026-05-19 → 2026-06-01 (Maersk)». Беремо ОСТАННІЙ
+   рядок — він і показує, яка дата була і яка стала. */
+const ETA_CHG_DAYS = 14;                    // за скільки днів зміна вважається свіжою
+const etaChange = r => {
+  const h = String(r["Зміни ETA (історія)"] || "").trim();
+  if (!h) return null;
+  const last = h.split("\n").map(x=>x.trim()).filter(Boolean).pop() || "";
+  const m = /(\d{4}-\d{2}-\d{2})\s*→\s*(\d{4}-\d{2}-\d{2})/.exec(last);
+  if (!m) return null;
+  const w = /^(\d{4}-\d{2}-\d{2})/.exec(last);
+  return { from: m[1], to: m[2], when: w ? w[1] : "" };
+};
+const etaChanged = r => {
+  if (isDone(r)) return false;
+  const c = etaChange(r);
+  if (!c || !c.when) return false;
+  const d = dOf(c.when);
+  if (!d) return false;
+  const t = new Date(); t.setHours(0,0,0,0);
+  return Math.round((t - d) / 86400000) <= ETA_CHG_DAYS;
+};
+/* вантаж уже в порту прибуття і ще не вивезений → капають зберігання/демередж */
+/* Статуси, за яких вантаж уже НЕ стоїть у порту прибуття — алерт про простій
+   для них не має сенсу. «Вивантажений в сухому порту» додано 01.08.2026:
+   без нього угоди 239 і 248 отримували червоне «немає авто», хоча контейнер
+   давно виїхав із порту на внутрішній термінал. */
+const GONE_STATUS = {"Завантажений на авто":1, "Завантажений на потяг":1,
+                     "Вивантажений в сухому порту":1, "На кордоні":1};
+const portSince = r => dOf(_s(r,"Вивантаження в порту (факт)") || _s(r,"ETA порт (факт)"));
+const inPort = r => !isDone(r) && !_s(r,"Вивантаження у отримувача (факт)") &&
+  !GONE_STATUS[_s(r,"Статус")] &&
+  (!!portSince(r) || r["Статус"] === "Вивантажений в порту прибуття");
+const daysIn = r => { const p=portSince(r); if(!p) return null;
+  const t=new Date(); t.setHours(0,0,0,0); return Math.round((t-p)/86400000); };
+/* Імпорт вивантажили в порту, минуло 2+ дні, а авто не подане й номера немає.
+   Це СИГНАЛ ПЕРЕВІРИТИ, а не факт витрат: вільний час (free time) залежить від
+   лінії, порту й напрямку, і на 2-й день зазвичай ще не вичерпаний
+   (уточнення користувачки 01.08.2026). Облік строків демереджу й детеншену —
+   окрема наступна задача. */
+const truckDate = r => _s(r,"Подача авто (факт)") || _s(r,"Подача авто (план)");
+/* ETD показуємо фактом, а якщо факту немає — планом із підписом «план» */
+const etdOf = r => _s(r,"ETD (факт)") || _s(r,"ETD (план)");
+/* Уточнення від користувачки 31.07.2026 — три обмеження, без них були хибні спрацювання:
+   1) вантаж, уже завантажений на авто або на потяг, із порту поїхав — це не простій;
+   2) авто ні до чого, якщо доставка не автомобільна (залізниця, авіа) — угода 227
+      їхала потягом і потрапляла в алерт помилково;
+   3) якщо в Експедиторі етап «ВыставленСчет» або «Завершена» — рахунок виставляють,
+      як правило, вже ПІСЛЯ завантаження на авто, тобто вантаж вивезли, просто дані
+      про авто в Експедитор не внесли (угоди 120 і 173 — саме цей випадок). */
+const MOVED_STAGES = {"ВыставленСчет":1, "Завершена":1};
+/* ВИМКНЕНО 01.08.2026 на прохання користувачки («поки прибери алерти з авто»).
+   Причина: 2 дні без авто ще не означають витрат — вільний час залежить від
+   лінії, порту й напрямку. Алерт повернемо разом з обліком строків демереджу
+   й детеншену, коли будуть норми free time. Щоб увімкнути назад — поставити
+   TRUCK_ALERT_ON = true, решта коду ціла: зникає і червона підсвітка рядка,
+   і червоне «немає» в колонці «Авто», і плитка в смузі алертів. */
+const TRUCK_ALERT_ON = false;
+const truckLate = r => {
+  if (!TRUCK_ALERT_ON) return false;
+  if (isDone(r) || _s(r,"Напрямок") !== "Імпорт") return false;
+  if (GONE_STATUS[_s(r,"Статус")]) return false;
+  // з порту по землі везе потяг — авто тут ні до чого. Для авіа авто ПОТРІБНЕ
+  // (уточнення користувачки 31.07.2026), тому відсікаємо тільки залізницю.
+  if (/залізниц/i.test(_s(r,"Вид перевезення"))) return false;
+  if (MOVED_STAGES[_s(r,"Етап (Експедитор)")]) return false;
+  const dd = daysIn(r);
+  return dd !== null && dd >= 2 && !truckDate(r) && !_s(r,"Номер авто");
+};
+/* Помилка менеджера: вантаж фізично вже поїхав (трекінг це бачить), а в Експедиторі
+   угода досі на «Букинг» — менеджер не вніс зміни. Приклад: угода 227 —
+   «Завантажений на потяг», а етап «Букинг». */
+const STATUS_MOVED = {"Стафіровка":1,"В порту відправлення":1,"Завантажений на судно":1,
+  "В морі":1,"Вивантажений в порту прибуття":1,"Завантажений на потяг":1,
+  "Завантажений на авто":1,"Вантаж доставлено":1};
+/* ===== посилання на трекінг лінії =====
+   Відкривається в браузері користувача, тому блокування нашого сервера
+   сайтами ліній тут ролі не грає. Працює і по коносаменту, і по контейнеру. */
+const TRACK_URL = {
+  "Maersk":  n => "https://www.maersk.com/tracking/" + encodeURIComponent(n),
+  /* MSC: перевірено 01.08.2026 — 5 форматів посилання, жоден не підставляє номер.
+     Лишаємо відкриття сторінки трекінгу, номер доводиться вставляти вручну. */
+  "MSC":     n => "https://www.msc.com/en/track-a-shipment?trackingNumber=" + encodeURIComponent(n),
+  "CMA CGM": n => "https://www.cma-cgm.com/ebusiness/tracking/detail/" + encodeURIComponent(n),
+  "HLC":     n => "https://www.hapag-lloyd.com/en/online-business/track/track-by-container-solution.html?container=" + encodeURIComponent(n),
+  "COSCO":   n => "https://elines.coscoshipping.com/ebtracking/public/bill/" + encodeURIComponent(String(n).replace(/^COSU/i, "")),
+  "EMC":     n => "https://www.shipmentlink.com/servlet/TDB1_CargoTracking.do?BL=" + encodeURIComponent(n),
+};
+const trackHref = (r, n) => { const f = TRACK_URL[_s(r, "Лінія")]; return (f && n) ? f(n) : ""; };
+const trackLink = (r, n, cls) => {
+  const href = trackHref(r, n);
+  const txt = esc(n);
+  return href ? `<a class="tl ${cls||""}" href="${esc(href)}" target="_blank" rel="noopener"
+      title="відкрити трекінг ${esc(_s(r,"Лінія"))} по ${txt}">${txt}</a>`
+    : `<span class="${cls||""}">${txt}</span>`;
+};
+/* ВИМКНЕНО 01.08.2026: «прибери цей фільтр, не важливо чи оновлено воно в
+   Експедиторі». Перевірка порівнювала етап в Експедиторі («Букинг») зі статусом
+   із трекінгу («В морі» тощо) — таких угод було 15. Щоб повернути, поставити
+   STAGE_ALERT_ON = true: разом з ним повернуться і плитка в смузі алертів,
+   і рядок у блоці «Потребує уваги» на дашборді, і бурштинова підсвітка. */
+const STAGE_ALERT_ON = false;
+const stageStale = r => STAGE_ALERT_ON &&
+  _s(r,"Етап (Експедитор)") === "Букинг" && !!STATUS_MOVED[_s(r,"Статус")];
+/* Експорт: дата заїзду в порт (Gate in) має стояти ОДРАЗУ після розміщення букінгу —
+   по ній планують заїзд контейнера (вимога користувачки 01.08.2026). */
+/* Статуси, за яких експорт УЖЕ ВІДПРАВЛЕНО. Після них дата заїзду в порт не має
+   значення — вона потрібна лише щоб спланувати заїзд ДО завантаження
+   (уточнення користувачки 01.08.2026 на угодах 251 і 260). */
+const DEPARTED = {"Завантажений на судно":1, "В морі":1, "Вивантажений в порту прибуття":1,
+                  "Завантажений на авто":1, "Завантажений на потяг":1,
+                  "Вивантажений в сухому порту":1, "На кордоні":1, "Вантаж доставлено":1};
+const gateInMissing = r => _s(r,"Напрямок") === "Експорт" && !isDone(r) && !_s(r,"Гейт ін")
+  && !DEPARTED[_s(r,"Статус")] && !_s(r,"ETD (факт)");
 let toastTimer=null;
 function toast(m){ const t=$("toast"); t.textContent=m; t.style.display="block"; clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.style.display="none",4000); }
 
 /* ===== сторінки ===== */
 const PAGES = {};
 let DISP_CACHE = null;
-async function dispRows(){ return DISP_CACHE || (DISP_CACHE = await loadAll(T["Диспетчеризація"])); }
+let DISP_QUICK = null;          // швидкий фільтр з плиток дашборда
+/* Скасована угода не існує для роботи (правило користувачки 01.08.2026): не показуємо
+   її ніде — ні в таблиці диспетчеризації, ні на дашборді, ні в лічильниках чи алертах.
+   Фільтр стоїть в ОДНОМУ місці — усі сторінки беруть дані через dispRows().
+   У списку STATUSES цього статусу навмисно немає, тому він не з'являється ні у
+   випадайці фільтра, ні у виборі статусу в картці угоди. */
+const CANCELLED_ST = "Скасована";
+async function dispRows(){
+  if (!DISP_CACHE) DISP_CACHE = (await loadAll(T["Диспетчеризація"]))
+    .filter(r => String(r["Статус"] || "").trim() !== CANCELLED_ST);
+  return DISP_CACHE;
+}
 
 PAGES.dashboard = async () => {
   const rows = scoped(await dispRows());
@@ -675,80 +1096,185 @@ PAGES.dashboard = async () => {
   const d = v => { const m=/(\d{4})-(\d{2})-(\d{2})/.exec(String(v||"")); return m? new Date(+m[1],+m[2]-1,+m[3]) : null; };
   const sea = active.filter(r=>r["Статус"]==="В морі").length;
   const week = active.filter(r=>{ const e=d(r["ETA"]); return e && (e-today)/86400000>=0 && (e-today)/86400000<=7; }).length;
-  const noBL = active.filter(r=>!String(r["BL"]||"").trim()).length;
+  const noBL = active.filter(r=>needsBL(r) && !shipDoc(r)).length;
+  /* Розрахунки «скільки днів стоїть у порту» і «ETA минула» прибрані 01.08.2026.
+     Це були МОЇ припущення про терміни вивозу — користувачка їх не задавала:
+     «я тобі взагалі не задавала терміни». Повернуться разом з обліком демереджу
+     й детеншену, коли будуть норми free time по лініях і портах. */
   const fmtRow = r => `<tr><td class="mono"><b>${esc(r["Угода"])}</b></td><td>${esc(r["Клієнт"]||"—")}</td>
-    <td>${esc(r["Судно"]||"—")}</td><td>${stPill(r["Статус"])}</td><td class="mono">${esc(r["ETA"]||"—")}</td></tr>`;
+    <td>${esc(r["Судно"]||"—")}</td><td>${stPill(r["Статус"])}</td><td class="mono">${dateB(r["ETA"])}</td></tr>`;
   const upcoming = active.filter(r=>{ const e=d(r["ETA"]); return e && e>=today; })
-    .sort((a,b)=>String(a["ETA"]).localeCompare(String(b["ETA"]))).slice(0,8);
-  const overdue = active.filter(r=>{ const e=d(r["ETA"]); return e && e<today; })
     .sort((a,b)=>String(a["ETA"]).localeCompare(String(b["ETA"]))).slice(0,8);
   const scopeNote = cfg().scope!=="all" ? `<div class="note">👤 Показано лише твої угоди (${esc(UNAME)}).</div>` : "";
 
-  // розподіл по лініях
+  // розподіл по лініях — лише там, де лінія взагалі буває:
+  // морські + залізничні + мультимодальні на FOB/CIF («ТЕО+авто»). Авіа й авто не рахуємо.
+  const lineRows = rows.filter(hasLine);
+  const notClassified = rows.length - lineRows.length
+    - rows.filter(r=>{ const m=_s(r,"Вид перевезення"); return m==="авіа"||m==="авто"; }).length;
   const byLine = {};
-  rows.forEach(r=>{ const l = String(r["Лінія"]||"").trim() || "Без лінії"; byLine[l] = (byLine[l]||0)+1; });
+  lineRows.forEach(r=>{ const l = _s(r,"Лінія") || "Без лінії"; byLine[l] = (byLine[l]||0)+1; });
   const lineNames = Object.keys(byLine).sort((a,b)=>byLine[b]-byLine[a]);
-  // прибуття по місяцях (останні 6)
+  // прибуття по місяцях — УСІ місяці, у яких є ETA (від першого до останнього, без пропусків)
   const MON = ["січ","лют","бер","кві","тра","чер","лип","сер","вер","жов","лис","гру"];
+  const monKeys = [...new Set(rows.map(r=>String(r["ETA"]||"").slice(0,7)))].filter(k=>/^\d{4}-\d{2}$/.test(k)).sort();
   const months = [];
-  for (let k=5; k>=0; k--){ const dt=new Date(today.getFullYear(), today.getMonth()-k, 1); months.push([dt.getFullYear(), dt.getMonth()]); }
-  const byMonth = months.map(([y,m])=> rows.filter(r=>{ const e=d(r["ETA"]); return e && e.getFullYear()===y && e.getMonth()===m; }).length);
+  if (monKeys.length){
+    const a = monKeys[0].split("-").map(Number), b = monKeys[monKeys.length-1].split("-").map(Number);
+    let y = a[0], m = a[1];
+    while (y < b[0] || (y === b[0] && m <= b[1])){ months.push([y, m-1]); m++; if (m > 12){ m = 1; y++; } }
+  }
+  const monCount = {};
+  rows.forEach(r=>{ const k=String(r["ETA"]||"").slice(0,7); if(/^\d{4}-\d{2}$/.test(k)) monCount[k]=(monCount[k]||0)+1; });
+  const byMonth = months.map(([y,m])=> monCount[y+"-"+String(m+1).padStart(2,"0")] || 0);
   // статуси
   const byStatus = {};
   active.forEach(r=>{ const s = r["Статус"] || "Без статусу"; byStatus[s] = (byStatus[s]||0)+1; });
-  const stNames = Object.keys(byStatus).sort((a,b)=>byStatus[b]-byStatus[a]);
+  // порядок — за етапом перевезення, а не за кількістю: вивантаження в порту
+  // ЗАВЖДИ перед завантаженням на потяг/авто (вимога користувачки)
+  const STAGE_ORDER = ["Букінг","Виконується","Стафіровка","В порту відправлення","Завантажений на судно",
+    "В морі","Вивантажений в порту прибуття","Завантажений на потяг","Завантажений на авто",
+    "Вантаж доставлено","Без статусу"];
+  const stNames = Object.keys(byStatus).sort((a,b)=>{
+    const ia=STAGE_ORDER.indexOf(a), ib=STAGE_ORDER.indexOf(b);
+    return (ia<0?99:ia)-(ib<0?99:ib) || byStatus[b]-byStatus[a];
+  });
   const maxSt = Math.max(1, ...stNames.map(s=>byStatus[s]));
+  // розподіл по видах перевезення
+  const byMode = {};
+  rows.forEach(r=>{ const v=_s(r,"Вид перевезення"); if(v) byMode[v]=(byMode[v]||0)+1; });
+  const modeNames = Object.keys(byMode).sort((a,b)=>byMode[b]-byMode[a]);
+  const noMode = rows.filter(r=>!_s(r,"Вид перевезення")).length;
+  const maxMode = Math.max(1, ...modeNames.map(m=>byMode[m]));
+  // FCL / LCL — тільки морські: FCL = є номер контейнера, LCL = позначено «Збірний»
+  const seaRows = rows.filter(isSea);
+  const lcl = rows.filter(isLCL).length;
+  const fcl = seaRows.filter(r=>_s(r,"Контейнер") && !isLCL(r)).length;
+  const seaNoCont = seaRows.filter(r=>!_s(r,"Контейнер") && !isLCL(r)).length;
+  // у діаграму йдуть ЛИШЕ FCL і LCL; морські без номера контейнера — це прогалина
+  // в даних, вона живе в блоці «Потребує уваги», а не окремим сегментом
+  const loadNames = [], loadVals = [];
+  if (fcl) { loadNames.push("FCL"); loadVals.push(fcl); }
+  if (lcl) { loadNames.push("LCL"); loadVals.push(lcl); }
+
+  // ── блок «потребує уваги»: помилки й прогалини в даних
+  const stale = rows.filter(r=>{ const u=dOf(_s(r,"Останнє оновлення")||_s(r,"Остання зміна"));
+    return !isDone(r) && u && (today-u)/86400000 > 7; }).length;
+  const ISSUES = [
+    {q:"trucklate", crit:true, nm:"Імпорт у порту, а авто не подане понад 2 дні", n: rows.filter(truckLate).length,
+     sub:"немає ні дати подачі авто, ні номера — вантаж стоїть, капає зберігання"},
+    {q:"nogatein", crit:true, nm:"Експорт без дати заїзду в порт (Gate in)", n: rows.filter(gateInMissing).length,
+     sub:"дата має стояти одразу після букінгу — по ній планують заїзд контейнера"},
+    {q:"stagestale", crit:true, nm:"Менеджер не оновив угоду в Експедиторі", n: rows.filter(stageStale).length,
+     sub: (()=>{ const m=[...new Set(rows.filter(stageStale).map(r=>_s(r,"Менеджер")).filter(Boolean))];
+       return "вантаж уже їде, а етап досі «Букинг»" + (m.length? " · " + m.join(", ") : ""); })()},
+    {q:"nostatus", nm:"Без статусу", n: rows.filter(r=>!_s(r,"Статус")).length,
+     sub:"етап в Експедиторі є, але ми його ще не мапимо в статус платформи"},
+    {q:"nobl", nm:"Без коносамента / авіанакладної", n: noBL,
+     sub:"трекінг не вмикається. Авто в цей рахунок не входить — там документа перевезення не буває"},
+    {q:"noeta", nm:"Без ETA", n: rows.filter(r=>!_s(r,"ETA")).length,
+     sub:"немає дати прибуття — угода не потрапляє в план і в сортування"},
+    {q:"nocont", nm:"Без номера контейнера", n: rows.filter(r=>needsCont(r) && !_s(r,"Контейнер")).length,
+     sub:"тільки морські — при авіа та авто контейнера не буває"},
+    {q:"noline", nm:"Без лінії (морські й залізничні)", n: lineRows.filter(r=>!_s(r,"Лінія")).length,
+     sub:"невідомо, чиїм трекінгом тягнути дані"},
+    {q:"nomode", nm:"Без виду перевезення", n: noMode,
+     sub:"не потрапляє в розподіли по видах і в FCL/LCL"},
+    {q:"stale", nm:"Не оновлювалось понад 7 днів", n: stale,
+     sub:"активна угода, а даних з Експедитора чи трекінгу давно не було"},
+  ].sort((a,b)=> (b.crit && b.n ? 1:0) - (a.crit && a.n ? 1:0) || b.n-a.n);
+  const issRow = i => `<div class="issrow clickable" data-jump="${i.q}" title="показати ці угоди в диспетчеризації">
+      <span class="dotw" style="background:${i.n? ((i.crit||i.n>=30)? "#d1453b" : "#e6a817") : "#1a8f5c"}"></span>
+      <span class="nm">${esc(i.nm)}<small>${esc(i.sub)}</small></span>
+      <span class="cnt" style="color:${i.n? ((i.crit||i.n>=30)? "#d1453b" : "var(--ink)") : "#1a8f5c"}">${i.n||"✓"}</span>
+      <span class="go">${i.n? "›" : ""}</span></div>`;
 
   $("content").innerHTML = `
     ${scopeNote}
     <div class="tiles">
-      <div class="tile"><div class="lbl">📦 Активні перевезення</div><div class="val">${active.length}</div><div class="delta">з ${rows.length} угод усього</div></div>
-      <div class="tile"><div class="lbl">🌊 В морі зараз</div><div class="val">${sea}</div><div class="delta">${active.length? Math.round(sea/active.length*100):0}% активних</div></div>
-      <div class="tile"><div class="lbl">📅 Прибуття за 7 днів</div><div class="val">${week}</div><div class="delta">потребують уваги</div></div>
-      <div class="tile warn"><div class="lbl">🚫 Без BL (не трекаються)</div><div class="val">${noBL}</div><div class="delta">впиши BL — трекінг увімкнеться</div></div>
+      <div class="tile clickable" data-jump="active"><div class="lbl">📦 Активні перевезення</div><div class="val">${active.length}</div><div class="delta">з ${rows.length} угод усього</div></div>
+      <div class="tile clickable" data-jump="sea"><div class="lbl">🌊 В морі зараз</div><div class="val">${sea}</div><div class="delta">${active.length? Math.round(sea/active.length*100):0}% активних</div></div>
+      <div class="tile clickable" data-jump="eta7"><div class="lbl">📅 Прибуття за 7 днів</div><div class="val">${week}</div><div class="delta">потребують уваги</div></div>
     </div>
-    <div class="chartgrid" style="margin-top:16px">
-      <div class="card"><h3>📊 Прибуття по місяцях</h3><p class="sub">кількість угод за датою ETA</p>
+
+    <div class="dashgrid">
+      <div class="card"><h3>📊 Прибуття по місяцях</h3><p class="sub">кількість угод за датою ETA${monKeys.length? ` · ${MON[months[0][1]]} ${String(months[0][0]).slice(2)} — ${MON[months[months.length-1][1]]} ${String(months[months.length-1][0]).slice(2)}`:""}</p>
         <div class="chartbox"><canvas id="ch-months"></canvas></div></div>
-      <div class="card"><h3>🚢 Розподіл по лініях</h3><p class="sub">усі угоди${cfg().scope!=="all"?" (твої)":""}</p>
+
+      <div class="card"><h3>🚚 Розподіл по видах перевезення</h3>
+        <p class="sub">${modeNames.length? `усі угоди${noMode? `; без виду перевезення — ${noMode}`:""}` : "поле «Вид перевезення» ще не заповнене"}</p>
+        ${modeNames.length? '<div class="chartbox"><canvas id="ch-modes"></canvas></div>' :
+          '<p class="sub" style="margin-top:12px">Заповни «Вид перевезення» в угодах — і розподіл з’явиться тут.</p>'}</div>
+
+      <div class="card"><h3>📦 FCL / LCL</h3>
+        ${loadNames.length? '<div class="chartbox"><canvas id="ch-loads"></canvas></div>' :
+          '<p class="sub" style="margin-top:12px">FCL — морська угода з номером контейнера, LCL — позначена як «Збірний».</p>'}</div>
+
+      <div class="card"><h3>🚢 Розподіл по лініях</h3>
+        <p class="sub">морські + залізничні + FOB/CIF — ${lineRows.length} угод${notClassified? `; не класифіковано — ${notClassified}`:""}</p>
         <div class="chartbox"><canvas id="ch-lines"></canvas></div></div>
+
+      <div class="card"><h3>📈 Статуси активних перевезень</h3><p class="sub">де зараз вантажі</p>
+        <div class="scrollbox" style="display:flex;flex-direction:column;gap:8px;margin-top:4px">
+          ${stNames.map(s=>`<div class="strow" data-jump="st:${s==="Без статусу"?"":esc(s)}" title="показати ці угоди в диспетчеризації">
+            <div style="min-width:150px;font-size:12px">${s==="Без статусу"? '<span class="pill t-crit">Без статусу</span>' : stPill(s)}</div>
+            <div style="flex:1;background:var(--neutral-bg);border-radius:8px;height:9px;overflow:hidden">
+              <div style="width:${Math.round(byStatus[s]/maxSt*100)}%;height:100%;background:${s==="Без статусу"?"#d1453b":"var(--accent)"};border-radius:8px"></div></div>
+            <b style="min-width:30px;text-align:right;font-size:13px">${byStatus[s]}</b>
+            <span style="color:var(--muted);font-size:13px">›</span></div>`).join("") ||
+            '<p class="sub">Активних перевезень немає.</p>'}
+        </div></div>
+
+      <div class="card"><h3>📅 Найближчі прибуття</h3><p class="sub">активні угоди за ETA, від найближчої</p>
+        <div class="scrollbox"><table>
+          <thead><tr><th>Угода</th><th>Клієнт</th><th>Статус</th><th>ETA</th></tr></thead>
+          <tbody>${upcoming.map(r=>`<tr><td class="mono"><b>${esc(r["Угода"])}</b></td><td>${esc(r["Клієнт"]||"—")}</td><td>${stPill(r["Статус"])}</td><td class="mono">${dateB(r["ETA"])}</td></tr>`).join("")
+            || '<tr><td colspan="4" class="cell-muted">Немає активних угод з майбутнім ETA.</td></tr>'}</tbody>
+        </table></div></div>
     </div>
-    <div class="card"><h3>📈 Статуси активних перевезень</h3><p class="sub">де зараз вантажі</p>
-      <div style="display:flex;flex-direction:column;gap:10px;margin-top:12px">
-        ${stNames.map(s=>`<div style="display:flex;align-items:center;gap:12px">
-          <div style="min-width:190px;font-size:13.5px">${stPill(s)}</div>
-          <div style="flex:1;background:var(--neutral-bg);border-radius:8px;height:10px;overflow:hidden">
-            <div style="width:${Math.round(byStatus[s]/maxSt*100)}%;height:100%;background:var(--accent);border-radius:8px"></div></div>
-          <b style="min-width:34px;text-align:right;font-size:14px">${byStatus[s]}</b></div>`).join("") ||
-          '<p class="sub">Активних перевезень немає.</p>'}
-      </div></div>
-    <div class="card"><h3>📅 Найближчі прибуття</h3><p class="sub">активні угоди за датою ETA, від найближчої</p>
-      <div class="tablewrap"><table>
-        <thead><tr><th>Угода</th><th>Клієнт</th><th>Судно</th><th>Статус</th><th>ETA</th></tr></thead>
-        <tbody>${upcoming.map(fmtRow).join("") || '<tr><td colspan="5" class="cell-muted">Немає активних угод з майбутнім ETA.</td></tr>'}</tbody>
-      </table></div></div>
-    <div class="card"><h3>⚠️ ETA минуло — перевірити</h3><p class="sub">дата прибуття вже позаду, а угода не закрита: оновити статус або дати</p>
-      <div class="tablewrap"><table>
-        <thead><tr><th>Угода</th><th>Клієнт</th><th>Судно</th><th>Статус</th><th>ETA</th></tr></thead>
-        <tbody>${overdue.map(fmtRow).join("") || '<tr><td colspan="5" class="cell-muted">Таких немає — все під контролем ✅</td></tr>'}</tbody>
-      </table></div></div>`;
+
+    <div class="card" style="margin-top:12px"><h3>⚠️ Потребує уваги — помилки й прогалини в даних</h3>
+      <p class="sub">натисни рядок, щоб побачити ці угоди в диспетчеризації</p>
+      <div class="isslist">${ISSUES.map(issRow).join("")}</div></div>
+
+`;
+
+  const DONUT = {maintainAspectRatio:false, cutout:"60%",
+    plugins:{ legend:{position:"right", labels:{boxWidth:8, boxHeight:8, usePointStyle:true,
+      pointStyle:"circle", padding:7, font:{size:10.5}}} }};
+  const PALETTE = [CH.blue, CH.green, CH.amber, CH.violet, CH.red, CH.slate, "#0ea5e9", "#f472b6", "#14b8a6", "#a3e635"];
 
   drawChart("ch-months", {
     type:"bar",
-    data:{ labels: months.map(([y,m])=>MON[m]), datasets:[{ data: byMonth, backgroundColor: CH.blue,
-      borderRadius:7, maxBarThickness:46 }] },
+    // рік у другому рядку підпису — інакше не видно, де січень міняє рік
+    data:{ labels: months.map(([y,m])=>[MON[m], "’"+String(y).slice(2)]),
+      datasets:[{ data: byMonth, backgroundColor: CH.blue, borderRadius:5, maxBarThickness:30 }] },
     options:{ maintainAspectRatio:false, plugins:{legend:{display:false}},
-      scales:{ y:{beginAtZero:true, ticks:{precision:0}, grid:{color:"rgba(148,163,184,.18)"}},
-               x:{grid:{display:false}} } }
+      scales:{ y:{beginAtZero:true, ticks:{precision:0, font:{size:10}}, grid:{color:"rgba(148,163,184,.18)"}},
+               x:{grid:{display:false}, ticks:{font:{size:10}}} } }
   });
   drawChart("ch-lines", {
     type:"doughnut",
     data:{ labels: lineNames, datasets:[{ data: lineNames.map(l=>byLine[l]),
-      backgroundColor:[CH.blue, CH.green, CH.amber, CH.violet, CH.red, CH.slate, "#0ea5e9", "#f472b6"],
-      borderWidth:0, hoverOffset:6 }] },
-    options:{ maintainAspectRatio:false, cutout:"62%",
-      plugins:{ legend:{position:"right", labels:{boxWidth:10, boxHeight:10, usePointStyle:true, pointStyle:"circle", padding:12}} } }
+      backgroundColor: PALETTE, borderWidth:0, hoverOffset:6 }] },
+    options: DONUT
   });
+  if (modeNames.length) drawChart("ch-modes", {
+    type:"doughnut",
+    data:{ labels: modeNames, datasets:[{ data: modeNames.map(m=>byMode[m]),
+      backgroundColor: PALETTE, borderWidth:0, hoverOffset:6 }] },
+    options: DONUT
+  });
+  if (loadNames.length) drawChart("ch-loads", {
+    type:"doughnut",
+    data:{ labels: loadNames, datasets:[{ data: loadVals,
+      backgroundColor:[CH.blue, CH.green, CH.slate], borderWidth:0, hoverOffset:6 }] },
+    options: DONUT
+  });
+  $("content").querySelectorAll("[data-jump]").forEach(t=>t.addEventListener("click",()=>{
+    if (t.classList.contains("issrow") && !t.classList.contains("clickable")) return;
+    DISP_QUICK = t.dataset.jump; go("dispatch");
+  }));
   enhanceTiles();
 };
 
@@ -756,84 +1282,400 @@ const FLAGS = ["Телекс","Т1","ДО","Документи","SI","Замит
 PAGES.dispatch = async () => {
   DISP_CACHE = null;
   const all = scoped(await dispRows());
-  // хронологія за ETA: доставлені лишаються вище, таблиця сама відкривається на угодах у роботі
-  const _eta = r => { const m=/(\d{4})-(\d{2})-(\d{2})/.exec(String(r["ETA"]||"")); return m? (m[1]+m[2]+m[3]) : "99999999"; };
+  // ПОРЯДОК (правило 31.07.2026, уточнене 01.08.2026):
+  //   1) «Вантаж доставлено» — вгорі, за шапкою (їх не видно, таблиця прокручена нижче);
+  //   2) решта — за КЛЮЧОВОЮ ДАТОЮ напрямку: імпорт і транзит по ETA, експорт по ETD.
+  //      Чим раніше — тим вище. Жодних інших груп.
+  //   3) угоди без ключової дати — у самий низ (планувати нічого).
+  // Чому по-різному: у рядку підсвічена саме ключова дата напрямку, і порядок
+  // має збігатися з тим, на що дивиться око.
+  /* Ключова дата угоди: для ЕКСПОРТУ це відправлення (ETD), для імпорту й
+     транзиту — прибуття (ETA). Рішення користувачки 01.08.2026: сортування має
+     збігатися з тим, що підсвічено в рядку, інакше око бачить один порядок,
+     а список побудований за іншим. ETD беремо так само, як показуємо в таблиці:
+     фактичний, а поки його немає — плановий. */
+  const _key = r => { const v = _s(r,"Напрямок") === "Експорт" ? etdOf(r) : String(r["ETA"] || "");
+    const m = /(\d{4})-(\d{2})-(\d{2})/.exec(v); return m ? (m[1]+m[2]+m[3]) : ""; };
   const _done = r => r["Статус"] === "Вантаж доставлено";
-  all.sort((a,b)=> _eta(a).localeCompare(_eta(b)) || (parseInt(a["Угода"])||0) - (parseInt(b["Угода"])||0));
+  const _num = r => parseInt(r["Угода"])||0;
+  /* Просування вантажу — потрібне ЛИШЕ для угод БЕЗ ключової дати. Там раніше
+     сортувало просто за номером, тому «Букінг» 193 ставав вище за «Виконується»
+     194 (зауваження користувачки 01.08.2026: «не може бути угода зі статусом
+     Букінг перед угодою В морі або Виконується»). Тепер серед таких угод
+     спершу ті, що просунулись далі. */
+  const ST_RANK = {"Букінг":0, "Виконується":1, "Стафіровка":2, "В порту відправлення":3,
+    "Завантажений на судно":4, "В морі":5, "Вивантажений в порту прибуття":6,
+    "Завантажений на авто":7, "Завантажений на потяг":7, "Вивантажений в сухому порту":8,
+    "На кордоні":9, "Вантаж доставлено":10};
+  const _rank = r => { const v = ST_RANK[_s(r,"Статус")]; return v === undefined ? -1 : v; };
+  all.sort((a,b)=>{
+    const ra = _done(a)?0:1, rb = _done(b)?0:1;
+    if (ra !== rb) return ra - rb;
+    const ea=_key(a), eb=_key(b);
+    if (!ea && !eb) return (_rank(b) - _rank(a)) || (_num(a) - _num(b));
+    if (!ea) return 1;                       // без ключової дати — у самий низ
+    if (!eb) return -1;
+    return ea.localeCompare(eb) || _num(a)-_num(b);   // чим раніше — тим вище
+  });
+  // швидкий фільтр із плиток дашборда (клік по плитці → сюди з готовим відбором)
+  const _dt = v => { const m=/(\d{4})-(\d{2})-(\d{2})/.exec(String(v||"")); return m? new Date(+m[1],+m[2]-1,+m[3]) : null; };
+  const _today = new Date(); _today.setHours(0,0,0,0);
+  const QUICK = {
+    active:{label:"активні перевезення", test:r=>!_done(r)},
+    sea:{label:"в морі зараз", test:r=>r["Статус"]==="В морі"},
+    eta7:{label:"прибуття за 7 днів", test:r=>{ if(_done(r)) return false; const e=_dt(r["ETA"]);
+      if(!e) return false; const dd=(e-_today)/86400000; return dd>=0 && dd<=7; }},
+    nobl:{label:"без коносамента / авіанакладної", test:r=>!_done(r) && needsBL(r) && !shipDoc(r)},
+    inport:{label:"у порту — не вивезено", test:inPort},
+    etachg:{label:"змінилася дата прибуття", test:etaChanged},
+    nostatus:{label:"без статусу", test:r=>!_s(r,"Статус")},
+    noeta:{label:"без ETA", test:r=>!_s(r,"ETA")},
+    overdue:{label:"ETA минула, угода не закрита", test:r=>{ if(_done(r)) return false;
+      const e=_dt(r["ETA"]); return !!e && e<_today; }},
+    nocont:{label:"без номера контейнера", test:r=>needsCont(r) && !_s(r,"Контейнер")},
+    noline:{label:"без лінії (морські й залізничні)", test:r=>hasLine(r) && !_s(r,"Лінія")},
+    nomode:{label:"без виду перевезення", test:r=>!_s(r,"Вид перевезення")},
+    stale:{label:"не оновлювалось понад 7 днів", test:r=>{ if(_done(r)) return false;
+      const u=dOf(_s(r,"Останнє оновлення")||_s(r,"Остання зміна"));
+      return !!u && (_today-u)/86400000 > 7; }},
+    trucklate:{label:"імпорт у порту без авто понад 2 дні", test:truckLate},
+    stagestale:{label:"менеджер не оновив етап в Експедиторі", test:stageStale},
+    nogatein:{label:"експорт без дати заїзду в порт", test:gateInMissing},
+  };
+  // «st:<назва>» — клік по рядку статусу на дашборді; порожня назва = без статусу
+  let quick = QUICK[DISP_QUICK] || null;
+  if (!quick && String(DISP_QUICK || "").startsWith("st:")){
+    const s = DISP_QUICK.slice(3);
+    quick = s ? {label:"статус: "+s, test:r=>_s(r,"Статус")===s}
+              : {label:"без статусу", test:r=>!_s(r,"Статус")};
+  }
+  const quickCount = quick ? all.filter(quick.test).length : all.length;
   const logist = cfg().cols === "logist";
+  // РЕДАГУВАННЯ ПРЯМО В ТАБЛИЦІ. Редаговані лише ті поля, які синхронізація з
+  // Експедитора НЕ затирає (політика «не чіпати чуже»), плюс «Статус» — його
+  // Експедитор перезаписує лише для етапів Завершена / Букинг / Выполняется.
+  const CAN_EDIT = !!cfg().edit;
+  const ED = CAN_EDIT ? " ed" : "";
+  const ED_KIND = {"ETA":"date", "ETD (факт)":"date", "Гейт ін":"date",
+                   "Подача авто (факт)":"date", "Перетин кордону (факт)":"date",
+                   "ETA сухий порт":"date", "Gate out for delivery":"date", "Stuffing":"date",
+                   "Здача в порт (факт)":"date",
+                   "Статус":"select", "Вид перевезення":"select"};
+  // варіанти для випадайок у таблиці — свої для кожної колонки
+  const ED_OPTS = {"Статус": ()=>Object.keys(STATUSES), "Вид перевезення": ()=>MODE_OPTIONS};
   const syncBtn = cfg().sync ? '<button class="btn" id="sync-btn">⟳ Оновити з Експедитора</button>' : "";
   const head = logist
     ? "<th>Угода</th><th>Клієнт</th><th>Контейнер</th><th>Статус</th><th>Номер авто</th><th>Водій</th><th>Телефон</th><th>Перетин кордону</th><th></th>"
-    : "<th>Угода</th><th></th><th>Клієнт</th><th>Лінія</th><th>BL / Контейнер</th><th>Судно</th><th>ETA</th><th>Статус</th><th>Позначки</th><th>Коментар</th><th></th>";
+    : "<th>Угода</th><th></th><th>Клієнт</th><th>Маршрут</th><th>Вид / лінія</th><th class=\"c-bl\">Коносамент /<br>контейнер</th><th class=\"c-ves\">Судно</th><th class=\"dt\">Stuffing</th><th class=\"dt\">Gate in /<br>здача</th><th class=\"dt\">ETD POL</th><th class=\"dt\">ETA POD</th><th class=\"dt\">ETA dry port</th><th class=\"dt\">Gate out delivery</th><th>Статус</th><th>Авто</th><th>Коментар</th><th></th>";
+  // ── активні алерти над таблицею
+  const uniq = k => [...new Set(all.map(r=>_s(r,k)).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"uk"));
+  const nActive = all.filter(r=>!_done(r)).length;
+  /* Прибрано 01.08.2026: «Стоять у порту» і «ETA минула». Обидві плитки були
+     МОЇМ припущенням про терміни вивозу, а не правилом компанії. Користувачка:
+     «більшість вантажів тільки прибули, їх ще не встигли ні розмитнити ні
+     доставити — прибери терміни, які ти сам собі виставив по вивозу».
+     Повернемо разом з обліком демереджу й детеншену, коли будуть норми free time. */
+  const ALERTS = [
+    {q:"trucklate", cls:"a-red",   nm:"У порту без авто >2дн", n: all.filter(truckLate).length},
+    {q:"stagestale",cls:"a-red",   nm:"Етап не оновлено",  n: all.filter(stageStale).length},
+    {q:"nogatein",  cls:"a-red",   nm:"Експорт без Gate in",             n: all.filter(gateInMissing).length},
+
+    {q:"etachg",    cls:"a-amber", nm:"Змінилася дата прибуття",       n: all.filter(etaChanged).length},
+
+    {q:"nostatus",  cls:"a-amber", nm:"Без статусу",                   n: all.filter(r=>!_s(r,"Статус")).length},
+    {q:"nobl",      cls:"a-amber", nm:"Без BL",           n: all.filter(QUICK.nobl.test).length},
+  ].filter(a=>a.n > 0);
   $("content").innerHTML = `
     <div class="card">
-      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
-        <h3 style="margin:0">🚢 Диспетчеризація</h3>
-        <span class="sub" style="margin:0">угод: ${all.length}${cfg().scope!=="all"?" (лише твої)":""} · клік по рядку — картка</span>
-        <span style="flex:1"></span>${syncBtn}
+      <div class="alertbar">
+        <span class="abadge">Активних <b>${nActive}</b><span class="cell-muted" style="font-size:11px">з ${all.length}</span></span>
+        ${ALERTS.map(a=>`<span class="abadge ${a.cls} clickable" data-q="${a.q}">${esc(a.nm)} <b>${a.n}</b></span>`).join("")}
+        ${quick? `<span class="quickchip">Фільтр: ${esc(quick.label)} — ${quickCount}<button id="quick-clear" title="скинути фільтр">✕</button></span>`:""}
       </div>
       <div class="filters" style="margin-top:12px">
         <input id="q" placeholder="Пошук: угода, клієнт, BL, контейнер, судно…">
         <select id="dirf"><option value="">Імпорт + експорт</option><option>Імпорт</option><option>Експорт</option><option>Транзит</option></select>
         <select id="stf"><option value="">Усі статуси</option>${Object.keys(STATUSES).map(s=>`<option>${s}</option>`).join("")}</select>
+        <select id="modef"><option value="">Усі види перевезення</option>${
+          uniq("Вид перевезення").map(c=>`<option>${esc(c)}</option>`).join("")}</select>
         <select id="linef"><option value="">Усі лінії</option><option>Maersk</option><option>MSC</option><option>CMA CGM</option><option>Інша</option></select>
-        <select id="clif"><option value="">Усі клієнти</option>${[...new Set(all.map(r=>String(r["Клієнт"]||"").trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"uk")).map(c=>`<option>${esc(c)}</option>`).join("")}</select>
+        <select id="clif"><option value="">Усі клієнти</option>${uniq("Клієнт").map(c=>`<option value="${esc(c)}">${esc(cliName(c))}</option>`).join("")}</select>
+        <select id="manf"><option value="">Усі менеджери</option>${uniq("Менеджер").map(c=>`<option>${esc(c)}</option>`).join("")}</select>
+        <select id="opmf"><option value="">Усі оп. менеджери</option>${uniq("Оп. менеджер").map(c=>`<option>${esc(c)}</option>`).join("")}</select>
       </div>
-      <div class="tablewrap dispscroll" id="dscroll"><table>
+      <div class="tablewrap dispscroll" id="dscroll"><table class="${logist?"":"fixw"}">
+        ${logist? "" : `<colgroup>
+          <!-- 17 колонок; ширини підібрані так, щоб таблиця вміщалась без бічної
+               прокрутки на ~1360 px робочої області (зауваження користувачки 01.08.2026) -->
+          <!-- Реліз і Позначки навмисно в кінці: вони потрібні рідко, тому йдуть
+               за межу екрана, а місце віддано виду перевезення, коносаменту
+               й номерам контейнерів (прохання користувачки 01.08.2026). -->
+          <!-- Сума до «Коментаря» включно = 1324 px: усе вміщається на екран
+               ~1360 px без обрізання. Реліз, Позначки й документи навмисно
+               за межею — їх видно лише при прокрутці вбік (01.08.2026). -->
+          <!-- 16 колонок, разом ~1324 px: вміщається без бічної прокрутки.
+               Реліз і Позначки з таблиці прибрані зовсім — вони в картці угоди
+               (двічі просила прибрати їх з екрана, 01.08.2026). Дати по 84 px:
+               жирний 13 px «12.06.26» потребує ~72 px разом із відступами. -->
+          <!-- 17 колонок, шість із них дати по 86 px (кегль дат 12.5 px).
+               Сума фіксованих ~1232 px, решта — «Коментар» (01.08.2026). -->
+          <col style="width:46px"><col style="width:62px"><col style="width:84px"><col style="width:102px">
+          <col style="width:110px"><col style="width:124px"><col style="width:74px"><col style="width:86px">
+          <col style="width:86px"><col style="width:86px"><col style="width:86px"><col style="width:86px">
+          <col style="width:86px"><col style="width:106px"><col style="width:74px"><col><col style="width:32px">
+        </colgroup>`}
         <thead><tr>${head}</tr></thead>
         <tbody id="drows"></tbody></table></div>
     </div>`;
-  const draw = () => {
+  if (cfg().sync) $("page-actions").innerHTML = syncBtn;
+  // ── редагування клітинки на місці: Enter/клік поза межами — зберегти, Esc — скасувати
+  /* Галочка прямо в таблиці одним кліком. Зараз у таблиці таких клітинок НЕМАЄ:
+     «Реліз» прибрано з екрана на прохання користувачки (01.08.2026) і він живе
+     в картці угоди. Механізм лишаємо — щоб повернути колонку, досить додати
+     клітинці class="tog" і data-tog="<назва поля>". */
+  const toggleFlag = async (td) => {
+    if (td.classList.contains("saving")) return;
+    const tr = td.closest("tr[data-id]");
+    const row = all.find(x => String(x.Id) === tr.dataset.id);
+    if (!row) return;
+    const col = td.dataset.tog;
+    const was = !!row[col], now = !was;
+    td.classList.add("saving");
+    try{
+      await api(`/api/v2/tables/${T["Диспетчеризація"]}/records`, {method:"PATCH",
+        body: JSON.stringify([{Id: row.Id, [col]: now}])});
+      row[col] = now;
+      logAction("правка угоди", "Угода №" + (row["Угода"] || row.Id), col, was, now);
+      toast(`✅ ${col}: ${now ? "поставлено" : "знято"}`);
+      draw(rowSpot(row.Id));          // рядок лишається на тому самому місці
+    }catch(err){
+      toast("⚠ Не збереглось: " + err.message);
+    }
+    td.classList.remove("saving");
+  };
+
+  /* Підганяє висоту таблиці під вікно: низ таблиці (а з ним і горизонтальна
+     смуга прокрутки) завжди лишається видимим, скільки б рядків фільтрів
+     і алертів не було зверху. */
+  const fitDispScroll = () => {
+    const box = $("dscroll");
+    if (!box) return;
+    const top = box.getBoundingClientRect().top;
+    box.style.maxHeight = Math.max(300, window.innerHeight - top - 24) + "px";
+  };
+  window.addEventListener("resize", fitDispScroll);
+
+  /* Де саме рядок стоїть на екрані зараз — щоб після перемальовування
+     повернути його на те саме місце. */
+  const rowSpot = (id) => {
+    const box = $("dscroll"), tr = $("drows").querySelector('tr[data-id="' + id + '"]');
+    return (box && tr) ? { id: id, delta: tr.offsetTop - box.scrollTop } : null;
+  };
+
+  const editCell = (td) => {
+    if (td.querySelector(".edinput")) return;
+    const col = td.dataset.ed;
+    const row = all.find(x => String(x.Id) === td.closest("tr").dataset.id);
+    if (!row) return;
+    const kind = ED_KIND[col] || "text";
+    const cur = String(row[col] || "");
+    const val0 = kind === "date" ? cur.slice(0,10) : cur;
+    const keep = td.innerHTML;
+    td.innerHTML = kind === "select"
+      ? `<select class="edinput"><option value=""></option>${(ED_OPTS[col]||(()=>[]))().map(o=>
+          `<option${o===cur?" selected":""}>${esc(o)}</option>`).join("")}</select>`
+      : `<input class="edinput" type="${kind==="date"?"date":"text"}" value="${esc(val0)}">`;
+    const inp = td.querySelector(".edinput");
+    inp.focus();
+    if (kind === "text") inp.select();
+    let closed = false;
+    const finish = async (save) => {
+      if (closed) return;
+      closed = true;
+      const v = String(inp.value || "").trim();
+      if (!save || v === val0){ td.innerHTML = keep; return; }
+      td.classList.add("saving");
+      try{
+        const was = row[col];
+        await api(`/api/v2/tables/${T["Диспетчеризація"]}/records`, {method:"PATCH",
+          body: JSON.stringify([{Id: row.Id, [col]: v || null}])});
+        row[col] = v;                       // DISP_CACHE той самий об'єкт — таблиця і картка бачать нове
+        logAction("правка угоди", "Угода №" + (row["Угода"] || row.Id), col, was, v);
+        toast(`✅ ${col}: ${v || "очищено"}`);
+        draw(rowSpot(row.Id));        // рядок лишається на тому самому місці
+      }catch(err){
+        td.innerHTML = keep;
+        toast("⚠ Не збереглось: " + err.message);
+      }
+      td.classList.remove("saving");
+    };
+    inp.addEventListener("blur", ()=>finish(true));
+    inp.addEventListener("keydown", e=>{
+      if (e.key === "Enter"){ e.preventDefault(); finish(true); }
+      if (e.key === "Escape"){ e.preventDefault(); finish(false); }
+    });
+    if (kind === "select") inp.addEventListener("change", ()=>finish(true));
+  };
+
+  let firstDraw = true;
+  const draw = (keep) => {
     const q=$("q").value.toLowerCase(), st=$("stf").value;
     const dir=$("dirf").value, line=$("linef").value, cli=$("clif").value;
+    const man=$("manf").value, opm=$("opmf").value, mode=$("modef").value;
     const list = all.filter(r =>
+      (!quick || quick.test(r)) &&
       (!st || r["Статус"]===st) &&
-      (!dir || r["Напрямок"]===dir) && (!line || r["Лінія"]===line) && (!cli || String(r["Клієнт"]||"").trim()===cli) &&
-      (!q || [r["Угода"],r["Клієнт"],r["BL"],r["Контейнер"],r["Судно"],r["Номер авто"],r["Водій (ПІБ)"]].join(" ").toLowerCase().includes(q)));
+      (!dir || r["Напрямок"]===dir) && (!line || r["Лінія"]===line) && (!cli || _s(r,"Клієнт")===cli) &&
+      (!man || _s(r,"Менеджер")===man) && (!opm || _s(r,"Оп. менеджер")===opm) &&
+      (!mode || _s(r,"Вид перевезення")===mode) &&
+      (!q || [r["Угода"],r["Клієнт"],r["BL"],r["HBL"],r["Контейнер"],r["Судно"],r["Номер авто"],r["Водій (ПІБ)"]].join(" ").toLowerCase().includes(q)));
     $("drows").innerHTML = list.length ? list.map(r=> logist ? `
       <tr data-id="${r.Id}" class="${r["Статус"]==='Вантаж доставлено'?'done':''}" style="cursor:pointer">
         <td class="mono"><b>${esc(r["Угода"])}</b></td><td>${esc(r["Клієнт"]||"—")}</td>
-        <td class="mono">${esc(r["Контейнер"]||"—")}</td><td>${stPill(r["Статус"])}</td>
-        <td class="mono">${esc(r["Номер авто"]||"—")}</td><td>${esc(r["Водій (ПІБ)"]||"—")}</td>
-        <td class="mono">${esc(r["Водій (телефон)"]||"—")}</td><td class="mono">${esc(r["Перетин кордону (факт)"]||"—")}</td>
+        <td class="mono">${esc(r["Контейнер"]||"—")}</td><td class="${ED.trim()}" data-ed="Статус">${stPill(r["Статус"])}</td>
+        <td class="mono${ED}" data-ed="Номер авто">${esc(r["Номер авто"]||"—")}</td>
+        <td class="${ED.trim()}" data-ed="Водій (ПІБ)">${esc(r["Водій (ПІБ)"]||"—")}</td>
+        <td class="mono${ED}" data-ed="Водій (телефон)">${esc(r["Водій (телефон)"]||"—")}</td>
+        <td class="mono${ED}" data-ed="Перетин кордону (факт)">${dateB(r["Перетин кордону (факт)"])}</td>
         <td>${docBtn(r)}</td>
       </tr>` : `
-      <tr data-id="${r.Id}" class="${r["Статус"]==='Вантаж доставлено'?'done':''}" style="cursor:pointer">
+      <tr data-id="${r.Id}" class="${r["Статус"]==='Вантаж доставлено'?'done':''} ${truckLate(r)?'alertrow':((stageStale(r)||gateInMissing(r))?'warnrow':'')}" style="cursor:pointer"
+          ${truckLate(r)?`title="Імпорт у порту ${daysIn(r)} дн, авто не подане і номера немає"`
+            :(stageStale(r)?`title="Статус «${esc(_s(r,"Статус"))}», а етап в Експедиторі досі «Букинг» — менеджер не вніс зміни"`
+              :(gateInMissing(r)?'title="Експорт без дати заїзду в порт — її ставлять одразу після букінгу"':""))}>
         <td class="mono"><b>${esc(r["Угода"])}</b></td>
         <td>${r["Напрямок"]?`<span class="dirchip ${r["Напрямок"]==="Імпорт"?"imp":"exp"}">${r["Напрямок"]==="Імпорт"?"ІМП":(r["Напрямок"]==="Експорт"?"ЕКС":"ТРН")}</span>`:""}</td>
-        <td>${esc(r["Клієнт"]||"—")}</td>
-        <td>${esc(r["Лінія"]||"—")}</td>
-        <td class="mono">${esc(r["BL"]||"—")}<br><span class="cell-muted">${esc(r["Контейнер"]||"")}</span></td>
-        <td>${esc(r["Судно"]||"—")}</td>
-        <td class="mono">${esc(r["ETA"]||"—")}</td>
-        <td>${stPill(r["Статус"])}</td>
-        <td>${FLAGS.filter(f=>r[f]).map(f=>`<span class="flag on">${f} ✓</span>`).join("")||'<span class="cell-muted">—</span>'}</td>
-        <td class="cell-muted" style="max-width:220px">${esc(r["Коментар"]||"")}</td>
+        <td class="c-cli" title="${esc(r["Клієнт"]||"")}">${esc(cliName(r["Клієнт"])||"—")}</td>
+        <td class="c-rt${ED}" data-ed="Маршрут" title="${esc(r["Маршрут"]||"")}">${
+            _s(r,"Маршрут")
+              ? _s(r,"Маршрут").split(/→|->/).map(x=>x.trim()).filter(Boolean)
+                  .map((x,i)=>`${i?'<span class="rtar">→</span>':""}${esc(x)}`).join("<br>")
+              : '<span class="cell-muted">—</span>'}${
+            _s(r,"Кінцева точка доставки")
+              ? `<br><span class="fin" title="кінцева точка доставки">⌂ ${esc(r["Кінцева точка доставки"])}</span>`
+              : ""}</td>
+        <td class="c-md${ED}" data-ed="Вид перевезення" title="${esc(_s(r,"Вид перевезення"))}">${
+            _s(r,"Вид перевезення")
+              /* «фрахт+ТЕО+залізниця» — один суцільний токен без пробілів, тому
+                 звичайний перенос не спрацьовував і текст обрізався. <wbr> каже
+                 браузеру, що після «+» переносити можна (01.08.2026). */
+              ? esc(r["Вид перевезення"]).replace(/\+/g, "+<wbr>")
+              : '<span class="cell-muted">—</span>'}${
+            (isAir(r)||_s(r,"Вид перевезення")==="авто"||!_s(r,"Лінія")) ? ""
+              : `<br><span class="cell-muted">${esc(r["Лінія"])}</span>`}</td>
+        <td class="mono c-bl">${isAir(r)
+            ? (_s(r,"Авіанакладна") ? `${esc(r["Авіанакладна"])}<br><span class="cell-muted">авіанакладна</span>`
+                                    : '<span class="cell-muted">авіа — накладної немає</span>')
+            : `${_s(r,"HBL") ? `<span class="ln" title="домашній коносамент"><i class="blt">HBL</i>${esc(r["HBL"])}</span>` : ""}${
+                _s(r,"BL") ? `<span class="ln" title="лінійний коносамент"><i class="blt">BL</i>${trackLink(r, r["BL"])}</span>` : ""}${
+                (!_s(r,"HBL") && !_s(r,"BL")) ? '<span class="ln cell-muted">—</span>' : ""}${_s(r,"Контейнер").split(",")
+                .map(c=>c.trim()).filter(Boolean)
+                .map(c=>`<span class="ln">${trackLink(r, c, "cell-muted")}</span>`).join("")}`}</td>
+        <td class="c-ves${ED}" data-ed="Судно">${esc(r["Судно"]||"—")}</td>
+        <td class="mono dt${ED}" data-ed="Stuffing" title="дата стафіровки">${dateB(r["Stuffing"])}</td>
+        <td class="mono dt">${
+            /* Дві дати в одній колонці, кожна редагується окремо: верхня —
+               заїзд у порт (з Maersk), нижня — фактична здача терміналу, до
+               неї прив'яжемо демередж і зберігання (01.08.2026). */
+            ""}<span class="ln2${ED}" data-ed="Гейт ін" title="Gate in — заїзд у порт">${
+              dateB(r["Гейт ін"])}</span><span class="ln2 sub2${ED}" data-ed="Здача в порт (факт)"
+              title="фактична здача в порт — від неї рахуємо демередж і зберігання">${
+              _s(r,"Здача в порт (факт)") ? fmtD(r["Здача в порт (факт)"]) : "—"}</span></td>
+        <td class="mono dt${ED}${_s(r,"Напрямок")==="Експорт"?" keydt":""}" data-ed="ETD (факт)">${etdOf(r)
+            /* Підпис «план» прибрано 01.08.2026: ETD і так планова дата, доки
+               немає фактичної. Значення береться з «ETD (факт)», а якщо його
+               немає — з «ETD (план)», тому окремо позначати нічого не треба. */
+            ? dateB(etdOf(r))
+            : '<span class="cell-muted">—</span>'}</td>
+        <td class="mono dt${ED}${_s(r,"Напрямок")==="Імпорт"?" keydt":""}" data-ed="ETA">${dateB(r["ETA"])}${(()=>{
+            const c = etaChanged(r) ? etaChange(r) : null;
+            return c ? `<br><span class="wasdt" title="дата прибуття змінилася ${fmtD(c.when)}">було ${fmtD(c.from)}</span>` : "";
+          })()}</td>
+        <td class="mono dt${ED}" data-ed="ETA сухий порт" title="${
+            isRail(r) ? "ETA сухий порт" : "сухий порт буває лише на залізничних перевезеннях"}">${
+            _s(r,"ETA сухий порт") ? dateB(r["ETA сухий порт"])
+              : (isRail(r) ? '<span class="cell-muted">—</span>'
+                           : '<span class="cell-muted">—</span>')}</td>
+        <td class="mono dt${ED}" data-ed="Gate out for delivery" title="виїзд із сухого порту на авто — послуга «остання миля»">${
+            dateB(r["Gate out for delivery"])}</td>
+        <td class="${ED.trim()}" data-ed="Статус">${stPill(r["Статус"])}</td>
+        <td class="mono${ED}" data-ed="Подача авто (факт)" title="дата подачі авто">${truckDate(r)
+            ? `${dateB(truckDate(r))}${_s(r,"Подача авто (факт)")?"":'<span class="cell-muted"> план</span>'}`
+            : (truckLate(r) ? '<span style="color:#d1453b;font-weight:700">немає</span>' : '<span class="cell-muted">—</span>')}${
+            _s(r,"Номер авто") ? `<br><span class="cell-muted">${esc(r["Номер авто"])}</span>` : ""}</td>
+        <td class="cell-muted c-com${ED}" data-ed="Коментар" title="${esc(r["Коментар"]||"")}">${esc(r["Коментар"]||"")}</td>
         <td>${docBtn(r)}</td>
-      </tr>`).join("") : `<tr><td colspan="10" class="cell-muted">Нічого не знайдено.</td></tr>`;
+      </tr>`).join("") : `<tr><td colspan="17" class="cell-muted">Нічого не знайдено.</td></tr>`;
     $("drows").querySelectorAll("tr[data-id]").forEach(tr=>tr.addEventListener("click",()=>openRow(all.find(x=>String(x.Id)===tr.dataset.id))));
-    // таблиця відкривається на першій угоді в роботі (доставлені лишаються вище, за шапкою)
+    // клік по номеру відкриває трекінг лінії, а не картку угоди
+    $("drows").querySelectorAll("a.tl").forEach(a=>a.addEventListener("click", e=>e.stopPropagation()));
+    // клік по галочці «Реліз» — перемикається одразу, картка не відкривається
+    if (CAN_EDIT) $("drows").querySelectorAll("td.tog[data-tog]").forEach(td=>{
+      td.addEventListener("click", e=>{ e.stopPropagation(); toggleFlag(td); });
+    });
+    // клік по редагованій клітинці — правка на місці, картка угоди при цьому не відкривається
+    if (CAN_EDIT) $("drows").querySelectorAll(".ed[data-ed]").forEach(td=>{
+      if (!td.title) td.title = "клік — редагувати «" + td.dataset.ed +
+        "», Enter — зберегти, Esc — скасувати";
+      td.addEventListener("click", e=>{ e.stopPropagation(); editCell(td); });
+    });
+    /* Прокрутка. При ПЕРШОМУ відкритті ховаємо доставлені за шапку, щоб зверху
+       був найближчий за ключовою датою вантаж. Далі — не смикаємо: після правки
+       клітинки таблиця перемальовується, і раніше вона щоразу стрибала на початок
+       (зауваження користувачки 01.08.2026). Якщо передано keep — повертаємо
+       відредагований рядок рівно туди, де він був на екрані, навіть якщо
+       пересортування зсунуло його вище або нижче. */
+    fitDispScroll();
     const box = $("dscroll");
     if (box){
-      const firstOpen = $("drows").querySelector("tr:not(.done)");
-      box.scrollTop = firstOpen ? Math.max(0, firstOpen.offsetTop - 2) : 0;
+      if (keep){
+        const tr = $("drows").querySelector('tr[data-id="' + keep.id + '"]');
+        if (tr) box.scrollTop = Math.max(0, tr.offsetTop - keep.delta);
+      } else if (firstDraw){
+        const firstOpen = $("drows").querySelector("tr:not(.done)");
+        box.scrollTop = firstOpen ? Math.max(0, firstOpen.offsetTop - 2) : 0;
+      }
+      firstDraw = false;
     }
     $("drows").querySelectorAll(".docs-btn").forEach(b=>b.addEventListener("click",(e)=>{ e.stopPropagation(); openDocs(all.find(x=>String(x.Id)===b.dataset.doc)); }));
   };
-  ["q","dirf","stf","linef","clif"].forEach(id=>$(id).addEventListener(id==="q"?"input":"change",draw));
+  ["q","dirf","stf","modef","linef","clif","manf","opmf"].forEach(id=>$(id).addEventListener(id==="q"?"input":"change",draw));
+  $("content").querySelectorAll(".abadge[data-q]").forEach(b=>b.addEventListener("click",()=>{
+    DISP_QUICK = (DISP_QUICK === b.dataset.q) ? null : b.dataset.q; go("dispatch");
+  }));
+  const qc = $("quick-clear");
+  if (qc) qc.addEventListener("click",()=>{ DISP_QUICK=null; go("dispatch"); });
   draw();
   const sb = $("sync-btn");
   if (sb) sb.addEventListener("click", async ()=>{
-    sb.disabled=true; sb.textContent="⏳ Оновлюю…";
+    sb.disabled=true; sb.textContent="⏳ Оновлюю… (до 2 хв: Експедитор + трекінг)";
     try{
       const r = await fetch("/sync"); const js = await r.json();
-      const m = /new=(\d+)/.exec(js.result||"");
-      toast(m && m[1]!=="0" ? `✅ Додано нових угод: ${m[1]}` : "✅ Синхронізовано, нових угод немає");
+      const res = js.result||"";
+      const m = /new=(\d+)/.exec(res);
+      const t = /MAERSK_OK tracked=(\d+) updated=(\d+)/.exec(res);
+      const parts = [m && m[1]!=="0" ? `додано нових угод: ${m[1]}` : "нових угод немає"];
+      if (t) parts.push(`трекінг Maersk: оновлено ${t[2]} з ${t[1]}`);
+      toast("✅ " + parts.join(" · "));
       DISP_CACHE=null; go("dispatch");
     } catch(e){ toast("⚠ Не вдалося оновити — спробуй ще раз"); }
     finally{ sb.disabled=false; sb.textContent="⟳ Оновити з Експедитора"; }
   });
 };
+
+/* ===== типи документів =====
+   Тип зберігається ПРЕФІКСОМ у назві вкладення: «[Т1] scan.pdf» (рішення користувачки
+   01.08.2026). Так тип видно людині і в платформі, і в базі, і він не губиться,
+   якщо файли чіпають руками. Клієнтський кабінет показуватиме лише CLIENT_DOCS.
+   «Рахунок» — наш рахунок клієнту; «Інвойс» — інвойс на вантаж від клієнта
+   (різні документи, уточнення користувачки 01.08.2026). */
+const DOC_TYPES = ["Домашній коносамент","Лінійний коносамент","Т1","Реліз","ЦМР",
+                   "Рахунок","Інвойс","Довідка","Акт","Внутрішній"];
+const CLIENT_DOCS = new Set(["Домашній коносамент","Лінійний коносамент","Т1","Реліз","ЦМР",
+                             "Рахунок","Інвойс","Довідка","Акт"]);
+const DOC_TYPE_RE = /^\s*\[([^\]]+)\]\s*/;
+const docType = a => { const m = DOC_TYPE_RE.exec(String(a.title||"")); return m ? m[1].trim() : ""; };
+const docName = a => String(a.title||"файл").replace(DOC_TYPE_RE, "");
 
 function attList(r){
   let f = r["Файли"];
@@ -855,8 +1697,14 @@ function renderDocList(){
   const files = attList(DOC_ROW);
   $("doc-list").innerHTML = files.length ? files.map(a=>{
     const kb = a.size ? Math.round(a.size/1024) + " КБ" : "";
+    const t = docType(a);
+    const chip = t
+      ? `<span class="pill ${CLIENT_DOCS.has(t)?"t-info":"t-neutral"}" title="${CLIENT_DOCS.has(t)
+          ? "клієнт бачить цей документ у кабінеті" : "внутрішній — клієнту не показується"}">${esc(t)}</span>`
+      : '<span class="pill t-warn" title="тип не вказаний — клієнту не показується">без типу</span>';
     return `<div class="acct-chip" style="flex:none;display:flex;align-items:center;gap:10px;cursor:default">
-      <span style="flex:1"><b>${esc(a.title||"файл")}</b> <span class="cell-muted">${kb}</span></span>
+      ${chip}
+      <span style="flex:1"><b>${esc(docName(a))}</b> <span class="cell-muted">${kb}</span></span>
       <a class="btn ghost" style="padding:4px 12px;text-decoration:none" target="_blank" href="${esc(fileUrl(a))}">Відкрити</a></div>`;
   }).join("") : '<p class="sub">Поки нічого не прикріплено.</p>';
 }
@@ -868,6 +1716,7 @@ function openDocs(r){
   $("gen-type").value = ""; $("gen-form").style.display = "none"; $("gen-form").innerHTML = "";
   $("gen-btn").style.display = "none"; $("gen-status").textContent = "";
   $("doc-status").textContent = "";
+  $("doc-type").innerHTML = DOC_TYPES.map(t=>`<option${t==="Внутрішній"?"":""}>${esc(t)}</option>`).join("");
   renderDocList();
   $("doc-overlay").classList.add("open");
 }
@@ -887,13 +1736,21 @@ $("doc-file").addEventListener("change", async ()=>{
       if (!r.ok) throw new Error((js && js.msg) || "upload");
       added = added.concat(Array.isArray(js) ? js : [js]);
     }
+    // тип у назву: «[Т1] scan.pdf». Якщо префікс уже є — не дублюємо.
+    const ttype = $("doc-type").value || "Внутрішній";
+    added.forEach(a=>{
+      const nm = String(a.title || "файл").replace(DOC_TYPE_RE, "");
+      a.title = "[" + ttype + "] " + nm;
+    });
     const merged = attList(DOC_ROW).concat(added);
     await api(`/api/v2/tables/${T["Диспетчеризація"]}/records`, {method:"PATCH",
       body: JSON.stringify([{Id: DOC_ROW.Id, "Файли": merged}])});
     DOC_ROW["Файли"] = merged;
     renderDocList();
     $("doc-status").textContent = "";
-    toast("✅ Прикріплено: " + files.length);
+    toast(`✅ Прикріплено (${$("doc-type").value}): ${files.length}`);
+    logAction("додано документ", "Угода №" + (DOC_ROW["Угода"] || DOC_ROW.Id),
+      $("doc-type").value, "", added.map(a=>a.title).join(", "));
   } catch(e){
     $("doc-status").textContent = "⚠ Не вдалося завантажити (" + e.message + ")";
   }
@@ -1078,9 +1935,9 @@ $("gen-btn").addEventListener("click", async ()=>{
 });
 
 const CARD_GROUPS = [
-  ["Основне", ["Угода","Напрямок","Клієнт","Лінія","Тип","Перевізник","Агент","Маршрут","BL","Контейнер","Тип обладнання","Кількість","Вивіз (Carrier/Merchant)","Сухий порт","Адреса розмитнення"]],
-  ["Море", ["Судно","Вояж","Контейнер (лінія)","Звірка","Статус","ETA","ETD (план)","ETD (факт)","ETA порт (план)","ETA порт (факт)","Зміни ETA (історія)","Остання зміна","Останнє оновлення"]],
-  ["Дати на землі", ["Подача авто (план)","Подача авто (факт)","Port Cut Off","Гейт ін","Вивантаження в порту (факт)","Постановка/завантаження (план)","Постановка/завантаження (факт)","Перетин кордону (факт)","Планова до клієнта (план)","Планова до клієнта (факт)","Вивантаження у отримувача (факт)"]],
+  ["Основне", ["Угода","Напрямок","Клієнт","Лінія","Вид перевезення","FCL/LCL","Тип","Перевізник","Агент","Маршрут","Кінцева точка доставки","HBL","BL","Контейнер","Вантаж","Тип обладнання","Кількість","Вивіз (Carrier/Merchant)","Сухий порт","Адреса розмитнення"]],
+  ["Море", ["Судно","Вояж","Контейнер (лінія)","Звірка","Статус","Етап (Експедитор)","ETA","ETD (план)","ETD (факт)","ETA порт (план)","ETA порт (факт)","Порт перевалки","Перевалка (прибуття)","Перевалка (відправлення)","Зміни ETA (історія)","Остання зміна","Останнє оновлення"]],
+  ["Дати на землі", ["Stuffing","Подача авто (план)","Подача авто (факт)","Port Cut Off","Гейт ін","Здача в порт (факт)","Вивантаження в порту (факт)","Гейт аут","ETA сухий порт","Gate out for delivery","Постановка/завантаження (план)","Постановка/завантаження (факт)","На кордоні","Перетин кордону (факт)","Планова до клієнта (план)","Планова до клієнта (факт)","Вивантаження у отримувача (факт)"]],
   ["Авто і документи", ["Номер авто","Номер ЦМР","Водій (ПІБ)","Водій (телефон)","Телекс","Т1","ДО","Документи","SI","Замитнення","Реліз"]],
   ["Команда і коментарі", ["Менеджер","Оп. менеджер","Лист (джерело)","Нагадування","Коментар","Коментар клієнту"]],
 ];
@@ -1088,19 +1945,134 @@ const LOGIST_GROUPS = [
   ["Основне", ["Угода","Клієнт","Контейнер","Статус","Маршрут","Сухий порт"]],
   ["Авто", ["Номер авто","Номер ЦМР","Водій (ПІБ)","Водій (телефон)","Перетин кордону (факт)","Постановка/завантаження (план)","Постановка/завантаження (факт)"]],
 ];
+/* ===== картка угоди: перегляд + редагування =====
+   Поля, які веде Експедитор (AUTHORITATIVE у expeditor_direct_sync.py), редагувати
+   не даємо — синхронізація о 07:00 їх усе одно перезапише. Решту можна правити:
+   клік по значенню → поле, Enter/клік поза межами — зберегти, Esc — скасувати.
+   Галочки (Позначки) перемикаються одним кліком. */
+const CARD_LOCKED = {"Угода":1,"Клієнт":1,"Напрямок":1,"Лінія":1,"Менеджер":1,"Агент":1,
+                     "Контейнер":1,"Етап (Експедитор)":1,"Зміни ETA (історія)":1,
+                     "Остання зміна":1,"Останнє оновлення":1,"Файли":1};
+const CARD_DATE = /^(ETA|ETD|Факт|Подача|Постановка|Перетин|Планова|Вивантаження|Гейт|Port Cut Off|Замитнення)/;
+const CARD_SELECT = {"Статус":()=>Object.keys(STATUSES),
+                     "Вид перевезення":()=>MODE_OPTIONS,
+                     "FCL/LCL":()=>["FCL","LCL","FTL","LTL"],
+                     // Merchant / Carrier haulage — від цього залежать норми вільного
+                     // часу (free time) і майбутній розрахунок демереджу й детеншену.
+                     // Колонка лишається текстовою: у 46 угодах уже стоїть «Carrier»,
+                     // тип не міняємо, щоб не ризикувати даними (01.08.2026).
+                     "Вивіз (Carrier/Merchant)":()=>["Carrier","Merchant"]};
+const CARD_LONG = {"Коментар":1,"Коментар клієнту":1,"Маршрут":1,"Адреса розмитнення":1,"Вантаж":1};
+let MODE_OPTIONS = ["фрахт","фрахт+ТЕО","фрахт+ТЕО+МО","фрахт+ТЕО+авто","фрахт+ТЕО+залізниця",
+                    "ТЕО+авто","ТЕО+залізниця","авто","авіа","авіа+ТЕО","авіа+ТЕО+МО"];
+
+/* ===== журнал дій =====
+   Пише, хто, коли і що змінив. Таблиця «Журнал дій» (створює create_audit_table.py).
+   Якщо таблиці немає або запис не вдався — мовчки пропускаємо: журнал не має
+   ламати саму роботу. Вхід, правки й завантаження документів фіксуються. */
+async function logAction(action, obj, field, before, after){
+  const tid = T["Журнал дій"];
+  if (!tid) return;
+  try{
+    await api(`/api/v2/tables/${tid}/records`, {method:"POST", body: JSON.stringify([{
+      "Час": new Date().toISOString(),
+      "Користувач": (sessionStorage.getItem("email") || UNAME || "—"),
+      "Роль": ROLE || "—",
+      "Дія": action,
+      "Обʼєкт": obj == null ? "" : String(obj),
+      "Поле": field == null ? "" : String(field),
+      "Було": before == null ? "" : String(before).slice(0, 500),
+      "Стало": after == null ? "" : String(after).slice(0, 500),
+    }])});
+  }catch(e){ /* журнал не критичний */ }
+}
+
+async function saveField(row, col, val){
+  const before = row[col];
+  await api(`/api/v2/tables/${T["Диспетчеризація"]}/records`, {method:"PATCH",
+    body: JSON.stringify([{Id: row.Id, [col]: val}])});
+  row[col] = val;
+  logAction("правка угоди", "Угода №" + (row["Угода"] || row.Id), col, before, val);
+}
+
+function cardVal(r, f){
+  if (FLAGS.includes(f)) return r[f] ? "✓ так" : "—";
+  const v = r[f];
+  if (v===null || v===undefined || v==="") return "—";
+  if (CARD_DATE.test(f) && !CARD_SELECT[f]){ const d = fmtD(v); if (d) return d; }
+  return String(v);
+}
+
 function openRow(r){
   const groups = cfg().cols === "logist" ? LOGIST_GROUPS : CARD_GROUPS;
+  const canEdit = !!cfg().edit;
   $("row-title").textContent = `Угода №${r["Угода"]} · ${r["Клієнт"]||""}`;
+  $("row-hint").innerHTML = canEdit
+    ? 'дані живі з бази · <b>клік по значенню</b> — редагувати, <b>Enter</b> — зберегти, <b>Esc</b> — скасувати · галочки перемикаються одним кліком · <span title="це поле веде Експедитор">🔒</span> — поле з Експедитора, правити не можна'
+    : "повна картка угоди · дані живі з бази";
   $("row-body").innerHTML = groups.map(([g,fields])=>{
     const items = fields.map(f=>{
-      let v = r[f];
-      if (typeof v === "boolean" || FLAGS.includes(f)) v = r[f] ? "✓ так" : "—";
-      if (v===null || v===undefined || v==="") v = "—";
-      return `<tr><td class="cell-muted" style="width:45%">${esc(f)}</td><td>${f==="Статус"?stPill(r["Статус"]):esc(v)}</td></tr>`;
+      const locked = !canEdit || CARD_LOCKED[f];
+      const cell = f === "Статус" ? stPill(r["Статус"])
+        : FLAGS.includes(f) ? `<span class="flag ${r[f]?"on":""}">${r[f]?"✓ так":"—"}</span>`
+        : esc(cardVal(r, f));
+      return `<tr><td class="cell-muted" style="width:45%">${esc(f)}${locked && canEdit && CARD_LOCKED[f]
+          ? ' <span class="cell-muted" title="це поле веде Експедитор — правити тут немає сенсу">🔒</span>' : ""}</td>
+        <td class="${locked?"":"cardedit"}" data-f="${esc(f)}">${cell}</td></tr>`;
     }).join("");
     return `<h3 style="margin-top:14px">${g}</h3><div class="tablewrap"><table><tbody>${items}</tbody></table></div>`;
   }).join("");
+  if (canEdit) $("row-body").querySelectorAll("td.cardedit").forEach(td=>
+    td.addEventListener("click", ()=>editCardField(td, r)));
   $("row-overlay").classList.add("open");
+}
+
+function editCardField(td, r){
+  const f = td.dataset.f;
+  if (td.querySelector(".edinput")) return;
+  // галочка — просто перемикаємо
+  if (FLAGS.includes(f)){
+    const nv = !r[f];
+    td.innerHTML = '<span class="cell-muted">…</span>';
+    saveField(r, f, nv)
+      .then(()=>{ td.innerHTML = `<span class="flag ${nv?"on":""}">${nv?"✓ так":"—"}</span>`;
+                  toast(`✅ ${f}: ${nv?"так":"ні"}`); DISP_CACHE = DISP_CACHE; })
+      .catch(e=>{ td.innerHTML = `<span class="flag ${r[f]?"on":""}">${r[f]?"✓ так":"—"}</span>`;
+                  toast("⚠ Не збереглось: " + e.message); });
+    return;
+  }
+  const cur = r[f] === null || r[f] === undefined ? "" : String(r[f]);
+  const isDate = CARD_DATE.test(f) && !CARD_SELECT[f];
+  const val0 = isDate ? cur.slice(0,10) : cur;
+  const keep = td.innerHTML;
+  td.innerHTML = CARD_SELECT[f]
+    ? `<select class="edinput"><option value=""></option>${CARD_SELECT[f]().map(o=>
+        `<option${o===cur?" selected":""}>${esc(o)}</option>`).join("")}</select>`
+    : CARD_LONG[f]
+      ? `<textarea class="edinput" rows="3">${esc(val0)}</textarea>`
+      : `<input class="edinput" type="${isDate?"date":"text"}" value="${esc(val0)}">`;
+  const inp = td.querySelector(".edinput");
+  inp.focus();
+  if (inp.tagName === "INPUT" && !isDate) inp.select();
+  let closed = false;
+  const finish = async (save) => {
+    if (closed) return;
+    closed = true;
+    const v = String(inp.value || "").trim();
+    if (!save || v === val0){ td.innerHTML = keep; return; }
+    try{
+      await saveField(r, f, v || null);
+      td.innerHTML = f === "Статус" ? stPill(v)
+        : (isDate ? (fmtD(v) || "—") : esc(v || "—"));
+      toast(`✅ ${f}: ${v || "очищено"}`);
+    }catch(e){ td.innerHTML = keep; toast("⚠ Не збереглось: " + e.message); }
+  };
+  inp.addEventListener("blur", ()=>finish(true));
+  inp.addEventListener("keydown", e=>{
+    if (e.key === "Enter" && inp.tagName !== "TEXTAREA"){ e.preventDefault(); finish(true); }
+    if (e.key === "Escape"){ e.preventDefault(); finish(false); }
+  });
+  if (CARD_SELECT[f]) inp.addEventListener("change", ()=>finish(true));
 }
 $("row-close").addEventListener("click",()=>$("row-overlay").classList.remove("open"));
 $("row-overlay").addEventListener("click",e=>{ if(e.target===$("row-overlay")) $("row-overlay").classList.remove("open"); });
@@ -1111,11 +2083,25 @@ PAGES.clients = async () => {
   disp.forEach(r=>{ const k=(r["Клієнт"]||"").trim(); if(!k) return; cnt[k]=cnt[k]||{all:0,act:0}; cnt[k].all++; if(r["Статус"]!=="Вантаж доставлено") cnt[k].act++; });
   const names = Object.keys(cnt).sort((a,b)=>cnt[b].act-cnt[a].act || cnt[b].all-cnt[a].all);
   $("content").innerHTML = `
-    <div class="card"><h3>👥 Клієнти${cfg().scope!=="all"?" (твої)":""}</h3><p class="sub">з угод диспетчеризації</p>
+    <div class="card"><p class="sub">з угод диспетчеризації${cfg().scope!=="all"?" · лише твої":""}</p>
       <div class="tablewrap"><table>
         <thead><tr><th>Клієнт</th><th class="num">Угод всього</th><th class="num">Активних</th></tr></thead>
         <tbody>${names.map(n=>`<tr><td><b>${esc(n)}</b></td><td class="num">${cnt[n].all}</td><td class="num">${cnt[n].act}</td></tr>`).join("")}</tbody>
       </table></div></div>`;
+};
+
+PAGES.crm = async () => {
+  $("content").innerHTML = `<div class="card"><h3>🗂 CRM</h3>
+    <p class="sub">клієнти, контакти, угоди в роботі, історія спілкування</p>
+    <div class="note">🛠 Розділ у розробці. Скажи, що має бути всередині — і зроблю: воронка запитів,
+      картка контакту, історія листування, нагадування, джерело клієнта.</div></div>`;
+};
+
+PAGES.accounting = async () => {
+  $("content").innerHTML = `<div class="card"><h3>🧾 Бухгалтерський облік</h3>
+    <p class="sub">первинні документи, акти, рахунки, звірки</p>
+    <div class="note">🛠 Розділ у розробці. Дані для нього вже є: рахунки клієнтам і постачальникам,
+      проводки з субконто, залишки по касах. Скажи, з чого почати.</div></div>`;
 };
 
 PAGES.finance = async () => {
@@ -1131,16 +2117,295 @@ PAGES.finance = async () => {
       <div class="note">🔒 Фінансові показники доступні лише фінансовим ролям (Адміністратор, Фінансист, Бухгалтер).</div></div>`;
     return;
   }
-  // кнопки звітів живуть у верхній панелі — щоб дашборд починався одразу під шапкою
+  // кнопки звітів — у верхній панелі (як у диспетчеризації й калькуляції),
+  // щоб дашборд починався одразу під шапкою
   $("page-actions").innerHTML = `
     <button class="btn" id="rep-oper">⚡ Оперативний фінансовий звіт</button>
     <button class="btn" id="rep-period">📆 Фінансовий звіт за період</button>
-    <button class="btn ghost" id="fin-refresh" title="повний витяг з Експедитора, ~2 хв">⟳ Підтягнути свіжі дані з Експедитора</button>`;
+    <span id="fin-refresh-slot" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"></span>`;
   $("content").innerHTML = '<div id="rep-body"></div>';
   $("rep-oper").addEventListener("click", ()=>renderOper());
   $("rep-period").addEventListener("click", ()=>renderPeriod());
   renderOper();
 };
+
+function bindPalette(){
+  const box = $("pal-page");
+  if (!box) return;
+  box.innerHTML = PALETTES.map(([p,n])=>
+    `<button class="pal-dot ${p===palette?"sel":""}" data-pal="${p}" title="${esc(n)}"></button>`).join("");
+  const nm = () => { $("pal-page-name").textContent =
+    "Обрано: " + (PALETTES.find(x=>x[0]===palette)||["",""])[1]; };
+  box.querySelectorAll(".pal-dot").forEach(b=>b.addEventListener("click", ()=>{
+    setPalette(b.dataset.pal);
+    box.querySelectorAll(".pal-dot").forEach(x=>x.classList.toggle("sel", x.dataset.pal===palette));
+    nm();
+  }));
+  nm();
+}
+
+/* зміна ВЛАСНОГО пароля — через штатний ендпоінт бази, чужі паролі тут не міняються */
+/* ===== надійність паролів =====
+   Вимога користувачки 01.08.2026: «всі користувачі мають створювати собі
+   надійні складні паролі». Правила застосовуються В УСІХ формах — і коли
+   людина міняє свій пароль, і коли адмін створює акаунт чи скидає пароль.
+   Сам пароль ніде не зберігається і нікуди не пишеться: ні в журнал, ні в
+   базу платформи — лише в акаунт входу. */
+const PW_MIN = 12;
+const PW_RULES = [
+  { t: "щонайменше " + PW_MIN + " символів", ok: p => p.length >= PW_MIN },
+  { t: "велика латинська літера (A–Z)",      ok: p => /[A-Z]/.test(p) },
+  { t: "мала латинська літера (a–z)",        ok: p => /[a-z]/.test(p) },
+  { t: "цифра",                               ok: p => /[0-9]/.test(p) },
+  { t: "спецсимвол (!@#$%…)",                 ok: p => /[^A-Za-z0-9]/.test(p) },
+  { t: "без пробілів",                        ok: p => p.length > 0 && !/\s/.test(p) },
+];
+const pwFails = p => PW_RULES.filter(r => !r.ok(String(p || "")));
+/* Генератор: криптостійкий, по одному символу з кожного набору + добір до 16.
+   Символи, які легко сплутати (O/0, l/1/I), навмисно виключені. */
+const PW_SETS = ["ABCDEFGHJKLMNPQRSTUVWXYZ", "abcdefghijkmnopqrstuvwxyz",
+                 "23456789", "!@#$%^&*?+-="];
+function pwGen(len){
+  len = len || 16;
+  const all = PW_SETS.join("");
+  const pick = set => set[crypto.getRandomValues(new Uint32Array(1))[0] % set.length];
+  const out = PW_SETS.map(pick);
+  while (out.length < len) out.push(pick(all));
+  for (let i = out.length - 1; i > 0; i--){          // перемішуємо
+    const j = crypto.getRandomValues(new Uint32Array(1))[0] % (i + 1);
+    [out[i], out[j]] = [out[j], out[i]];
+  }
+  return out.join("");
+}
+/* Живий список правил під полем: видно, чого ще бракує */
+function pwHint(inputId, boxId){
+  const inp = $(inputId), box = $(boxId);
+  if (!inp || !box) return;
+  const paint = () => {
+    const v = inp.value;
+    box.innerHTML = PW_RULES.map(r => {
+      const ok = r.ok(v);
+      return `<span class="pwr ${ok ? "ok" : ""}">${ok ? "✓" : "•"} ${esc(r.t)}</span>`;
+    }).join("");
+  };
+  inp.addEventListener("input", paint);
+  paint();
+}
+
+function bindPasswordChange(){
+  pwHint("pw-new", "pw-hint");
+  const gen = $("pw-gen");
+  if (gen) gen.addEventListener("click", ()=>{
+    const v = pwGen();
+    $("pw-new").value = v; $("pw-new2").value = v;
+    $("pw-new").dispatchEvent(new Event("input"));
+    $("pw-msg").textContent = "🎲 Згенеровано. Скопіюй і збережи — після зміни пароля побачити його вже не вийде.";
+  });
+  const btn = $("pw-save");
+  if (!btn) return;
+  btn.addEventListener("click", async ()=>{
+    const o = $("pw-old").value, n1 = $("pw-new").value, n2 = $("pw-new2").value;
+    const msg = t => { $("pw-msg").textContent = t; };
+    if (!o || !n1){ return msg("⚠ Заповни поточний і новий пароль."); }
+    const bad = pwFails(n1);
+    if (bad.length){ return msg("⚠ Пароль недостатньо надійний. Бракує: " + bad.map(r=>r.t).join(", ")); }
+    if (n1 !== n2){ return msg("⚠ Новий пароль і підтвердження не збігаються."); }
+    btn.disabled = true; msg("⏳ Змінюю…");
+    try{
+      const r = await fetch("/api/v1/auth/password/change", {method:"POST",
+        headers:{"Content-Type":"application/json", "xc-auth": JWT||""},
+        body: JSON.stringify({currentPassword:o, newPassword:n1, verifyPassword:n2})});
+      const js = await r.json().catch(()=>({}));
+      if (!r.ok) throw new Error(js.msg || js.message || ("HTTP " + r.status));
+      msg("✅ Пароль змінено.");
+      ["pw-old","pw-new","pw-new2"].forEach(id=>$(id).value = "");
+      logAction("зміна пароля", "", "", "", "");
+      toast("✅ Пароль змінено");
+    }catch(e){ msg("⚠ Не вдалося: " + e.message); }
+    btn.disabled = false;
+  });
+}
+
+/* ===== адмін: створення користувача і задання пароля іншому =====
+   Робиться ВИКЛЮЧНО з браузера адміністратора, його власною сесією (xc-auth).
+   Службовим токеном платформи ці виклики заборонені самим NocoDB
+   (ERR_API_TOKEN_NOT_ALLOWED), тому й не могли працювати раніше.
+   Пароль ніде не зберігається: він іде прямо в акаунт входу, у журнал
+   потрапляє лише факт дії — без значення (правило 3). */
+async function ncAuth(path, body, method){
+  const r = await fetch(path, {
+    method: method || "POST",
+    headers: {"Content-Type":"application/json", "xc-auth": JWT || ""},
+    body: body === undefined ? undefined : JSON.stringify(body),
+  });
+  const js = await r.json().catch(()=>({}));
+  if (!r.ok) throw new Error(js.msg || js.message || js.error || ("HTTP " + r.status));
+  return js;
+}
+/* Знаходимо id акаунта за email серед користувачів NocoDB */
+async function ncUserId(email){
+  const js = await ncAuth("/api/v1/users", undefined, "GET");
+  const list = js.list || js.users || (Array.isArray(js) ? js : []);
+  const u = list.find(x => String(x.email || "").toLowerCase() === String(email).toLowerCase());
+  if (!u) throw new Error("акаунта з такою поштою серед користувачів немає");
+  return u.id;
+}
+/* Задати пароль іншому: генеруємо одноразовий токен скидання і одразу ним
+   встановлюємо новий пароль. Так само працює кнопка «Забули пароль». */
+async function ncSetPassword(email, password){
+  const id = await ncUserId(email);
+  const gen = await ncAuth("/api/v1/users/" + encodeURIComponent(id) + "/generate-reset-url", {});
+  const url = String(gen.reset_password_url || gen.resetPasswordUrl || "");
+  const tok = gen.reset_password_token || gen.resetPasswordToken ||
+              (url.split("/").pop() || "").split("?")[0];
+  if (!tok) throw new Error("сервер не повернув токен скидання");
+  await ncAuth("/api/v1/auth/password/reset/" + encodeURIComponent(tok),
+               {password: password, passwordRepeat: password, newPassword: password});
+}
+
+/* Кнопки «🔑 Задати» біля кожного користувача і форма створення нового */
+function bindUserAdmin(rows){
+  pwHint("nu-pw", "nu-hint");
+  const gen = $("nu-gen");
+  if (gen) gen.addEventListener("click", ()=>{
+    $("nu-pw").value = pwGen();
+    $("nu-pw").dispatchEvent(new Event("input"));
+    $("nu-msg").textContent = "🎲 Згенеровано. Скопіюй зараз — потім пароль ніде не побачити.";
+  });
+
+  document.querySelectorAll("[data-pwuser]").forEach(b=>b.addEventListener("click", async ()=>{
+    const email = b.dataset.pwuser;
+    if (!email) return;
+    const pw = prompt("Новий пароль для " + email +
+      "\n\nВимоги: від " + PW_MIN + " символів, велика й мала латинські літери, цифра, спецсимвол, без пробілів." +
+      "\nЗалиш поле порожнім — згенерую надійний сам.", "");
+    if (pw === null) return;                       // натиснули «Скасувати»
+    const val = pw.trim() ? pw.trim() : pwGen();
+    const bad = pwFails(val);
+    if (bad.length) return toast("⚠ Пароль слабкий. Бракує: " + bad.map(r=>r.t).join(", "));
+    b.disabled = true; const old = b.textContent; b.textContent = "⏳";
+    try{
+      await ncSetPassword(email, val);
+      logAction("зміна пароля користувачу", email, "", "", "");   // без самого пароля
+      window.prompt("Пароль для " + email + " встановлено.\nСкопіюй і передай людині — більше він ніде не зберігається:", val);
+      toast("✅ Пароль встановлено");
+    }catch(e){ toast("⚠ Не вдалося: " + e.message); }
+    b.disabled = false; b.textContent = old;
+  }));
+
+  const save = $("nu-save");
+  if (save) save.addEventListener("click", async ()=>{
+    const msg = t => { $("nu-msg").textContent = t; };
+    const email = $("nu-email").value.trim().toLowerCase();
+    const first = $("nu-first").value.trim(), last = $("nu-last").value.trim();
+    const role = $("nu-role").value, pw = $("nu-pw").value;
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return msg("⚠ Схоже, це не email.");
+    if (!first) return msg("⚠ Вкажи ім'я.");
+    if (rows.some(u=>String(u["Email"]||"").toLowerCase() === email))
+      return msg("⚠ Користувач із такою поштою вже є в довіднику.");
+    const bad = pwFails(pw);
+    if (bad.length) return msg("⚠ Пароль недостатньо надійний. Бракує: " + bad.map(r=>r.t).join(", "));
+    save.disabled = true; msg("⏳ Створюю акаунт…");
+    try{
+      await ncAuth("/api/v1/auth/user/signup", {email: email, password: pw});
+      msg("⏳ Акаунт створено, додаю в довідник…");
+      await api(`/api/v2/tables/${T["Користувачі"]}/records`, {method:"POST",
+        body: JSON.stringify([{Email: email, "Ім'я": first, "Прізвище": last,
+                               "Роль": role, "Активний": true}])});
+      logAction("створено користувача", email, "Роль", "", role);
+      window.prompt("Користувача створено.\nСкопіюй пароль і передай людині — більше він ніде не зберігається:", pw);
+      msg("✅ Готово. Попроси людину змінити пароль на свій у розділі «Налаштування».");
+      ["nu-email","nu-first","nu-last","nu-pw"].forEach(id=>$(id).value = "");
+      go("users");
+    }catch(e){ msg("⚠ Не вдалося: " + e.message); }
+    save.disabled = false;
+  });
+}
+
+/* адмін править користувачів: імʼя, прізвище, роль, доступ */
+function bindUserEdit(rows){
+  const ROLE_LIST = Object.keys(RC);
+  $("us-rows").querySelectorAll("td.ed[data-uf]").forEach(td=>td.addEventListener("click", async ()=>{
+    if (td.querySelector(".edinput")) return;
+    const f = td.dataset.uf;
+    const u = rows.find(x=>String(x.Id) === td.closest("tr").dataset.uid);
+    if (!u) return;
+    const save = async (val, html) => {
+      const keep = td.innerHTML;
+      td.innerHTML = '<span class="cell-muted">…</span>';
+      try{
+        await api(`/api/v2/tables/${T["Користувачі"]}/records`, {method:"PATCH",
+          body: JSON.stringify([{Id: u.Id, [f]: val}])});
+        logAction("зміна користувача", u["Email"] || u.Id, f, u[f], val);
+        u[f] = val; td.innerHTML = html;
+        toast(`✅ ${u["Email"]||""}: ${f} — ${val === false ? "заблоковано" : (val || "очищено")}`);
+      }catch(e){ td.innerHTML = keep; toast("⚠ Не збереглось: " + e.message); }
+    };
+    if (f === "Активний"){
+      const nv = u["Активний"] === false;
+      return save(nv, nv ? '<span class="pill t-good">активний</span>'
+                         : '<span class="pill t-crit">заблоковано</span>');
+    }
+    const cur = String(u[f] || "");
+    const keep = td.innerHTML;
+    td.innerHTML = f === "Роль"
+      ? `<select class="edinput">${ROLE_LIST.map(o=>`<option${o===cur?" selected":""}>${esc(o)}</option>`).join("")}</select>`
+      : `<input class="edinput" type="text" value="${esc(cur)}">`;
+    const inp = td.querySelector(".edinput");
+    inp.focus();
+    let closed = false;
+    const finish = (ok) => {
+      if (closed) return; closed = true;
+      const v = String(inp.value || "").trim();
+      if (!ok || v === cur){ td.innerHTML = keep; return; }
+      save(v, f === "Роль" ? `<span class="role-badge">${esc(v)}</span>`
+                           : (f === "Ім'я" ? `<b>${esc(v)}</b>` : esc(v)));
+    };
+    inp.addEventListener("blur", ()=>finish(true));
+    inp.addEventListener("keydown", e=>{
+      if (e.key === "Enter"){ e.preventDefault(); finish(true); }
+      if (e.key === "Escape"){ e.preventDefault(); finish(false); }
+    });
+    if (f === "Роль") inp.addEventListener("change", ()=>finish(true));
+  }));
+}
+
+/* журнал подій: останні 500 записів, фільтри по користувачу, дії й тексту */
+async function renderAudit(){
+  const tid = T["Журнал дій"];
+  if (!tid){ $("lg-note").textContent = "Журнал ще не створено."; return; }
+  let list = [];
+  try{
+    const js = await api(`/api/v2/tables/${tid}/records?limit=500&sort=-Час`);
+    list = js.list || [];
+  }catch(e){ $("lg-note").textContent = "Не вдалося прочитати журнал: " + e.message; return; }
+  const users = [...new Set(list.map(r=>String(r["Користувач"]||"").trim()).filter(Boolean))].sort();
+  const acts  = [...new Set(list.map(r=>String(r["Дія"]||"").trim()).filter(Boolean))].sort();
+  $("lg-user").innerHTML = '<option value="">Усі користувачі</option>' + users.map(u=>`<option>${esc(u)}</option>`).join("");
+  $("lg-act").innerHTML  = '<option value="">Усі дії</option>' + acts.map(a=>`<option>${esc(a)}</option>`).join("");
+  const when = v => { const d = new Date(v); return isNaN(d) ? String(v||"") :
+    d.toLocaleString("uk-UA",{day:"2-digit",month:"2-digit",year:"2-digit",hour:"2-digit",minute:"2-digit"}); };
+  const draw = () => {
+    const u = $("lg-user").value, a = $("lg-act").value, q = $("lg-q").value.toLowerCase();
+    const rows = list.filter(r =>
+      (!u || String(r["Користувач"]||"") === u) &&
+      (!a || String(r["Дія"]||"") === a) &&
+      (!q || [r["Обʼєкт"],r["Поле"],r["Було"],r["Стало"]].join(" ").toLowerCase().includes(q)));
+    $("lg-rows").innerHTML = rows.length ? rows.map(r=>`<tr>
+      <td class="mono">${esc(when(r["Час"]))}</td>
+      <td>${esc(r["Користувач"]||"—")}</td>
+      <td class="cell-muted">${esc(r["Роль"]||"")}</td>
+      <td>${esc(r["Дія"]||"")}</td>
+      <td class="mono">${esc(r["Обʼєкт"]||"")}</td>
+      <td>${esc(r["Поле"]||"")}</td>
+      <td class="cell-muted">${esc(r["Було"]||"")}</td>
+      <td><b>${esc(r["Стало"]||"")}</b></td></tr>`).join("")
+      : '<tr><td colspan="8" class="cell-muted">Записів немає.</td></tr>';
+    $("lg-note").textContent = `показано ${rows.length} з ${list.length} записів`;
+  };
+  ["lg-user","lg-act","lg-q"].forEach(id=>$(id).addEventListener(id==="lg-q"?"input":"change", draw));
+  draw();
+}
 
 const fmtN = (v, dec=0) => {
   const n = Number(v)||0;
@@ -1158,35 +2423,32 @@ async function fetchFin(name){
   if (!r.ok) throw new Error((js.error||"помилка даних") + " (HTTP " + r.status + ")");
   return js;
 }
-/* Кнопка «Підтягнути свіжі дані» тепер у верхній панелі — тут лише вішаємо на неї дію.
-   onclick (а не addEventListener), щоб повторний рендер звіту не множив обробники.
-   Дата даних видно в самому дашборді («Оновлено: … · дані на …»), тож смужку прибрано. */
-const REP_LABEL = "⟳ Підтягнути свіжі дані з Експедитора";
-function wireRefresh(mtime, onFresh){
-  const b = $("fin-refresh");
-  if (!b) return;
-  const stamp = new Date(mtime*1000).toLocaleString("uk-UA",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"});
-  b.title = `Дані станом на ${stamp} · повний витяг з Експедитора, ~2 хв`;
-  b.onclick = async () => {
-    b.disabled = true; b.textContent = "⏳ Тягну з Експедитора (~2 хв)…";
-    try{
-      await fetch("/finrep-run");
-      const t0 = mtime;
-      const poll = setInterval(async ()=>{
-        try{
-          const js = await fetchFin("dashboard");
-          if (js.mtime > t0 + 5){
-            clearInterval(poll); b.disabled = false; b.textContent = REP_LABEL;
-            toast("✅ Дані оновлено з Експедитора"); onFresh();
-          }
-        }catch(e){}
-      }, 15000);
-      setTimeout(()=>{ clearInterval(poll); if (b.disabled){ b.disabled=false; b.textContent=REP_LABEL; } }, 240000);
-    }catch(e){ b.disabled=false; b.textContent=REP_LABEL; toast("⚠ Не вдалося запустити"); }
-  };
-}
-function markRep(id){
-  ["rep-oper","rep-period"].forEach(x=>{ const el = $(x); if (el) el.classList.toggle("on", x === id); });
+function refreshBar(mtime, onFresh){
+  const dt = new Date(mtime*1000);
+  const stamp = dt.toLocaleString("uk-UA",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"});
+  setTimeout(()=>{
+    const b = $("fin-refresh");
+    if (!b) return;
+    b.addEventListener("click", async ()=>{
+      b.disabled = true; b.textContent = "⏳ Тягну з Експедитора (~2 хв)…";
+      try{
+        // /cash-refresh спершу перераховує залишки кас з Експедитора, потім
+        // запускає звичайну перебудову звіту — інакше звіт брав би стару касу
+        await fetch("/cash-refresh");
+        const t0 = mtime;
+        const poll = setInterval(async ()=>{
+          try{
+            const js = await fetchFin("dashboard");
+            if (js.mtime > t0 + 5){ clearInterval(poll); toast("✅ Дані оновлено з Експедитора"); onFresh(); }
+          }catch(e){}
+        }, 15000);
+        setTimeout(()=>clearInterval(poll), 240000);
+      }catch(e){ b.disabled=false; b.textContent="⟳ Підтягнути свіжі дані з Експедитора"; toast("⚠ Не вдалося запустити"); }
+    });
+  }, 0);
+  // кнопка живе у верхній панелі (слот #fin-refresh-slot), поруч із кнопками звітів
+  return `<button class="btn" id="fin-refresh" style="padding:7px 14px;font-size:13px"
+    title="дані станом на ${stamp}">⟳ Підтягнути свіжі дані з Експедитора</button>`;
 }
 function finTable(headers, rows){
   return `<div class="tablewrap"><table><thead><tr>${headers.map(h=>`<th>${h}</th>`).join("")}</tr></thead>
@@ -1223,8 +2485,8 @@ async function renderOper(){
   let js;
   try{ js = await fetchFin("dashboard"); }
   catch(e){ $("rep-body").innerHTML = `<div class="note">⚠ ${esc(e.message)}</div>`; return; }
+  $("fin-refresh-slot").innerHTML = refreshBar(js.mtime, renderOper);
   $("rep-body").innerHTML = finFrame("findash", "/findash.html?v=19", js.data);
-  wireRefresh(js.mtime, renderOper); markRep("rep-oper");
   window.scrollTo(0,0);
 }
 
@@ -1233,8 +2495,8 @@ async function renderPeriod(){
   let js;
   try{ js = await fetchFin("period"); }
   catch(e){ $("rep-body").innerHTML = `<div class="note">⚠ ${esc(e.message)}</div>`; return; }
+  $("fin-refresh-slot").innerHTML = refreshBar(js.mtime, renderPeriod);
   $("rep-body").innerHTML = finFrame("finperiod", "/finperiod.html?v=19", js.data);
-  wireRefresh(js.mtime, renderPeriod); markRep("rep-period");
   window.scrollTo(0,0);
 }
 
@@ -1381,10 +2643,7 @@ PAGES.calc = async () => {
   $("content").innerHTML = `
     <div class="card">
       <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
-        <h3 style="margin:0">🧮 Калькуляції</h3>
         <span class="sub" style="margin:0">усього: ${all.length} · прийнято: ${sum("Прийнято")} · чернеток: ${sum("Чернетка")}</span>
-        <span style="flex:1"></span>
-        ${ro?"":'<button class="btn" id="calc-new">＋ Нова калькуляція</button>'}
       </div>
       <div class="filters" style="margin-top:12px">
         <input id="cq" placeholder="Пошук: номер, клієнт, маршрут…">
@@ -1427,8 +2686,10 @@ PAGES.calc = async () => {
   $("cq").addEventListener("input", render);
   $("cst").addEventListener("change", render);
   render();
-  const nb = $("calc-new");
-  if (nb) nb.addEventListener("click", ()=>openCalc(null));
+  if (!ro){
+    $("page-actions").innerHTML = '<button class="btn" id="calc-new">＋ Нова калькуляція</button>';
+    $("calc-new").addEventListener("click", ()=>openCalc(null));
+  }
 };
 
 const CALC_FIELDS = [
@@ -1586,7 +2847,7 @@ function openCalc(r){
 PAGES.tasks = async () => {
   const rows = await loadAll(T["Задачі"]);
   $("content").innerHTML = `
-    <div class="card"><h3>✅ Задачі</h3><p class="sub">ведуться в базі · створення звідси — наступна ітерація</p>
+    <div class="card"><p class="sub">ведуться в базі · створення звідси — наступна ітерація</p>
       <div class="tablewrap"><table>
         <thead><tr><th>Задача</th><th>Кому</th><th>Термін</th><th>Статус</th><th>Угода</th></tr></thead>
         <tbody>${rows.length ? rows.map(t=>`<tr><td>${esc(t["Задача"]||"")}</td><td>${esc(t["Кому"]||"—")}</td>
@@ -1622,15 +2883,60 @@ PAGES.instr = async () => {
 };
 
 PAGES.users = async () => {
-  const rows = await loadAll(T["Користувачі"]);
+  const isAdmin = ROLE === "Адміністратор";
+  const rows = isAdmin ? await loadAll(T["Користувачі"]) : [];
+  const UED = isAdmin ? " ed" : "";
   $("content").innerHTML = `
-    <div class="card"><h3>🔐 Користувачі та ролі</h3>
-      <p class="sub">роль визначає, що людина бачить у платформі</p>
+    <div class="card"><h3>🎨 Кольорова гама</h3>
+      <p class="sub">вибір зберігається у твоєму браузері й не впливає на інших</p>
+      <div id="pal-page" style="display:flex;gap:10px;margin-top:10px"></div>
+      <p class="sub" id="pal-page-name" style="margin-top:8px"></p></div>
+
+    <div class="card"><h3>🔑 Зміна пароля</h3>
+      <p class="sub">пароль від входу в платформу</p>
+      <div class="filters" style="margin:10px 0 0;max-width:560px">
+        <input id="pw-old" type="password" placeholder="поточний пароль" autocomplete="current-password">
+        <input id="pw-new" type="text" placeholder="новий пароль" autocomplete="new-password">
+        <input id="pw-new2" type="password" placeholder="ще раз новий" autocomplete="new-password">
+        <button class="btn ghost" id="pw-gen" type="button" title="згенерувати надійний пароль">🎲 Згенерувати</button>
+      </div>
+      <div class="pwbox" id="pw-hint"></div>
+      <button class="btn" id="pw-save" style="margin-top:10px">Змінити пароль</button>
+      <p class="sub" id="pw-msg" style="margin-top:8px"></p></div>
+
+    ${isAdmin ? `<div class="card"><h3>👥 Користувачі</h3>
+      <p class="sub">роль визначає, що людина бачить у платформі${isAdmin
+        ? ' · <b>клік по значенню</b> — змінити, <b>Enter</b> — зберегти, <b>Esc</b> — скасувати' : ""}</p>
       <div class="tablewrap"><table>
-        <thead><tr><th>Ім'я</th><th>Email</th><th>Роль</th><th>Активний</th></tr></thead>
-        <tbody>${rows.map(u=>`<tr><td><b>${esc(u["Ім'я"]||"—")}</b></td><td>${esc(u["Email"]||"—")}</td>
-          <td><span class="role-badge">${esc(u["Роль"]||"—")}</span></td><td>${u["Активний"]?'✓':'—'}</td></tr>`).join("")}</tbody>
-      </table></div></div>
+        <thead><tr><th>Ім'я</th><th>Прізвище</th><th>Email</th><th>Роль</th><th>Доступ</th><th>Пароль</th></tr></thead>
+        <tbody id="us-rows">${rows.map(u=>`<tr data-uid="${u.Id}">
+          <td class="${UED.trim()}" data-uf="Ім'я"><b>${esc(u["Ім'я"]||"—")}</b></td>
+          <td class="${UED.trim()}" data-uf="Прізвище">${esc(u["Прізвище"]||"—")}</td>
+          <td class="mono">${esc(u["Email"]||"—")}</td>
+          <td class="${UED.trim()}" data-uf="Роль"><span class="role-badge">${esc(u["Роль"]||"—")}</span></td>
+          <td class="${UED.trim()}" data-uf="Активний">${u["Активний"]===false
+            ? '<span class="pill t-crit">заблоковано</span>' : '<span class="pill t-good">активний</span>'}</td>
+          <td><button class="btn ghost" data-pwuser="${esc(u["Email"]||"")}"
+              style="padding:3px 9px;font-size:12px">🔑 Задати</button></td>
+        </tr>`).join("")}</tbody>
+      </table></div>
+      <p class="sub" style="margin-top:8px">Щоб заблокувати людину — клікни «активний». Заблокований у платформу не заходить взагалі.</p>
+
+      <h3 style="margin-top:18px">➕ Додати користувача</h3>
+      <p class="sub">створює і акаунт для входу, і рядок у цьому довіднику</p>
+      <div class="filters" style="margin:10px 0 0;max-width:820px">
+        <input id="nu-email" placeholder="email (він же логін)" autocomplete="off">
+        <input id="nu-first" placeholder="ім'я">
+        <input id="nu-last" placeholder="прізвище">
+        <select id="nu-role">${["Адміністратор","Фінансист","Бухгалтер","Менеджер","Оп. менеджер","Логіст","Перегляд"]
+          .map(r=>`<option>${r}</option>`).join("")}</select>
+        <input id="nu-pw" type="text" placeholder="пароль" autocomplete="new-password">
+        <button class="btn ghost" id="nu-gen" type="button">🎲 Згенерувати</button>
+      </div>
+      <div class="pwbox" id="nu-hint"></div>
+      <button class="btn" id="nu-save" style="margin-top:10px">Створити користувача</button>
+      <p class="sub" id="nu-msg" style="margin-top:8px"></p>
+    </div>` : ""}
     <div class="card"><h3>Ролі (довідка)</h3>
       <div class="tablewrap"><table><tbody>
         <tr><td><b>Адміністратор</b></td><td>повний доступ до всього</td></tr>
@@ -1641,7 +2947,24 @@ PAGES.users = async () => {
         <tr><td><b>Логіст</b></td><td>диспетчеризація: авто, водій, статус, пункт перетину</td></tr>
         <tr><td><b>Перегляд</b></td><td>тільки перегляд, фінансові цифри приховані</td></tr>
       </tbody></table></div></div>
-    <div class="note">➕ Щоб додати користувача: 1) скажи Клоду — він створить акаунт для входу; 2) додай рядок з email, ім'ям і роллю в таблицю «Користувачі» (через службову базу). Зміна ролі — просто зміни значення в рядку.</div>`;
+    ${isAdmin ? `<div class="card"><h3>🗂 Журнал подій</h3>
+      <p class="sub">хто заходив і що змінював — за часом, від найсвіжішого</p>
+      <div class="filters" style="margin:10px 0 0">
+        <select id="lg-user"><option value="">Усі користувачі</option></select>
+        <select id="lg-act"><option value="">Усі дії</option></select>
+        <input id="lg-q" placeholder="пошук: угода, поле, значення…">
+      </div>
+      <div class="tablewrap scrollbox" style="max-height:420px"><table>
+        <thead><tr><th>Час</th><th>Користувач</th><th>Роль</th><th>Дія</th><th>Обʼєкт</th><th>Поле</th><th>Було</th><th>Стало</th></tr></thead>
+        <tbody id="lg-rows"></tbody></table></div>
+      <p class="sub" id="lg-note" style="margin-top:8px"></p>
+      <div class="note">🔒 Журнал доступний лише адміністратору й нічого в ньому змінити не можна — він фіксує все.</div></div>` : ""}
+    ${isAdmin ? `<div class="card"><h3>🔐 Інші налаштування</h3>
+      <p class="sub">тут зʼявляться доступи клієнтів до кабінету, сповіщення й довідники</p>
+      <div class="note">🛠 Розділ наповнюється. Скажи, що винести сюди першим.</div></div>` : ""}`;
+  bindPalette();
+  bindPasswordChange();
+  if (isAdmin){ renderAudit(); bindUserEdit(rows); bindUserAdmin(rows); }
 };
 
 /* ===== старт ===== */
