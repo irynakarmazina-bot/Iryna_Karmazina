@@ -1,1 +1,1 @@
-{"id": "recon-22", "cmd": "python3 /root/tg_r6.py fields 2>&1 | tr ',' '\\n' | grep -in 'порт\\|маршрут\\|пункт\\|город\\|станц\\|направл\\|коносам\\|контейн\\|Дата' | head -40"}
+{"id": "recon-23", "cmd": "grep -n 'ar_register\\|ap_register' -B4 -A18 /root/unitex-finrep/engine/registers.py | head -70"}
