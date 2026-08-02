@@ -1,1 +1,1 @@
-{"id": "deploy-ui-9", "cmd": "bash /root/deploy_ui.sh main 2>&1 | tail -3 && echo -n 'картки (mcards) у викладеній версії: ' && grep -c 'mcards tbody tr{display:block' /root/unitex-os-www/index.html"}
+{"id": "deploy-ui-10", "cmd": "ls -1 /root/deploy_ui.sh /root/Iryna_Karmazina/server/deploy_ui.sh 2>&1; echo '--- CHECK ---'; bash /root/Iryna_Karmazina/server/deploy_ui.sh main --check 2>&1 | tail -8; echo '--- що зараз на сервері ---'; echo -n 'renderMaersk: '; grep -c 'function renderMaersk' /root/unitex-os-www/index.html"}
