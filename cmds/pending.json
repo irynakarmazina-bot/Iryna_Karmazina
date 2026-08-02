@@ -1,1 +1,1 @@
-{"id": "recon-4", "cmd": "sed -n '95,112p' /root/unitex-finrep/engine/odata_ingest.py; echo ===CLIENT===; sed -n '1,80p' /root/unitex-finrep/engine/odata_client.py"}
+{"id": "why-vessel-1", "cmd": "cd /root/Iryna_Karmazina && git fetch origin claude/direct-automation-expeditor-671esy -q && git show origin/claude/direct-automation-expeditor-671esy:direct_sync/why_no_vessel.py > /root/why_no_vessel.py && nohup python3 /root/why_no_vessel.py > /root/why_vessel.out 2>&1 & sleep 20; head -20 /root/why_vessel.out"}
