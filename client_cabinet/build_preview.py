@@ -246,57 +246,64 @@ tr.exp>td{padding:0;background:var(--surface-2)}
 .peta .pl{font-size:12px;color:var(--ink-2);margin-top:1px}
 .tzn{text-align:right;font-size:11.5px;color:var(--muted);margin-top:12px}
 
-.route{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);
-  padding:28px 22px 20px;overflow-x:auto;box-shadow:var(--shadow)}
+.route{background:var(--surface);border:1px solid var(--line);border-radius:16px;
+  padding:34px 26px 26px;overflow-x:auto;box-shadow:var(--shadow)}
 /* ── схема руху: вигляд один в один з макета користувачки ──────────────────
    Кружок СВІТЛИЙ (заливка — блідий відтінок кольору виду перевезення), малюнок
    у колірі виду. Поточний етап НЕ заливається темним — він просто більший, а
    виділяється кольоровою назвою і тривалістю. Лінії між вузлами суцільні
    кольорові там, де етап пройдено, і бліді попереду. КОРДОН — вертикальна
    пунктирна риска з підписом, а не вузол. */
-.chain{display:flex;align-items:flex-start;min-width:1020px}
-.nd{flex:0 0 124px;text-align:center}
-.cn{flex:1 1 auto;height:3px;background:var(--mc);opacity:.28;margin-top:36px;
-  border-radius:2px;min-width:16px}
+.chain{display:flex;align-items:flex-start;min-width:1420px}
+/* Вужчі колонки — щоб лінії між вузлами були ДОВГІ, як у макеті, а не куці. */
+.nd{flex:0 0 162px;text-align:center}
+/* Лінії між вузлами: у макеті майбутні НЕ бліді — вони лише трохи світліші за
+   пройдені (зміряно: пройдений #4373b5, майбутній #6795c5). */
+.cn{flex:1 1 auto;height:3px;background:var(--mc);opacity:.5;margin-top:46px;
+  border-radius:2px;min-width:26px}
 .cn.on{opacity:1}
-.nd .dot{width:72px;height:72px;margin:0 auto;border-radius:50%;
+.nd .dot{width:92px;height:92px;margin:0 auto;border-radius:50%;
   background:var(--mbg);color:var(--mc);display:flex;align-items:center;justify-content:center}
 .nd .dot i.msk{display:block;background:currentColor;
   -webkit-mask:var(--m) center/contain no-repeat;mask:var(--m) center/contain no-repeat}
-.nd .dot svg,.nd .dot i.msk{width:43px!important;height:43px!important}
+.nd .dot svg,.nd .dot i.msk{width:55px!important;height:55px!important}
 /* судно й літак — головне плече, тому крупніші за решту (02.08.2026) */
-.nd .dot.big svg,.nd .dot.big i.msk{width:49px!important;height:49px!important}
-.nd.now .dot.big svg,.nd.now .dot.big i.msk{width:54px!important;height:54px!important}
+.nd .dot.big svg,.nd .dot.big i.msk{width:60px!important;height:60px!important}
+.nd.now .dot.big svg,.nd.now .dot.big i.msk{width:66px!important;height:66px!important}
 /* Поточне місцезнаходження має бути видно ОДРАЗУ: кільце в колір виду
    перевезення + ореол + більший кружок. Раніше різниця була ледь помітна
    (зауваження користувачки 02.08.2026). */
-.nd.now .dot{width:80px;height:80px;margin-top:-4px;
+.nd.now .dot{width:100px;height:100px;margin-top:-4px;
   background:color-mix(in srgb,var(--mc) 18%,#fff);
   border:2.5px solid var(--mc);
   box-shadow:0 0 0 6px color-mix(in srgb,var(--mc) 13%,transparent)}
 .nd.now .ttl{font-weight:800}
-.nd.now .dot svg,.nd.now .dot i.msk{width:47px!important;height:47px!important}
+.nd.now .dot svg,.nd.now .dot i.msk{width:60px!important;height:60px!important}
 /* Майбутні етапи лишаються в кольорі виду перевезення, лише блідіші —
    сірий робив схему «мертвою». Прозорість не використовуємо: від неї текст
    і малюнок сіріли (зауваження про тьмяність, 02.08.2026). */
 .nd.todo .dot{background:color-mix(in srgb,var(--mc) 8%,#fff);
   color:color-mix(in srgb,var(--mc) 62%,#8f8f8a)}
 .nd.done .dot{background:color-mix(in srgb,var(--mc) 13%,#fff)}
-.nd .ttl{font-size:13px;font-weight:700;margin-top:12px;line-height:1.3;color:var(--ink)}
-.nd.now .ttl{color:var(--mc);font-size:14px}
+/* Текст у макеті НЕ чорний і НЕ жирний: приглушений синьо-сірий, вага 600.
+   У мене був важкий чорний bold — саме через це схема виглядала «важкою». */
+/* Розміри ПОРАХОВАНІ з макета у відсотках від ширини картки: кружок 6.6%,
+   назва 1.23%. У моєму макеті це 92 px і 17 px. Раніше все було дрібніше. */
+.nd .ttl{font-size:16px;font-weight:500;margin-top:16px;line-height:1.32;color:#465264}
+.nd.now .ttl{color:var(--mc);font-size:16.5px;font-weight:700}
 .nd.todo .ttl{color:var(--ink-2)}
-.nd .place{font-size:12px;color:var(--ink-2);margin-top:4px;line-height:1.35}
-.nd .ttl{color:var(--ink)}
-.nd .dur{font-size:14px;font-weight:700;color:var(--mc);margin-top:6px}
-.nd .dt{font-size:13px;font-weight:700;margin-top:6px;font-variant-numeric:tabular-nums}
+.nd .place{font-size:15px;color:#7a8393;margin-top:8px;line-height:1.35;font-weight:400}
+
+.nd .dur{font-size:16.5px;font-weight:700;color:var(--mc);margin-top:8px}
+.nd .dt{font-size:15.5px;font-weight:500;margin-top:8px;color:#465264;font-variant-numeric:tabular-nums}
 .nd .dt.dim{color:var(--muted);font-weight:600}
-.nd .plan{font-size:12px;color:var(--muted);margin-top:4px;font-variant-numeric:tabular-nums}
-.nd .dt{color:var(--ink)}
-.brd{flex:0 0 62px;text-align:center}
-.brd .bln{height:72px;border-left:1.5px dashed var(--mc);opacity:.55;margin:0 auto;width:0}
-.brd .blb{font-size:10.5px;font-weight:700;letter-spacing:.08em;color:var(--muted);
-  text-transform:uppercase;margin-top:12px}
-.brd .bld{font-size:12px;font-weight:700;margin-top:4px;font-variant-numeric:tabular-nums}
+.nd .plan{font-size:15px;color:#9aa1ad;margin-top:8px;font-variant-numeric:tabular-nums}
+
+.brd{flex:0 0 84px;text-align:center}
+.brd .bln{height:92px;border-left:1.5px dashed var(--mc);opacity:.55;margin:0 auto;width:0}
+.brd .blb{font-size:13px;font-weight:600;letter-spacing:.06em;color:#8d93a0;
+  text-transform:uppercase;margin-top:16px}
+.brd .bld{font-size:15px;font-weight:600;color:#3c4757;margin-top:8px;font-variant-numeric:tabular-nums}
 
 /* деталі + документи */
 .cols{display:grid;grid-template-columns:1.05fr 1fr;gap:18px;margin-top:18px;align-items:start}
@@ -494,10 +501,12 @@ const svg = (k, px) => ICON_MASK[k]
   stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${I[k]}</svg>`;
 
 /* ── колір за видом перевезення (як у макеті користувачки) ──────────── */
+/* Кольори ЗМІРЯНІ з макета користувачки (піксельні проби по кожному ряду):
+   море #2269bc, авто #954e17, авіа #8f4aa8. Раніше я підбирала «схожі». */
 const MODE_PAL = {
-  sea : {c:"#1a6fc4", bg:"#e8f1fb", nm:"Море"},
-  air : {c:"#8b3fa8", bg:"#f4e9f8", nm:"Авіа"},
-  road: {c:"#b8651b", bg:"#fbeee0", nm:"Авто"},
+  sea : {c:"#2269bc", bg:"#e9f1fb", nm:"Море"},
+  air : {c:"#8f4aa8", bg:"#f5eaf8", nm:"Авіа"},
+  road: {c:"#954e17", bg:"#fbf0e3", nm:"Авто"},
   rail: {c:"#1f7a5a", bg:"#e4f3ed", nm:"Залізниця"},
 };
 const modeOf = r => air(r) ? "air"
