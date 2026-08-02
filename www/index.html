@@ -773,6 +773,59 @@
 const $ = id => document.getElementById(id);
 function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
 
+/* Розмітка статей «Інструкцій» — єдине місце у фасаді, де вміст із бази
+   вставляється як HTML, а не як текст (статті перенесені з Notion і мають
+   заголовки, списки, посилання). Перевірено 02.08.2026: до цієї правки
+   звичайний <img onerror=...> у полі «Зміст» виконувався і забирав ключ сесії.
+
+   Правило БІЛОГО списку: лишаємо тільки перелічені теги, усе інше стає
+   звичайним текстом. Не «вирізаємо погане» (список поганого завжди неповний),
+   а «пропускаємо лише відоме добре». */
+const HTML_OK = ["p","br","b","strong","i","em","u","s","h1","h2","h3","h4",
+                 "ul","ol","li","blockquote","code","pre","hr","a",
+                 "table","thead","tbody","tr","th","td","span","div"];
+function safeHtml(raw){
+  /* ВАЖЛИВО: розбираємо через DOMParser, а НЕ через innerHTML звичайного <div>.
+     Перевірено 02.08.2026: `div.innerHTML = ...` одразу починає вантажити
+     картинки, і <img src=x onerror="…"> спрацьовує ЩЕ ДО того, як ми його
+     приберемо — ключ сесії крали навіть при правильному очищенні.
+     DOMParser створює «мертвий» документ: нічого не вантажиться і не виконується. */
+  const doc = new DOMParser().parseFromString(
+    "<body>" + String(raw == null ? "" : raw) + "</body>", "text/html");
+  const box = doc.body;
+  const walk = el => {
+    [...el.children].forEach(ch => {
+      const tag = ch.tagName.toLowerCase();
+      if (!HTML_OK.includes(tag)){
+        // невідомий тег (script, img, iframe…) — лишаємо лише його текст
+        ch.replaceWith(document.createTextNode(ch.textContent || ""));
+        return;
+      }
+      // атрибути: жодних on* (onclick, onerror…), style і посилань на javascript:
+      [...ch.attributes].forEach(at => {
+        const n = at.name.toLowerCase();
+        if (n === "href" && tag === "a"){
+          const u = safeLink(at.value);
+          if (u) ch.setAttribute("href", u); else ch.removeAttribute("href");
+          ch.setAttribute("rel", "noopener noreferrer");
+          ch.setAttribute("target", "_blank");
+          return;
+        }
+        if (n !== "colspan" && n !== "rowspan") ch.removeAttribute(at.name);
+      });
+      walk(ch);
+    });
+  };
+  walk(box);
+  return box.innerHTML;
+}
+/* Посилання: тільки звичайні http(s). javascript:, data: тощо — відкидаємо. */
+function safeLink(u){
+  const s = String(u == null ? "" : u).trim();
+  if (!s) return "";
+  return /^https?:\/\//i.test(s) ? s : "";
+}
+
 /* ===== оформлення (в налаштуваннях користувача) ===== */
 let palette = localStorage.getItem("palette") || "finrep";
 const PALETTES = [ ["finrep","Фінзвіт (фірмовий)"],["warm","Теплий"],["ocean","Океан"],["indigo","Індиго"],["emerald","Смарагд"] ];
@@ -2923,7 +2976,58 @@ const CALC_ST_CLS = {"Чернетка":"t-neutral","Відправлено кл
 const CALC_SEED = [["Морський фрахт","",""],["Автовивіз / доставка","",""],["Винагорода експедитора","",""]];
 let CALC_ROWS = null, CALC_CUR = null;
 
-const num = v => { const n = parseFloat(String(v==null?"":v).replace(/\s/g,"").replace(",",".")); return isFinite(n)?n:0; };
+/* Розбір суми. ЄДИНЕ правило для всіх форматів, які реально приходять:
+   українського «1 250,50» і англійського «1,250.50» з листів ліній.
+
+   Було до 02.08.2026: parseFloat(...replace(",", ".")) — замінювалась лише ПЕРША
+   кома, тому «12,000» ставало 12, а «1,250.00» — 1.25. Помилка в 1000 разів,
+   і вона мовчки лягала в базу та в CSV для Експедитора.
+
+   Правило: прибрати пробіли; якщо є і кома, і крапка — десятковий той, що
+   СТОЇТЬ ОСТАННІМ; якщо є лише один вид — він десятковий тільки тоді, коли
+   трапляється один раз і після нього 1-2 цифри, інакше це роздільник тисяч.
+   Роздільники тисяч приймаються лише правильними групами по 3 цифри —
+   тому «3.06.26» (дата) розпізнається як НЕ число, а не як 30626.
+
+   Повертає NaN, якщо це не число. Порожнє значення — 0 (порожній рядок = нуль).
+   Раніше будь-яке сміття тихо ставало нулем; тепер його видно (див. numBad). */
+function num(v){
+  const s = String(v==null ? "" : v).replace(/[\s   ]/g, "");
+  if (!s) return 0;
+  if (!/^[+-]?[\d.,]+$/.test(s)) return NaN;
+  const sign = s[0] === "-" ? -1 : 1;
+  const body = s.replace(/^[+-]/, "");
+  if (!/\d/.test(body)) return NaN;
+  const lastC = body.lastIndexOf(","), lastD = body.lastIndexOf(".");
+  let decAt = -1;
+  if (lastC >= 0 && lastD >= 0) decAt = Math.max(lastC, lastD);
+  else {
+    const only = lastC >= 0 ? "," : (lastD >= 0 ? "." : null);
+    if (only){
+      const pos = only === "," ? lastC : lastD;
+      const cnt = body.split(only).length - 1;
+      const after = body.length - pos - 1;
+      if (cnt === 1 && after >= 1 && after <= 2) decAt = pos;
+    }
+  }
+  const intRaw = decAt >= 0 ? body.slice(0, decAt) : body;
+  const frac   = decAt >= 0 ? body.slice(decAt + 1) : "";
+  if (frac && !/^\d+$/.test(frac)) return NaN;
+  // ціла частина: або суцільні цифри, або правильні групи по 3 (1-3 у першій)
+  let intDigits;
+  if (/^\d*$/.test(intRaw)) intDigits = intRaw;
+  else {
+    const parts = intRaw.split(/[.,]/);
+    if (parts.length < 2) return NaN;
+    if (!/^\d{1,3}$/.test(parts[0])) return NaN;
+    if (!parts.slice(1).every(p => /^\d{3}$/.test(p))) return NaN;
+    intDigits = parts.join("");
+  }
+  const n = parseFloat((intDigits || "0") + (frac ? "." + frac : ""));
+  return isFinite(n) ? sign * n : NaN;
+}
+/* Чи є серед значень таке, яке не вдалось розпізнати як число. */
+const numBad = v => Number.isNaN(num(v));
 function calcLines(raw){
   return String(raw||"").split("\n").map(l=>l.trim()).filter(Boolean).map(l=>{
     const p = l.split("|").map(x=>x.trim());
@@ -2933,8 +3037,15 @@ function calcLines(raw){
 const linesToRaw = arr => arr.map(x=>x.join(" | ")).join("\n");
 function calcTotals(arr){
   let cost=0, sell=0;
-  arr.forEach(([,c,s])=>{ cost+=num(c); sell+=num(s); });
-  return {cost, sell, profit: sell-cost};
+  // bad — рядки, де сума написана так, що її неможливо однозначно прочитати.
+  // Раніше вони мовчки ставали нулем; тепер про них видно і зберегти не можна.
+  const bad = [];
+  arr.forEach(([name,c,s],i)=>{
+    if (numBad(c) || numBad(s)) bad.push({i, name: name || ("рядок " + (i+1))});
+    cost += numBad(c) ? 0 : num(c);
+    sell += numBad(s) ? 0 : num(s);
+  });
+  return {cost, sell, profit: sell-cost, bad};
 }
 const money = (n,cur) => (Math.round(n*100)/100).toLocaleString("uk-UA") + " " + (cur||"USD");
 
@@ -3172,7 +3283,14 @@ function openCalc(r){
   const drawTotals = () => {
     const t = calcTotals(lines), cur = $("c-cur").value;
     const marg = t.sell ? Math.round(t.profit/t.sell*1000)/10 : 0;
-    $("c-tot").innerHTML = `Собівартість: <b>${money(t.cost,cur)}</b> · Продаж: <b>${money(t.sell,cur)}</b> · Прибуток: <b style="color:${t.profit<0?"#b91c1c":"inherit"}">${money(t.profit,cur)}</b>${t.sell?` · маржа ${marg}%`:""}`;
+    const warn = t.bad.length
+      ? `<div style="color:#b91c1c;font-weight:600;margin-top:6px">⚠ Не змогла прочитати суму: ${
+          esc(t.bad.map(b=>b.name).join(", "))}. Підсумок неповний, зберегти не можна —
+          напиши число як <b>1250,50</b> або <b>1 250,50</b>.</div>`
+      : "";
+    $("c-tot").innerHTML = `Собівартість: <b>${money(t.cost,cur)}</b> · Продаж: <b>${money(t.sell,cur)}</b> · Прибуток: <b style="color:${t.profit<0?"#b91c1c":"inherit"}">${money(t.profit,cur)}</b>${t.sell?` · маржа ${marg}%`:""}` + warn;
+    const sv = $("calc-save");
+    if (sv) { sv.disabled = t.bad.length > 0; sv.style.opacity = t.bad.length ? .5 : 1; }
   };
   const drawLines = () => {
     linesBody.innerHTML = lines.map((l,i)=>`<tr>
@@ -3212,6 +3330,13 @@ function openCalc(r){
     const body = {};
     $("calc-body").querySelectorAll("[data-c]").forEach(el=>{ body[el.dataset.c] = el.value; });
     const t = calcTotals(lines);
+    // Запобіжник: у базу і в CSV для Експедитора не має потрапити сума,
+    // яку ми не змогли прочитати однозначно (кнопка вже вимкнена, це другий рубіж).
+    if (t.bad.length){
+      $("c-status").textContent = "⚠ Не збережено: не змогла прочитати суму — " +
+        t.bad.map(b=>b.name).join(", ");
+      return;
+    }
     Object.assign(body, {"Запит": $("c-req").value, "Позиції": linesToRaw(lines), "Валюта": $("c-cur").value,
       "Собівартість": t.cost, "Продаж": t.sell, "Прибуток": t.profit, "Менеджер": c["Менеджер"]||UNAME});
     Object.keys(body).forEach(k=>{ if (body[k] === "" || body[k] === undefined) body[k] = null; });
@@ -3292,8 +3417,8 @@ PAGES.instr = async () => {
       <div class="card">
         <button class="btn ghost" id="back-instr">← До списку</button>
         <h3 style="margin-top:14px;font-size:16px;text-transform:none;letter-spacing:0">${esc(a["Іконка"]||"")} ${esc(a["Назва"])}</h3>
-        <div class="article">${a["Зміст"]||""}</div>
-        ${a["Джерело"]?`<p class="sub" style="margin-top:14px"><a href="${esc(a["Джерело"])}" target="_blank">Джерело в Notion ↗</a></p>`:""}
+        <div class="article">${safeHtml(a["Зміст"])}</div>
+        ${safeLink(a["Джерело"])?`<p class="sub" style="margin-top:14px"><a href="${esc(safeLink(a["Джерело"]))}" target="_blank" rel="noopener noreferrer">Джерело в Notion ↗</a></p>`:""}
       </div>`;
     $("back-instr").addEventListener("click",()=>go("instr"));
     window.scrollTo(0,0);
