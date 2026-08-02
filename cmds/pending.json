@@ -1,1 +1,1 @@
-{"id": "track-dry-1", "cmd": "cd /root/Iryna_Karmazina && git fetch origin main -q && git show origin/main:direct_sync/maersk_track_sync.py > /root/direct-sync/maersk_track_sync.py && echo 'СТАРТ ТРЕКІНГ DRY' && nohup python3 -u /root/direct-sync/maersk_track_sync.py --dry-run > /root/track_dry.out 2>&1 & sleep 5; echo запущено"}
+{"id": "track-dry-2", "cmd": "sleep 100; echo '--- ХІД ---'; wc -l /root/track_dry.out; grep -c 'Судно' /root/track_dry.out || true; tail -6 /root/track_dry.out"}
