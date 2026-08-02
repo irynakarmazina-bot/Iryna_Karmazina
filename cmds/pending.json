@@ -1,1 +1,1 @@
-{"id": "routes-apply-1", "cmd": "timeout 110 python3 -u /root/normalize_routes.py --apply 2>&1 | sed -n '/НОРМАЛІЗАЦІЯ МАРШРУТІВ/,$p' | head -30"}
+{"id": "inco-check-1", "cmd": "python3 -u -c \"import json,urllib.request;TOK=open('/root/nocodb-token.txt').read().strip();T='m58xsjo6at01ohl';r=urllib.request.Request('http://localhost:8080/api/v2/meta/tables/'+T,headers={'xc-token':TOK});cols=[c['title'] for c in json.load(urllib.request.urlopen(r))['columns']];print('=== КОЛОНКИ УГОДИ ===');print(' | '.join(cols))\""}
