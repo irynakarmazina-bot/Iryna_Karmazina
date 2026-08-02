@@ -1,1 +1,1 @@
-{"id": "recon-14", "cmd": "python3 /root/tg_r3.py ents 2>&1 | grep -v '^Catalog\\|^ChartOf\\|^Document_Сделка_\\|^AccountingRegister' | head -60; echo ===MAPS; cat /root/unitex-finrep/engine/odata_maps.py"}
+{"id": "recon-15", "cmd": "python3 /root/tg_r6.py vr 2>&1 | head -70"}
