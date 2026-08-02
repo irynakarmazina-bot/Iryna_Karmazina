@@ -115,6 +115,7 @@ def collect(c, statuses, info_bank):
             "cont": (r.get("СписокКонтейнеров") or "").strip(),
             "route": " → ".join(x for x in [(r.get("ПунктОтправления") or "").strip(),
                                             (r.get("ПунктНазначения") or "").strip()] if x),
+            "date": d10(r.get("Date")),
             "completed": d10(r.get("ДатаЗавершения")),
             "revenue": 0.0, "cost": 0.0, "fee": 0.0, "local_abroad": 0.0,
             "info_bank": 0.0, "paid": "", "invoices": [],
@@ -174,6 +175,7 @@ def build(deals):
         rows.append({
             "num": d["num"], "status": d["status"], "bl": d["bl"], "cont": d["cont"],
             "route": d["route"], "paid": d["paid"], "completed": d["completed"],
+            "date": d["date"],
             "revenue": round(d["revenue"], 2), "cost": round(d["cost"], 2),
             "profit": profit, "fee": round(d["fee"], 2), "info_bank": round(d["info_bank"], 2),
             "info_added": add, "local_abroad": round(d["local_abroad"], 2), "diff": diff,
