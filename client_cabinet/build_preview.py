@@ -219,7 +219,7 @@ tr.exp>td{padding:0;background:var(--surface-2)}
 <header>
   <img src="__LOGO__" alt="UNITEX">
   <div class="spacer"></div>
-  <div class="who"><b>__CLIENT__</b></div>
+  <div class="who"><b>__CLIENTFULL__</b></div>
 </header>
 
 <main>
