@@ -1,7 +1,7 @@
 {
-  "stdout": "active\nlocalcosts route: 200\n",
+  "stdout": "маршрут додано\n{\"level\":\"info\",\"ts\":1785658011.9841597,\"msg\":\"using config from file\",\"file\":\"/etc/caddy/Caddyfile\"}\n{\"level\":\"info\",\"ts\":1785658011.9877276,\"msg\":\"adapted config to JSON\",\"adapter\":\"caddyfile\"}\n37:\thandle /localcosts-refresh {\n38:\t\trewrite * /localcosts?token=ab035256f864e587ac4f2173ff0e9b12\n",
   "stderr": "",
   "returncode": 0,
-  "id": "deploy-5",
-  "ts": "2026-08-02T08:06:35Z"
+  "id": "deploy-6",
+  "ts": "2026-08-02T08:06:52Z"
 }
