@@ -1,7 +1,7 @@
 {
-  "stdout": "",
-  "stderr": "sed: -e expression #1, char 17: unexpected `,'\n",
+  "stdout": "=== ПОДІЇ 260 ===\nBL='274981471' Контейнер=None  сьогодні 2026-08-02\nподій: 10  знайшли по: коносамент  \n  2026-07-28  CONF  ACT  mode=                 \n  2026-07-29  CONF  ACT  mode=                 \n  2026-08-09  DEPA  EST  mode=TRUCK   МАЙБУТНЄ \n  2026-08-12  ARRI  EST  mode=TRUCK   МАЙБУТНЄ \n  2026-08-15  DEPA  EST  mode=VESSEL  МАЙБУТНЄ LEONIDIO\n  2026-09-01  ARRI  EST  mode=VESSEL  МАЙБУТНЄ LEONIDIO\n  2026-09-09  DEPA  EST  mode=VESSEL  МАЙБУТНЄ SEASPAN PRIDE\n  2026-10-08  ARRI  EST  mode=VESSEL  МАЙБУТНЄ SEASPAN PRIDE\n  2026-10-14  DEPA  EST  mode=VESSEL  МАЙБУТНЄ XIAMEN\n  2026-10-22  ARRI  EST  mode=VESSEL  МАЙБУТНЄ XIAMEN\nОСТАННЯ подія (з якої береться статус): 2026-10-22 EST ARRI\n",
+  "stderr": "",
   "returncode": 0,
-  "id": "probe260-1",
-  "ts": "2026-08-02T08:54:46Z"
+  "id": "probe260-2",
+  "ts": "2026-08-02T08:55:06Z"
 }
