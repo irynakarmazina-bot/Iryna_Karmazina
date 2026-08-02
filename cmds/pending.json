@@ -1,18 +1,1 @@
-{"id": "kasa-maersk-audit-0802", "cmd": "cd /root/unitex-finrep && python3 -c \"
-import csv,re,collections
-P=re.compile('аерск|aersk',re.I)
-rows=list(csv.DictReader(open('normalized/cash_moves.csv',encoding='utf-8')))
-kasa=[r for r in rows if P.search(str(r.get('payment_method') or ''))]
-print('рухів через касу Маерск:',len(kasa))
-print('назви каси:',dict(collections.Counter((r.get('payment_method') or '').strip() for r in kasa)))
-pays=[r for r in kasa if (r.get('expense_uo') or '').strip() not in ('','0')]
-print('з них виплат:',len(pays))
-agg=collections.defaultdict(lambda:[0.0,0])
-for r in pays:
-    k=(r.get('counterparty') or '(порожньо)').strip()
-    agg[k][0]+=float(str(r.get('expense_uo') or 0).replace(',','.') or 0); agg[k][1]+=1
-print('ОТРИМУВАЧІ виплат із цієї каси:')
-for k,(s,c) in sorted(agg.items(),key=lambda x:-x[1][0]):
-    print('   %10.2f  %3d  %s'%(s,c,k[:60]))
-print('РАЗОМ виплат із каси: %.2f'%sum(v[0] for v in agg.values()))
-\" 2>&1 | tail -30 | base64 -w0"}
+{"id": "deploy-ui-5", "cmd": "bash /root/deploy_ui.sh main 2>&1 | tail -3 && cd /root/Iryna_Karmazina && git fetch origin main -q && git show origin/main:client_cabinet/build_preview.py > /root/build_preview.py && python3 /root/build_preview.py --client Мірандор --out /root/unitex-os-www/cabinet.html 2>&1|tail -1 && python3 /root/build_preview.py --client \"ГРАНД МАРИН\" --out /root/unitex-os-www/cabinet-gm.html 2>&1|tail -1"}
