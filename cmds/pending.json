@@ -1,1 +1,1 @@
-{"id": "maersk-pay-3-0802", "cmd": "cd /root/Iryna_Karmazina && git pull -q origin main && cp finrep/maersk_payments.py /root/unitex-finrep/maersk_payments.py && cd /root/unitex-finrep && python3 maersk_payments.py --write 2>&1 | tail -25"}
+{"id": "deploy-maersk-ui-0802", "cmd": "/root/deploy_ui.sh main 2>&1 | tail -6"}
