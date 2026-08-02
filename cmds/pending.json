@@ -1,11 +1,1 @@
-{"id": "maersk-cur-probe-0802", "cmd": "cd /root/unitex-finrep && python3 -c \"
-import csv,re,collections
-P=re.compile('аерск|aersk',re.I)
-rows=[r for r in csv.DictReader(open('normalized/cash_moves.csv',encoding='utf-8')) if P.search(str(r.get('counterparty') or ''))]
-pays=[r for r in rows if (r.get('expense_uo') or '').strip() not in ('','0')]
-print('виплат:',len(pays))
-print('expense заповнено:',sum(1 for r in pays if (r.get('expense') or '').strip()))
-print('currency заповнено:',sum(1 for r in pays if (r.get('currency') or '').strip()))
-print('валюти:',dict(collections.Counter((r.get('currency') or 'порожньо').strip() for r in pays)))
-print('приклад рядка:',{k:(v[:28] if isinstance(v,str) else v) for k,v in list(pays[0].items())})
-\" 2>&1 | tail -12 | base64 -w0; echo; echo ---; grep -n 'name\\|dashboard\\|period\\|ALLOW\\|FILES' /root/findata.py 2>/dev/null | head -20 | base64 -w0"}
+{"id": "deploy-8", "cmd": "cd /root/Iryna_Karmazina && git fetch -q origin main && bash server/deploy_ui.sh main 2>&1 | tail -6"}
