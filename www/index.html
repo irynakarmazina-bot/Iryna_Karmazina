@@ -478,6 +478,9 @@
   tbody tr:hover{background:var(--surface-2)}
   .cell-muted{color:var(--ink-2);font-size:12px}
   .mono{font-variant-numeric:tabular-nums; white-space:nowrap}
+  /* угода, по якій переказ уже зроблено — приглушена, щоб не плутати з роботою */
+  tr.lc-sent td{opacity:.55}
+  tr.lc-sent td:last-child{opacity:1}
 
 /* Фільтри компактні, щоб уміщались в один рядок і не з'їдали висоту над
    таблицею (зауваження користувачки 01.08.2026). */
@@ -587,7 +590,7 @@
       <div class="spacer"></div>
       <!-- Позначка версії: по ній видно, чи браузер підтягнув свіжу сторінку.
            Оновлюється автоматично при кожному викладенні (scripts/stamp.sh). -->
-      <div class="buildstamp" id="buildstamp" title="версія сторінки — якщо не збігається з тим, що я назвала, натисни Ctrl+F5">в. 02.08 08:21</div>
+      <div class="buildstamp" id="buildstamp" title="версія сторінки — якщо не збігається з тим, що я назвала, натисни Ctrl+F5">в. 02.08 08:23</div>
     </nav>
     <div class="main">
       <div class="topbar">
@@ -1551,7 +1554,7 @@ PAGES.dispatch = async () => {
         <td class="c-cli" title="${esc(r["Клієнт"]||"")}">${esc(cliName(r["Клієнт"])||"—")}</td>
         <td class="c-rt${ED}" data-ed="Маршрут" title="${esc(r["Маршрут"]||"")}">${
             _s(r,"Маршрут")
-              ? _s(r,"Маршрут").split(/→|->/).map(x=>x.trim()).filter(Boolean)
+              ? routeArrows(r["Маршрут"]).split("→").map(x=>x.trim()).filter(Boolean)
                   .map((x,i)=>`${i?'<span class="rtar">→</span>':""}${esc(x)}`).join("<br>")
               : '<span class="cell-muted">—</span>'}${
             _s(r,"Кінцева точка доставки")
@@ -2000,7 +2003,21 @@ async function logAction(action, obj, field, before, after){
   }catch(e){ /* журнал не критичний */ }
 }
 
+/* Маршрут завжди показуємо і зберігаємо зі стрілочками, як би його не ввели:
+   «Долина - Роттердам», «Долина -Роттердам», «Долина -> Роттердам», «Долина — Роттердам»
+   → «Долина → Роттердам». Дефіс БЕЗ пробілів не чіпаємо — інакше зламаються
+   назви на кшталт «Порт-Саїд» чи «Кам'янець-Подільський» (02.08.2026). */
+function routeArrows(v){
+  return String(v == null ? "" : v)
+    .replace(/\s*(?:-->|->|→|—|–)\s*/g, " → ")   // стрілки й довгі тире
+    .replace(/\s+-\s*|\s*-\s+/g, " → ")        // дефіс, у якого є пробіл хоча б з одного боку
+    .replace(/\s*→\s*/g, " → ")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+}
+
 async function saveField(row, col, val){
+  if (col === "Маршрут") val = routeArrows(val);   // зберігаємо вже нормалізовано
   const before = row[col];
   await api(`/api/v2/tables/${T["Диспетчеризація"]}/records`, {method:"PATCH",
     body: JSON.stringify([{Id: row.Id, [col]: val}])});
@@ -2013,6 +2030,7 @@ function cardVal(r, f){
   const v = r[f];
   if (v===null || v===undefined || v==="") return "—";
   if (CARD_DATE.test(f) && !CARD_SELECT[f]){ const d = fmtD(v); if (d) return d; }
+  if (f === "Маршрут") return routeArrows(v);
   return String(v);
 }
 
@@ -2111,11 +2129,209 @@ PAGES.crm = async () => {
       картка контакту, історія листування, нагадування, джерело клієнта.</div></div>`;
 };
 
+/* ===== БУХ. ОБЛІК → «Локальні витрати за кордоном» =====
+   Таблиця угод, у яких профіт більший за винагороду експедитора: різницю компанія
+   переказує за кордон як локальні витрати. Дані рахує finrep/local_costs.py з
+   Експедитора (OData) і кладе в computed/local_costs.json; сюди вони приходять через
+   /finrep-data?name=localcosts (та сама рольова перевірка, що й для фінзвітів). */
 PAGES.accounting = async () => {
   $("content").innerHTML = `<div class="card"><h3>🧾 Бухгалтерський облік</h3>
-    <p class="sub">первинні документи, акти, рахунки, звірки</p>
-    <div class="note">🛠 Розділ у розробці. Дані для нього вже є: рахунки клієнтам і постачальникам,
-      проводки з субконто, залишки по касах. Скажи, з чого почати.</div></div>`;
+    <p class="sub">локальні витрати за кордоном — угоди, де профіт більший за винагороду експедитора</p>
+    <div class="note">⏳ Рахую по кожній угоді…</div></div>`;
+  let js;
+  try { js = await fetchFin("localcosts"); }
+  catch(e){
+    $("content").innerHTML = `<div class="card"><h3>🧾 Бухгалтерський облік</h3>
+      <div class="note">⚠ Не вдалося отримати дані: ${esc(e.message)}</div></div>`;
+    return;
+  }
+  // /finrep-data віддає {file, mtime, data} — самі рядки лежать у .data
+  const d = js.data || {};
+  const rows = d.rows || [];
+  // Маршруту в Експедиторі немає (поля «Пункт відправлення/призначення» порожні в усіх
+  // угодах) — беремо його з таблиці диспетчеризації платформи за номером угоди.
+  // Звідти ж підстраховуємо коносамент і контейнер, якщо в Експедиторі порожньо.
+  try {
+    const byNum = new Map();
+    (await dispRows()).forEach(r => byNum.set(String(r["Угода"]||"").trim(), r));
+    rows.forEach(r => {
+      const p = byNum.get(String(r.num));
+      if (!p) return;
+      r.route = r.route || String(p["Маршрут"]||"").trim();
+      r.bl = r.bl || String(p["BL"]||"").trim();
+      r.cont = r.cont || String(p["Контейнер"]||"").trim();
+      // позначка переказу живе в платформі (колонки створені add_transfer_columns.py)
+      r._row = p;
+      r.sent = !!p["Переказ за кордон"];
+      r.sentDate = String(p["Дата переказу"]||"").slice(0,10);
+      r.sentAmt = p["Сума переказу"];
+    });
+  } catch(e){ /* платформа недоступна — таблиця все одно показується */ }
+  const pos = rows.filter(r => r.diff > 0);
+  const stamp = js.mtime ? new Date(js.mtime*1000).toLocaleString("uk-UA",
+      {day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}) : "—";
+
+  $("page-actions").innerHTML = `
+    <button class="btn" id="lc-recalc" title="дані станом на ${stamp}">⟳ Перерахувати з Експедитора</button>
+    <button class="btn ghost" id="lc-csv">⬇ Вивантажити в CSV</button>`;
+
+  $("content").innerHTML = `
+  <div class="card">
+    <h3>🌍 Локальні витрати за кордоном</h3>
+    <p class="sub">угоди зі статусами ${esc((d.statuses||[]).join(", "))} · дані з Експедитора станом на ${stamp}</p>
+    <div class="tiles" style="margin-top:12px">
+      <div class="tile tready"><div class="tbody"><div class="lbl">Угод із різницею</div>
+        <div class="val">${pos.length}</div><div class="hint">з ${rows.length} переглянутих</div></div></div>
+      <div class="tile tready"><div class="tbody"><div class="lbl">Ще не переказано</div>
+        <div class="val">${fmtN(pos.filter(r=>!r.sent).reduce((s,r)=>s+r.diff,0), 2)}</div>
+        <div class="hint">УО · ${pos.filter(r=>!r.sent).length} угод</div></div></div>
+      <div class="tile tready"><div class="tbody"><div class="lbl">Уже переказано</div>
+        <div class="val">${fmtN(pos.filter(r=>r.sent).reduce((s,r)=>s+(Number(r.sentAmt)||r.diff),0), 2)}</div>
+        <div class="hint">УО · ${pos.filter(r=>r.sent).length} угод із позначкою</div></div></div>
+      <div class="tile tready"><div class="tbody"><div class="lbl">Уже виділено в рахунках</div>
+        <div class="val">${fmtN(rows.reduce((s,r)=>s+(r.local_abroad||0),0), 2)}</div>
+        <div class="hint">стаття «Локальні витрати за кордоном»</div></div></div>
+    </div>
+    <div class="note" style="margin-top:12px">
+      <b>Як рахується:</b> профіт = усі доходні рахунки угоди мінус усі витратні (в УО, проведені,
+      без інформативних) — формула звірена з «Фактичним прибутком» Експедитора.
+      Винагорода = рядки доходних рахунків зі статтею «Винагорода експедитора».
+      ${(d.info_bank_guids||[]).length
+        ? `До профіту додано інфо та банківські комісії, якщо по угоді їх більше ${fmtN(d.info_min,0)} УО.`
+        : `⚠ Інфо та банківські комісії <b>поки не додані</b>: довідник статей Експедитора
+           не опублікований в API, чекаю підтвердження назв.`}
+      Різниця = профіт (+ інфо та комісії) − винагорода; типово показані тільки додатні.
+    </div>
+    <div class="filters" style="margin-top:12px">
+      <input id="lc-q" placeholder="пошук: угода, коносамент, контейнер, маршрут" style="min-width:250px">
+      <select id="lc-st"><option value="">Усі статуси</option>
+        ${[...new Set(rows.map(r=>r.status))].map(s=>`<option>${esc(s)}</option>`).join("")}</select>
+      <select id="lc-base" title="за якою датою відбирати період">
+        <option value="paid">період за оплатою клієнта</option>
+        <option value="date">період за датою угоди</option>
+        <option value="completed">період за датою завершення</option></select>
+      <input type="date" id="lc-from" title="період з"><input type="date" id="lc-to" title="період по">
+      <select id="lc-sent"><option value="">переказ: усі</option>
+        <option value="no">ще не переказано</option><option value="yes">уже переказано</option></select>
+      <label style="display:flex;align-items:center;gap:6px;font-size:13px">
+        <input type="checkbox" id="lc-all"> показати й угоди без різниці</label>
+      <button class="btn ghost" id="lc-reset" style="padding:4px 10px;font-size:12.5px">скинути</button>
+      <span id="lc-count" class="sub"></span>
+    </div>
+    <div id="lc-table"></div>
+  </div>`;
+
+  const visible = () => {
+    const q = ($("lc-q").value||"").trim().toLowerCase();
+    const st = $("lc-st").value, base = $("lc-base").value;
+    const from = $("lc-from").value, to = $("lc-to").value, sent = $("lc-sent").value;
+    const all = $("lc-all").checked;
+    return rows.filter(r => {
+      if (!all && r.diff <= 0) return false;
+      if (st && r.status !== st) return false;
+      if (sent === "yes" && !r.sent) return false;
+      if (sent === "no" && r.sent) return false;
+      if (from || to){
+        const dt = r[base] || "";          // дати у форматі РРРР-ММ-ДД — порівнюються як текст
+        if (!dt) return false;             // без дати в період не потрапляє
+        if (from && dt < from) return false;
+        if (to && dt > to) return false;
+      }
+      return !q || [r.num,r.bl,r.cont,r.route].join(" ").toLowerCase().includes(q);
+    });
+  };
+  const dmy = v => v ? esc(String(v).slice(0,10).split("-").reverse().join(".")) : "";
+  const draw = () => {
+    const list = visible();
+    const sum = list.filter(r=>!r.sent).reduce((s,r)=>s+r.diff,0);
+    $("lc-count").textContent = `показано ${list.length} · до переказу ${
+      sum.toLocaleString("uk-UA",{maximumFractionDigits:2})} УО`;
+    $("lc-table").innerHTML = finTable(
+      ["№ угоди","Статус","Коносамент","Контейнер","Маршрут","Оплата від клієнта",
+       "Профіт","Винагорода","Інфо+комісії","Різниця","Переказано"],
+      list.map(r => `<tr class="${r.sent?"lc-sent":""}">
+        <td class="mono">${esc(r.num)}</td>
+        <td>${esc(r.status)}</td>
+        <td class="mono">${esc(r.bl) || "<span class='sub'>—</span>"}</td>
+        <td class="mono">${esc(r.cont) || "<span class='sub'>—</span>"}</td>
+        <td>${esc(r.route) || "<span class='sub'>—</span>"}</td>
+        <td class="mono">${r.paid ? dmy(r.paid) : "<span class='sub'>не оплачено</span>"}</td>
+        <td style="text-align:right">${fmtN(r.profit,2)}</td>
+        <td style="text-align:right">${r.fee ? fmtN(r.fee,2) : "<span class='sub'>немає статті</span>"}</td>
+        <td style="text-align:right">${r.info_added ? fmtN(r.info_added,2)
+          : (r.info_bank ? `<span class="sub">${fmtN(r.info_bank,2)}</span>` : "")}</td>
+        <td style="text-align:right"><b>${fmtN(r.diff,2)}</b></td>
+        <td class="mono" style="white-space:nowrap">${r._row
+          ? `<label style="display:flex;align-items:center;gap:6px;cursor:${canMark?"pointer":"default"}">
+               <input type="checkbox" class="lc-mark" data-num="${esc(r.num)}" ${r.sent?"checked":""} ${canMark?"":"disabled"}>
+               <span class="sub">${r.sent ? (dmy(r.sentDate) || "так") : ""}</span></label>`
+          : `<span class="sub" title="цієї угоди немає в таблиці диспетчеризації">—</span>`}</td>
+        </tr>`));
+    if (canMark) $("lc-table").querySelectorAll("input.lc-mark").forEach(ch =>
+      ch.addEventListener("change", () => mark(ch)));
+  };
+
+  // позначка «переказано» пишеться в таблицю диспетчеризації (та сама угода — той самий рядок)
+  const canMark = !!cfg().edit || cfg().fin === "acct" || cfg().fin === "full";
+  async function mark(ch){
+    const r = rows.find(x => String(x.num) === ch.dataset.num);
+    if (!r || !r._row) return;
+    const on = ch.checked;
+    const today = new Date().toISOString().slice(0,10);
+    ch.disabled = true;
+    try{
+      await saveField(r._row, "Переказ за кордон", on);
+      await saveField(r._row, "Дата переказу", on ? today : null);
+      await saveField(r._row, "Сума переказу", on ? r.diff : null);
+      r.sent = on; r.sentDate = on ? today : ""; r.sentAmt = on ? r.diff : null;
+      toast(on ? `✅ Угода ${r.num}: позначено як переказану (${fmtN(r.diff,2)} УО)`
+               : `↩ Угода ${r.num}: позначку знято`);
+    }catch(e){
+      ch.checked = !on;
+      toast("⚠ Не збереглось: " + e.message);
+    }
+    ch.disabled = false;
+    draw();
+  }
+
+  ["lc-q","lc-st","lc-all","lc-base","lc-from","lc-to","lc-sent"].forEach(id =>
+    $(id).addEventListener(id === "lc-q" ? "input" : "change", draw));
+  $("lc-reset").addEventListener("click", () => {
+    ["lc-q","lc-from","lc-to"].forEach(id => $(id).value = "");
+    ["lc-st","lc-sent"].forEach(id => $(id).value = "");
+    $("lc-base").value = "paid"; $("lc-all").checked = false; draw();
+  });
+  draw();
+
+  // ⟳ перерахунок: б'є в /localcosts-refresh і чекає, поки оновиться файл
+  $("lc-recalc").addEventListener("click", async () => {
+    const b = $("lc-recalc");
+    b.disabled = true; b.textContent = "⏳ Рахую з Експедитора (~1 хв)…";
+    try{
+      const r = await fetch("/localcosts-refresh");
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      toast("✅ Перераховано"); await PAGES.accounting();
+    }catch(e){
+      b.disabled = false; b.textContent = "⟳ Перерахувати з Експедитора";
+      toast("⚠ Не вдалося перерахувати: " + e.message);
+    }
+  });
+
+  $("lc-csv").addEventListener("click", () => {
+    const head = ["Номер угоди","Статус","Коносамент лінійний","Контейнер","Маршрут",
+      "Дата оплати від клієнта","Профіт УО","Винагорода експедитора УО","Інфо+комісії УО",
+      "Різниця до переказу УО","Переказано","Дата переказу","Сума переказу УО"];
+    const e2 = v => '"' + String(v==null?"":v).replace(/"/g,'""') + '"';
+    const csv = [head.map(e2).join(";")].concat(visible().map(r => [r.num,r.status,r.bl,r.cont,
+      r.route,r.paid,r.profit,r.fee,r.info_added,r.diff,
+      r.sent?"так":"ні", r.sentDate||"", r.sent?(r.sentAmt??r.diff):""].map(e2).join(";"))).join("\r\n");
+    const blob = new Blob(["﻿"+csv], {type:"text/csv;charset=utf-8"});
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "lokalni-vytraty-za-kordonom.csv";
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(a.href), 3000);
+  });
 };
 
 PAGES.finance = async () => {
