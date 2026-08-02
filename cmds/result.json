@@ -1,7 +1,7 @@
 {
-  "stdout": "== гілка: main ==\n   коміт: bdae70485 · 2026-08-02 07:55:11 +0000\n   опис:  relay: deploy-4\nскриптів: 2, із синтаксичними помилками: 0\nCHECK_OK — фасад можна викладати\n   бекап: /root/unitex-os-www/.backups/index-20260802-105517.html (232343 б)\n   журнал: 2026-08-02T10:55:17\tmain\tbdae70485\tв. 02.08 07:18\tindex.html:240279 findash.html:26184 finperiod.html:17458\trelay: deploy-4\n   UI 200  FINDASH 200\nDEPLOY_OK · гілка main · коміт bdae70485 · позначка «в. 02.08 07:18»\n",
+  "stdout": "403\n{\"error\": \"фінансові дані доступні лише фінансовим ролям\", \"role\": \"невідома\"}\nрядків 176 разом 50469.96 угод 167\n{'num': '5', 'status': 'Завершена', 'bl': '262012196', 'cont': 'TRHU4859312', 'route': '', 'paid': '2026-02-26', 'completed': '2026-02-28', 'revenue': 33360.0, 'cost': 30489.0, 'profit': 2871.0, 'fee': 0.0, 'info_bank': 0.0, 'info_added': 0.0, 'local_abroad': 0.0, 'diff': 2871.0}\n",
   "stderr": "",
   "returncode": 0,
-  "id": "deploy-4",
-  "ts": "2026-08-02T07:55:17Z"
+  "id": "check-1",
+  "ts": "2026-08-02T07:55:34Z"
 }
