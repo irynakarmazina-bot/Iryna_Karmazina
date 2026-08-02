@@ -66,12 +66,22 @@ def logo():
 NO_LEGAL = {"космов"}
 
 
+LEGAL_RE = re.compile(r"(?:^|\s)(ТОВ|ТзОВ|ООО|ЧП|ПП|ФОП|LLC|LTD)(?:\s|$)", re.I)
+
+
 def client_title(name):
+    """Правова форма ЗАВЖДИ попереду: «ГРАНД МАРИН ТОВ» → «ТОВ ГРАНД МАРИН».
+    Вимога користувачки 02.08.2026 — в Експедиторі форма стоїть після назви,
+    у кабінеті має бути перед. Якщо форми в назві немає — додаємо «ТОВ».
+    Регістр літер беремо як в Експедиторі, самі його не міняємо."""
     n = re.sub(r"\s+", " ", str(name or "")).strip()
     if not n or n.lower() in NO_LEGAL:
         return n
-    if re.search(r"(ТОВ|ООО|ЧП|ПП|LLC|LTD)", n, re.I):
-        return n                      # форма вже є в назві — не дублюємо
+    m = LEGAL_RE.search(n)
+    if m:
+        form = m.group(1)
+        rest = re.sub(r"\s{2,}", " ", (n[:m.start(1)] + " " + n[m.end(1):])).strip()
+        return (form + " " + rest).strip() if rest else n
     return "ТОВ " + n
 
 
