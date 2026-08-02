@@ -1,7 +1,7 @@
 {
-  "stdout": "index: 221035\nfindash: 26184\nbackup: 129744\nUI 200\n",
+  "stdout": "index: 221063\nstamp: в. 02.08 04:43\npage-actions: 7\nUI 200\n",
   "stderr": "",
   "returncode": 0,
-  "id": "restore-ui-0802",
-  "ts": "2026-08-02T04:40:31Z"
+  "id": "ui-topbar-live-0802",
+  "ts": "2026-08-02T04:43:46Z"
 }
