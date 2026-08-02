@@ -1,24 +1,30 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Оплати Маерску: усі виплати цьому постачальнику по місяцях.
+"""Оплати Маерску: усі виплати цьому контрагенту по місяцях.
 
 Прохання користувачки 02.08.2026: «проаналізуй всі наші оплати на Маерск
 незалежно від виду оплати та валюти, суми по місяцях».
 
 ДЖЕРЕЛО: /root/unitex-finrep/normalized/cash_moves.csv — фактичні рухи грошей,
-які збирач тягне з Експедитора (те саме джерело, що й для фінзвіту). Беруться
-ЛИШЕ витратні рухи (виплати), контрагент яких містить «Маерск»/«Maersk».
-Вид оплати (каса/банк) НЕ фільтрується — рахуються всі.
+які збирач тягне з Експедитора (те саме джерело, що й фінзвіт).
+Колонки: document, date, payment_method, counterparty, supplier_invoice_ref, deal,
+vid, operation, currency, income, income_uo, expense, expense_uo, note, category,
+owner, transfer_group_key, transit_flag, fx_bug_flag.
 
-Валюти: сума показується і в оригінальній валюті кожної каси, і в У.О. (USD-
-еквівалент, як його рахує сам збирач) — щоб можна було скласти різні валюти.
-
-Скрипт нічого не змінює: читає CSV і пише computed/maersk_payments.json
-(з ключем --write) + друкує таблицю.
+ЯК РАХУЄТЬСЯ (важливо):
+  * беремо рядки, де МАЕРСК У КОЛОНЦІ counterparty (контрагент);
+  * НЕ фільтруємо за видом оплати (payment_method) — це якраз каси/банки, і
+    серед них є наша власна каса «Маерск USD»; рух ЧЕРЕЗ неї не означає оплату
+    Маерску, тому за нею не фільтруємо;
+  * беремо лише витратні рухи (expense_uo > 0) — надходження й повернення це не оплати;
+  * внутрішні перекази між своїми касами (transfer_group_key заповнений) рахуються
+    окремо і в суму оплат НЕ входять;
+  * валюта не фільтрується: показуємо і суму в У.О. (USD-еквівалент збирача),
+    і розбивку по оригінальних валютах.
 
 Запуск:
-    python3 /root/unitex-finrep/maersk_payments.py            # тільки показати
-    python3 /root/unitex-finrep/maersk_payments.py --write    # + записати JSON
+    python3 /root/unitex-finrep/maersk_payments.py            # показати
+    python3 /root/unitex-finrep/maersk_payments.py --write    # + computed/maersk_payments.json
 """
 import argparse
 import csv
@@ -38,120 +44,97 @@ UK = {"01": "січ", "02": "лют", "03": "бер", "04": "кві", "05": "т�
 
 def num(v):
     try:
-        return float(str(v).replace(" ", "").replace(" ", "").replace(",", "."))
+        return float(str(v).replace(" ", "").replace(" ", "").replace(",", "."))
     except Exception:
         return 0.0
 
 
-def rows(name):
-    p = os.path.join(NORM, name)
-    if not os.path.exists(p):
-        return [], []
-    with open(p, encoding="utf-8") as fh:
-        rd = csv.DictReader(fh)
-        data = list(rd)
-        return (rd.fieldnames or []), data
-
-
-def pick(fields, *cands):
-    """Перша колонка, назва якої містить один із варіантів."""
-    for c in cands:
-        for f in fields:
-            if c in f.lower():
-                return f
-    return None
+def fmt(v):
+    return "{:,.2f}".format(v).replace(",", " ").replace(".", ",")
 
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--write", action="store_true", help="зберегти computed/maersk_payments.json")
+    ap.add_argument("--write", action="store_true")
     a = ap.parse_args()
 
-    fields, data = rows("cash_moves.csv")
-    if not data:
-        sys.exit("НЕМАЄ ДАНИХ: %s/cash_moves.csv" % NORM)
-    print("cash_moves.csv: колонки = %s" % ", ".join(fields))
-    print("усього рухів: %d" % len(data))
+    path = os.path.join(NORM, "cash_moves.csv")
+    if not os.path.exists(path):
+        sys.exit("НЕМАЄ %s" % path)
+    data = list(csv.DictReader(open(path, encoding="utf-8")))
 
-    # де саме згадується Маерск — щоб не гадати, яка колонка є контрагентом
-    where = defaultdict(int)
-    hits = []
-    for r in data:
-        matched = [k for k, v in r.items() if v and PAT.search(str(v))]
-        if matched:
-            hits.append(r)
-            for k in matched:
-                where[k] += 1
-    print("рухів зі згадкою Маерск: %d, у колонках: %s"
-          % (len(hits), ", ".join("%s=%d" % kv for kv in sorted(where.items(), key=lambda x: -x[1]))))
-    if not hits:
-        sys.exit("У cash_moves.csv згадок про Маерск немає — скажи, де шукати.")
+    by_cp = [r for r in data if PAT.search(str(r.get("counterparty") or ""))]
+    names = sorted({str(r.get("counterparty")).strip() for r in by_cp})
+    print("рухів усього: %d · де контрагент = Маерск: %d" % (len(data), len(by_cp)))
+    print("назви контрагента: %s" % " | ".join(names))
 
-    f_date = pick(fields, "date", "дата")
-    f_cur = pick(fields, "currency", "валют")
-    f_cash = pick(fields, "cash_name", "касса", "каса")
-    f_exp = pick(fields, "expense_uo")
-    f_inc = pick(fields, "income_uo")
-    f_amt = pick(fields, "amount_uo", "sum_uo", "uo")
-    f_raw = pick(fields, "amount", "сум")
-    print("беру: дата=%s, валюта=%s, каса=%s, витрата_УО=%s, надходження_УО=%s, сума=%s"
-          % (f_date, f_cur, f_cash, f_exp, f_inc, f_amt or f_raw))
-    if not f_date:
-        sys.exit("не знайшла колонку з датою — покажи структуру файлу")
+    pays, transfers, incomes = [], [], []
+    for r in by_cp:
+        if str(r.get("transfer_group_key") or "").strip():
+            transfers.append(r)
+        elif num(r.get("expense_uo")) > 0:
+            pays.append(r)
+        elif num(r.get("income_uo")) > 0:
+            incomes.append(r)
 
-    by_month = defaultdict(lambda: {"uo": 0.0, "cnt": 0, "cur": defaultdict(float), "cash": defaultdict(float)})
-    skipped_income = 0
-    for r in hits:
-        d = str(r.get(f_date) or "")[:10]
+    by_month = defaultdict(lambda: {"uo": 0.0, "cnt": 0, "cur": defaultdict(float),
+                                    "pm": defaultdict(float), "vid": defaultdict(float)})
+    for r in pays:
+        d = str(r.get("date") or "")[:10]
         if len(d) < 7:
             continue
-        uo_out = num(r.get(f_exp)) if f_exp else 0.0
-        uo_in = num(r.get(f_inc)) if f_inc else 0.0
-        if uo_out <= 0:                      # це не виплата (надходження/повернення)
-            if uo_in > 0:
-                skipped_income += 1
-            continue
-        m = d[:7]
-        b = by_month[m]
-        b["uo"] += uo_out
+        b = by_month[d[:7]]
+        uo = num(r.get("expense_uo"))
+        b["uo"] += uo
         b["cnt"] += 1
-        if f_cur:
-            b["cur"][str(r.get(f_cur) or "—")] += num(r.get(f_raw)) if f_raw else 0.0
-        if f_cash:
-            b["cash"][str(r.get(f_cash) or "—")] += uo_out
+        b["cur"][str(r.get("currency") or "—").strip()] += num(r.get("expense"))
+        b["pm"][str(r.get("payment_method") or "—").strip()] += uo
+        b["vid"][str(r.get("vid") or "—").strip()] += uo
 
     months = sorted(by_month)
     if not months:
-        sys.exit("виплат Маерску в cash_moves.csv не знайдено (є лише надходження: %d)" % skipped_income)
+        sys.exit("виплат контрагенту Маерск не знайдено")
 
     total = sum(by_month[m]["uo"] for m in months)
     cnt = sum(by_month[m]["cnt"] for m in months)
-    print("\nОПЛАТИ МАЕРСКУ ПО МІСЯЦЯХ (У.О.)")
-    print("%-12s %14s %8s  %s" % ("Місяць", "Сума У.О.", "Платежів", "У валютах"))
+    cur_tot, pm_tot = defaultdict(float), defaultdict(float)
     table = []
+    print("\nОПЛАТИ МАЕРСКУ ПО МІСЯЦЯХ")
+    print("%-10s %14s %6s   %s" % ("Місяць", "Сума У.О.", "К-сть", "У валютах платежу"))
     for m in months:
         b = by_month[m]
         lbl = "%s %s" % (UK.get(m[5:7], m[5:7]), m[:4])
-        cur = " · ".join("%s %s" % (fmt(v), k) for k, v in sorted(b["cur"].items(), key=lambda x: -abs(x[1])) if v)
-        print("%-12s %14s %8d  %s" % (lbl, fmt(b["uo"]), b["cnt"], cur))
+        cur = " · ".join("%s %s" % (fmt(v), k) for k, v in sorted(b["cur"].items(), key=lambda x: -x[1]) if v)
+        print("%-10s %14s %6d   %s" % (lbl, fmt(b["uo"]), b["cnt"], cur))
+        for k, v in b["cur"].items():
+            cur_tot[k] += v
+        for k, v in b["pm"].items():
+            pm_tot[k] += v
         table.append({"month": m, "label": lbl, "uo": round(b["uo"], 2), "count": b["cnt"],
                       "byCurrency": {k: round(v, 2) for k, v in b["cur"].items() if v},
-                      "byCash": {k: round(v, 2) for k, v in b["cash"].items() if v}})
-    print("%-12s %14s %8d" % ("РАЗОМ", fmt(total), cnt))
-    if skipped_income:
-        print("(не враховано %d надходжень/повернень від Маерска — це не оплати)" % skipped_income)
+                      "byMethod": {k: round(v, 2) for k, v in b["pm"].items() if v}})
+    print("%-10s %14s %6d" % ("РАЗОМ", fmt(total), cnt))
+
+    print("\nразом по валютах: %s" % " · ".join("%s %s" % (fmt(v), k)
+          for k, v in sorted(cur_tot.items(), key=lambda x: -x[1]) if v))
+    print("разом по видах оплати (У.О.): %s" % " · ".join("%s — %s" % (k, fmt(v))
+          for k, v in sorted(pm_tot.items(), key=lambda x: -x[1]) if v))
+    print("\nне враховано: внутрішніх переказів %d, надходжень/повернень від Маерска %d"
+          % (len(transfers), len(incomes)))
+    if incomes:
+        print("  (надходження від Маерска на %s У.О.)"
+              % fmt(sum(num(r.get("income_uo")) for r in incomes)))
 
     if a.write:
         os.makedirs(os.path.dirname(OUT), exist_ok=True)
         json.dump({"rows": table, "totalUo": round(total, 2), "count": cnt,
-                   "source": "normalized/cash_moves.csv", "filter": "контрагент містить Маерск/Maersk, лише виплати"},
+                   "byCurrency": {k: round(v, 2) for k, v in cur_tot.items() if v},
+                   "byMethod": {k: round(v, 2) for k, v in pm_tot.items() if v},
+                   "excluded": {"transfers": len(transfers), "incomes": len(incomes)},
+                   "counterparties": names,
+                   "source": "normalized/cash_moves.csv · counterparty ~ Маерск · expense_uo > 0"},
                   open(OUT, "w", encoding="utf-8"), ensure_ascii=False)
         print("\nзаписано %s" % OUT)
-
-
-def fmt(v):
-    return ("%,.2f" % v).replace(",", " ").replace(".", ",") if False else \
-        "{:,.2f}".format(v).replace(",", " ").replace(".", ",")
 
 
 if __name__ == "__main__":
