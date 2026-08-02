@@ -2679,3 +2679,16 @@ python3 scripts/screenshot.py www/index.html out.png --full     # + друкує
 **потяг і перевалка** — цих двох у її макеті немає, вони поки мої.
 Mermaid цю стрічку не замінить у будь-якому разі — кастомний вигляд він не вміє.
 
+
+## 2026-08-02 (скіли, ч.3): оновлено claude-api, pptx, docx
+
+Оновлено з `anthropics/skills` разом із допоміжними скриптами (усі upstream-версії більші, тобто новіші):
+- `claude-api` SKILL.md 33 → 72 КБ;
+- `pptx` 9 → 21 КБ + `add_slide.py`, `clean.py`, `thumbnail.py`, `office/soffice.py`, `office/validate.py`;
+- `docx` 20 → 7 КБ (стисліший, але новіший) + `comment.py`, `office/soffice.py`, `office/validate.py` і НОВИЙ `merge_runs.py`.
+Усі скрипти перевірено `py_compile` — компілюються.
+
+**Нове свідчення по `xlsx` (питання з ч.2 закрите фактами, рішення користувачки ще немає):**
+`xlsx/scripts/office/soffice.py` і `office/validate.py` локально мають рівно ті самі старі розміри (5301 і 3668 б), що були в docx і pptx до оновлення, а `recalc.py` — 5782 проти 10670 б в upstream. Тобто **весь локальний набір офісних скілів — один старий зліпок**, і довший `xlsx/SKILL.md` майже напевно теж старіший, а не багатший. Оновлювати без «так» не стала.
+
+**Побічне:** `py_compile` створив `__pycache__` у `.claude/skills/docx/scripts/` і `pptx/scripts/` (і в підпапках `office/`). Вони в .gitignore, у репозиторій не потрапили. Не видаляла (правило 6) — прибрати можу за конкретними шляхами на прохання.
