@@ -2121,6 +2121,20 @@ PAGES.accounting = async () => {
   // /finrep-data віддає {file, mtime, data} — самі рядки лежать у .data
   const d = js.data || {};
   const rows = d.rows || [];
+  // Маршруту в Експедиторі немає (поля «Пункт відправлення/призначення» порожні в усіх
+  // угодах) — беремо його з таблиці диспетчеризації платформи за номером угоди.
+  // Звідти ж підстраховуємо коносамент і контейнер, якщо в Експедиторі порожньо.
+  try {
+    const byNum = new Map();
+    (await dispRows()).forEach(r => byNum.set(String(r["Угода"]||"").trim(), r));
+    rows.forEach(r => {
+      const p = byNum.get(String(r.num));
+      if (!p) return;
+      r.route = r.route || String(p["Маршрут"]||"").trim();
+      r.bl = r.bl || String(p["BL"]||"").trim();
+      r.cont = r.cont || String(p["Контейнер"]||"").trim();
+    });
+  } catch(e){ /* платформа недоступна — таблиця все одно показується */ }
   const pos = rows.filter(r => r.diff > 0);
   const stamp = js.mtime ? new Date(js.mtime*1000).toLocaleString("uk-UA",
       {day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}) : "—";
