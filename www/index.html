@@ -590,7 +590,7 @@
       <div class="spacer"></div>
       <!-- Позначка версії: по ній видно, чи браузер підтягнув свіжу сторінку.
            Оновлюється автоматично при кожному викладенні (scripts/stamp.sh). -->
-      <div class="buildstamp" id="buildstamp" title="версія сторінки — якщо не збігається з тим, що я назвала, натисни Ctrl+F5">в. 02.08 08:52</div>
+      <div class="buildstamp" id="buildstamp" title="версія сторінки — якщо не збігається з тим, що я назвала, натисни Ctrl+F5">в. 02.08 08:53</div>
     </nav>
     <div class="main">
       <div class="topbar">
@@ -1639,9 +1639,22 @@ PAGES.dispatch = async () => {
       if (keep){
         const tr = $("drows").querySelector('tr[data-id="' + keep.id + '"]');
         if (tr) box.scrollTop = Math.max(0, tr.offsetTop - keep.delta);
-      } else if (firstDraw){
+      } else {
+        /* Доставлені завжди ховаються ПІД шапкою — і при першому показі, і після
+           кожної зміни фільтра (раніше прокрутка робилась лише один раз, тому
+           після відбору «Менеджер: Ірина» доставлені знову були на екрані).
+           Якщо рядків мало і прокручувати нікуди — додаємо запас знизу рівно
+           на ту висоту, якої бракує (зауваження користувачки 02.08.2026). */
         const firstOpen = $("drows").querySelector("tr:not(.done)");
-        box.scrollTop = firstOpen ? Math.max(0, firstOpen.offsetTop - 2) : 0;
+        box.style.paddingBottom = "0px";
+        if (firstOpen){
+          const need = Math.max(0, firstOpen.offsetTop - 2);
+          const avail = Math.max(0, box.scrollHeight - box.clientHeight);
+          if (need > avail) box.style.paddingBottom = (need - avail) + "px";
+          box.scrollTop = need;
+        } else {
+          box.scrollTop = 0;          // доставлених немає або самі доставлені
+        }
       }
       firstDraw = false;
     }
