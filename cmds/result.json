@@ -1,7 +1,7 @@
 {
-  "stdout": "GET   /api/v1/users                                  → 401  {\"error\":\"ERR_API_TOKEN_NOT_ALLOWED\",\"message\":\"This request is not allowed with API token\"}\nGET   /api/v2/meta/users                             → 404  {\"msg\":\"Cannot GET /api/v2/meta/users\"}\nGET   /api/v1/auth/user/me                           → 200  {\"is_api_token\":true,\"id\":\"usqjz5koe7s5ay5d\",\"email\":\"irynakarmazina@gmail.com\",\"display_name\":\"Ірина Кармазіна\",\"roles\":{\"org-level-creator\":true,\"su\nPOST  /api/v1/users/00000000/generate-reset-url      → 401  {\"error\":\"ERR_API_TOKEN_NOT_ALLOWED\",\"message\":\"This request is not allowed with API token\"}\nGET   /api/v1/db/meta/projects                       → 200  {\"list\":[{\"is_meta\":1,\"id\":\"pbhr1qkpvx09z8m\",\"title\":\"Юнітекс OS\",\"prefix\":\"nc_bpfs__\",\"status\":null,\"description\":null,\"meta\":{\"iconColor\":\"#36BFFF\"}\n",
+  "stdout": "index: 129744\nPAGEACTIONS: 7\nUI 200\n",
   "stderr": "",
   "returncode": 0,
-  "id": "nc-users-api",
-  "ts": "2026-08-02T04:33:54Z"
+  "id": "ui-v20-topbar-0730",
+  "ts": "2026-08-02T04:34:48Z"
 }
