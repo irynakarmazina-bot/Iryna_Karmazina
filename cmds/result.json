@@ -1,7 +1,7 @@
 {
-  "stdout": "OK /root/unitex-os-www/cabinet.html — 126 угод, 145713 байт\nOK /root/unitex-os-www/cabinet-gm.html — 20 угод, 62360 байт\n",
+  "stdout": "0KPQs9C+0LQg0LfRliDRgdGC0LDRgtGD0YHQvtC8IMKr0JLQuNC60L7QvdGD0ZTRgtGM0YHRj8K7OiA0ICjRg9GB0YzQvtCz0L4g0YPQs9C+0LQ6IDI2NykKCtCU0JbQldCg0JXQm9CQINCd0JXQnNCQ0IQg4oCUINC70LjRiNCw0Y4gwqvQktC40LrQvtC90YPRlNGC0YzRgdGPwrsgKNC00LvRjyDQu9GW0L3RltC5INGW0Lcg0YLRgNC10LrRltC90LPQvtC8INGB0YLQsNGC0YPRgSDQv9C+0LLQtdGA0L3QtSDRgtGA0LXQutC10YApOgo=",
   "stderr": "",
   "returncode": 0,
-  "id": "build-cab10",
-  "ts": "2026-08-02T06:29:44Z"
+  "id": "verify-statuses-2-0802",
+  "ts": "2026-08-02T06:38:59Z"
 }
