@@ -1,7 +1,7 @@
 {
-  "stdout": "акаунт: irynakarmazina@gmail.com\nролі: {\"org-level-creator\": true, \"super\": true}\n",
+  "stdout": "index: 221035\nfindash: 26184\nbackup: 129744\nUI 200\n",
   "stderr": "",
   "returncode": 0,
-  "id": "nc-roles",
-  "ts": "2026-08-02T04:36:39Z"
+  "id": "restore-ui-0802",
+  "ts": "2026-08-02T04:40:31Z"
 }
