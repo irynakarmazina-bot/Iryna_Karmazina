@@ -1,1 +1,1 @@
-{"id": "why-vessel-2", "cmd": "sleep 45; wc -l /root/why_vessel.out; sed -n '1,40p' /root/why_vessel.out"}
+{"id": "why-vessel-3", "cmd": "ls -l /root/why_vessel.out; pgrep -af why_no_vessel || echo 'процес не працює'; echo '--- пробуємо синхронно, 60 с ---'; timeout 90 python3 /root/why_no_vessel.py --limit 0 2>&1 | head -30"}
