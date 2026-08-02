@@ -1,7 +1,7 @@
 {
-  "stdout": "index: 129744\nPAGEACTIONS: 7\nUI 200\n",
+  "stdout": "акаунт: irynakarmazina@gmail.com\nролі: {\"org-level-creator\": true, \"super\": true}\n",
   "stderr": "",
   "returncode": 0,
-  "id": "ui-v20-topbar-0730",
-  "ts": "2026-08-02T04:34:48Z"
+  "id": "nc-roles",
+  "ts": "2026-08-02T04:36:39Z"
 }
