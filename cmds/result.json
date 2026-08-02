@@ -1,7 +1,7 @@
 {
-  "stdout": "=== ВСТАНОВЛЕНО ===\n-rwxr-xr-x 1 root root 9015 Aug  2 09:04 /root/Iryna_Karmazina/server/deploy_ui.sh\n-rwxr-xr-x 1 root root   69 Aug  2 09:04 /root/deploy_ui.sh\n-rwxr-xr-x 1 root root   71 Aug  2 09:04 /root/rollback_ui.sh\n=== ПЕРЕВІРКА БЕЗ ЗМІН (--check) ===\n== : main ==\n   : 26bd90ae4  2026-08-02 06:04:31 +0000\n   :  relay:  deploy_ui.sh/rollback_ui.sh     (--check)\n/root/Iryna_Karmazina/scripts/check_facade.sh: line 20: node: command not found\n: eslint        \nCHECK_FAIL   \nDEPLOY_FAIL: check_facade.sh    \n",
+  "stdout": "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/snap/bin\nyoutube_transcript_api\ncontainerd\ndigitalocean\nsnap-є\nPRETTY_NAME=\"Ubuntu 24.04.3 LTS\"\nNAME=\"Ubuntu\"\n",
   "stderr": "",
   "returncode": 0,
-  "id": "install-deploy-ui-0802",
-  "ts": "2026-08-02T06:04:36Z"
+  "id": "node-on-server-0802",
+  "ts": "2026-08-02T06:05:03Z"
 }
