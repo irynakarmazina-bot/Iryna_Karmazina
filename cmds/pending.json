@@ -1,1 +1,21 @@
-{"id": "restore-statuses-apply-0802", "cmd": "cd /root/direct-sync && /root/unitex-finrep/.venv/bin/python restore_statuses.py --apply 2>&1 | grep -E 'Угод зі статусом|ПОВЕРТАЮ|ДЖЕРЕЛА|Запис:|угода' | base64 -w0"}
+{"id": "verify-statuses-0802", "cmd": "cd /root/direct-sync && /root/unitex-finrep/.venv/bin/python -c \"
+import json,urllib.request
+TOK=open('/root/nocodb-token.txt').read().strip()
+def get(p):
+    r=urllib.request.Request('http://localhost:8080'+p,headers={'xc-token':TOK})
+    return json.loads(urllib.request.urlopen(r,timeout=60).read().decode())
+rows=[];off=0
+while True:
+    js=get('/api/v2/tables/m58xsjo6at01ohl/records?limit=200&offset=%d&fields=Угода,Клієнт,Статус'%off)
+    rows+=js['list']
+    if js['pageInfo']['isLastPage']: break
+    off+=200
+from collections import Counter
+c=Counter(str(r.get('Статус') or '—') for r in rows)
+print('усього угод:',len(rows))
+for k,v in c.most_common(): print('  %-28s %d'%(k,v))
+print('ще Виконується:', ', '.join(sorted(str(r['Угода']) for r in rows if r.get('Статус')=='Виконується')))
+for n in ('224','236','252','259'):
+    r=next((x for x in rows if str(x.get('Угода'))==n),None)
+    print('  угода',n,'->',r.get('Статус') if r else 'немає')
+\" 2>&1 | base64 -w0"}
