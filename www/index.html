@@ -607,6 +607,11 @@
 
     .card{padding:12px}
     tr.donebar button{font-size:12.5px}
+    /* Кнопки звітів у верхній строці налазили на «Вийти» (скрін 02.08.2026) */
+    .topbar{align-items:flex-start}
+    #page-actions{flex-wrap:wrap;width:100%;order:3}
+    #page-actions .btn{flex:1 1 100%;justify-content:center;white-space:normal;padding:9px 12px}
+    .user-chip{order:1} .topbar #logout{order:2}
 
     /* ДИСПЕТЧЕРИЗАЦІЯ НА ТЕЛЕФОНІ — картки замість таблиці на 17 колонок. */
     .dispscroll{max-height:none;overflow:visible}
@@ -662,7 +667,7 @@
       <div class="spacer"></div>
       <!-- Позначка версії: по ній видно, чи браузер підтягнув свіжу сторінку.
            Оновлюється автоматично при кожному викладенні (scripts/stamp.sh). -->
-      <div class="buildstamp" id="buildstamp" title="версія сторінки — якщо не збігається з тим, що я назвала, натисни Ctrl+F5">в. 02.08 14:36</div>
+      <div class="buildstamp" id="buildstamp" title="версія сторінки — якщо не збігається з тим, що я назвала, натисни Ctrl+F5">в. 02.08 14:47</div>
     </nav>
     <div class="main">
       <div class="topbar">
