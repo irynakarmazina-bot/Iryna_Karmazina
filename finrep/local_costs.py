@@ -44,6 +44,14 @@ LOCAL_ABROAD_NAME = "Локальні витрати за кордоном"
 INFO_BANK = []
 INFO_MIN = 10.0                                        # поріг у УО (умова користувачки)
 
+# Умова користувачки 02.08.2026: рахунок клієнту має бути СПЛАЧЕНИЙ і гроші мають прийти
+# НА БАНКІВСЬКИЙ РАХУНОК (не в касу). У довіднику «ВидОплаты» банківські рахунки — це
+# «Банк Юнітекс Ейч-Ді», «Банк Юнітекс Форвардинг», «Банк Юнітекс Ейч-Ді EUR» (у євро
+# приходили оплати, їх теж рахуємо); касові види оплати (Каса USD UFWD/UHD/Украмарин) —
+# не рахуємо. Правило по назві: вид оплати починається з «Банк».
+BANK_PREFIX = "Банк"
+PAID = "Оплачен"
+
 STATUSES = ["Завершена", "ВыставленСчет"]              # + «Оброблена», якщо з'ясується
 STATUS_UK = {"Завершена": "Завершена", "ВыставленСчет": "Виставлений рахунок",
              "Выполняется": "Виконується", "Букинг": "Букінг", "Отменена": "Скасована"}
@@ -118,14 +126,19 @@ def collect(c, statuses, info_bank):
             "date": d10(r.get("Date")),
             "completed": d10(r.get("ДатаЗавершения")),
             "revenue": 0.0, "cost": 0.0, "fee": 0.0, "local_abroad": 0.0,
-            "info_bank": 0.0, "paid": "", "invoices": [],
+            "info_bank": 0.0, "paid": "", "invoices": [], "pay_kinds": set(),
+            "all_bank": True, "all_paid": True, "n_inv": 0,
         }
+
+    # довідник видів оплати — щоб відрізнити банк від каси
+    pay_names = {r["Ref_Key"]: (r.get("Description") or "").strip()
+                 for r in page(c, "Catalog_ВидОплаты", ["Ref_Key", "Description"])}
 
     # доходні рахунки: сума по угоді + дата оплати від клієнта
     inv_deal = {}
     for r in page(c, "Document_Счет",
                   ["Ref_Key", "Number", "Сделка_Key", "сумма_УЕ", "ДатаОплаты", "СтатусСчета",
-                   "Posted", "Информативный"]):
+                   "Posted", "Информативный", "видОплаты_Key"]):
         dk = r.get("Сделка_Key")
         # чернетки й інформативні рахунки у розрахунок не входять — той самий фільтр,
         # що й у фінзвіті (engine/odata_ingest.ingest_income)
@@ -133,6 +146,13 @@ def collect(c, statuses, info_bank):
             continue
         inv_deal[r["Ref_Key"]] = dk
         d = deals[dk]
+        kind = pay_names.get(r.get("видОплаты_Key"), "")
+        d["pay_kinds"].add(kind or "(не вказано)")
+        d["n_inv"] += 1
+        if not kind.startswith(BANK_PREFIX):
+            d["all_bank"] = False
+        if str(r.get("СтатусСчета") or "") != PAID:
+            d["all_paid"] = False
         d["revenue"] += f(r.get("сумма_УЕ"))
         d["invoices"].append((r.get("Number") or "").lstrip("0"))
         pd = d10(r.get("ДатаОплаты"))
@@ -167,8 +187,24 @@ def collect(c, statuses, info_bank):
 
 
 def build(deals):
-    rows = []
+    """Рядки таблиці + причини, чому угоди відсіялись.
+
+    Беремо тільки ті угоди, де ВСІ доходні рахунки сплачені й гроші прийшли на
+    банківський рахунок (вид оплати починається з «Банк»). Каси й несплачені —
+    у таблицю не потрапляють (вимога користувачки 02.08.2026), але їхню кількість
+    показуємо, щоб було видно, що саме відсіялось.
+    """
+    rows, skipped = [], collections.Counter()
     for d in deals.values():
+        if not d["n_inv"]:
+            skipped["без доходних рахунків"] += 1
+            continue
+        if not d["all_paid"]:
+            skipped["рахунок не сплачений"] += 1
+            continue
+        if not d["all_bank"]:
+            skipped["оплата не на банківський рахунок (каса)"] += 1
+            continue
         profit = round(d["revenue"] - d["cost"], 2)
         add = round(d["info_bank"], 2) if d["info_bank"] > INFO_MIN else 0.0
         diff = round(profit + add - d["fee"], 2)
@@ -179,9 +215,10 @@ def build(deals):
             "revenue": round(d["revenue"], 2), "cost": round(d["cost"], 2),
             "profit": profit, "fee": round(d["fee"], 2), "info_bank": round(d["info_bank"], 2),
             "info_added": add, "local_abroad": round(d["local_abroad"], 2), "diff": diff,
+            "pay_kinds": sorted(d["pay_kinds"]),
         })
     rows.sort(key=lambda r: -r["diff"])
-    return rows
+    return rows, skipped
 
 
 def main():
@@ -193,9 +230,12 @@ def main():
 
     c = client()
     deals = collect(c, STATUSES, set(INFO_BANK))
-    rows = build(deals)
+    rows, skipped = build(deals)
     pos = [r for r in rows if r["diff"] > 0]
-    print("угод у статусах %s: %d" % ("/".join(STATUS_UK.get(s, s) for s in STATUSES), len(rows)))
+    print("угод у статусах %s: %d" % ("/".join(STATUS_UK.get(s, s) for s in STATUSES), len(deals)))
+    print("з них підходять (сплачено на банківський рахунок): %d" % len(rows))
+    for k, n in skipped.most_common():
+        print("   відсіяно — %s: %d" % (k, n))
     print("з них профіт > винагороди: %d, сума до переказу: %.2f УО" %
           (len(pos), sum(r["diff"] for r in pos)))
     print("вже виділені «Локальні витрати за кордоном» у рахунках: %d угод, %.2f УО" %
@@ -219,6 +259,7 @@ def main():
     if not a.dry_run:
         data = {"rows": rows, "info_bank_guids": INFO_BANK, "info_min": INFO_MIN,
                 "statuses": [STATUS_UK.get(s, s) for s in STATUSES],
+                "skipped": dict(skipped), "screened": len(deals),
                 "total_diff": round(sum(r["diff"] for r in pos), 2), "count": len(pos)}
         with open(OUT, "w", encoding="utf-8") as fh:
             json.dump(data, fh, ensure_ascii=False)
