@@ -157,6 +157,11 @@
   .btn:hover{filter:brightness(1.08)}
   .btn.full{width:100%;margin-top:16px}
   .btn.ghost{background:transparent;color:var(--ink-2);border:1px solid var(--line);font-weight:500}
+  /* кнопки сторінки у верхній панелі (напр. звіти у «Фінансах») */
+  #page-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  #page-actions .btn{padding:7px 13px;font-size:13px}
+  #page-actions .btn.on{box-shadow:inset 0 0 0 2px rgba(255,255,255,.55)}
+  #page-actions .btn[disabled]{opacity:.65;cursor:default}
   .btn.ghost:hover{color:var(--ink);border-color:var(--muted);filter:none}
   .login-err{display:none;margin-top:12px;background:var(--crit-bg);color:var(--crit-text);
     border-radius:8px;padding:9px 12px;font-size:13.5px}
@@ -388,6 +393,7 @@
     <div class="main">
       <div class="topbar">
         <h2 id="page-title"></h2>
+        <div id="page-actions"></div>
         <div class="user-chip">
           <div class="avatar" id="u-avatar"></div>
           <div class="who"><b id="u-name"></b><span class="role-badge" id="u-role">…</span></div>
@@ -589,6 +595,7 @@ function go(page){
   if (!cfg().nav.includes(page)) page = cfg().nav[0];
   $("nav").querySelectorAll(".nav-item").forEach(b=>b.classList.toggle("active", b.dataset.page===page));
   $("page-title").textContent = MODMAP[page].label;
+  $("page-actions").innerHTML = "";     // кнопки верхньої панелі належать конкретній сторінці
   $("content").innerHTML = '<div class="card"><p class="sub">Завантаження…</p></div>';
   PAGES[page]().catch(e=>{ $("content").innerHTML = '<div class="note">⚠ Не вдалося завантажити дані ('+esc(e.message)+'). Спробуй оновити сторінку.</div>'; });
 }
@@ -1124,16 +1131,12 @@ PAGES.finance = async () => {
       <div class="note">🔒 Фінансові показники доступні лише фінансовим ролям (Адміністратор, Фінансист, Бухгалтер).</div></div>`;
     return;
   }
-  $("content").innerHTML = `
-    <div class="card"><h3>💰 Фінансова звітність</h3>
-      <p class="sub">джерело — Експедитор напряму · таблиця Google лишається окремим інструментом</p>
-      <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:6px">
-        <button class="btn" id="rep-oper">⚡ Оперативний фінансовий звіт</button>
-        <button class="btn" id="rep-period">📆 Фінансовий звіт за період</button>
-      </div>
-      <p class="sub" id="fin-status" style="margin-top:10px"></p>
-    </div>
-    <div id="rep-body"></div>`;
+  // кнопки звітів живуть у верхній панелі — щоб дашборд починався одразу під шапкою
+  $("page-actions").innerHTML = `
+    <button class="btn" id="rep-oper">⚡ Оперативний фінансовий звіт</button>
+    <button class="btn" id="rep-period">📆 Фінансовий звіт за період</button>
+    <button class="btn ghost" id="fin-refresh" title="повний витяг з Експедитора, ~2 хв">⟳ Підтягнути свіжі дані з Експедитора</button>`;
+  $("content").innerHTML = '<div id="rep-body"></div>';
   $("rep-oper").addEventListener("click", ()=>renderOper());
   $("rep-period").addEventListener("click", ()=>renderPeriod());
   renderOper();
@@ -1155,31 +1158,35 @@ async function fetchFin(name){
   if (!r.ok) throw new Error((js.error||"помилка даних") + " (HTTP " + r.status + ")");
   return js;
 }
-function refreshBar(mtime, onFresh){
-  const dt = new Date(mtime*1000);
-  const stamp = dt.toLocaleString("uk-UA",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"});
-  setTimeout(()=>{
-    const b = $("fin-refresh");
-    if (!b) return;
-    b.addEventListener("click", async ()=>{
-      b.disabled = true; b.textContent = "⏳ Тягну з Експедитора (~2 хв)…";
-      try{
-        await fetch("/finrep-run");
-        const t0 = mtime;
-        const poll = setInterval(async ()=>{
-          try{
-            const js = await fetchFin("dashboard");
-            if (js.mtime > t0 + 5){ clearInterval(poll); toast("✅ Дані оновлено з Експедитора"); onFresh(); }
-          }catch(e){}
-        }, 15000);
-        setTimeout(()=>clearInterval(poll), 240000);
-      }catch(e){ b.disabled=false; b.textContent="⟳ Підтягнути свіжі дані з Експедитора"; toast("⚠ Не вдалося запустити"); }
-    });
-  }, 0);
-  return `<div class="note" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
-    📊 Дані станом на <b>${stamp}</b>
-    <button class="btn" id="fin-refresh" style="padding:6px 12px;font-size:13px">⟳ Підтягнути свіжі дані з Експедитора</button>
-  </div>`;
+/* Кнопка «Підтягнути свіжі дані» тепер у верхній панелі — тут лише вішаємо на неї дію.
+   onclick (а не addEventListener), щоб повторний рендер звіту не множив обробники.
+   Дата даних видно в самому дашборді («Оновлено: … · дані на …»), тож смужку прибрано. */
+const REP_LABEL = "⟳ Підтягнути свіжі дані з Експедитора";
+function wireRefresh(mtime, onFresh){
+  const b = $("fin-refresh");
+  if (!b) return;
+  const stamp = new Date(mtime*1000).toLocaleString("uk-UA",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"});
+  b.title = `Дані станом на ${stamp} · повний витяг з Експедитора, ~2 хв`;
+  b.onclick = async () => {
+    b.disabled = true; b.textContent = "⏳ Тягну з Експедитора (~2 хв)…";
+    try{
+      await fetch("/finrep-run");
+      const t0 = mtime;
+      const poll = setInterval(async ()=>{
+        try{
+          const js = await fetchFin("dashboard");
+          if (js.mtime > t0 + 5){
+            clearInterval(poll); b.disabled = false; b.textContent = REP_LABEL;
+            toast("✅ Дані оновлено з Експедитора"); onFresh();
+          }
+        }catch(e){}
+      }, 15000);
+      setTimeout(()=>{ clearInterval(poll); if (b.disabled){ b.disabled=false; b.textContent=REP_LABEL; } }, 240000);
+    }catch(e){ b.disabled=false; b.textContent=REP_LABEL; toast("⚠ Не вдалося запустити"); }
+  };
+}
+function markRep(id){
+  ["rep-oper","rep-period"].forEach(x=>{ const el = $(x); if (el) el.classList.toggle("on", x === id); });
 }
 function finTable(headers, rows){
   return `<div class="tablewrap"><table><thead><tr>${headers.map(h=>`<th>${h}</th>`).join("")}</tr></thead>
@@ -1216,7 +1223,8 @@ async function renderOper(){
   let js;
   try{ js = await fetchFin("dashboard"); }
   catch(e){ $("rep-body").innerHTML = `<div class="note">⚠ ${esc(e.message)}</div>`; return; }
-  $("rep-body").innerHTML = refreshBar(js.mtime, renderOper) + finFrame("findash", "/findash.html?v=19", js.data);
+  $("rep-body").innerHTML = finFrame("findash", "/findash.html?v=19", js.data);
+  wireRefresh(js.mtime, renderOper); markRep("rep-oper");
   window.scrollTo(0,0);
 }
 
@@ -1225,7 +1233,8 @@ async function renderPeriod(){
   let js;
   try{ js = await fetchFin("period"); }
   catch(e){ $("rep-body").innerHTML = `<div class="note">⚠ ${esc(e.message)}</div>`; return; }
-  $("rep-body").innerHTML = refreshBar(js.mtime, renderPeriod) + finFrame("finperiod", "/finperiod.html?v=19", js.data);
+  $("rep-body").innerHTML = finFrame("finperiod", "/finperiod.html?v=19", js.data);
+  wireRefresh(js.mtime, renderPeriod); markRep("rep-period");
   window.scrollTo(0,0);
 }
 
