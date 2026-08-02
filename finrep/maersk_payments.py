@@ -11,11 +11,13 @@
 vid, operation, currency, income, income_uo, expense, expense_uo, note, category,
 owner, transfer_group_key, transit_flag, fx_bug_flag.
 
-ЯК РАХУЄТЬСЯ (важливо):
-  * беремо рядки, де МАЕРСК У КОЛОНЦІ counterparty (контрагент);
-  * НЕ фільтруємо за видом оплати (payment_method) — це якраз каси/банки, і
-    серед них є наша власна каса «Маерск USD»; рух ЧЕРЕЗ неї не означає оплату
-    Маерску, тому за нею не фільтруємо;
+ЯК РАХУЄТЬСЯ (уточнено користувачкою 02.08.2026):
+  * оплатою Маерску вважається виплата, якщо АБО контрагент = Maersk A/S,
+    АБО вона пройшла через касу «Маерск USD» — з цієї каси ми платимо ТІЛЬКИ
+    Маерску (перевірено: з 96 виплат 93 мають контрагента Maersk A/S, а 3 —
+    просто незаповнений контрагент, інших отримувачів немає);
+  * згадка «Маерск» лише в примітці (note) НЕ рахується — там трапляються
+    платежі іншим контрагентам;
   * беремо лише витратні рухи (expense_uo > 0) — надходження й повернення це не оплати;
   * внутрішні перекази між своїми касами (transfer_group_key заповнений) рахуються
     окремо і в суму оплат НЕ входять;
@@ -63,10 +65,23 @@ def main():
         sys.exit("НЕМАЄ %s" % path)
     data = list(csv.DictReader(open(path, encoding="utf-8")))
 
-    by_cp = [r for r in data if PAT.search(str(r.get("counterparty") or ""))]
-    names = sorted({str(r.get("counterparty")).strip() for r in by_cp})
-    print("рухів усього: %d · де контрагент = Маерск: %d" % (len(data), len(by_cp)))
-    print("назви контрагента: %s" % " | ".join(names))
+    def is_cp(r):
+        return bool(PAT.search(str(r.get("counterparty") or "")))
+
+    def is_kasa(r):
+        return bool(PAT.search(str(r.get("payment_method") or "")))
+
+    by_cp = [r for r in data if is_cp(r) or is_kasa(r)]
+    names = sorted({str(r.get("counterparty") or "(не заповнено)").strip() for r in by_cp})
+    only_note = [r for r in data if not is_cp(r) and not is_kasa(r)
+                 and PAT.search(str(r.get("note") or ""))]
+    print("рухів усього: %d · контрагент Maersk або каса «Маерск USD»: %d" % (len(data), len(by_cp)))
+    print("контрагенти в цих рухах: %s" % " | ".join(names))
+    if only_note:
+        s_note = sum(num(r.get("expense_uo")) for r in only_note)
+        who = sorted({str(r.get("counterparty") or "—").strip() for r in only_note})
+        print("НЕ рахую (Маерск лише в примітці): %d рухів на %s У.О. — контрагенти: %s"
+              % (len(only_note), fmt(s_note), ", ".join(who)[:200]))
 
     pays, transfers, incomes = [], [], []
     for r in by_cp:
@@ -132,7 +147,7 @@ def main():
                    "byMethod": {k: round(v, 2) for k, v in pm_tot.items() if v},
                    "excluded": {"transfers": len(transfers), "incomes": len(incomes)},
                    "counterparties": names,
-                   "source": "normalized/cash_moves.csv · counterparty ~ Маерск · expense_uo > 0"},
+                   "source": "normalized/cash_moves.csv · контрагент Maersk A/S або каса «Маерск USD» · expense_uo > 0"},
                   open(OUT, "w", encoding="utf-8"), ensure_ascii=False)
         print("\nзаписано %s" % OUT)
 
