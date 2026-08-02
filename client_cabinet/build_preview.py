@@ -66,7 +66,12 @@ def logo():
 NO_LEGAL = {"космов"}
 
 
-LEGAL_RE = re.compile(r"(?:^|\s)(ТОВ|ТзОВ|ООО|ЧП|ПП|ФОП|LLC|LTD)(?:\s|$)", re.I)
+LEGAL_RE = re.compile(r"(?:^|\s)(ТОВ|ТзОВ|ООО|ООО\.|ЧП|ПП|ФОП|LLC|LTD)(?:\s|$)", re.I)
+# «ООО» в довіднику — помилка мови, а не інша форма власності (користувачка
+# 02.08.2026: «ООО не має бути ніде взагалі, тільки ТОВ»). Виправляємо на показ;
+# у самому Експедиторі вона правитиме поступово вручну.
+FORM_FIX = {"ооо": "ТОВ", "тов": "ТОВ", "тзов": "ТзОВ", "чп": "ПП", "пп": "ПП",
+            "фоп": "ФОП", "llc": "LLC", "ltd": "LTD"}
 
 
 def client_title(name):
@@ -79,7 +84,7 @@ def client_title(name):
         return n
     m = LEGAL_RE.search(n)
     if m:
-        form = m.group(1)
+        form = FORM_FIX.get(m.group(1).strip(".").lower(), m.group(1))
         rest = re.sub(r"\s{2,}", " ", (n[:m.start(1)] + " " + n[m.end(1):])).strip()
         return (form + " " + rest).strip() if rest else n
     return "ТОВ " + n
