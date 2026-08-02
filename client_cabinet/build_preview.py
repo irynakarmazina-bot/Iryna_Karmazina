@@ -31,6 +31,18 @@ CLIENT_COLS = [
     "Порт перевалки", "Перевалка (прибуття)", "Перевалка (відправлення)",
     "Гейт аут", "Подача авто (план)", "Подача авто (факт)", "Статус",
     "Вантаж", "Кількість", "Файли",
+    # Додано 02.08.2026. Ці колонки використовує схема руху, але їх не було в
+    # списку — тому «Стафіровка», «Сухий порт», «Кордон» і «Доставлено»
+    # малювались БЕЗ дат, хоча дати в базі є.
+    "Stuffing", "Здача в порт (факт)", "Сухий порт", "ETA сухий порт",
+    "Постановка/завантаження (план)", "Постановка/завантаження (факт)",
+    "Gate out for delivery", "На кордоні", "Перетин кордону (факт)",
+    "Кінцева точка доставки", "Планова до клієнта (план)",
+    "Планова до клієнта (факт)", "Вивантаження у отримувача (факт)",
+    # УВАГА: сюди йде лише «Коментар клієнту». Внутрішній «Коментар» (службові
+    # нотатки менеджерів) у кабінет НЕ передається — його немає в цьому списку,
+    # і додавати не можна.
+    "Коментар клієнту",
 ]
 # Документи, які бачить клієнт (префікс у назві файла). «Внутрішній» — не бачить.
 CLIENT_DOCS = ["Домашній коносамент", "Лінійний коносамент", "Т1", "Реліз", "ЦМР",
@@ -155,7 +167,11 @@ main{max-width:1560px;margin:0 auto;padding:24px 30px 70px}
 /* плитки — з кольоровими іконками, як на дашборді ЕРП */
 .tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:22px}
 .tile{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);
-  padding:16px 18px;box-shadow:var(--shadow);display:flex;align-items:center;gap:14px}
+  padding:16px 18px;box-shadow:var(--shadow);display:flex;align-items:center;gap:14px;
+  cursor:pointer;text-align:left;font:inherit;color:inherit;width:100%;
+  transition:border-color .12s,box-shadow .12s}
+.tile:hover{border-color:#c9c8bf}
+.tile.on{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
 .ic{width:42px;height:42px;border-radius:11px;display:flex;align-items:center;
   justify-content:center;flex:none}
 .ic svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:1.8;
@@ -206,6 +222,9 @@ tbody tr:last-child td{border-bottom:0}
 .pill.ok{background:var(--pos-bg);color:var(--pos)}
 .pill.wait{background:var(--warn-bg);color:var(--warn)}
 .docn{display:inline-flex;align-items:center;gap:6px;color:var(--accent-ink);font-weight:600}
+/* Коментар — крайня права колонка. Джерело ТІЛЬКИ «Коментар клієнту»;
+   службові нотатки менеджерів у кабінет не потрапляють (02.08.2026). */
+th.cmt,td.cmt{width:230px;max-width:230px;white-space:normal;color:var(--ink-2);font-size:13px}
 
 /* ===== розгорнута картка угоди — за макетом ===== */
 tr.exp>td{padding:0;background:var(--surface-2)}
@@ -241,6 +260,9 @@ tr.exp>td{padding:0;background:var(--surface-2)}
 .nd .dot{width:72px;height:72px;margin:0 auto;border-radius:50%;
   background:var(--mbg);color:var(--mc);display:flex;align-items:center;justify-content:center}
 .nd .dot svg{width:34px;height:34px;stroke-width:1.9}
+/* судно й літак — головне плече, тому крупніші за решту (02.08.2026) */
+.nd .dot.big svg{width:43px;height:43px}
+.nd.now .dot.big svg{width:48px;height:48px}
 .nd.now .dot{width:80px;height:80px;margin-top:-4px;
   background:color-mix(in srgb,var(--mc) 17%,#fff);
   box-shadow:0 0 0 4px color-mix(in srgb,var(--mc) 12%,transparent)}
@@ -323,6 +345,7 @@ tr.exp>td{padding:0;background:var(--surface-2)}
       <thead><tr>
         <th>Угода</th><th></th><th>Маршрут</th><th>Коносамент / контейнер</th>
         <th>Судно</th><th>Відправлення</th><th>Прибуття</th><th>Статус</th><th>Документи</th>
+        <th class="cmt">Коментар</th>
       </tr></thead>
       <tbody id="rows"></tbody>
     </table>
@@ -452,8 +475,18 @@ function steps(r){
   const fin  = s(r,"Кінцева точка доставки");
   const etd  = s(r,"ETD (факт)") || s(r,"ETD (план)"), etdF = !!s(r,"ETD (факт)");
   const eta  = s(r,"ETA порт (факт)") || s(r,"ETA"),   etaF = !!s(r,"ETA порт (факт)");
-  const moveI = A ? "plane" : (R ? "train" : (modeOf(r) === "road" ? "truck" : "ship"));
-  const moveT = A ? "В повітрі" : (modeOf(r) === "road" ? "В дорозі" : "В морі");
+  /* ГОЛОВНЕ плече — за самим плечем, а не за «Вид перевезення».
+     Було: угода «фрахт+ТЕО+залізниця» малювала вузол «В морі» ПОТЯГОМ, бо
+     іконка бралася з виду перевезення. Залізниця там — доставка ДО порту, а не
+     сам рейс (02.08.2026); у потяга тепер власний вузол «Завантаження на потяг».
+     Суто залізнична відправка (залізниця є, але немає ні лінії, ні коносамента,
+     ні судна) називається «Трейн» — назву дала користувачка 02.08.2026.
+     Таких угод у платформі поки немає. */
+  const seaLeg   = !!(s(r,"Лінія") || s(r,"BL") || s(r,"Судно"));
+  const railOnly = !A && R && !seaLeg;
+  const moveI = A ? "plane" : (modeOf(r) === "road" ? "truck" : (railOnly ? "train" : "ship"));
+  const moveT = A ? "В повітрі"
+              : (modeOf(r) === "road" ? "В дорозі" : (railOnly ? "Трейн" : "В морі"));
 
   const transship = () => {
     const tp = s(r,"Порт перевалки");
@@ -462,16 +495,36 @@ function steps(r){
     return [{ k:"tship", t:"Перевалка", i:"swap", d:ta, d2:td, f:true, p:tp }];
   };
 
+  const stX = s(r,"Статус");
+  /* Вид наземного плеча: статус свіжіший за довідкове «Вид перевезення». */
+  const byTrainX = /потяг/i.test(stX) ? true : (/на авто/i.test(stX) ? false : R);
+
   if (!imp){
-    /* ЕКСПОРТ */
-    return [
-      { k:"stuff", t:"Стафіровка",          i:"warehouse", d:s(r,"Stuffing"), f:true, p:from },
-      { k:"cust1", t:"Митне оформлення<br>на експорт", i:"customs", d:"", f:true, p:"" },
+    /* ЕКСПОРТ — за вказівкою користувачки 02.08.2026:
+       «прибрати зі схем Митне оформлення при експорті, але поставити
+       перевезення. Автоперевезення стоїть перед Стафіровкою (додай до неї і
+       оформлення). У випадку перевезення на потягу — після стафіровки
+       додається Сухий порт та потім Завантаження на потяг з датою.» */
+    const pre = [
+      { k:"carauto", t:"Завантаження<br>на авто", i:"truck",
+        d:s(r,"Подача авто (факт)") || s(r,"Подача авто (план)"),
+        f:!!s(r,"Подача авто (факт)"), p:from },
+      { k:"stuff", t:"Стафіровка<br>та оформлення", i:"warehouse",
+        d:s(r,"Stuffing"), f:true, p:from },
+    ];
+    if (byTrainX){
+      pre.push({ k:"dry", t:"Сухий порт", i:"crane", d:s(r,"ETA сухий порт"),
+                 f:false, p:s(r,"Сухий порт") });
+      pre.push({ k:"land", t:"Завантаження<br>на потяг", i:"train",
+                 d:s(r,"Постановка/завантаження (факт)") || s(r,"Постановка/завантаження (план)"),
+                 f:!!s(r,"Постановка/завантаження (факт)"), p:"" });
+    }
+    return pre.concat([
       { k:"border", t:"Кордон",              i:"border",    d:s(r,"На кордоні") || s(r,"Перетин кордону (факт)"), f:true, p:"" },
       { k:"pol", t:A?"Аеропорт відправлення":"Порт відправлення", i:"crane",
         d:s(r,"Здача в порт (факт)") || s(r,"Гейт ін"), f:true, p:from },
       { k:"move", t:moveT, i:moveI, d:etd, f:etdF, p:s(r,"Судно"), dur:days(etd, eta) },
-    ].concat(transship(), [
+    ], transship(), [
       { k:"cust2", t:"Імпортне митне<br>оформлення", i:"officer", d:"", f:true, p:"" },
       { k:"done", t:"Вантаж доставлено",   i:"box",
         d:s(r,"Вивантаження у отримувача (факт)") || s(r,"Планова до клієнта (факт)") || eta,
@@ -486,8 +539,7 @@ function steps(r){
      інакше — з «Вид перевезення». Причина (угода 239, 02.08.2026): трекінг
      поставив «Завантажений на потяг», а в полі виду стояло «фрахт+ТЕО+авто»,
      і схема малювала авто. Статус тут свіжіший за довідкове поле. */
-  const st = s(r,"Статус");
-  const byTrain = /потяг/i.test(st) ? true : (/на авто/i.test(st) ? false : R);
+  const byTrain = byTrainX;
   const land = [];
   land.push({ k:"land", t: byTrain ? "Завантажений на потяг" : "Завантажений на авто",
               i: byTrain ? "train" : "truck", d: car, f: carF, p:"" });
@@ -537,6 +589,8 @@ function routeHtml(r){
   const cells = [];
   st.forEach((x, i) => {
     if (x.i === "border"){
+      // лінія доходить ДО кордону, а не обривається перед ним (02.08.2026)
+      if (i) cells.push(`<div class="cn ${i <= cur || delivered ? "on" : ""}"></div>`);
       cells.push(`<div class="brd"><div class="bln"></div>
         <div class="blb">КОРДОН</div>
         ${x.d ? `<div class="bld">${fmt(x.d)}</div>` : ""}</div>`);
@@ -544,7 +598,7 @@ function routeHtml(r){
     }
     if (i) cells.push(`<div class="cn ${i <= cur || delivered ? "on" : ""}"></div>`);
     cells.push(`<div class="nd ${state[i]}">
-      <div class="dot">${svg(x.i)}</div>
+      <div class="dot ${x.i === "ship" || x.i === "plane" ? "big" : ""}">${svg(x.i)}</div>
       <div class="ttl">${x.t}</div>
       ${x.p ? `<div class="place">${esc(x.p)}</div>` : ""}
       ${x.dur != null ? `<div class="dur">${x.dur} ${plural(x.dur,"день","дні","днів")}</div>` : ""}
@@ -631,11 +685,19 @@ function panel(r){
 
 /* ── таблиця ──────────────────────────────────────────── */
 let FILTER="act", Q="";
+/* Плитки зверху — це відбори, а не просто числа: клік по «доставлено» показує
+   таблицю доставлених, по «прибувають за 7 днів» — тільки їх, повторний клік
+   по тій самій плитці скидає відбір (прохання користувачки 02.08.2026). */
+const isSoon  = r => { const e=s(r,"ETA");
+  return !done(r) && !!e && e >= TODAY && e <= addDays(TODAY,7); };
+const hasDocs = r => (r._docs || []).length > 0;
 function visible(){
   const q=Q.toLowerCase();
   return DEALS.filter(r=>{
     if (FILTER==="act"  && done(r)) return false;
     if (FILTER==="done" && !done(r)) return false;
+    if (FILTER==="soon" && !isSoon(r)) return false;
+    if (FILTER==="docs" && !hasDocs(r)) return false;
     if (!q) return true;
     return ["Угода","BL","HBL","Контейнер","Судно","Маршрут"].some(k=>s(r,k).toLowerCase().includes(q));
   });
@@ -648,18 +710,21 @@ function stCls(r){ const x=s(r,"Статус");
 function render(){
   const rows = visible();
   const act = DEALS.filter(r=>!done(r));
-  const soon = act.filter(r=>{const e=s(r,"ETA"); return e && e>=TODAY && e<=addDays(TODAY,7);});
+  const soon = DEALS.filter(isSoon);
   const docs = DEALS.reduce((n,r)=>n+(r._docs||[]).length,0);
   const TICON =[["ship","ic-blue"],["port","ic-amber"],["box","ic-green"],["doc","ic-vio"]];
+  const TFILT =["act","soon","done","docs"];
   document.getElementById("tiles").innerHTML = [
     [act.length,"вантажів у дорозі"],
     [soon.length,"прибувають за 7 днів"],
     [DEALS.length-act.length,"доставлено"],
     [docs,"документів доступно"],
-  ].map(([n,l],i)=>`<div class="tile">
+  ].map(([n,l],i)=>`<button class="tile ${FILTER===TFILT[i]?"on":""}" data-f="${TFILT[i]}">
       <div class="ic ${TICON[i][1]}">${svg(TICON[i][0])}</div>
       <div><div class="n">${n}</div><div class="l">${l}</div></div>
-    </div>`).join("");
+    </button>`).join("");
+  // перемикач під пошуком завжди показує той самий відбір, що й плитки
+  document.querySelectorAll("#seg button").forEach(b=>b.classList.toggle("on", b.dataset.f===FILTER));
 
   document.getElementById("rows").innerHTML = rows.length ? rows.map(r=>{
     const conts = s(r,"Контейнер").split(",").map(x=>x.trim()).filter(Boolean);
@@ -678,8 +743,10 @@ function render(){
       <td class="mono">${s(r,"ETA")?`<span class="d">${fmt(s(r,"ETA"))}</span>`:'<span class="dim">—</span>'}</td>
       <td><span class="pill ${stCls(r)}">${esc(s(r,"Статус")||"—")}</span></td>
       <td>${nd?`<span class="docn">${svg("doc")}${nd}</span>`:'<span class="dim">—</span>'}</td>
+      <td class="cmt">${s(r,"Коментар клієнту")
+          ? esc(s(r,"Коментар клієнту")) : '<span class="dim">—</span>'}</td>
     </tr>`;
-  }).join("") : `<tr><td colspan="9" class="empty" style="padding:20px 12px">Нічого не знайдено.</td></tr>`;
+  }).join("") : `<tr><td colspan="10" class="empty" style="padding:20px 12px">Нічого не знайдено.</td></tr>`;
 
   document.querySelectorAll("tr.deal").forEach(tr=>tr.addEventListener("click",()=>toggle(tr)));
 }
@@ -692,9 +759,14 @@ function toggle(tr){
   tr.classList.add("open");
   const r = DEALS.find(d=>String(d["Угода"])===tr.dataset.id);
   const e = document.createElement("tr");
-  e.className="exp"; e.innerHTML=`<td colspan="9">${panel(r)}</td>`;
+  e.className="exp"; e.innerHTML=`<td colspan="10">${panel(r)}</td>`;
   tr.after(e);
 }
+document.getElementById("tiles").addEventListener("click",e=>{
+  const t=e.target.closest(".tile"); if(!t) return;
+  FILTER = (FILTER === t.dataset.f) ? "all" : t.dataset.f;
+  render();
+});
 document.getElementById("q").addEventListener("input",e=>{Q=e.target.value;render();});
 document.getElementById("seg").addEventListener("click",e=>{
   const b=e.target.closest("button"); if(!b) return;
