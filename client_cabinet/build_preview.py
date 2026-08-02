@@ -253,6 +253,9 @@ tr.exp>td{padding:0;background:var(--surface-2)}
 .nd .dot{width:72px;height:72px;margin:0 auto;border-radius:50%;
   background:var(--mbg);color:var(--mc);display:flex;align-items:center;justify-content:center}
 .nd .dot svg{width:34px;height:34px;stroke-width:1.9}
+/* судно й літак — головне плече, тому крупніші за решту (02.08.2026) */
+.nd .dot.big svg{width:43px;height:43px}
+.nd.now .dot.big svg{width:48px;height:48px}
 .nd.now .dot{width:80px;height:80px;margin-top:-4px;
   background:color-mix(in srgb,var(--mc) 17%,#fff);
   box-shadow:0 0 0 4px color-mix(in srgb,var(--mc) 12%,transparent)}
@@ -486,7 +489,7 @@ function steps(r){
        оформлення). У випадку перевезення на потягу — після стафіровки
        додається Сухий порт та потім Завантаження на потяг з датою.» */
     const pre = [
-      { k:"carauto", t:"Автоперевезення", i:"truck",
+      { k:"carauto", t:"Завантаження<br>на авто", i:"truck",
         d:s(r,"Подача авто (факт)") || s(r,"Подача авто (план)"),
         f:!!s(r,"Подача авто (факт)"), p:from },
       { k:"stuff", t:"Стафіровка<br>та оформлення", i:"warehouse",
@@ -569,6 +572,8 @@ function routeHtml(r){
   const cells = [];
   st.forEach((x, i) => {
     if (x.i === "border"){
+      // лінія доходить ДО кордону, а не обривається перед ним (02.08.2026)
+      if (i) cells.push(`<div class="cn ${i <= cur || delivered ? "on" : ""}"></div>`);
       cells.push(`<div class="brd"><div class="bln"></div>
         <div class="blb">КОРДОН</div>
         ${x.d ? `<div class="bld">${fmt(x.d)}</div>` : ""}</div>`);
@@ -576,7 +581,7 @@ function routeHtml(r){
     }
     if (i) cells.push(`<div class="cn ${i <= cur || delivered ? "on" : ""}"></div>`);
     cells.push(`<div class="nd ${state[i]}">
-      <div class="dot">${svg(x.i)}</div>
+      <div class="dot ${x.i === "ship" || x.i === "plane" ? "big" : ""}">${svg(x.i)}</div>
       <div class="ttl">${x.t}</div>
       ${x.p ? `<div class="place">${esc(x.p)}</div>` : ""}
       ${x.dur != null ? `<div class="dur">${x.dur} ${plural(x.dur,"день","дні","днів")}</div>` : ""}
