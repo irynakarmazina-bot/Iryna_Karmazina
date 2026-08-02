@@ -118,123 +118,176 @@ TPL = r"""<!doctype html>
 <title>UNITEX — особистий кабінет (прототип)</title>
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <style>
+/* ===== Візуальна система — та сама, що в ЕРП: світлий фон, білі картки з
+   тонкою межею й м'якою тінню, синій акцент, кольорові іконки-чипи.
+   Переписано цілком 02.08.2026: до цього сторінка була набором плоских
+   білих прямокутників і виглядала мляво. ===== */
 :root{
-  --paper:#f9f9f7; --surface:#fff; --surface-2:#f4f4f0;
-  --ink:#0b0b0b; --ink-2:#52514e; --muted:#898781;
-  --line:#e1e0d9; --line-soft:#eeede8;
+  --paper:#f7f8fa; --surface:#fff; --surface-2:#f4f6f9;
+  --ink:#101828; --ink-2:#475467; --muted:#98a2b3;
+  --line:#e6e9ef; --line-soft:#f0f2f6;
   --accent:#2a78d6; --accent-soft:#e7f0fb; --accent-ink:#1c5cab;
-  --pos:#1a8f5c; --warn:#c8811f; --neg:#d1453b;
+  --pos:#12924f; --pos-bg:#e9f9ef; --warn:#b45309; --warn-bg:#fff5e6;
+  --vio:#7c3aed; --vio-bg:#f2eeff; --shadow:0 1px 2px rgba(16,24,40,.05),0 1px 3px rgba(16,24,40,.04);
+  --r:14px;
 }
 *{box-sizing:border-box}
 body{margin:0;background:var(--paper);color:var(--ink);
-  font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+  font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  -webkit-font-smoothing:antialiased}
 header{background:var(--surface);border-bottom:1px solid var(--line);
-  padding:12px 26px;display:flex;align-items:center;gap:18px;position:sticky;top:0;z-index:5}
+  padding:14px 30px;display:flex;align-items:center;gap:18px;position:sticky;top:0;z-index:5}
 header img{height:56px}
-.hdr-t{font-weight:700;font-size:15px}
-.hdr-s{color:var(--muted);font-size:13px}
 .spacer{flex:1}
-.who{text-align:right;line-height:1.3}
+.who{text-align:right;line-height:1.25}
 .who b{display:block;font-size:15px;font-weight:700}
-main{max-width:1500px;margin:0 auto;padding:22px 26px 60px}
-.proto{background:#fff6e3;border:1px solid #eccf94;color:#7a5a1b;border-radius:10px;
-  padding:9px 14px;font-size:12.5px;margin-bottom:18px}
-.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
-.tile{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
-.tile .n{font-size:26px;font-weight:700;letter-spacing:-.5px}
-.tile .l{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.04em;margin-top:2px}
-.bar{display:flex;gap:10px;align-items:center;margin-bottom:12px;flex-wrap:wrap}
-.bar input{flex:1;min-width:220px;padding:9px 12px;border:1px solid var(--line);
-  border-radius:9px;background:var(--surface);font:inherit;color:var(--ink)}
-.seg{display:flex;border:1px solid var(--line);border-radius:9px;overflow:hidden;background:var(--surface)}
-.seg button{border:0;background:transparent;padding:9px 15px;font:inherit;cursor:pointer;color:var(--ink-2)}
+.who span{font-size:12px;color:var(--muted)}
+main{max-width:1560px;margin:0 auto;padding:24px 30px 70px}
+
+.proto{background:var(--warn-bg);border:1px solid #f0dcb8;color:#7a5a1b;
+  border-radius:var(--r);padding:11px 16px;font-size:13px;margin-bottom:20px}
+
+/* плитки — з кольоровими іконками, як на дашборді ЕРП */
+.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:22px}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);
+  padding:16px 18px;box-shadow:var(--shadow);display:flex;align-items:center;gap:14px}
+.ic{width:42px;height:42px;border-radius:11px;display:flex;align-items:center;
+  justify-content:center;flex:none}
+.ic svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:1.8;
+  stroke-linecap:round;stroke-linejoin:round}
+.ic-blue{background:var(--accent-soft);color:var(--accent)}
+.ic-green{background:var(--pos-bg);color:var(--pos)}
+.ic-amber{background:var(--warn-bg);color:var(--warn)}
+.ic-vio{background:var(--vio-bg);color:var(--vio)}
+.tile .n{font-size:26px;font-weight:700;letter-spacing:-.6px;line-height:1.1}
+.tile .l{color:var(--ink-2);font-size:12.5px;margin-top:1px}
+
+/* пошук і перемикач */
+.bar{display:flex;gap:12px;align-items:center;margin-bottom:16px;flex-wrap:wrap}
+.bar input{flex:1;min-width:260px;padding:11px 15px;border:1px solid var(--line);
+  border-radius:11px;background:var(--surface);font:inherit;font-size:14px;
+  color:var(--ink);box-shadow:var(--shadow)}
+.bar input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.seg{display:flex;gap:4px;background:var(--surface);border:1px solid var(--line);
+  border-radius:11px;padding:4px;box-shadow:var(--shadow)}
+.seg button{border:0;background:transparent;padding:8px 16px;font:inherit;font-size:13.5px;
+  cursor:pointer;color:var(--ink-2);border-radius:8px;font-weight:500}
 .seg button.on{background:var(--accent-soft);color:var(--accent-ink);font-weight:600}
-table{width:100%;border-collapse:collapse;background:var(--surface);
-  border:1px solid var(--line);border-radius:12px;overflow:hidden}
-th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.05em;
-  color:var(--muted);font-weight:600;padding:11px 12px;border-bottom:1px solid var(--line);white-space:nowrap}
-td{padding:11px 12px;border-bottom:1px solid var(--line-soft);vertical-align:middle}
-tr.deal{cursor:pointer}
+
+/* таблиця — легка, без важких ліній */
+.tw{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);
+  box-shadow:var(--shadow);overflow:hidden}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.06em;
+  color:var(--muted);font-weight:700;padding:13px 16px;border-bottom:1px solid var(--line)}
+td{padding:14px 16px;border-bottom:1px solid var(--line-soft);vertical-align:middle;font-size:14px}
+tr.deal{cursor:pointer;transition:background .12s}
 tr.deal:hover td{background:var(--surface-2)}
 tr.deal.open td{background:var(--accent-soft)}
+tbody tr:last-child td{border-bottom:0}
 .mono{font-variant-numeric:tabular-nums}
-.num{font-weight:700}
-.chip{display:inline-block;font-size:11px;font-weight:700;padding:2px 7px;border-radius:6px;
-  background:var(--accent-soft);color:var(--accent-ink)}
-.chip.exp{background:#e9f4ec;color:#1a6b42}
+.num{font-weight:700;font-size:15px}
+.chip{display:inline-block;font-size:10.5px;font-weight:700;letter-spacing:.03em;
+  padding:3px 8px;border-radius:6px;background:var(--accent-soft);color:var(--accent-ink)}
+.chip.exp{background:var(--pos-bg);color:var(--pos)}
 .d{font-weight:700;white-space:nowrap}
 .dim{color:var(--muted)}
-.pill{display:inline-block;font-size:12px;font-weight:600;padding:3px 10px;border-radius:99px;
-  background:var(--surface-2);color:var(--ink-2);white-space:nowrap}
-.pill.sea{background:#e7f0fb;color:#1c5cab}
-.pill.ok{background:#e9f4ec;color:#1a6b42}
-.pill.wait{background:#fdf3e2;color:#8a5d13}
-.docn{display:inline-flex;align-items:center;gap:5px;color:var(--accent-ink);font-weight:600}
-/* ── розгортка ─────────────────────────────────────────── */
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;
+  padding:4px 11px;border-radius:99px;background:var(--surface-2);color:var(--ink-2)}
+.pill::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor;flex:none}
+.pill.sea{background:var(--accent-soft);color:var(--accent-ink)}
+.pill.ok{background:var(--pos-bg);color:var(--pos)}
+.pill.wait{background:var(--warn-bg);color:var(--warn)}
+.docn{display:inline-flex;align-items:center;gap:6px;color:var(--accent-ink);font-weight:600}
+
+/* ===== розгорнута картка угоди — за макетом ===== */
 tr.exp>td{padding:0;background:var(--surface-2)}
-.panel{padding:22px 24px 26px;border-top:2px solid var(--accent)}
-.pbar{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:20px}
-.pbar .st{font-size:17px;font-weight:700}
-.pbar .sub{color:var(--ink-2)}
-/* схема руху — стиль за макетом користувачки 01.08.2026: колір за видом
-   перевезення, «КОРДОН» пунктирним роздільником, тривалість переходу,
-   легенда внизу. */
-.route{background:var(--surface);border:1px solid var(--line);border-radius:12px;
-  padding:24px 18px 14px;overflow-x:auto}
-.chain{display:flex;align-items:flex-start;min-width:900px}
-.nd{flex:0 0 104px;text-align:center;position:relative}
-.cn{flex:1 1 auto;height:2px;background:var(--line);margin-top:23px;border-radius:2px;min-width:14px}
-.cn.on{background:var(--mc)}
-.nd .dot{width:46px;height:46px;margin:0 auto;border-radius:50%;
-  background:var(--surface);border:2px solid var(--line);color:var(--muted);
-  display:flex;align-items:center;justify-content:center}
-.nd.done .dot{background:var(--mbg);border-color:var(--mc);color:var(--mc)}
-.nd.now  .dot{background:var(--mc);border-color:var(--mc);color:#fff;
-  box-shadow:0 0 0 5px var(--mbg)}
-.nd.todo .dot{border-style:dashed}
-.nd .ttl{font-size:11.5px;font-weight:700;margin-top:8px;line-height:1.25;color:var(--ink-2)}
-.nd.now .ttl{color:var(--mc)}
-.nd .place{font-size:10.5px;color:var(--muted);margin-top:2px;line-height:1.25}
-.nd .dur{font-size:12px;font-weight:700;color:var(--mc);margin-top:3px}
-.nd .dt{font-size:12px;font-weight:700;margin-top:3px;font-variant-numeric:tabular-nums}
+.panel{padding:22px 24px 24px}
+.phead{position:relative;padding-right:200px;margin-bottom:20px}
+.pttl{display:flex;align-items:center;gap:12px}
+.pttl b{font-size:20px;font-weight:700;letter-spacing:-.4px}
+.badge{display:inline-flex;align-items:center;gap:7px;background:var(--mc);color:#fff;
+  font-size:11.5px;font-weight:700;letter-spacing:.05em;padding:6px 13px;border-radius:9px}
+.pmeta{font-size:13px;color:var(--ink-2);margin-top:7px}
+.pmeta i{color:var(--muted);font-style:normal;margin:0 3px}
+.pmeta b{color:var(--ink);font-weight:700}
+.peta{position:absolute;top:0;right:0;min-width:180px;text-align:center;
+  background:var(--mbg);border-radius:12px;padding:10px 16px}
+.peta .lb{font-size:10.5px;font-weight:700;letter-spacing:.1em;color:var(--ink-2)}
+.peta .dt{font-size:19px;font-weight:700;margin-top:2px;font-variant-numeric:tabular-nums}
+.peta .pl{font-size:12px;color:var(--ink-2);margin-top:1px}
+.tzn{text-align:right;font-size:11.5px;color:var(--muted);margin-top:12px}
+
+.route{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);
+  padding:28px 22px 20px;overflow-x:auto;box-shadow:var(--shadow)}
+/* ── схема руху: вигляд один в один з макета користувачки ──────────────────
+   Кружок СВІТЛИЙ (заливка — блідий відтінок кольору виду перевезення), малюнок
+   у колірі виду. Поточний етап НЕ заливається темним — він просто більший, а
+   виділяється кольоровою назвою і тривалістю. Лінії між вузлами суцільні
+   кольорові там, де етап пройдено, і бліді попереду. КОРДОН — вертикальна
+   пунктирна риска з підписом, а не вузол. */
+.chain{display:flex;align-items:flex-start;min-width:1020px}
+.nd{flex:0 0 124px;text-align:center}
+.cn{flex:1 1 auto;height:2px;background:var(--mc);opacity:.22;margin-top:37px;
+  border-radius:2px;min-width:16px}
+.cn.on{opacity:.9}
+.nd .dot{width:72px;height:72px;margin:0 auto;border-radius:50%;
+  background:var(--mbg);color:var(--mc);display:flex;align-items:center;justify-content:center}
+.nd .dot svg{width:34px;height:34px}
+.nd.now .dot{width:80px;height:80px;margin-top:-4px;
+  background:color-mix(in srgb,var(--mc) 17%,#fff);
+  box-shadow:0 0 0 4px color-mix(in srgb,var(--mc) 12%,transparent)}
+.nd.now .dot svg{width:38px;height:38px;stroke-width:1.7}
+.nd.todo .dot{opacity:.45}
+.nd .ttl{font-size:13px;font-weight:700;margin-top:12px;line-height:1.3;color:var(--ink)}
+.nd.now .ttl{color:var(--mc);font-size:14px}
+.nd.todo .ttl{color:var(--ink-2)}
+.nd .place{font-size:12px;color:var(--ink-2);margin-top:4px;line-height:1.35}
+.nd .dur{font-size:14px;font-weight:700;color:var(--mc);margin-top:6px}
+.nd .dt{font-size:13px;font-weight:700;margin-top:6px;font-variant-numeric:tabular-nums}
 .nd .dt.dim{color:var(--muted);font-weight:600}
-.nd .plan{font-size:10px;color:var(--muted)}
-/* «Кордон» — роздільник між ділянками маршруту */
-.brd{flex:0 0 62px;text-align:center;padding-top:6px}
-.brd .bln{height:44px;border-left:2px dashed var(--line);margin:0 auto;width:0}
-.brd .blb{font-size:10px;font-weight:700;letter-spacing:.06em;color:var(--muted);
-  text-transform:uppercase;margin-top:8px}
-.brd .bld{font-size:11.5px;font-weight:700;margin-top:3px;font-variant-numeric:tabular-nums}
+.nd .plan{font-size:12px;color:var(--muted);margin-top:4px;font-variant-numeric:tabular-nums}
+.nd.todo .place,.nd.todo .dt{opacity:.85}
+.brd{flex:0 0 62px;text-align:center}
+.brd .bln{height:72px;border-left:1.5px dashed var(--mc);opacity:.55;margin:0 auto;width:0}
+.brd .blb{font-size:10.5px;font-weight:700;letter-spacing:.08em;color:var(--muted);
+  text-transform:uppercase;margin-top:12px}
+.brd .bld{font-size:12px;font-weight:700;margin-top:4px;font-variant-numeric:tabular-nums}
+
 /* деталі + документи */
-.cols{display:grid;grid-template-columns:1.15fr 1fr;gap:18px;margin-top:18px}
-@media(max-width:1000px){.cols{grid-template-columns:1fr}}
-.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
-.card h4{margin:0 0 12px;font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
-.kv{display:grid;grid-template-columns:auto 1fr;gap:7px 16px;font-size:13.5px}
-.kv .k{color:var(--muted)}
+.cols{display:grid;grid-template-columns:1.05fr 1fr;gap:18px;margin-top:18px;align-items:start}
+@media(max-width:1100px){.cols{grid-template-columns:1fr}}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);
+  padding:18px 20px;box-shadow:var(--shadow)}
+.card h4{margin:0 0 14px;font-size:11px;text-transform:uppercase;letter-spacing:.08em;
+  color:var(--muted);font-weight:700}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:9px 18px;font-size:14px}
+.kv .k{color:var(--ink-2)}
 .kv .v{font-weight:600;word-break:break-word}
-.doc{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--line-soft)}
-.doc:last-child{border-bottom:0}
+.doc{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--line-soft)}
+.doc:last-of-type{border-bottom:0}
 .doc .nm{flex:1}
-.doc .nm b{display:block;font-size:13.5px}
-.doc .nm span{font-size:11.5px;color:var(--muted)}
-.btn{border:1px solid var(--line);background:var(--surface);border-radius:8px;
-  padding:6px 12px;font:inherit;font-size:12.5px;cursor:pointer;color:var(--accent-ink);font-weight:600}
-.btn:hover{background:var(--accent-soft)}
+.doc .nm b{display:block;font-size:14px}
+.doc .nm span{font-size:12px;color:var(--muted)}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:9px;
+  padding:7px 14px;font:inherit;font-size:13px;cursor:pointer;color:var(--accent-ink);font-weight:600}
+.btn:hover{background:var(--accent-soft);border-color:var(--accent-soft)}
 .btn.prim{background:var(--accent);border-color:var(--accent);color:#fff}
-.empty{color:var(--muted);font-size:13px;padding:8px 0}
-.msg textarea{width:100%;min-height:74px;border:1px solid var(--line);border-radius:9px;
-  padding:10px 12px;font:inherit;resize:vertical;background:var(--surface);color:var(--ink)}
-.msg .row{display:flex;justify-content:space-between;align-items:center;margin-top:10px;gap:10px}
-.up{border:1.5px dashed var(--line);border-radius:10px;padding:14px;text-align:center;
-  color:var(--muted);font-size:12.5px;margin-top:12px}
-.foot{margin-top:26px;color:var(--muted);font-size:12px;text-align:center}
+.btn.prim:hover{filter:brightness(1.06)}
+.empty{color:var(--muted);font-size:13.5px;padding:8px 0}
+.msg textarea{width:100%;min-height:82px;border:1px solid var(--line);border-radius:11px;
+  padding:11px 13px;font:inherit;font-size:14px;resize:vertical;background:var(--surface);color:var(--ink)}
+.msg textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.msg .row{display:flex;justify-content:space-between;align-items:center;margin-top:12px;gap:10px}
+.up{border:1.5px dashed var(--line);border-radius:12px;padding:16px;text-align:center;
+  color:var(--muted);font-size:13px;margin-top:14px}
+.foot{margin-top:28px;color:var(--muted);font-size:12.5px;text-align:center}
 </style>
 
 <header>
   <img src="__LOGO__" alt="UNITEX">
   <div class="spacer"></div>
-  <div class="who"><b>__CLIENTFULL__</b></div>
+  <div class="who"><b>__CLIENTFULL__</b><span>Особистий кабінет</span></div>
 </header>
 
 <main>
@@ -252,13 +305,15 @@ tr.exp>td{padding:0;background:var(--surface-2)}
     </div>
   </div>
 
-  <table>
-    <thead><tr>
-      <th>Угода</th><th></th><th>Маршрут</th><th>Коносамент / контейнер</th>
-      <th>Судно</th><th>Відправлення</th><th>Прибуття</th><th>Статус</th><th>Документи</th>
-    </tr></thead>
-    <tbody id="rows"></tbody>
-  </table>
+  <div class="tw">
+    <table>
+      <thead><tr>
+        <th>Угода</th><th></th><th>Маршрут</th><th>Коносамент / контейнер</th>
+        <th>Судно</th><th>Відправлення</th><th>Прибуття</th><th>Статус</th><th>Документи</th>
+      </tr></thead>
+      <tbody id="rows"></tbody>
+    </table>
+  </div>
 
   <div class="foot">Дані оновлюються автоматично з систем ліній. Питання — через форму в картці вантажу.</div>
 </main>
@@ -269,30 +324,69 @@ const TODAY = "__TODAY__";
 
 const s = (r,k) => String(r[k]||"").trim();
 const fmt = v => { const m=/(\d{4})-(\d{2})-(\d{2})/.exec(String(v||"")); return m?`${m[3]}.${m[2]}.${m[1].slice(2)}`:""; };
+/* У схемі руху дати повні — 20.06.2026, як у макеті. Коротка форма (20.06.26)
+   лишається в таблиці, де місця мало. */
+const fmtY = v => { const m=/(\d{4})-(\d{2})-(\d{2})/.exec(String(v||"")); return m?`${m[3]}.${m[2]}.${m[1]}`:""; };
+const fmtDM = v => { const m=/(\d{4})-(\d{2})-(\d{2})/.exec(String(v||"")); return m?`${m[3]}.${m[2]}`:""; };
 const esc = t => String(t==null?"":t).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const air  = r => /авіа/i.test(s(r,"Вид перевезення"));
 const rail = r => /залізни/i.test(s(r,"Вид перевезення"));
 const done = r => s(r,"Статус")==="Вантаж доставлено";
 const past = d => d && d <= TODAY;
 
-/* ── іконки: прості лінійні фігури, 24×24 ─────────────── */
+/* ── іконки, 24×24 ────────────────────────────────────────────────────────
+   Перемальовані 02.08.2026 під макет користувачки: кожен етап має ВЛАСНИЙ
+   впізнаваний малюнок (будівля з колонами, документ з печаткою, портовий кран
+   з контейнерами, судно на хвилях, митник у кашкеті, фура, 3D-коробка).
+   До цього були тонкі однотипні контури, де склад, кран і порт виглядали
+   майже однаково — саме на це вона й вказала. */
 const I = {
- doc : '<path d="M6.5 3h7l4 4v14h-11z"/><path d="M13.5 3v4h4"/><path d="M9 12h6M9 16h6"/>',
- truck:'<path d="M2.5 7h10.5v9H2.5z"/><path d="M13 10.5h3.6l3.4 3.2V16H13z"/><circle cx="6.6" cy="18" r="1.9"/><circle cx="16.6" cy="18" r="1.9"/>',
- ship: '<path d="M3.5 16h17l-2.2 4.2H5.7z"/><path d="M8 9h6v7H8z"/><path d="M14 6h4l-4 2.4z"/><path d="M14 6v3"/>',
- plane:'<path d="M2.5 13.2 21.5 7l-5.6 11.4-2.9-4.6z"/><path d="M13 13.8 21.5 7"/>',
- port: '<circle cx="12" cy="5" r="2"/><path d="M12 7.2V19"/><path d="M8.2 10.2h7.6"/><path d="M5 13.4a7 7 0 0 0 14 0"/>',
- crane:'<path d="M4.5 20.5V4h11"/><path d="M15 4v3.6"/><path d="M12.4 8h6.6v5h-6.6z"/>',
- train:'<path d="M6 4.5h12v10H6z"/><path d="M8.6 7.4h6.8v4H8.6z"/><circle cx="9" cy="17.6" r="1.6"/><circle cx="15" cy="17.6" r="1.6"/><path d="M3.5 21h17"/>',
- home: '<path d="M3.5 11 12 3.8l8.5 7.2v9.5h-17z"/><path d="M9.6 20.5v-5.4h4.8v5.4"/>',
- swap: '<path d="M3.5 9.2h15.5"/><path d="M15.6 5.8 19 9.2l-3.4 3.4"/><path d="M20.5 15.2H5"/><path d="M8.4 11.8 5 15.2l3.4 3.4"/>',
- warehouse:'<path d="M3 9.4 12 4.2l9 5.2"/><path d="M4.8 9.4v10M9.6 9.4v10M14.4 9.4v10M19.2 9.4v10"/><path d="M2.5 19.6h19"/>',
- customs:'<path d="M6.4 3h7.2L18 6.6V21H6.4z"/><path d="M13.6 3v3.6H18"/><path d="M9.2 13.4l2 2 3.6-3.6"/>',
- border:'<path d="M5.5 3.2v17.6"/><path d="M5.5 4.6h11l-2.2 3.2 2.2 3.2h-11"/>',
- box:'<path d="M12 3.4 20.4 7.7v8.6L12 20.6 3.6 16.3V7.7z"/><path d="M3.6 7.7 12 12l8.4-4.3"/><path d="M12 12v8.6"/>',
+ /* склад / стафіровка — будівля з колонами */
+ warehouse:'<path d="M2.6 9.3 12 3.6l9.4 5.7"/><path d="M4.2 9.3h15.6"/>'
+          +'<path d="M6.1 11.6v7M9.4 11.6v7M12 11.6v7M14.6 11.6v7M17.9 11.6v7"/>'
+          +'<path d="M4.2 18.6h15.6"/><path d="M2.6 20.8h18.8"/>',
+ /* митне оформлення на експорт — документ із печаткою-галочкою */
+ customs:'<path d="M6.4 2.9h6.7l4.3 4.2v9.2"/><path d="M6.4 2.9v18.2h6.4"/>'
+        +'<path d="M13.1 2.9v4.2h4.3"/><path d="M9 9.6h4.6M9 12.4h3.2"/>'
+        +'<circle cx="17.2" cy="17.4" r="3.9"/><path d="M15.5 17.5l1.2 1.2 2.3-2.4"/>',
+ /* імпортне митне оформлення — інспектор у кашкеті */
+ officer:'<path d="M6.1 8.5h11.8"/><path d="M8.4 8.5a3.6 3.6 0 0 1 7.2 0"/>'
+        +'<circle cx="12" cy="13" r="2.9"/>'
+        +'<path d="M5.4 21.2c0-3.2 2.9-4.9 6.6-4.9s6.6 1.7 6.6 4.9"/>',
+ /* портовий кран над контейнерами */
+ crane:'<path d="M2.8 6.6h18.4"/><path d="M6.4 6.6v9.8M17.6 6.6v9.8"/>'
+      +'<path d="M12 6.6v3.3"/><path d="M9.5 9.9h5v3.4h-5z"/>'
+      +'<path d="M5.2 16.4h6.2v4.2H5.2z"/><path d="M13.2 17.6h5.6v3h-5.6z"/>'
+      +'<path d="M2.6 20.8h18.8"/>',
+ /* судно на хвилях */
+ ship:'<path d="M3.1 14.1h17.8l-2.6 4.2H5.7z"/><path d="M8.2 7.4h5.3v6.7H8.2z"/>'
+     +'<path d="M13.5 4.4h3.9l-3.9 2.5z"/><path d="M13.5 4.4v3"/>'
+     +'<path d="M2.4 20.6c1.6 0 1.6 1 3.2 1s1.6-1 3.2-1 1.6 1 3.2 1 1.6-1 3.2-1 1.6 1 3.2 1"/>',
+ /* літак */
+ plane:'<path d="M20.9 6.6a1.6 1.6 0 0 0-2.3-2.3l-3.9 3.9-8.1-2.4-1.5 1.5 6.3 4-3 3-3-.6-1.2 1.2 3.8 2.1 2.1 3.8 1.2-1.2-.6-3 3-3 4 6.3 1.5-1.5-2.4-8.1z"/>',
+ /* потяг */
+ train:'<path d="M6.2 4.2h11.6v10.2H6.2z"/><path d="M8.6 6.8h6.8v4.2H8.6z"/>'
+      +'<path d="M6.2 14.4l-2 3.6M17.8 14.4l2 3.6"/>'
+      +'<circle cx="9.1" cy="17.4" r="1.6"/><circle cx="14.9" cy="17.4" r="1.6"/>'
+      +'<path d="M2.6 20.9h18.8"/>',
+ /* фура */
+ truck:'<path d="M2.4 6.4h11.2v9.4H2.4z"/><path d="M13.6 9.8h3.5l3.4 3.2v2.8h-6.9z"/>'
+      +'<path d="M2.4 15.8h18.1"/>'
+      +'<circle cx="6.7" cy="18" r="2"/><circle cx="16.9" cy="18" r="2"/>',
+ /* перевалка — два зустрічні контейнери-стрілки */
+ swap:'<path d="M3.4 8.6h14.2"/><path d="M14.6 5.4 17.8 8.6l-3.2 3.2"/>'
+     +'<path d="M20.6 15.4H6.4"/><path d="M9.4 12.2 6.2 15.4l3.2 3.2"/>',
+ /* доставлено — 3D-коробка */
+ box:'<path d="M12 3.2 20.6 7.6v8.8L12 20.8 3.4 16.4V7.6z"/>'
+    +'<path d="M3.4 7.6 12 12l8.6-4.4"/><path d="M12 12v8.8"/>'
+    +'<path d="M7.7 5.4 16.3 9.8"/>',
+ /* документ (список файлів у картці) */
+ doc:'<path d="M6.5 3h7l4 4v14h-11z"/><path d="M13.5 3v4h4"/><path d="M9 12h6M9 16h6"/>',
+ port:'<circle cx="12" cy="4.6" r="1.9"/><path d="M12 6.8V19.4"/><path d="M8.3 10h7.4"/>'
+     +'<path d="M4.8 13.4a7.2 7.2 0 0 0 14.4 0"/>',
 };
-const svg = k => `<svg viewBox="0 0 24 24" width="21" height="21" fill="none"
-  stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${I[k]}</svg>`;
+const svg = (k, px) => `<svg viewBox="0 0 24 24" width="${px||21}" height="${px||21}" fill="none"
+  stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">${I[k]}</svg>`;
 
 /* ── колір за видом перевезення (як у макеті користувачки) ──────────── */
 const MODE_PAL = {
@@ -343,21 +437,21 @@ function steps(r){
     const tp = s(r,"Порт перевалки");
     if (!tp) return [];
     const ta = s(r,"Перевалка (прибуття)"), td = s(r,"Перевалка (відправлення)");
-    return [{ t:"Перевалка", i:"swap", d:ta, d2:td, f:true, p:tp }];
+    return [{ k:"tship", t:"Перевалка", i:"swap", d:ta, d2:td, f:true, p:tp }];
   };
 
   if (!imp){
     /* ЕКСПОРТ */
     return [
-      { t:"Стафіровка",          i:"warehouse", d:s(r,"Stuffing"), f:true, p:from },
-      { t:"Митне оформлення",    i:"customs",   d:"",              f:true, p:"експорт" },
-      { t:"Кордон",              i:"border",    d:s(r,"На кордоні") || s(r,"Перетин кордону (факт)"), f:true, p:"" },
-      { t:A?"Аеропорт відправлення":"Порт відправлення", i:"crane",
+      { k:"stuff", t:"Стафіровка",          i:"warehouse", d:s(r,"Stuffing"), f:true, p:from },
+      { k:"cust1", t:"Митне оформлення<br>на експорт", i:"customs", d:"", f:true, p:"" },
+      { k:"border", t:"Кордон",              i:"border",    d:s(r,"На кордоні") || s(r,"Перетин кордону (факт)"), f:true, p:"" },
+      { k:"pol", t:A?"Аеропорт відправлення":"Порт відправлення", i:"crane",
         d:s(r,"Здача в порт (факт)") || s(r,"Гейт ін"), f:true, p:from },
-      { t:moveT, i:moveI, d:etd, f:etdF, p:s(r,"Судно"), dur:days(etd, eta) },
+      { k:"move", t:moveT, i:moveI, d:etd, f:etdF, p:s(r,"Судно"), dur:days(etd, eta) },
     ].concat(transship(), [
-      { t:"Митне оформлення",    i:"customs",   d:"",  f:true, p:"імпорт" },
-      { t:"Вантаж доставлено",   i:"box",
+      { k:"cust2", t:"Імпортне митне<br>оформлення", i:"officer", d:"", f:true, p:"" },
+      { k:"done", t:"Вантаж доставлено",   i:"box",
         d:s(r,"Вивантаження у отримувача (факт)") || s(r,"Планова до клієнта (факт)") || eta,
         f:!!s(r,"Вивантаження у отримувача (факт)"), p:fin || to },
     ]);
@@ -373,23 +467,23 @@ function steps(r){
   const st = s(r,"Статус");
   const byTrain = /потяг/i.test(st) ? true : (/на авто/i.test(st) ? false : R);
   const land = [];
-  land.push({ t: byTrain ? "Завантажений на потяг" : "Завантажений на авто",
+  land.push({ k:"land", t: byTrain ? "Завантажений на потяг" : "Завантажений на авто",
               i: byTrain ? "train" : "truck", d: car, f: carF, p:"" });
   if (R || s(r,"ETA сухий порт"))
-    land.push({ t:"Сухий порт", i:"crane", d:s(r,"ETA сухий порт"),
+    land.push({ k:"dry", t:"Сухий порт", i:"crane", d:s(r,"ETA сухий порт"),
                 f:false, p:s(r,"Сухий порт") });
   return [
-    { t:"Стафіровка",         i:"warehouse", d:s(r,"Stuffing"), f:true, p:from },
-    { t:"Митне оформлення",   i:"customs",   d:"",              f:true, p:"експорт" },
-    { t:A?"Аеропорт відправлення":"Порт відправлення", i:"crane",
+    { k:"stuff", t:"Стафіровка",         i:"warehouse", d:s(r,"Stuffing"), f:true, p:from },
+    { k:"cust1", t:"Митне оформлення<br>на експорт", i:"customs", d:"", f:true, p:"" },
+    { k:"pol", t:A?"Аеропорт відправлення":"Порт відправлення", i:"crane",
       d:s(r,"Здача в порт (факт)") || s(r,"Гейт ін"), f:true, p:from },
-    { t:moveT, i:moveI, d:etd, f:etdF, p:s(r,"Судно"), dur:days(etd, eta) },
+    { k:"move", t:moveT, i:moveI, d:etd, f:etdF, p:s(r,"Судно"), dur:days(etd, eta) },
   ].concat(transship(), [
-    { t:A?"Аеропорт прибуття":"Порт прибуття", i:"port", d:eta, f:etaF, p:to },
+    { k:"pod", t:A?"Аеропорт прибуття":"Порт прибуття", i:A?"plane":"crane", d:eta, f:etaF, p:to },
   ], land, [
-    { t:"Кордон",             i:"border",  d:s(r,"На кордоні") || s(r,"Перетин кордону (факт)"), f:true, p:"" },
-    { t:"Митне оформлення",   i:"customs", d:"", f:true, p:"імпорт" },
-    { t:"Вантаж доставлено",  i:"box",
+    { k:"border", t:"Кордон",             i:"border",  d:s(r,"На кордоні") || s(r,"Перетин кордону (факт)"), f:true, p:"" },
+    { k:"cust2", t:"Імпортне митне<br>оформлення", i:"officer", d:"", f:true, p:"" },
+    { k:"done", t:"Вантаж доставлено",  i:"box",
       d:s(r,"Вивантаження у отримувача (факт)") || s(r,"Планова до клієнта (факт)"),
       f:true, p:fin },
   ]);
@@ -397,44 +491,45 @@ function steps(r){
 
 function routeHtml(r){
   const st = steps(r), P = pal(r), delivered = done(r);
-  /* Пройденим вважаємо крок із ФАКТИЧНОЮ датою в минулому. Кроки без дати
-     (митне оформлення) пройдені, якщо пройдено наступний крок із датою. */
-  const okAt = i => {
-    const x = st[i];
-    if (delivered) return true;
-    return !!(x.f && past(x.d2 || x.d));
+  /* ПОТОЧНИЙ КРОК визначаємо за СТАТУСОМ угоди, а не «перший без дати».
+     Причина (угода 256, 02.08.2026): дат майже немає, і підсвічувалась
+     «Стафіровка», хоча вантаж уже в морі. Статус — найнадійніше джерело. */
+  const ST_STEP = {
+    "Букінг":"stuff", "Виконується":"stuff", "Стафіровка":"stuff",
+    "В порту відправлення":"pol", "Завантажений на судно":"move", "В морі":"move",
+    "Вивантажений в порту прибуття":"pod",
+    "Завантажений на авто":"land", "Завантажений на потяг":"land",
+    "Вивантажений в сухому порту":"dry", "На кордоні":"border",
+    "Вантаж доставлено":"done",
   };
-  const state = st.map((x, i) => {
-    if (okAt(i)) return "done";
-    if (!x.d){                                   // крок без власної дати
-      for (let j = i + 1; j < st.length; j++) if (st[j].d) return okAt(j) ? "done" : "todo";
-    }
-    return "todo";
-  });
-  let cur = state.indexOf("todo");
-  if (!delivered && cur >= 0) state[cur] = "now";
-  if (state[0] === "todo") state[0] = st[0].d ? state[0] : "done";
+  let cur = st.findIndex(x => x.k === ST_STEP[s(r,"Статус")]);
+  if (cur < 0){                               // статусу немає в мапі — за датами
+    cur = st.findIndex(x => !(x.f && past(x.d2 || x.d)));
+    if (cur < 0) cur = st.length - 1;
+  }
+  if (delivered) cur = st.length - 1;
+
+  const state = st.map((x, i) =>
+    delivered ? "done" : (i < cur ? "done" : (i === cur ? "now" : "todo")));
 
   const cells = [];
   st.forEach((x, i) => {
-    /* «КОРДОН» — не вузол маршруту, а роздільник між ділянками: тонка
-       пунктирна лінія з підписом, як у макеті користувачки (02.08.2026).
-       Кола з іконкою в нього немає. */
     if (x.i === "border"){
       cells.push(`<div class="brd"><div class="bln"></div>
         <div class="blb">КОРДОН</div>
         ${x.d ? `<div class="bld">${fmt(x.d)}</div>` : ""}</div>`);
       return;
     }
-    if (i) cells.push(`<div class="cn ${state[i-1]==="done"?"on":""}"></div>`);
+    if (i) cells.push(`<div class="cn ${i <= cur || delivered ? "on" : ""}"></div>`);
     cells.push(`<div class="nd ${state[i]}">
       <div class="dot">${svg(x.i)}</div>
-      <div class="ttl">${esc(x.t)}</div>
+      <div class="ttl">${x.t}</div>
       ${x.p ? `<div class="place">${esc(x.p)}</div>` : ""}
       ${x.dur != null ? `<div class="dur">${x.dur} ${plural(x.dur,"день","дні","днів")}</div>` : ""}
-      ${x.d ? `<div class="dt">${fmt(x.d)}${x.d2?" → "+fmt(x.d2):""}</div>${
-                x.f && past(x.d2||x.d) ? "" : '<div class="plan">план</div>'}`
-            : (x.dur == null ? `<div class="dt dim">—</div>` : "")}
+      ${x.d ? (x.f && past(x.d2 || x.d)
+                 ? `<div class="dt">${fmtY(x.d)}${x.d2 ? " → " + fmtY(x.d2) : ""}</div>`
+                 : `<div class="plan">план ${fmtDM(x.d)}${x.d2 ? " → " + fmtDM(x.d2) : ""}</div>`)
+            : ""}
     </div>`);
   });
 
@@ -457,12 +552,38 @@ function panel(r){
   ];
   if (s(r,"Порт перевалки")) kv.splice(4, 0, ["Перевалка", esc(s(r,"Порт перевалки"))]);
   const docs = (r._docs||[]);
-  return `<div class="panel">
-    <div class="pbar">
-      <span class="st">${esc(s(r,"Статус")||"—")}</span>
-      <span class="sub">${esc(s(r,"Маршрут")||"маршрут не вказано")}</span>
+  const P = pal(r), M = modeOf(r);
+  const badge = {sea:"⚓", air:"✈", road:"🚚", rail:"🚆"}[M];
+  const route = s(r,"Маршрут").split(/→|->/).map(x=>x.trim()).filter(Boolean);
+  const dest  = s(r,"Кінцева точка доставки") || (route.length > 1 ? route[1] : "");
+  /* Рядок деталей через крапки — як у макеті користувачки:
+     FCL · 1×40' · Лінія · Судно / рейс · Контейнер */
+  const bits = [
+    s(r,"FCL/LCL"), s(r,"Кількість"),
+    s(r,"Лінія") ? "Лінія " + s(r,"Лінія") : "",
+    s(r,"Судно") ? "Судно " + [s(r,"Судно"), s(r,"Вояж")].filter(Boolean).join(" / ") : "",
+    s(r,"Контейнер") ? "Контейнер " + s(r,"Контейнер") : "",
+  ].filter(Boolean);
+  const bl = s(r,"HBL") || s(r,"BL") || s(r,"Авіанакладна");
+  return `<div class="panel" style="--mc:${P.c};--mbg:${P.bg}">
+    <div class="phead">
+      <div class="pttl">
+        <!-- У бейджі — ВИД ПЕРЕВЕЗЕННЯ (МОРЕ / АВТО / АВІА / ЗАЛІЗНИЦЯ),
+             а не статус: вимога користувачки 02.08.2026. Де саме зараз вантаж,
+             видно на самій схемі — там підсвічений поточний крок. -->
+        <span class="badge">${badge} ${esc(P.nm.toUpperCase())}</span>
+        <b>Угода №${esc(s(r,"Угода"))}</b>
+      </div>
+      <div class="pmeta">${bits.map(esc).join(" <i>·</i> ")}</div>
+      ${bl ? `<div class="pmeta">${air(r)?"Накладна":"Коносамент"} <b>${esc(bl)}</b></div>` : ""}
+      <div class="peta">
+        <div class="lb">ETA</div>
+        <div class="dt">${fmt(s(r,"ETA")) || "—"}</div>
+        ${dest ? `<div class="pl">${esc(dest)}</div>` : ""}
+      </div>
     </div>
     ${routeHtml(r)}
+    <div class="tzn">Час вказано за місцевим часом</div>
     <div class="cols">
       <div class="card"><h4>Дані вантажу</h4>
         <div class="kv">${kv.map(([k,v])=>`<div class="k">${esc(k)}</div><div class="v">${v}</div>`).join("")}</div>
@@ -507,12 +628,16 @@ function render(){
   const act = DEALS.filter(r=>!done(r));
   const soon = act.filter(r=>{const e=s(r,"ETA"); return e && e>=TODAY && e<=addDays(TODAY,7);});
   const docs = DEALS.reduce((n,r)=>n+(r._docs||[]).length,0);
+  const TICON =[["ship","ic-blue"],["port","ic-amber"],["box","ic-green"],["doc","ic-vio"]];
   document.getElementById("tiles").innerHTML = [
     [act.length,"вантажів у дорозі"],
     [soon.length,"прибувають за 7 днів"],
     [DEALS.length-act.length,"доставлено"],
     [docs,"документів доступно"],
-  ].map(([n,l])=>`<div class="tile"><div class="n">${n}</div><div class="l">${l}</div></div>`).join("");
+  ].map(([n,l],i)=>`<div class="tile">
+      <div class="ic ${TICON[i][1]}">${svg(TICON[i][0])}</div>
+      <div><div class="n">${n}</div><div class="l">${l}</div></div>
+    </div>`).join("");
 
   document.getElementById("rows").innerHTML = rows.length ? rows.map(r=>{
     const conts = s(r,"Контейнер").split(",").map(x=>x.trim()).filter(Boolean);
