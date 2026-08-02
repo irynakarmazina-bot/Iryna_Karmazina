@@ -607,36 +607,48 @@
 
     .card{padding:12px}
     tr.donebar button{font-size:12.5px}
+
+    /* Вікна (картка угоди, калькуляція) на телефоні — на всю ширину,
+       а поля в них у ОДНУ колонку: сітка 1fr 1fr задана інлайном, тому
+       перебиваємо її через :is() з !important (02.08.2026). */
+    .overlay{padding:0;align-items:flex-end}
+    .modal{max-width:100%!important;width:100%!important;border-radius:16px 16px 0 0;
+      padding:16px 14px 20px;max-height:92vh!important}
+    #calc-body [style*="grid-template-columns"]{grid-template-columns:1fr!important}
+    #calc-body textarea,#calc-body input,#calc-body select{width:100%}
+    #calc-overlay .btn{flex:1 1 auto;justify-content:center}
     /* Кнопки звітів у верхній строці налазили на «Вийти» (скрін 02.08.2026) */
     .topbar{align-items:flex-start}
-    #page-actions{flex-wrap:wrap;width:100%;order:3}
+    /* flex-basis:0 з десктопного правила перебивав width:100%, тому кнопки
+       лишались у першому рядку і вилазили за екран (скрін 02.08.2026). */
+    #page-actions{flex:1 1 100%;flex-wrap:wrap;order:3}
     #page-actions .btn{flex:1 1 100%;justify-content:center;white-space:normal;padding:9px 12px}
     .user-chip{order:1} .topbar #logout{order:2}
 
     /* ДИСПЕТЧЕРИЗАЦІЯ НА ТЕЛЕФОНІ — картки замість таблиці на 17 колонок. */
     .dispscroll{max-height:none;overflow:visible}
-    .dispscroll table{display:block}
-    .dispscroll thead{display:none}
-    .dispscroll tbody{display:block}
-    .dispscroll colgroup{display:none}
-    .dispscroll tbody tr{display:block;background:var(--surface);border:1px solid var(--line);
+    .mcards table{display:block}
+    .mcards thead{display:none}
+    .mcards tbody{display:block}
+    .mcards colgroup{display:none}
+    .mcards tbody tr{display:block;background:var(--surface);border:1px solid var(--line);
       border-radius:14px;padding:10px 12px;margin-bottom:10px}
-    .dispscroll tbody tr.donebar{padding:6px 10px;background:var(--surface-2);border-radius:10px}
-    .dispscroll tbody tr.donebar td{display:block;border:0;padding:0}
-    .dispscroll tbody td{display:block;border:0;padding:3px 0;font-size:13.5px;
+    .mcards tbody tr.donebar{padding:6px 10px;background:var(--surface-2);border-radius:10px}
+    .mcards tbody tr.donebar td{display:block;border:0;padding:0}
+    .mcards tbody td{display:block;border:0;padding:3px 0;font-size:13.5px;
       text-align:right;overflow:hidden;white-space:normal}
-    .dispscroll tbody td[data-l]::before{content:attr(data-l);float:left;color:var(--ink-2);
+    .mcards tbody td[data-l]::before{content:attr(data-l);float:left;color:var(--ink-2);
       font-size:12px;font-weight:400;margin-right:12px}
-    .dispscroll tbody td.empty{display:none}
-    .dispscroll tbody tr td:first-child{display:inline-block;font-size:17px;font-weight:700;
+    .mcards tbody td.empty{display:none}
+    .mcards tbody tr td:first-child{display:inline-block;font-size:17px;font-weight:700;
       text-align:left;vertical-align:middle;padding:0 0 6px}
-    .dispscroll tbody tr td:nth-child(2){display:inline-block;margin-left:10px;
+    .mcards tbody tr td:nth-child(2){display:inline-block;margin-left:10px;
       vertical-align:middle;padding:0 0 6px}
-    .dispscroll tbody tr:hover td{background:transparent}
-    .dispscroll tbody tr td:last-child{display:block;text-align:right;padding-top:6px}
-    .dispscroll td.c-bl,.dispscroll td.c-ves,.dispscroll td.c-md,.dispscroll td.c-rt,
-    .dispscroll td.c-cli,.dispscroll td.c-com{width:auto;max-width:none;white-space:normal}
-    .dispscroll td .rtar{margin:0 4px}
+    .mcards tbody tr:hover td{background:transparent}
+    .mcards tbody tr td:last-child{display:block;text-align:right;padding-top:6px}
+    .mcards td.c-bl,.mcards td.c-ves,.mcards td.c-md,.mcards td.c-rt,
+    .mcards td.c-cli,.mcards td.c-com{width:auto;max-width:none;white-space:normal}
+    .mcards td .rtar{margin:0 4px}
   }
 </style>
 </head>
@@ -667,7 +679,7 @@
       <div class="spacer"></div>
       <!-- Позначка версії: по ній видно, чи браузер підтягнув свіжу сторінку.
            Оновлюється автоматично при кожному викладенні (scripts/stamp.sh). -->
-      <div class="buildstamp" id="buildstamp" title="версія сторінки — якщо не збігається з тим, що я назвала, натисни Ctrl+F5">в. 02.08 14:47</div>
+      <div class="buildstamp" id="buildstamp" title="версія сторінки — якщо не збігається з тим, що я назвала, натисни Ctrl+F5">в. 02.08 15:33</div>
     </nav>
     <div class="main">
       <div class="topbar">
@@ -908,6 +920,15 @@ function buildNav(){
 }
 /* ── мобільне меню ───────────────────────────────────────────────────────── */
 const isPhone = () => window.matchMedia("(max-width:760px)").matches;
+/* На телефоні таблиці показуються картками; клітинки без даних ховаємо, щоб у
+   картці не було десятка прочерків (02.08.2026). */
+function markEmptyCells(box){
+  if (!box || !isPhone()) return;
+  box.querySelectorAll("td[data-l]").forEach(td=>{
+    const t = td.textContent.replace(/[\s\u2014\u2013-]/g, "");
+    td.classList.toggle("empty", t === "");
+  });
+}
 function openMenu(on){
   const sb = document.querySelector(".sidebar"), b = $("burger");
   if (!sb) return;
@@ -1507,7 +1528,7 @@ PAGES.dispatch = async () => {
         <select id="manf"><option value="">Усі менеджери</option>${uniq("Менеджер").map(c=>`<option>${esc(c)}</option>`).join("")}</select>
         <select id="opmf"><option value="">Усі оп. менеджери</option>${uniq("Оп. менеджер").map(c=>`<option>${esc(c)}</option>`).join("")}</select>
       </div>
-      <div class="tablewrap dispscroll" id="dscroll"><table class="${logist?"":"fixw"}">
+      <div class="tablewrap dispscroll mcards" id="dscroll"><table class="${logist?"":"fixw"}">
         ${logist? "" : `<colgroup>
           <!-- 17 колонок; ширини підібрані так, щоб таблиця вміщалась без бічної
                прокрутки на ~1360 px робочої області (зауваження користувачки 01.08.2026) -->
@@ -1728,12 +1749,7 @@ PAGES.dispatch = async () => {
     ft.setAttribute("aria-expanded", on ? "true" : "false");
     ft.textContent = (on ? "✕ Сховати фільтри" : "⚙ Фільтри");
   });
-    /* На телефоні картка не має бути з десятком прочерків: клітинки без даних
-       ховаємо (прохання користувачки 02.08.2026 — «роби на телефоні картки»). */
-    if (isPhone()) $("drows").querySelectorAll("td[data-l]").forEach(td=>{
-      const t = td.textContent.replace(/[\s\u2014\u2013-]/g, "");
-      td.classList.toggle("empty", t === "");
-    });
+    markEmptyCells($("drows"));
     const dt = $("done-toggle");
     if (dt) dt.addEventListener("click", ()=>{ SHOW_DONE = !SHOW_DONE; draw(); });
     $("drows").querySelectorAll("tr[data-id]").forEach(tr=>tr.addEventListener("click",()=>openRow(all.find(x=>String(x.Id)===tr.dataset.id))));
@@ -3005,7 +3021,7 @@ PAGES.calc = async () => {
         <input id="cq" placeholder="Пошук: номер, клієнт, маршрут…">
         <select id="cst"><option value="">Усі статуси</option>${CALC_ST.map(s=>`<option>${s}</option>`).join("")}</select>
       </div>
-      <div class="tablewrap" style="margin-top:10px"><table>
+      <div class="tablewrap mcards" style="margin-top:10px"><table>
         <thead><tr><th>Номер</th><th>Дата</th><th>Клієнт</th><th>Маршрут</th><th>Обладнання</th>
           <th>Собівартість</th><th>Продаж</th><th>Прибуток</th><th>Статус</th><th>Угода</th><th></th></tr></thead>
         <tbody id="crows"></tbody>
@@ -3025,18 +3041,19 @@ PAGES.calc = async () => {
       const cur = r["Валюта"]||"USD";
       return `<tr data-calc="${r.Id}">
         <td class="mono"><b>${esc(r["Номер"]||"—")}</b></td>
-        <td class="mono">${esc(r["Дата"]||"—")}</td>
-        <td>${esc(r["Клієнт"]||"—")}</td>
-        <td>${esc(r["Маршрут"]||"—")}</td>
-        <td>${esc([r["Кількість"],r["Тип обладнання"]].filter(Boolean).join("×")||"—")}</td>
-        <td class="mono">${r["Собівартість"]?money(num(r["Собівартість"]),cur):"—"}</td>
-        <td class="mono">${r["Продаж"]?money(num(r["Продаж"]),cur):"—"}</td>
-        <td class="mono"><b>${r["Прибуток"]?money(num(r["Прибуток"]),cur):"—"}</b></td>
-        <td><span class="pill ${CALC_ST_CLS[r["Статус"]]||"t-neutral"}">${esc(r["Статус"]||"Чернетка")}</span></td>
-        <td class="mono">${esc(r["Угода"]||"—")}</td>
+        <td class="mono" data-l="Дата">${esc(r["Дата"]||"—")}</td>
+        <td data-l="Клієнт">${esc(r["Клієнт"]||"—")}</td>
+        <td data-l="Маршрут">${esc(r["Маршрут"]||"—")}</td>
+        <td data-l="Обладнання">${esc([r["Кількість"],r["Тип обладнання"]].filter(Boolean).join("×")||"—")}</td>
+        <td class="mono" data-l="Собівартість">${r["Собівартість"]?money(num(r["Собівартість"]),cur):"—"}</td>
+        <td class="mono" data-l="Продаж">${r["Продаж"]?money(num(r["Продаж"]),cur):"—"}</td>
+        <td class="mono" data-l="Прибуток"><b>${r["Прибуток"]?money(num(r["Прибуток"]),cur):"—"}</b></td>
+        <td data-l="Статус"><span class="pill ${CALC_ST_CLS[r["Статус"]]||"t-neutral"}">${esc(r["Статус"]||"Чернетка")}</span></td>
+        <td class="mono" data-l="Угода">${esc(r["Угода"]||"—")}</td>
         <td><button class="btn ghost calc-open" data-id="${r.Id}" style="padding:3px 10px">Відкрити</button></td>
       </tr>`;
     }).join("") : '<tr><td colspan="11" class="cell-muted">Калькуляцій поки немає.</td></tr>';
+    markEmptyCells($("crows"));
     $("crows").querySelectorAll(".calc-open").forEach(b=>b.addEventListener("click",()=>openCalc(all.find(x=>String(x.Id)===b.dataset.id))));
   };
   $("cq").addEventListener("input", render);
