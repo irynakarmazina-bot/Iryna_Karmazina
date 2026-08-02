@@ -485,7 +485,10 @@ function panel(r){
   return `<div class="panel" style="--mc:${P.c};--mbg:${P.bg}">
     <div class="phead">
       <div class="pttl">
-        <span class="badge">${badge} ${esc((s(r,"Статус")||"—").toUpperCase())}</span>
+        <!-- У бейджі — ВИД ПЕРЕВЕЗЕННЯ (МОРЕ / АВТО / АВІА / ЗАЛІЗНИЦЯ),
+             а не статус: вимога користувачки 02.08.2026. Де саме зараз вантаж,
+             видно на самій схемі — там підсвічений поточний крок. -->
+        <span class="badge">${badge} ${esc(P.nm.toUpperCase())}</span>
         <b>Угода №${esc(s(r,"Угода"))}</b>
       </div>
       <div class="pmeta">${bits.map(esc).join(" <i>·</i> ")}</div>
