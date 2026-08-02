@@ -12,7 +12,7 @@ export default [{
       setTimeout: "readonly", clearTimeout: "readonly",
       setInterval: "readonly", clearInterval: "readonly",
       requestAnimationFrame: "readonly", getComputedStyle: "readonly",
-      MutationObserver: "readonly", Event: "readonly",
+      MutationObserver: "readonly", Event: "readonly", DOMParser: "readonly",
       alert: "readonly", confirm: "readonly", prompt: "readonly",
       FormData: "readonly", Blob: "readonly", FileReader: "readonly", URL: "readonly",
       atob: "readonly", btoa: "readonly", Intl: "readonly",

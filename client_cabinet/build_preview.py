@@ -14,6 +14,7 @@
 """
 import argparse
 import json
+import os
 import re
 import urllib.request
 
@@ -962,15 +963,57 @@ render();
 """
 
 
+def pick_client(rows, name):
+    """Угоди ОДНОГО клієнта.
+
+    Було до 02.08.2026: `name.lower() in клієнт.lower()` — збіг за ПІДРЯДКОМ.
+    «Мірандор» підтягував і «Мірандор Плюс», а порожня назва — усі угоди фірми.
+    Кабінет лежить на сервері без пароля, тому це прямий витік чужих даних.
+
+    Тепер правило: точний збіг назви (без різниці у регістрі та зайвих пробілах).
+    Якщо точного немає — дивимось, скільки клієнтів МІСТЯТЬ цю назву:
+      рівно один — беремо його і кажемо, кого саме (звичний короткий запис працює);
+      кілька     — ЗУПИНЯЄМОСЬ і показуємо список (неоднозначність = не вгадуємо);
+      жодного    — ЗУПИНЯЄМОСЬ (одрук у назві не має мовчки давати порожній кабінет).
+    """
+    want = nz(name).lower()
+    if not want:
+        raise SystemExit("ПОМИЛКА: не вказано клієнта (--client). Порожня назва "
+                         "означала б «усі угоди фірми» — так робити не можна.")
+    names = {nz(r.get("Клієнт")) for r in rows if nz(r.get("Клієнт"))}
+    exact = [n for n in names if n.lower() == want]
+    if exact:
+        chosen = exact[0]
+    else:
+        near = sorted(n for n in names if want in n.lower())
+        if len(near) == 1:
+            chosen = near[0]
+            print("УВАГА: точного збігу «%s» немає, але однозначно підходить «%s» — беру його."
+                  % (name, chosen))
+        elif len(near) > 1:
+            raise SystemExit("ПОМИЛКА: під «%s» підпадає кілька клієнтів: %s.\n"
+                             "Вкажи назву точно — інакше в кабінет потраплять чужі угоди."
+                             % (name, ", ".join(near)))
+        else:
+            raise SystemExit("ПОМИЛКА: клієнта «%s» немає в базі. Перевір назву — "
+                             "файл кабінету НЕ чіпаю." % name)
+    out = [r for r in rows
+           if nz(r.get("Клієнт")) == chosen and nz(r.get("Статус")) != CANCELLED]
+    if not out:
+        raise SystemExit("ПОМИЛКА: у клієнта «%s» немає жодної активної угоди. "
+                         "Порожній кабінет не записую, щоб не затерти робочий." % chosen)
+    print("клієнт: %s — угод %d" % (chosen, len(out)))
+    return out
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--client", default="Мірандор")
     ap.add_argument("--out", default="/root/unitex-os-www/cabinet.html")
     a = ap.parse_args()
 
-    rows = [r for r in nc_all()
-            if a.client.lower() in nz(r.get("Клієнт")).lower()
-            and nz(r.get("Статус")) != CANCELLED]
+    all_rows = nc_all()
+    rows = pick_client(all_rows, a.client)
     data = []
     for r in rows:
         d = {k: r.get(k) for k in CLIENT_COLS if k != "Файли"}
@@ -981,12 +1024,22 @@ def main():
                              nz(d.get("ETA")) or "9999"))
 
     import datetime
+    # Дані лежать УСЕРЕДИНІ <script>, тому послідовність «</» у будь-якому полі
+    # закривала б тег і рвала сторінку. Перевірено 02.08.2026: «</script>» у полі
+    # «Коментар клієнту» давало 0 угод замість 9 і сирий JSON на екрані клієнта.
+    # Для JavaScript «<\/» і «</» — те саме, тому дані не змінюються, а сторінка ціла.
+    payload = json.dumps(data, ensure_ascii=False).replace("</", "<\\/")
     html = (TPL.replace("__LOGO__", logo())
                .replace("__CLIENTFULL__", client_title(a.client))
                .replace("__CLIENT__", a.client)
                .replace("__TODAY__", datetime.date.today().isoformat())
-               .replace("__DATA__", json.dumps(data, ensure_ascii=False)))
-    open(a.out, "w", encoding="utf-8").write(html)
+               .replace("__DATA__", payload))
+    # Пишемо спершу в тимчасовий файл поруч і лише потім підміняємо: якщо запис
+    # обірветься, у клієнта лишиться попередній робочий кабінет, а не половина файла.
+    tmp = a.out + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as fh:
+        fh.write(html)
+    os.replace(tmp, a.out)
     print("OK %s — %d угод, %d байт" % (a.out, len(data), len(html)))
 
 
