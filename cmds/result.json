@@ -1,7 +1,7 @@
 {
-  "stdout": "== гілка: main ==\n   коміт: 69fd2885d · 2026-08-02 07:18:26 +0000\n   опис:  relay: викласти фасад з main (алерти вгорі, Gate in одна дата)\nскриптів: 2, із синтаксичними помилками: 0\nCHECK_OK — фасад можна викладати\n   бекап: /root/unitex-os-www/.backups/index-20260802-101834.html (231744 б)\n   журнал: 2026-08-02T10:18:34\tmain\t69fd2885d\tв. 02.08 07:18\tindex.html:232343 findash.html:26184 finperiod.html:17458\trelay: викласти фасад з main (алерти вгорі, Gate in одна дата)\n   UI 200  FINDASH 200\nDEPLOY_OK · гілка main · коміт 69fd2885d · позначка «в. 02.08 07:18»\n",
+  "stdout": "__pycache__\nbuild_dashboard_data.py\nbuild_period_report.py\ncalendar_inputs.py\ncash_from_odata.py\ncheck_odata.py\ncommon.py\nconsolidate.py\nfill_dashboard_values.py\nmonthly_series.py\nodata_client.py\nodata_ingest.py\nodata_maps.py\noverhead.py\nparse.py\npnl_cf.py\nrebuild_dashboard.py\nregisters.py\nretro_nwc.py\nupdate_all.py\nupdate_all_api.py\nupload.py\nupload_dashboard.py\nupload_glossary.py\nupload_sheets2.py\nverify_upload.py\n---\nDEPLOY.md\nREADME.md\napps-script\ncomputed\nconfig.api.json\nconfig.example.json\ndocs\nengine\nnormalized\nreports\nrequirements.txt\nrun.sh\nsecure\ntrigger.py\n",
   "stderr": "",
   "returncode": 0,
-  "id": "deploy-ui-2",
-  "ts": "2026-08-02T07:18:34Z"
+  "id": "recon-1",
+  "ts": "2026-08-02T07:23:06Z"
 }
