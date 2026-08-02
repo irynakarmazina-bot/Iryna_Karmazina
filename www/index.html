@@ -449,8 +449,8 @@
   /* Один рядок, без переносу: алерти не мають з'їдати висоту над таблицею
    (зауваження користувачки 01.08.2026 — «статуси розкидані на дві строки»).
    Якщо алертів забагато — смуга гортається вбік, а не росте вниз. */
-  .alertbar{display:flex;align-items:center;gap:6px;flex-wrap:nowrap;
-    overflow-x:auto;overflow-y:hidden;scrollbar-width:thin;padding-bottom:2px}
+  .alertbar{display:flex;align-items:center;gap:6px;flex-wrap:nowrap;min-width:0;flex:1;
+    overflow-x:auto;overflow-y:hidden;scrollbar-width:thin}
   .alertbar>*{flex:none}
   /* алерти навмисно НЕ кольорові плашки: кольором тільки крапка й число,
      щоб увага лишалась на самій таблиці (зауваження користувачки 01.08.2026) */
@@ -587,7 +587,7 @@
       <div class="spacer"></div>
       <!-- Позначка версії: по ній видно, чи браузер підтягнув свіжу сторінку.
            Оновлюється автоматично при кожному викладенні (scripts/stamp.sh). -->
-      <div class="buildstamp" id="buildstamp" title="версія сторінки — якщо не збігається з тим, що я назвала, натисни Ctrl+F5">в. 02.08 04:54</div>
+      <div class="buildstamp" id="buildstamp" title="версія сторінки — якщо не збігається з тим, що я назвала, натисни Ctrl+F5">в. 02.08 07:18</div>
     </nav>
     <div class="main">
       <div class="topbar">
@@ -1385,14 +1385,17 @@ PAGES.dispatch = async () => {
     {q:"nostatus",  cls:"a-amber", nm:"Без статусу",                   n: all.filter(r=>!_s(r,"Статус")).length},
     {q:"nobl",      cls:"a-amber", nm:"Без BL",           n: all.filter(QUICK.nobl.test).length},
   ].filter(a=>a.n > 0);
-  $("content").innerHTML = `
-    <div class="card">
-      <div class="alertbar">
+  /* Алерти живуть у ВЕРХНІЙ строці сторінки (#page-actions), а не окремим
+     рядком над таблицею: так вони не з'їдають висоту і таблиця починається
+     одразу з фільтрів (прохання користувачки 02.08.2026). */
+  const alertHtml = `<div class="alertbar">
         <span class="abadge">Активних <b>${nActive}</b><span class="cell-muted" style="font-size:11px">з ${all.length}</span></span>
         ${ALERTS.map(a=>`<span class="abadge ${a.cls} clickable" data-q="${a.q}">${esc(a.nm)} <b>${a.n}</b></span>`).join("")}
         ${quick? `<span class="quickchip">Фільтр: ${esc(quick.label)} — ${quickCount}<button id="quick-clear" title="скинути фільтр">✕</button></span>`:""}
-      </div>
-      <div class="filters" style="margin-top:12px">
+      </div>`;
+  $("content").innerHTML = `
+    <div class="card">
+      <div class="filters">
         <input id="q" placeholder="Пошук: угода, клієнт, BL, контейнер, судно…">
         <select id="dirf"><option value="">Імпорт + експорт</option><option>Імпорт</option><option>Експорт</option><option>Транзит</option></select>
         <select id="stf"><option value="">Усі статуси</option>${Object.keys(STATUSES).map(s=>`<option>${s}</option>`).join("")}</select>
@@ -1427,7 +1430,7 @@ PAGES.dispatch = async () => {
         <thead><tr>${head}</tr></thead>
         <tbody id="drows"></tbody></table></div>
     </div>`;
-  if (cfg().sync) $("page-actions").innerHTML = syncBtn;
+  $("page-actions").innerHTML = alertHtml + (cfg().sync ? syncBtn : "");
   // ── редагування клітинки на місці: Enter/клік поза межами — зберегти, Esc — скасувати
   /* Галочка прямо в таблиці одним кліком. Зараз у таблиці таких клітинок НЕМАЄ:
      «Реліз» прибрано з екрана на прохання користувачки (01.08.2026) і він живе
@@ -1573,14 +1576,16 @@ PAGES.dispatch = async () => {
                 .map(c=>`<span class="ln">${trackLink(r, c, "cell-muted")}</span>`).join("")}`}</td>
         <td class="c-ves${ED}" data-ed="Судно">${esc(r["Судно"]||"—")}</td>
         <td class="mono dt${ED}" data-ed="Stuffing" title="дата стафіровки">${dateB(r["Stuffing"])}</td>
-        <td class="mono dt">${
-            /* Дві дати в одній колонці, кожна редагується окремо: верхня —
-               заїзд у порт (з Maersk), нижня — фактична здача терміналу, до
-               неї прив'яжемо демередж і зберігання (01.08.2026). */
-            ""}<span class="ln2${ED}" data-ed="Гейт ін" title="Gate in — заїзд у порт">${
-              dateB(r["Гейт ін"])}</span><span class="ln2 sub2${ED}" data-ed="Здача в порт (факт)"
-              title="фактична здача в порт — від неї рахуємо демередж і зберігання">${
-              _s(r,"Здача в порт (факт)") ? fmtD(r["Здача в порт (факт)"]) : "—"}</span></td>
+        <td class="mono dt${ED}" data-ed="${_s(r,"Здача в порт (факт)") ? "Здача в порт (факт)" : "Гейт ін"}"
+            title="${_s(r,"Здача в порт (факт)")
+              ? "фактична здача в порт — від неї рахуємо демередж і зберігання"
+              : "Gate in — заїзд у порт"}">${
+            /* ОДНА дата в клітинці (02.08.2026): спочатку Gate in, а коли
+               з'явиться фактична здача в порт — показуємо її замість Gate in.
+               До цього тут було два рядки, і в порожньому стояв прочерк —
+               «не читається взагалі, сильно заважають». Обидва поля лишаються
+               окремими й редагуються в картці угоди. */
+            dateB(_s(r,"Здача в порт (факт)") ? r["Здача в порт (факт)"] : r["Гейт ін"])}</td>
         <td class="mono dt${ED}${_s(r,"Напрямок")==="Експорт"?" keydt":""}" data-ed="ETD (факт)">${etdOf(r)
             /* Підпис «план» прибрано 01.08.2026: ETD і так планова дата, доки
                немає фактичної. Значення береться з «ETD (факт)», а якщо його
@@ -1640,7 +1645,7 @@ PAGES.dispatch = async () => {
     $("drows").querySelectorAll(".docs-btn").forEach(b=>b.addEventListener("click",(e)=>{ e.stopPropagation(); openDocs(all.find(x=>String(x.Id)===b.dataset.doc)); }));
   };
   ["q","dirf","stf","modef","linef","clif","manf","opmf"].forEach(id=>$(id).addEventListener(id==="q"?"input":"change",draw));
-  $("content").querySelectorAll(".abadge[data-q]").forEach(b=>b.addEventListener("click",()=>{
+  $("page-actions").querySelectorAll(".abadge[data-q]").forEach(b=>b.addEventListener("click",()=>{
     DISP_QUICK = (DISP_QUICK === b.dataset.q) ? null : b.dataset.q; go("dispatch");
   }));
   const qc = $("quick-clear");
