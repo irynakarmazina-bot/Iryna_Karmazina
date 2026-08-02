@@ -1,1 +1,1 @@
-{"id": "deploy-ui-2", "cmd": "bash /root/deploy_ui.sh main 2>&1 | tail -14"}
+{"id": "recon-1", "cmd": "ls /root/unitex-finrep/engine | head -40; echo ---; ls /root/unitex-finrep | head -20"}
