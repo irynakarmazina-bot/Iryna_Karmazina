@@ -123,12 +123,17 @@ TPL = r"""<!doctype html>
    Переписано цілком 02.08.2026: до цього сторінка була набором плоских
    білих прямокутників і виглядала мляво. ===== */
 :root{
-  --paper:#f7f8fa; --surface:#fff; --surface-2:#f4f6f9;
-  --ink:#101828; --ink-2:#475467; --muted:#98a2b3;
-  --line:#e6e9ef; --line-soft:#f0f2f6;
+  /* Палітра ВЗЯТА ДОСЛІВНО з ЕРП (www/index.html) — тепла підкладка #f9f9f7,
+     майже чорний текст #0b0b0b, ті самі лінії й акцент. Раніше кабінет мав
+     власні холодні сірі (#f7f8fa / #101828 / #98a2b3) і через це виглядав
+     тьмяно і чужорідно поруч із програмою (зауваження 02.08.2026). */
+  --paper:#f9f9f7; --surface:#ffffff; --surface-2:#f4f4f0;
+  --ink:#0b0b0b; --ink-2:#52514e; --muted:#898781;
+  --line:#e1e0d9; --line-soft:#eeede8;
   --accent:#2a78d6; --accent-soft:#e7f0fb; --accent-ink:#1c5cab;
-  --pos:#12924f; --pos-bg:#e9f9ef; --warn:#b45309; --warn-bg:#fff5e6;
-  --vio:#7c3aed; --vio-bg:#f2eeff; --shadow:0 1px 2px rgba(16,24,40,.05),0 1px 3px rgba(16,24,40,.04);
+  --pos:#1a8f5c; --pos-bg:#e6f5ec; --warn:#b45309; --warn-bg:#fdf3e3;
+  --vio:#6d3ec7; --vio-bg:#efe9fb;
+  --shadow:0 1px 2px rgba(11,11,11,.05),0 1px 3px rgba(11,11,11,.04);
   --r:14px;
 }
 *{box-sizing:border-box}
@@ -178,9 +183,11 @@ main{max-width:1560px;margin:0 auto;padding:24px 30px 70px}
 .tw{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);
   box-shadow:var(--shadow);overflow:hidden}
 table{width:100%;border-collapse:collapse}
-th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.06em;
-  color:var(--muted);font-weight:700;padding:13px 16px;border-bottom:1px solid var(--line)}
-td{padding:14px 16px;border-bottom:1px solid var(--line-soft);vertical-align:middle;font-size:14px}
+th{text-align:left;font-size:11.5px;letter-spacing:.02em;
+  color:var(--ink);font-weight:700;padding:11px 16px;border-bottom:1.5px solid var(--line)}
+td{padding:12px 16px;border-bottom:1px solid var(--line-soft);vertical-align:middle;
+  font-size:14px;color:var(--ink)}
+tbody tr.deal:nth-child(odd) td{background:#fbfbf9}
 tr.deal{cursor:pointer;transition:background .12s}
 tr.deal:hover td{background:var(--surface-2)}
 tr.deal.open td{background:var(--accent-soft)}
@@ -228,26 +235,32 @@ tr.exp>td{padding:0;background:var(--surface-2)}
    пунктирна риска з підписом, а не вузол. */
 .chain{display:flex;align-items:flex-start;min-width:1020px}
 .nd{flex:0 0 124px;text-align:center}
-.cn{flex:1 1 auto;height:2px;background:var(--mc);opacity:.22;margin-top:37px;
+.cn{flex:1 1 auto;height:3px;background:var(--mc);opacity:.28;margin-top:36px;
   border-radius:2px;min-width:16px}
-.cn.on{opacity:.9}
+.cn.on{opacity:1}
 .nd .dot{width:72px;height:72px;margin:0 auto;border-radius:50%;
   background:var(--mbg);color:var(--mc);display:flex;align-items:center;justify-content:center}
-.nd .dot svg{width:34px;height:34px}
+.nd .dot svg{width:34px;height:34px;stroke-width:1.9}
 .nd.now .dot{width:80px;height:80px;margin-top:-4px;
   background:color-mix(in srgb,var(--mc) 17%,#fff);
   box-shadow:0 0 0 4px color-mix(in srgb,var(--mc) 12%,transparent)}
-.nd.now .dot svg{width:38px;height:38px;stroke-width:1.7}
-.nd.todo .dot{opacity:.45}
+.nd.now .dot svg{width:38px;height:38px;stroke-width:2.1}
+/* Майбутні етапи лишаються в кольорі виду перевезення, лише блідіші —
+   сірий робив схему «мертвою». Прозорість не використовуємо: від неї текст
+   і малюнок сіріли (зауваження про тьмяність, 02.08.2026). */
+.nd.todo .dot{background:color-mix(in srgb,var(--mc) 8%,#fff);
+  color:color-mix(in srgb,var(--mc) 62%,#8f8f8a)}
+.nd.done .dot{background:color-mix(in srgb,var(--mc) 13%,#fff)}
 .nd .ttl{font-size:13px;font-weight:700;margin-top:12px;line-height:1.3;color:var(--ink)}
 .nd.now .ttl{color:var(--mc);font-size:14px}
 .nd.todo .ttl{color:var(--ink-2)}
 .nd .place{font-size:12px;color:var(--ink-2);margin-top:4px;line-height:1.35}
+.nd .ttl{color:var(--ink)}
 .nd .dur{font-size:14px;font-weight:700;color:var(--mc);margin-top:6px}
 .nd .dt{font-size:13px;font-weight:700;margin-top:6px;font-variant-numeric:tabular-nums}
 .nd .dt.dim{color:var(--muted);font-weight:600}
 .nd .plan{font-size:12px;color:var(--muted);margin-top:4px;font-variant-numeric:tabular-nums}
-.nd.todo .place,.nd.todo .dt{opacity:.85}
+.nd .dt{color:var(--ink)}
 .brd{flex:0 0 62px;text-align:center}
 .brd .bln{height:72px;border-left:1.5px dashed var(--mc);opacity:.55;margin:0 auto;width:0}
 .brd .blb{font-size:10.5px;font-weight:700;letter-spacing:.08em;color:var(--muted);
