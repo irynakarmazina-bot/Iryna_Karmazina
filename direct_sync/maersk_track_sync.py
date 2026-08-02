@@ -288,10 +288,17 @@ def parse_events(events, row, today_iso, statuses=frozenset()):
     # 25 угодах: 253 → MAERSK SARAT, 238 → MAERSK VIRGINIA, 23 → MAERSK EINDHOVEN).
     # Беремо ОСТАННЄ судно, у якого назва справді є: last_ves могла бути подія
     # без vesselName, і тоді не писалось нічого.
+    # ЯКЕ саме судно з рейсу (рішення користувачки 02.08.2026):
+    #   ЕКСПОРТ — ПЕРШЕ судно (те, на яке вантаж поставлять у нашому порту),
+    #   ІМПОРТ  — ОСТАННЄ (те, що привезе вантаж до порту призначення).
+    # Причина: угода 260 (експорт, три плечі) показувала XIAMEN — судно третього
+    # плеча 14.10, хоча першим 15.08 іде LEONIDIO. До цього завжди бралося
+    # останнє, і для експорту це давало судно, якого клієнт ще довго не побачить.
     named_ves = [e for e in ves
                  if ((e.get("transportCall") or {}).get("vessel") or {}).get("vesselName")]
     if named_ves:
-        tc = named_ves[-1].get("transportCall") or {}
+        is_export = str(row.get("Напрямок") or "").strip() == "Експорт"
+        tc = (named_ves[0] if is_export else named_ves[-1]).get("transportCall") or {}
         vessel = (tc.get("vessel") or {}).get("vesselName") or ""
         voyage = tc.get("carrierVoyageNumber") or tc.get("exportVoyageNumber") or tc.get("importVoyageNumber") or ""
         if vessel:
