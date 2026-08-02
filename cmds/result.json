@@ -1,7 +1,7 @@
 {
-  "stdout": "FILES доповнено\n16:    \"localcosts\": \"local_costs.json\",\nactive\n",
-  "stderr": "cp: warning: behavior of -n is non-portable and may change in future; use --update=none instead\n",
+  "stdout": "угод у статусах Завершена/Виставлений рахунок: 176\nз них профіт > винагороди: 167, сума до переказу: 50469.96 УО\nвже виділені «Локальні витрати за кордоном» у рахунках: 14 угод, 9818.71 УО\nрозріз за статусом: {'Завершена': 116, 'Виставлений рахунок': 51}\nзаписано: /root/unitex-finrep/computed/local_costs.json\n-rw-r--r-- 1 root root 52190 Aug  2 10:54 computed/local_costs.json\n",
+  "stderr": "",
   "returncode": 0,
-  "id": "deploy-1",
-  "ts": "2026-08-02T07:54:08Z"
+  "id": "deploy-2",
+  "ts": "2026-08-02T07:54:21Z"
 }
