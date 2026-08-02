@@ -1,1 +1,1 @@
-{"id": "maersk-pay-0802", "cmd": "cd /root/Iryna_Karmazina && git pull -q origin main && cp finrep/maersk_payments.py /root/unitex-finrep/maersk_payments.py && cd /root/unitex-finrep && python3 maersk_payments.py 2>&1 | tail -40 | base64 -w0"}
+{"id": "maersk-pay-2-0802", "cmd": "cd /root/Iryna_Karmazina && git pull -q origin main && cp finrep/maersk_payments.py /root/unitex-finrep/maersk_payments.py && cd /root/unitex-finrep && python3 maersk_payments.py --write 2>&1 | tail -40 | base64 -w0"}
