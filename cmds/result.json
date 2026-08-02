@@ -1,7 +1,7 @@
 {
-  "stdout": "{\n\temail irynakarmazina@gmail.com\n}\n\nhttps://134.209.94.12 {\n\ttls {\n\t\tissuer acme {\n\t\t\tprofile shortlived\n\t\t}\n\t}\n\tencode gzip\n\thandle /api/* {\n\t\treverse_proxy 127.0.0.1:8080\n\t}\n===\nхост: \ncash-refresh(еталон): 000\n",
-  "stderr": "head: cannot open '/tmp/lc.txt' for reading: No such file or directory\n",
-  "returncode": 1,
-  "id": "check-4",
-  "ts": "2026-08-02T08:07:25Z"
+  "stdout": "finrep-data: 403\n{\"error\": \"фінансові дані доступні лише фінансовим ролям\", \"role\": \"невідо\nlocalcosts-refresh: 200\n{\"status\": \"ok\", \"log\": \"угод у статусах Завершена/Виставлений рахунок: 176\\nз них профіт > винагороди: 167, сума до переказу:",
+  "stderr": "",
+  "returncode": 0,
+  "id": "check-5",
+  "ts": "2026-08-02T08:07:43Z"
 }
