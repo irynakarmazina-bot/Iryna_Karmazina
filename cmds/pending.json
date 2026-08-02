@@ -1,1 +1,1 @@
-{"id": "check-5", "cmd": "curl -sk -o /tmp/a.txt -w 'finrep-data: %{http_code}\\n' 'https://134.209.94.12/finrep-data?name=localcosts' --max-time 60; head -c 120 /tmp/a.txt; echo; curl -sk -o /tmp/b.txt -w 'localcosts-refresh: %{http_code}\\n' 'https://134.209.94.12/localcosts-refresh' --max-time 300; head -c 200 /tmp/b.txt"}
+{"id": "deploy-7", "cmd": "cd /root/Iryna_Karmazina && git fetch -q origin main && bash server/deploy_ui.sh main 2>&1 | tail -8"}
