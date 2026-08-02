@@ -161,9 +161,6 @@ header img{height:56px}
 .who span{font-size:12px;color:var(--muted)}
 main{max-width:1560px;margin:0 auto;padding:24px 30px 70px}
 
-.proto{background:var(--warn-bg);border:1px solid #f0dcb8;color:#7a5a1b;
-  border-radius:var(--r);padding:11px 16px;font-size:13px;margin-bottom:20px}
-
 /* плитки — з кольоровими іконками, як на дашборді ЕРП */
 .tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:22px}
 .tile{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);
@@ -347,7 +344,6 @@ tr.exp>td{padding:0;background:var(--surface-2)}
   header img{height:38px}
   .who b{font-size:13.5px} .who span{font-size:11px}
   main{padding:14px 12px 48px}
-  .proto{font-size:12px;padding:9px 12px;margin-bottom:14px}
 
   .tiles{grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
   .tile{padding:12px;gap:10px}
@@ -419,9 +415,6 @@ tr.exp>td{padding:0;background:var(--surface-2)}
 </header>
 
 <main>
-  <div class="proto"><b>Прототип.</b> Сторінка зібрана з реальних даних клієнта «__CLIENT__»
-    для узгодження вигляду. Входу і збереження тут ще немає — кнопки нічого не роблять.</div>
-
   <div class="tiles" id="tiles"></div>
 
   <div class="bar">
