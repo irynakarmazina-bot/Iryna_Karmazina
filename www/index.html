@@ -558,6 +558,13 @@
     font-size:13.5px;display:none;z-index:60;max-width:90vw;text-align:center}
 
   /* кнопка «Фільтри» — тільки на телефоні */
+  /* «Три полосочки» і хрестик у меню — тільки на телефоні */
+  .burger,.menu-close{display:none}
+  .burger{border:1px solid var(--line);background:var(--surface);color:var(--ink);
+    border-radius:9px;width:38px;height:38px;font-size:17px;line-height:1;cursor:pointer;flex:none}
+  .menu-close{border:0;background:transparent;color:var(--ink-2);font-size:20px;
+    line-height:1;cursor:pointer;margin-left:auto;padding:6px 8px}
+
   .filt-btn{display:none;border:1px solid var(--line);background:var(--surface);
     color:var(--ink);border-radius:9px;padding:9px 14px;font:inherit;font-size:13.5px;
     cursor:pointer;margin-bottom:10px;width:100%}
@@ -565,14 +572,26 @@
   @media (max-width:760px){
     html,body{overflow-x:hidden}
     .shell{flex-direction:column}
-    .sidebar{width:100%;flex-direction:row;flex-wrap:wrap;align-items:center;
-      border-right:none;border-bottom:1px solid var(--line);padding:8px 10px;gap:6px}
-    /* Лого в шапці телефона займало пів екрана — тепер маленьке (02.08.2026). */
-    .sidebar .brand{border:none;margin:0;padding:0 8px 0 2px}
-    .sidebar .brand-logo{height:26px!important;padding:2px 5px;border-radius:6px}
-    .sidebar .spacer,.sidebar .foot{display:none}
-    .sidebar .buildstamp{font-size:10px;margin-left:auto;opacity:.7}
-    .nav-item{width:auto;padding:6px 9px;font-size:13px}
+    body.menu-open{overflow:hidden}
+    .burger,.menu-close{display:inline-flex;align-items:center;justify-content:center}
+
+    /* МЕНЮ — окремий екран, що виїжджає збоку. Раніше воно висіло смугою над
+       вмістом і займало пів екрана (прохання користувачки 02.08.2026). */
+    .sidebar{position:fixed;inset:0;width:100%;height:100dvh;z-index:70;
+      flex-direction:column;align-items:stretch;gap:2px;overflow-y:auto;
+      border-right:none;border-bottom:none;padding:14px 16px 24px;
+      background:var(--side-bg);
+      transform:translateX(-100%);transition:transform .22s ease}
+    .sidebar.open{transform:none;box-shadow:0 0 0 100vmax rgba(0,0,0,.25)}
+    .sidebar .brand{display:flex;align-items:center;border:none;margin:0 0 12px;
+      padding:0 0 12px;border-bottom:1px solid var(--side-line)}
+    .sidebar .brand-logo{height:30px!important;padding:2px 6px;border-radius:6px}
+    .sidebar .spacer{display:block;flex:1}
+    .sidebar .foot{display:none}
+    .sidebar .buildstamp{font-size:11px;opacity:.7;padding-top:10px}
+    .nav-item{width:100%;padding:13px 12px;font-size:15.5px;border-radius:11px}
+    .nav-item .ico{width:32px;height:32px}
+    .nav-item .ico svg{width:19px;height:19px}
     .content{padding:12px}
     .topbar{padding:8px 12px;gap:8px;flex-wrap:wrap}
     .topbar .pal-mini{display:none}
@@ -613,15 +632,17 @@
 <div id="app">
   <div class="shell">
     <nav class="sidebar">
-      <div class="brand"><img class="brand-logo" id="logo-side" alt="UNITEX" style="height:58px"></div>
+      <div class="brand"><img class="brand-logo" id="logo-side" alt="UNITEX" style="height:58px">
+        <button class="menu-close" id="menu-close" type="button" aria-label="Закрити меню">✕</button></div>
       <div id="nav"></div>
       <div class="spacer"></div>
       <!-- Позначка версії: по ній видно, чи браузер підтягнув свіжу сторінку.
            Оновлюється автоматично при кожному викладенні (scripts/stamp.sh). -->
-      <div class="buildstamp" id="buildstamp" title="версія сторінки — якщо не збігається з тим, що я назвала, натисни Ctrl+F5">в. 02.08 10:36</div>
+      <div class="buildstamp" id="buildstamp" title="версія сторінки — якщо не збігається з тим, що я назвала, натисни Ctrl+F5">в. 02.08 14:12</div>
     </nav>
     <div class="main">
       <div class="topbar">
+        <button class="burger" id="burger" type="button" aria-label="Меню" aria-expanded="false">☰</button>
         <div id="page-actions"></div>
         <div class="user-chip">
           <div class="avatar" id="u-avatar"></div>
@@ -817,7 +838,11 @@ async function enter(){
   } catch(e){ ROLE = "Перегляд"; }
   $("u-role").textContent = ROLE;
   logAction("вхід у платформу", "", "", "", "");
-  buildNav(); go(cfg().nav[0]);
+  buildNav();
+  go(cfg().nav[0]);
+  /* На телефоні після входу показуємо МЕНЮ, а не одразу дашборд
+     (прохання користувачки 02.08.2026). На комп'ютері меню й так завжди видно. */
+  if (isPhone()) openMenu(true);
 }
 $("login-btn").addEventListener("click", doLogin);
 $("pw").addEventListener("keydown", e=>{ if(e.key==="Enter") doLogin(); });
@@ -847,9 +872,24 @@ const MODMAP = {
 function buildNav(){
   $("nav").innerHTML = cfg().nav.map(id=>`<button class="nav-item" data-page="${id}"><span class="ico nav-ico-${MODMAP[id].c||"slate"}"><svg viewBox="0 0 24 24">${ICONS[MODMAP[id].ico]||""}</svg></span>${MODMAP[id].label}</button>`).join("");
   $("nav").querySelectorAll(".nav-item").forEach(b=>b.addEventListener("click",()=>{ DISP_QUICK=null; go(b.dataset.page); }));
+  const bg = $("burger"), mc = $("menu-close");
+  if (bg && !bg.dataset.bound){ bg.dataset.bound = "1";
+    bg.addEventListener("click", ()=>openMenu(!document.querySelector(".sidebar").classList.contains("open"))); }
+  if (mc && !mc.dataset.bound){ mc.dataset.bound = "1"; mc.addEventListener("click", ()=>openMenu(false)); }
 }
+/* ── мобільне меню ───────────────────────────────────────────────────────── */
+const isPhone = () => window.matchMedia("(max-width:760px)").matches;
+function openMenu(on){
+  const sb = document.querySelector(".sidebar"), b = $("burger");
+  if (!sb) return;
+  sb.classList.toggle("open", !!on);
+  document.body.classList.toggle("menu-open", !!on);
+  if (b) b.setAttribute("aria-expanded", on ? "true" : "false");
+}
+
 function go(page){
   if (!cfg().nav.includes(page)) page = cfg().nav[0];
+  if (isPhone()) openMenu(false);          // вибрали розділ — меню ховається
   $("nav").querySelectorAll(".nav-item").forEach(b=>b.classList.toggle("active", b.dataset.page===page));
   $("page-actions").innerHTML = "";
   $("content").innerHTML = '<div class="card"><p class="sub">Завантаження…</p></div>';
