@@ -1,7 +1,7 @@
 {
-  "stdout": "угод у статусах Завершена/Виставлений рахунок: 176\nз них профіт > винагороди: 167, сума до переказу: 50469.96 УО\nвже виділені «Локальні витрати за кордоном» у рахунках: 14 угод, 9818.71 УО\nрозріз за статусом: {'Завершена': 116, 'Виставлений рахунок': 51}\nзаписано: /root/unitex-finrep/computed/local_costs.json\n-rw-r--r-- 1 root root 52190 Aug  2 10:54 computed/local_costs.json\n",
+  "stdout": "OK /root/unitex-os-www/cabinet.html — 126 угод, 203984 байт\nOK /root/unitex-os-www/cabinet-gm.html — 20 угод, 75985 байт\n",
   "stderr": "",
   "returncode": 0,
-  "id": "deploy-2",
-  "ts": "2026-08-02T07:54:21Z"
+  "id": "build-cab14",
+  "ts": "2026-08-02T07:54:36Z"
 }
