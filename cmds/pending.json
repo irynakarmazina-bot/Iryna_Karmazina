@@ -1,1 +1,1 @@
-{"id": "deploy-7", "cmd": "cd /root/Iryna_Karmazina && git fetch -q origin main && bash server/deploy_ui.sh main 2>&1 | tail -8"}
+{"id": "check-6", "cmd": "curl -s -H \"xc-token: $(cat /root/nocodb-token.txt)\" 'http://localhost:8080/api/v2/tables/m58xsjo6at01ohl/records?limit=1' | python3 -c \"\nimport json,sys;r=json.load(sys.stdin)['list'][0]\nfor k in ('Угода','Переказ за кордон','Дата переказу','Сума переказу'):\n    print(repr(k),'=',repr(r.get(k)),'(є в записі:', k in r, ')')\""}
