@@ -246,7 +246,7 @@ tr.exp>td{padding:0;background:var(--surface-2)}
 .brd .bld{font-size:12px;font-weight:700;margin-top:3px;font-variant-numeric:tabular-nums}
 
 /* деталі + документи */
-.cols{display:grid;grid-template-columns:1.05fr 1fr;gap:18px;margin-top:18px}
+.cols{display:grid;grid-template-columns:1.05fr 1fr;gap:18px;margin-top:18px;align-items:start}
 @media(max-width:1100px){.cols{grid-template-columns:1fr}}
 .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);
   padding:18px 20px;box-shadow:var(--shadow)}
