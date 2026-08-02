@@ -172,36 +172,48 @@ tr.deal.open td{background:var(--accent-soft)}
 .docn{display:inline-flex;align-items:center;gap:5px;color:var(--accent-ink);font-weight:600}
 /* ── розгортка ─────────────────────────────────────────── */
 tr.exp>td{padding:0;background:var(--surface-2)}
-.panel{padding:22px 24px 26px;border-top:2px solid var(--accent)}
-.pbar{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:20px}
-.pbar .st{font-size:17px;font-weight:700}
-.pbar .sub{color:var(--ink-2)}
+/* Картка угоди — за макетом користувачки 02.08.2026 */
+.panel{padding:20px 24px 22px;border-top:2px solid var(--mc)}
+.phead{position:relative;padding-right:190px;margin-bottom:18px}
+.pttl{display:flex;align-items:center;gap:12px}
+.pttl b{font-size:19px;font-weight:700;letter-spacing:-.2px}
+.badge{display:inline-flex;align-items:center;gap:6px;background:var(--mc);color:#fff;
+  font-size:11.5px;font-weight:700;letter-spacing:.04em;padding:5px 12px;border-radius:8px}
+.pmeta{font-size:12.5px;color:var(--ink-2);margin-top:6px}
+.pmeta i{color:var(--muted);font-style:normal;margin:0 2px}
+.pmeta b{color:var(--ink);font-weight:700}
+.peta{position:absolute;top:0;right:0;min-width:170px;text-align:center;
+  background:var(--mbg);border:1px solid var(--mc);border-radius:10px;padding:8px 14px}
+.peta .lb{font-size:10.5px;font-weight:700;letter-spacing:.08em;color:var(--ink-2)}
+.peta .dt{font-size:17px;font-weight:700;margin-top:1px;font-variant-numeric:tabular-nums}
+.peta .pl{font-size:11.5px;color:var(--ink-2);margin-top:1px}
+.tzn{text-align:right;font-size:11px;color:var(--muted);margin-top:10px}
 /* схема руху — стиль за макетом користувачки 01.08.2026: колір за видом
    перевезення, «КОРДОН» пунктирним роздільником, тривалість переходу,
    легенда внизу. */
-.route{background:var(--surface);border:1px solid var(--line);border-radius:12px;
-  padding:24px 18px 14px;overflow-x:auto}
-.chain{display:flex;align-items:flex-start;min-width:900px}
-.nd{flex:0 0 104px;text-align:center;position:relative}
-.cn{flex:1 1 auto;height:2px;background:var(--line);margin-top:23px;border-radius:2px;min-width:14px}
+.route{background:var(--surface);border:1px solid var(--line);border-radius:14px;
+  padding:26px 20px 18px;overflow-x:auto}
+.chain{display:flex;align-items:flex-start;min-width:980px}
+.nd{flex:0 0 112px;text-align:center;position:relative}
+.cn{flex:1 1 auto;height:2px;background:var(--line);margin-top:31px;border-radius:2px;min-width:16px}
 .cn.on{background:var(--mc)}
-.nd .dot{width:46px;height:46px;margin:0 auto;border-radius:50%;
-  background:var(--surface);border:2px solid var(--line);color:var(--muted);
+.nd .dot{width:62px;height:62px;margin:0 auto;border-radius:50%;
+  background:var(--mbg);border:none;color:var(--mc);
   display:flex;align-items:center;justify-content:center}
-.nd.done .dot{background:var(--mbg);border-color:var(--mc);color:var(--mc)}
-.nd.now  .dot{background:var(--mc);border-color:var(--mc);color:#fff;
-  box-shadow:0 0 0 5px var(--mbg)}
-.nd.todo .dot{border-style:dashed}
-.nd .ttl{font-size:11.5px;font-weight:700;margin-top:8px;line-height:1.25;color:var(--ink-2)}
+.nd .dot svg{width:28px;height:28px;stroke-width:1.5}
+.nd.now  .dot{background:var(--mc);color:#fff}
+.nd.todo .dot{background:var(--surface-2);color:var(--muted)}
+.nd .ttl{font-size:12.5px;font-weight:700;margin-top:10px;line-height:1.25;color:var(--ink)}
 .nd.now .ttl{color:var(--mc)}
-.nd .place{font-size:10.5px;color:var(--muted);margin-top:2px;line-height:1.25}
-.nd .dur{font-size:12px;font-weight:700;color:var(--mc);margin-top:3px}
-.nd .dt{font-size:12px;font-weight:700;margin-top:3px;font-variant-numeric:tabular-nums}
+.nd.todo .ttl{color:var(--ink-2)}
+.nd .place{font-size:11.5px;color:var(--ink-2);margin-top:3px;line-height:1.3}
+.nd .dur{font-size:13px;font-weight:700;color:var(--mc);margin-top:4px}
+.nd .dt{font-size:13px;font-weight:700;margin-top:4px;font-variant-numeric:tabular-nums}
 .nd .dt.dim{color:var(--muted);font-weight:600}
 .nd .plan{font-size:10px;color:var(--muted)}
 /* «Кордон» — роздільник між ділянками маршруту */
-.brd{flex:0 0 62px;text-align:center;padding-top:6px}
-.brd .bln{height:44px;border-left:2px dashed var(--line);margin:0 auto;width:0}
+.brd{flex:0 0 70px;text-align:center;padding-top:4px}
+.brd .bln{height:58px;border-left:1.5px dashed var(--mc);opacity:.55;margin:0 auto;width:0}
 .brd .blb{font-size:10px;font-weight:700;letter-spacing:.06em;color:var(--muted);
   text-transform:uppercase;margin-top:8px}
 .brd .bld{font-size:11.5px;font-weight:700;margin-top:3px;font-variant-numeric:tabular-nums}
@@ -457,12 +469,35 @@ function panel(r){
   ];
   if (s(r,"Порт перевалки")) kv.splice(4, 0, ["Перевалка", esc(s(r,"Порт перевалки"))]);
   const docs = (r._docs||[]);
-  return `<div class="panel">
-    <div class="pbar">
-      <span class="st">${esc(s(r,"Статус")||"—")}</span>
-      <span class="sub">${esc(s(r,"Маршрут")||"маршрут не вказано")}</span>
+  const P = pal(r), M = modeOf(r);
+  const badge = {sea:"⚓", air:"✈", road:"🚚", rail:"🚆"}[M];
+  const route = s(r,"Маршрут").split(/→|->/).map(x=>x.trim()).filter(Boolean);
+  const dest  = s(r,"Кінцева точка доставки") || (route.length > 1 ? route[1] : "");
+  /* Рядок деталей через крапки — як у макеті користувачки:
+     FCL · 1×40' · Лінія · Судно / рейс · Контейнер */
+  const bits = [
+    s(r,"FCL/LCL"), s(r,"Кількість"),
+    s(r,"Лінія") ? "Лінія " + s(r,"Лінія") : "",
+    s(r,"Судно") ? "Судно " + [s(r,"Судно"), s(r,"Вояж")].filter(Boolean).join(" / ") : "",
+    s(r,"Контейнер") ? "Контейнер " + s(r,"Контейнер") : "",
+  ].filter(Boolean);
+  const bl = s(r,"HBL") || s(r,"BL") || s(r,"Авіанакладна");
+  return `<div class="panel" style="--mc:${P.c};--mbg:${P.bg}">
+    <div class="phead">
+      <div class="pttl">
+        <span class="badge">${badge} ${esc((s(r,"Статус")||"—").toUpperCase())}</span>
+        <b>Угода №${esc(s(r,"Угода"))}</b>
+      </div>
+      <div class="pmeta">${bits.map(esc).join(" <i>·</i> ")}</div>
+      ${bl ? `<div class="pmeta">${air(r)?"Накладна":"Коносамент"} <b>${esc(bl)}</b></div>` : ""}
+      <div class="peta">
+        <div class="lb">ETA</div>
+        <div class="dt">${fmt(s(r,"ETA")) || "—"}</div>
+        ${dest ? `<div class="pl">${esc(dest)}</div>` : ""}
+      </div>
     </div>
     ${routeHtml(r)}
+    <div class="tzn">Час вказано за місцевим часом</div>
     <div class="cols">
       <div class="card"><h4>Дані вантажу</h4>
         <div class="kv">${kv.map(([k,v])=>`<div class="k">${esc(k)}</div><div class="v">${v}</div>`).join("")}</div>
