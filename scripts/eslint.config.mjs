@@ -16,7 +16,7 @@ export default [{
       alert: "readonly", confirm: "readonly", prompt: "readonly",
       FormData: "readonly", Blob: "readonly", FileReader: "readonly", URL: "readonly",
       atob: "readonly", btoa: "readonly", Intl: "readonly",
-      Chart: "readonly",
+      Chart: "readonly", crypto: "readonly", Uint32Array: "readonly",
     },
   },
   rules: { "no-undef": "error" },

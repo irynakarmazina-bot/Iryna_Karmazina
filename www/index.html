@@ -375,6 +375,9 @@
      підписом та номером зяяв пробіл на пів сантиметра (01.08.2026). */
   .blt{font-style:normal;font-size:9.5px;text-transform:uppercase;
     letter-spacing:.03em;color:var(--muted);margin-right:5px}
+  .pwbox{display:flex;flex-wrap:wrap;gap:4px 14px;margin-top:8px}
+  .pwr{font-size:11.5px;color:var(--muted)}
+  .pwr.ok{color:var(--pos);font-weight:600}
   .buildstamp{font-size:10.5px;color:var(--muted);padding:6px 14px 10px;letter-spacing:.02em}
   /* Назва клієнта переноситься на два рядки, а не розтягує колонку
      (прохання користувачки 01.08.2026). Обрізання по висоті не робимо —
@@ -584,7 +587,7 @@
       <div class="spacer"></div>
       <!-- Позначка версії: по ній видно, чи браузер підтягнув свіжу сторінку.
            Оновлюється автоматично при кожному викладенні (scripts/stamp.sh). -->
-      <div class="buildstamp" id="buildstamp" title="версія сторінки — якщо не збігається з тим, що я назвала, натисни Ctrl+F5">в. 02.08 04:43</div>
+      <div class="buildstamp" id="buildstamp" title="версія сторінки — якщо не збігається з тим, що я назвала, натисни Ctrl+F5">в. 02.08 04:45</div>
     </nav>
     <div class="main">
       <div class="topbar">
@@ -2142,14 +2145,70 @@ function bindPalette(){
 }
 
 /* зміна ВЛАСНОГО пароля — через штатний ендпоінт бази, чужі паролі тут не міняються */
+/* ===== надійність паролів =====
+   Вимога користувачки 01.08.2026: «всі користувачі мають створювати собі
+   надійні складні паролі». Правила застосовуються В УСІХ формах — і коли
+   людина міняє свій пароль, і коли адмін створює акаунт чи скидає пароль.
+   Сам пароль ніде не зберігається і нікуди не пишеться: ні в журнал, ні в
+   базу платформи — лише в акаунт входу. */
+const PW_MIN = 12;
+const PW_RULES = [
+  { t: "щонайменше " + PW_MIN + " символів", ok: p => p.length >= PW_MIN },
+  { t: "велика латинська літера (A–Z)",      ok: p => /[A-Z]/.test(p) },
+  { t: "мала латинська літера (a–z)",        ok: p => /[a-z]/.test(p) },
+  { t: "цифра",                               ok: p => /[0-9]/.test(p) },
+  { t: "спецсимвол (!@#$%…)",                 ok: p => /[^A-Za-z0-9]/.test(p) },
+  { t: "без пробілів",                        ok: p => p.length > 0 && !/\s/.test(p) },
+];
+const pwFails = p => PW_RULES.filter(r => !r.ok(String(p || "")));
+/* Генератор: криптостійкий, по одному символу з кожного набору + добір до 16.
+   Символи, які легко сплутати (O/0, l/1/I), навмисно виключені. */
+const PW_SETS = ["ABCDEFGHJKLMNPQRSTUVWXYZ", "abcdefghijkmnopqrstuvwxyz",
+                 "23456789", "!@#$%^&*?+-="];
+function pwGen(len){
+  len = len || 16;
+  const all = PW_SETS.join("");
+  const pick = set => set[crypto.getRandomValues(new Uint32Array(1))[0] % set.length];
+  const out = PW_SETS.map(pick);
+  while (out.length < len) out.push(pick(all));
+  for (let i = out.length - 1; i > 0; i--){          // перемішуємо
+    const j = crypto.getRandomValues(new Uint32Array(1))[0] % (i + 1);
+    [out[i], out[j]] = [out[j], out[i]];
+  }
+  return out.join("");
+}
+/* Живий список правил під полем: видно, чого ще бракує */
+function pwHint(inputId, boxId){
+  const inp = $(inputId), box = $(boxId);
+  if (!inp || !box) return;
+  const paint = () => {
+    const v = inp.value;
+    box.innerHTML = PW_RULES.map(r => {
+      const ok = r.ok(v);
+      return `<span class="pwr ${ok ? "ok" : ""}">${ok ? "✓" : "•"} ${esc(r.t)}</span>`;
+    }).join("");
+  };
+  inp.addEventListener("input", paint);
+  paint();
+}
+
 function bindPasswordChange(){
+  pwHint("pw-new", "pw-hint");
+  const gen = $("pw-gen");
+  if (gen) gen.addEventListener("click", ()=>{
+    const v = pwGen();
+    $("pw-new").value = v; $("pw-new2").value = v;
+    $("pw-new").dispatchEvent(new Event("input"));
+    $("pw-msg").textContent = "🎲 Згенеровано. Скопіюй і збережи — після зміни пароля побачити його вже не вийде.";
+  });
   const btn = $("pw-save");
   if (!btn) return;
   btn.addEventListener("click", async ()=>{
     const o = $("pw-old").value, n1 = $("pw-new").value, n2 = $("pw-new2").value;
     const msg = t => { $("pw-msg").textContent = t; };
     if (!o || !n1){ return msg("⚠ Заповни поточний і новий пароль."); }
-    if (n1.length < 8){ return msg("⚠ Новий пароль закороткий — треба щонайменше 8 символів."); }
+    const bad = pwFails(n1);
+    if (bad.length){ return msg("⚠ Пароль недостатньо надійний. Бракує: " + bad.map(r=>r.t).join(", ")); }
     if (n1 !== n2){ return msg("⚠ Новий пароль і підтвердження не збігаються."); }
     btn.disabled = true; msg("⏳ Змінюю…");
     try{
@@ -2164,6 +2223,102 @@ function bindPasswordChange(){
       toast("✅ Пароль змінено");
     }catch(e){ msg("⚠ Не вдалося: " + e.message); }
     btn.disabled = false;
+  });
+}
+
+/* ===== адмін: створення користувача і задання пароля іншому =====
+   Робиться ВИКЛЮЧНО з браузера адміністратора, його власною сесією (xc-auth).
+   Службовим токеном платформи ці виклики заборонені самим NocoDB
+   (ERR_API_TOKEN_NOT_ALLOWED), тому й не могли працювати раніше.
+   Пароль ніде не зберігається: він іде прямо в акаунт входу, у журнал
+   потрапляє лише факт дії — без значення (правило 3). */
+async function ncAuth(path, body, method){
+  const r = await fetch(path, {
+    method: method || "POST",
+    headers: {"Content-Type":"application/json", "xc-auth": JWT || ""},
+    body: body === undefined ? undefined : JSON.stringify(body),
+  });
+  const js = await r.json().catch(()=>({}));
+  if (!r.ok) throw new Error(js.msg || js.message || js.error || ("HTTP " + r.status));
+  return js;
+}
+/* Знаходимо id акаунта за email серед користувачів NocoDB */
+async function ncUserId(email){
+  const js = await ncAuth("/api/v1/users", undefined, "GET");
+  const list = js.list || js.users || (Array.isArray(js) ? js : []);
+  const u = list.find(x => String(x.email || "").toLowerCase() === String(email).toLowerCase());
+  if (!u) throw new Error("акаунта з такою поштою серед користувачів немає");
+  return u.id;
+}
+/* Задати пароль іншому: генеруємо одноразовий токен скидання і одразу ним
+   встановлюємо новий пароль. Так само працює кнопка «Забули пароль». */
+async function ncSetPassword(email, password){
+  const id = await ncUserId(email);
+  const gen = await ncAuth("/api/v1/users/" + encodeURIComponent(id) + "/generate-reset-url", {});
+  const url = String(gen.reset_password_url || gen.resetPasswordUrl || "");
+  const tok = gen.reset_password_token || gen.resetPasswordToken ||
+              (url.split("/").pop() || "").split("?")[0];
+  if (!tok) throw new Error("сервер не повернув токен скидання");
+  await ncAuth("/api/v1/auth/password/reset/" + encodeURIComponent(tok),
+               {password: password, passwordRepeat: password, newPassword: password});
+}
+
+/* Кнопки «🔑 Задати» біля кожного користувача і форма створення нового */
+function bindUserAdmin(rows){
+  pwHint("nu-pw", "nu-hint");
+  const gen = $("nu-gen");
+  if (gen) gen.addEventListener("click", ()=>{
+    $("nu-pw").value = pwGen();
+    $("nu-pw").dispatchEvent(new Event("input"));
+    $("nu-msg").textContent = "🎲 Згенеровано. Скопіюй зараз — потім пароль ніде не побачити.";
+  });
+
+  document.querySelectorAll("[data-pwuser]").forEach(b=>b.addEventListener("click", async ()=>{
+    const email = b.dataset.pwuser;
+    if (!email) return;
+    const pw = prompt("Новий пароль для " + email +
+      "\n\nВимоги: від " + PW_MIN + " символів, велика й мала латинські літери, цифра, спецсимвол, без пробілів." +
+      "\nЗалиш поле порожнім — згенерую надійний сам.", "");
+    if (pw === null) return;                       // натиснули «Скасувати»
+    const val = pw.trim() ? pw.trim() : pwGen();
+    const bad = pwFails(val);
+    if (bad.length) return toast("⚠ Пароль слабкий. Бракує: " + bad.map(r=>r.t).join(", "));
+    b.disabled = true; const old = b.textContent; b.textContent = "⏳";
+    try{
+      await ncSetPassword(email, val);
+      logAction("зміна пароля користувачу", email, "", "", "");   // без самого пароля
+      window.prompt("Пароль для " + email + " встановлено.\nСкопіюй і передай людині — більше він ніде не зберігається:", val);
+      toast("✅ Пароль встановлено");
+    }catch(e){ toast("⚠ Не вдалося: " + e.message); }
+    b.disabled = false; b.textContent = old;
+  }));
+
+  const save = $("nu-save");
+  if (save) save.addEventListener("click", async ()=>{
+    const msg = t => { $("nu-msg").textContent = t; };
+    const email = $("nu-email").value.trim().toLowerCase();
+    const first = $("nu-first").value.trim(), last = $("nu-last").value.trim();
+    const role = $("nu-role").value, pw = $("nu-pw").value;
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return msg("⚠ Схоже, це не email.");
+    if (!first) return msg("⚠ Вкажи ім'я.");
+    if (rows.some(u=>String(u["Email"]||"").toLowerCase() === email))
+      return msg("⚠ Користувач із такою поштою вже є в довіднику.");
+    const bad = pwFails(pw);
+    if (bad.length) return msg("⚠ Пароль недостатньо надійний. Бракує: " + bad.map(r=>r.t).join(", "));
+    save.disabled = true; msg("⏳ Створюю акаунт…");
+    try{
+      await ncAuth("/api/v1/auth/user/signup", {email: email, password: pw});
+      msg("⏳ Акаунт створено, додаю в довідник…");
+      await api(`/api/v2/tables/${T["Користувачі"]}/records`, {method:"POST",
+        body: JSON.stringify([{Email: email, "Ім'я": first, "Прізвище": last,
+                               "Роль": role, "Активний": true}])});
+      logAction("створено користувача", email, "Роль", "", role);
+      window.prompt("Користувача створено.\nСкопіюй пароль і передай людині — більше він ніде не зберігається:", pw);
+      msg("✅ Готово. Попроси людину змінити пароль на свій у розділі «Налаштування».");
+      ["nu-email","nu-first","nu-last","nu-pw"].forEach(id=>$(id).value = "");
+      go("users");
+    }catch(e){ msg("⚠ Не вдалося: " + e.message); }
+    save.disabled = false;
   });
 }
 
@@ -2738,12 +2893,14 @@ PAGES.users = async () => {
       <p class="sub" id="pal-page-name" style="margin-top:8px"></p></div>
 
     <div class="card"><h3>🔑 Зміна пароля</h3>
-      <p class="sub">пароль від входу в платформу · мінімум 8 символів</p>
-      <div class="filters" style="margin:10px 0 0;max-width:520px">
+      <p class="sub">пароль від входу в платформу</p>
+      <div class="filters" style="margin:10px 0 0;max-width:560px">
         <input id="pw-old" type="password" placeholder="поточний пароль" autocomplete="current-password">
-        <input id="pw-new" type="password" placeholder="новий пароль" autocomplete="new-password">
+        <input id="pw-new" type="text" placeholder="новий пароль" autocomplete="new-password">
         <input id="pw-new2" type="password" placeholder="ще раз новий" autocomplete="new-password">
+        <button class="btn ghost" id="pw-gen" type="button" title="згенерувати надійний пароль">🎲 Згенерувати</button>
       </div>
+      <div class="pwbox" id="pw-hint"></div>
       <button class="btn" id="pw-save" style="margin-top:10px">Змінити пароль</button>
       <p class="sub" id="pw-msg" style="margin-top:8px"></p></div>
 
@@ -2751,7 +2908,7 @@ PAGES.users = async () => {
       <p class="sub">роль визначає, що людина бачить у платформі${isAdmin
         ? ' · <b>клік по значенню</b> — змінити, <b>Enter</b> — зберегти, <b>Esc</b> — скасувати' : ""}</p>
       <div class="tablewrap"><table>
-        <thead><tr><th>Ім'я</th><th>Прізвище</th><th>Email</th><th>Роль</th><th>Доступ</th></tr></thead>
+        <thead><tr><th>Ім'я</th><th>Прізвище</th><th>Email</th><th>Роль</th><th>Доступ</th><th>Пароль</th></tr></thead>
         <tbody id="us-rows">${rows.map(u=>`<tr data-uid="${u.Id}">
           <td class="${UED.trim()}" data-uf="Ім'я"><b>${esc(u["Ім'я"]||"—")}</b></td>
           <td class="${UED.trim()}" data-uf="Прізвище">${esc(u["Прізвище"]||"—")}</td>
@@ -2759,9 +2916,26 @@ PAGES.users = async () => {
           <td class="${UED.trim()}" data-uf="Роль"><span class="role-badge">${esc(u["Роль"]||"—")}</span></td>
           <td class="${UED.trim()}" data-uf="Активний">${u["Активний"]===false
             ? '<span class="pill t-crit">заблоковано</span>' : '<span class="pill t-good">активний</span>'}</td>
+          <td><button class="btn ghost" data-pwuser="${esc(u["Email"]||"")}"
+              style="padding:3px 9px;font-size:12px">🔑 Задати</button></td>
         </tr>`).join("")}</tbody>
       </table></div>
       <p class="sub" style="margin-top:8px">Щоб заблокувати людину — клікни «активний». Заблокований у платформу не заходить взагалі.</p>
+
+      <h3 style="margin-top:18px">➕ Додати користувача</h3>
+      <p class="sub">створює і акаунт для входу, і рядок у цьому довіднику</p>
+      <div class="filters" style="margin:10px 0 0;max-width:820px">
+        <input id="nu-email" placeholder="email (він же логін)" autocomplete="off">
+        <input id="nu-first" placeholder="ім'я">
+        <input id="nu-last" placeholder="прізвище">
+        <select id="nu-role">${["Адміністратор","Фінансист","Бухгалтер","Менеджер","Оп. менеджер","Логіст","Перегляд"]
+          .map(r=>`<option>${r}</option>`).join("")}</select>
+        <input id="nu-pw" type="text" placeholder="пароль" autocomplete="new-password">
+        <button class="btn ghost" id="nu-gen" type="button">🎲 Згенерувати</button>
+      </div>
+      <div class="pwbox" id="nu-hint"></div>
+      <button class="btn" id="nu-save" style="margin-top:10px">Створити користувача</button>
+      <p class="sub" id="nu-msg" style="margin-top:8px"></p>
     </div>` : ""}
     <div class="card"><h3>Ролі (довідка)</h3>
       <div class="tablewrap"><table><tbody>
@@ -2791,7 +2965,7 @@ PAGES.users = async () => {
     ${isAdmin ? `<div class="note">➕ Щоб додати користувача: 1) скажи Клоду — він створить акаунт для входу; 2) додай рядок з email, ім'ям і роллю в таблицю «Користувачі» (через службову базу). Зміна ролі — просто зміни значення в рядку.</div>` : ""}`;
   bindPalette();
   bindPasswordChange();
-  if (isAdmin){ renderAudit(); bindUserEdit(rows); }
+  if (isAdmin){ renderAudit(); bindUserEdit(rows); bindUserAdmin(rows); }
 };
 
 /* ===== старт ===== */
