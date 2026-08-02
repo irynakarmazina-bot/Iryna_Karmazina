@@ -1,1 +1,1 @@
-{"id": "recon-19", "cmd": "python3 /root/tg_r9.py exp 2>&1|head -28"}
+{"id": "recon-20", "cmd": "grep -n 'finrep-data' -A12 /root/Caddyfile | head -40; echo ===; ls /root/unitex-finrep/computed; echo ===; grep -rln 'finrep-data\\|name=' /root/*.py 2>/dev/null | head"}
