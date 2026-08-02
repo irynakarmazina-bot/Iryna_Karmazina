@@ -1,7 +1,7 @@
 {
-  "stdout": "векторні іконки: 3\nOK /root/unitex-os-www/cabinet.html — 126 угод, 247305 байт\nOK /root/unitex-os-www/cabinet-gm.html — 20 угод, 112781 байт\n",
-  "stderr": "",
+  "stdout": "python3: can't open file '/root/patch_findata.py': [Errno 2] No such file or directory\n--- FILES ---\nADMIN_TOK = open(\"/root/nocodb-token.txt\").read().strip()\nCOMPUTED = \"/root/unitex-finrep/computed\"\nFILES = {\n    \"dashboard\": \"dashboard_data.json\",\n    \"period\": \"period_report_data.json\",\n    \"pnl\": \"pnl_cf-report.json\",\n    \"registers\": \"registers-report.json\",\n    \"calendar\": \"calendar-report.json\",\n    \"localcosts\": \"local_costs.json\",\n}\nFIN_ROLES = {\"Адміністратор\", \"Фінансист\", \"Бухгалтер\"}\n_role_cache = {}\nDIAG = \"/root/findata-diag.log\"\n--- сервіс ---\n  findata.service                                loaded    active   running Protected finance data API for Unitex OS facade (8789)\nactive\n",
+  "stderr": "cp: warning: behavior of -n is non-portable and may change in future; use --update=none instead\n",
   "returncode": 0,
-  "id": "build-cab25",
-  "ts": "2026-08-02T09:55:14Z"
+  "id": "findata-maersk-fix-0802",
+  "ts": "2026-08-02T10:31:50Z"
 }
