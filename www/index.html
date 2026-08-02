@@ -584,7 +584,7 @@
       <div class="spacer"></div>
       <!-- Позначка версії: по ній видно, чи браузер підтягнув свіжу сторінку.
            Оновлюється автоматично при кожному викладенні (scripts/stamp.sh). -->
-      <div class="buildstamp" id="buildstamp" title="версія сторінки — якщо не збігається з тим, що я назвала, натисни Ctrl+F5">в. 01.08 16:36</div>
+      <div class="buildstamp" id="buildstamp" title="версія сторінки — якщо не збігається з тим, що я назвала, натисни Ctrl+F5">в. 02.08 04:43</div>
     </nav>
     <div class="main">
       <div class="topbar">
@@ -2114,16 +2114,13 @@ PAGES.finance = async () => {
       <div class="note">🔒 Фінансові показники доступні лише фінансовим ролям (Адміністратор, Фінансист, Бухгалтер).</div></div>`;
     return;
   }
-  $("content").innerHTML = `
-    <div class="card">
-      <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-top:6px">
-        <button class="btn" id="rep-oper">⚡ Оперативний фінансовий звіт</button>
-        <button class="btn" id="rep-period">📆 Фінансовий звіт за період</button>
-        <span id="fin-refresh-slot" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"></span>
-      </div>
-      <p class="sub" id="fin-status" style="margin-top:10px"></p>
-    </div>
-    <div id="rep-body"></div>`;
+  // кнопки звітів — у верхній панелі (як у диспетчеризації й калькуляції),
+  // щоб дашборд починався одразу під шапкою
+  $("page-actions").innerHTML = `
+    <button class="btn" id="rep-oper">⚡ Оперативний фінансовий звіт</button>
+    <button class="btn" id="rep-period">📆 Фінансовий звіт за період</button>
+    <span id="fin-refresh-slot" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"></span>`;
+  $("content").innerHTML = '<div id="rep-body"></div>';
   $("rep-oper").addEventListener("click", ()=>renderOper());
   $("rep-period").addEventListener("click", ()=>renderPeriod());
   renderOper();
@@ -2294,7 +2291,7 @@ function refreshBar(mtime, onFresh){
       }catch(e){ b.disabled=false; b.textContent="⟳ Підтягнути свіжі дані з Експедитора"; toast("⚠ Не вдалося запустити"); }
     });
   }, 0);
-  // панель живе у верхній картці (слот #fin-refresh-slot), поруч із кнопками звітів
+  // кнопка живе у верхній панелі (слот #fin-refresh-slot), поруч із кнопками звітів
   return `<button class="btn" id="fin-refresh" style="padding:7px 14px;font-size:13px"
     title="дані станом на ${stamp}">⟳ Підтягнути свіжі дані з Експедитора</button>`;
 }
