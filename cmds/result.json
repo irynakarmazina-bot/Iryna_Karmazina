@@ -1,7 +1,7 @@
 {
-  "stdout": "OK /root/unitex-os-www/cabinet.html — 126 угод, 250932 байт\nOK /root/unitex-os-www/cabinet-gm.html — 20 угод, 116405 байт\nслово Прототип у сторінці: 0\n0\n",
+  "stdout": "   журнал: 2026-08-02T17:13:22\tmain\t2c8c481ba\tв. 02.08 14:12\tindex.html:254302 findash.html:26184 finperiod.html:17458\trelay: деплой: мобільне меню ЕРП\n   UI 200  FINDASH 200\nDEPLOY_OK · гілка main · коміт 2c8c481ba · позначка «в. 02.08 14:12»\nмобільне меню у викладеній версії: 5\n",
   "stderr": "",
   "returncode": 0,
-  "id": "build-cab26",
-  "ts": "2026-08-02T14:07:22Z"
+  "id": "deploy-ui-6",
+  "ts": "2026-08-02T14:13:23Z"
 }
