@@ -1,1 +1,1 @@
-{"id": "restore-statuses-show-0802", "cmd": "cd /root/Iryna_Karmazina && git pull -q origin main && cp direct_sync/restore_statuses.py /root/direct-sync/ && cd /root/direct-sync && /root/unitex-finrep/.venv/bin/python restore_statuses.py 2>&1 | head -60 | base64 -w0"}
+{"id": "restore-statuses-apply-0802", "cmd": "cd /root/direct-sync && /root/unitex-finrep/.venv/bin/python restore_statuses.py --apply 2>&1 | grep -E 'Угод зі статусом|ПОВЕРТАЮ|ДЖЕРЕЛА|Запис:|угода' | base64 -w0"}
