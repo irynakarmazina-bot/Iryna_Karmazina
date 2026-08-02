@@ -1,7 +1,7 @@
 {
-  "stdout": "__pycache__\nbuild_dashboard_data.py\nbuild_period_report.py\ncalendar_inputs.py\ncash_from_odata.py\ncheck_odata.py\ncommon.py\nconsolidate.py\nfill_dashboard_values.py\nmonthly_series.py\nodata_client.py\nodata_ingest.py\nodata_maps.py\noverhead.py\nparse.py\npnl_cf.py\nrebuild_dashboard.py\nregisters.py\nretro_nwc.py\nupdate_all.py\nupdate_all_api.py\nupload.py\nupload_dashboard.py\nupload_glossary.py\nupload_sheets2.py\nverify_upload.py\n---\nDEPLOY.md\nREADME.md\napps-script\ncomputed\nconfig.api.json\nconfig.example.json\ndocs\nengine\nnormalized\nreports\nrequirements.txt\nrun.sh\nsecure\ntrigger.py\n",
+  "stdout": "  230 odata_ingest.py\n   19 odata_maps.py\n  132 build_period_report.py\n  123 odata_client.py\n  504 total\n===\n62:def _name_map(c, entity):\n68:                for r in c.list(entity, select=[\"Ref_Key\", \"Description\"])}\n70:        print(f\"  ⚠ довідник {entity} недоступний ({type(e).__name__}) — назви з нього будуть порожні\")\n78:        \"contr\": _name_map(c, \"Catalog_Контрагенты\"),      # платник / постачальник\n79:        \"client\": _name_map(c, \"Catalog_Клиенты\"),         # КЛІЄНТ (окремий довідник!)\n80:        \"cur\": _name_map(c, \"Catalog_Валюты\"),             # UAH/USD/EUR (Description)\n81:        \"line\": _name_map(c, \"Catalog_Линии\"),             # MAE/MSC/CMA... (Description)\n82:        \"man\": _name_map(c, \"Catalog_ФизическиеЛица\"),     # менеджери (ПІБ)\n85:    for r in c.list(\"Document_Сделка\",\n104:    for r in c.list(\"Document_Счет\",\n141:    for r in c.list(\"Document_РасходнаяНакладная\",\n",
   "stderr": "",
   "returncode": 0,
-  "id": "recon-1",
-  "ts": "2026-08-02T07:23:06Z"
+  "id": "recon-2",
+  "ts": "2026-08-02T07:23:23Z"
 }
