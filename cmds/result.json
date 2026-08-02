@@ -1,7 +1,7 @@
 {
-  "stdout": "   коміт: ab0d91e05 · 2026-08-02 08:08:13 +0000\n   опис:  relay: deploy-7\nскриптів: 2, із синтаксичними помилками: 0\nCHECK_OK — фасад можна викладати\n   бекап: /root/unitex-os-www/.backups/index-20260802-110819.html (240279 б)\n   журнал: 2026-08-02T11:08:19\tmain\tab0d91e05\tв. 02.08 07:18\tindex.html:245872 findash.html:26184 finperiod.html:17458\trelay: deploy-7\n   UI 200  FINDASH 200\nDEPLOY_OK · гілка main · коміт ab0d91e05 · позначка «в. 02.08 07:18»\n",
+  "stdout": "'Угода' = '104' (є в записі: True )\n'Переказ за кордон' = 0 (є в записі: True )\n'Дата переказу' = None (є в записі: True )\n'Сума переказу' = None (є в записі: True )\n",
   "stderr": "",
   "returncode": 0,
-  "id": "deploy-7",
-  "ts": "2026-08-02T08:08:19Z"
+  "id": "check-6",
+  "ts": "2026-08-02T08:08:41Z"
 }
