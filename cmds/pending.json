@@ -1,1 +1,1 @@
-{"id": "why-vessel-1", "cmd": "cd /root/Iryna_Karmazina && git fetch origin claude/direct-automation-expeditor-671esy -q && git show origin/claude/direct-automation-expeditor-671esy:direct_sync/why_no_vessel.py > /root/why_no_vessel.py && nohup python3 /root/why_no_vessel.py > /root/why_vessel.out 2>&1 & sleep 20; head -20 /root/why_vessel.out"}
+{"id": "why-vessel-2", "cmd": "sleep 45; wc -l /root/why_vessel.out; sed -n '1,40p' /root/why_vessel.out"}
