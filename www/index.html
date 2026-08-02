@@ -606,8 +606,32 @@
     .filters input,.filters select{width:100%}
 
     .card{padding:12px}
-    .dispscroll{max-height:calc(100vh - 250px)}
     tr.donebar button{font-size:12.5px}
+
+    /* ДИСПЕТЧЕРИЗАЦІЯ НА ТЕЛЕФОНІ — картки замість таблиці на 17 колонок. */
+    .dispscroll{max-height:none;overflow:visible}
+    .dispscroll table{display:block}
+    .dispscroll thead{display:none}
+    .dispscroll tbody{display:block}
+    .dispscroll colgroup{display:none}
+    .dispscroll tbody tr{display:block;background:var(--surface);border:1px solid var(--line);
+      border-radius:14px;padding:10px 12px;margin-bottom:10px}
+    .dispscroll tbody tr.donebar{padding:6px 10px;background:var(--surface-2);border-radius:10px}
+    .dispscroll tbody tr.donebar td{display:block;border:0;padding:0}
+    .dispscroll tbody td{display:block;border:0;padding:3px 0;font-size:13.5px;
+      text-align:right;overflow:hidden;white-space:normal}
+    .dispscroll tbody td[data-l]::before{content:attr(data-l);float:left;color:var(--ink-2);
+      font-size:12px;font-weight:400;margin-right:12px}
+    .dispscroll tbody td.empty{display:none}
+    .dispscroll tbody tr td:first-child{display:inline-block;font-size:17px;font-weight:700;
+      text-align:left;vertical-align:middle;padding:0 0 6px}
+    .dispscroll tbody tr td:nth-child(2){display:inline-block;margin-left:10px;
+      vertical-align:middle;padding:0 0 6px}
+    .dispscroll tbody tr:hover td{background:transparent}
+    .dispscroll tbody tr td:last-child{display:block;text-align:right;padding-top:6px}
+    .dispscroll td.c-bl,.dispscroll td.c-ves,.dispscroll td.c-md,.dispscroll td.c-rt,
+    .dispscroll td.c-cli,.dispscroll td.c-com{width:auto;max-width:none;white-space:normal}
+    .dispscroll td .rtar{margin:0 4px}
   }
 </style>
 </head>
@@ -638,7 +662,7 @@
       <div class="spacer"></div>
       <!-- Позначка версії: по ній видно, чи браузер підтягнув свіжу сторінку.
            Оновлюється автоматично при кожному викладенні (scripts/stamp.sh). -->
-      <div class="buildstamp" id="buildstamp" title="версія сторінки — якщо не збігається з тим, що я назвала, натисни Ctrl+F5">в. 02.08 14:12</div>
+      <div class="buildstamp" id="buildstamp" title="версія сторінки — якщо не збігається з тим, що я назвала, натисни Ctrl+F5">в. 02.08 14:36</div>
     </nav>
     <div class="main">
       <div class="topbar">
@@ -1630,8 +1654,8 @@ PAGES.dispatch = async () => {
               :(gateInMissing(r)?'title="Експорт без дати заїзду в порт — її ставлять одразу після букінгу"':""))}>
         <td class="mono"><b>${esc(r["Угода"])}</b></td>
         <td>${r["Напрямок"]?`<span class="dirchip ${r["Напрямок"]==="Імпорт"?"imp":"exp"}">${r["Напрямок"]==="Імпорт"?"ІМП":(r["Напрямок"]==="Експорт"?"ЕКС":"ТРН")}</span>`:""}</td>
-        <td class="c-cli" title="${esc(r["Клієнт"]||"")}">${esc(cliName(r["Клієнт"])||"—")}</td>
-        <td class="c-rt${ED}" data-ed="Маршрут" title="${esc(r["Маршрут"]||"")}">${
+        <td class="c-cli" data-l="Клієнт" title="${esc(r["Клієнт"]||"")}">${esc(cliName(r["Клієнт"])||"—")}</td>
+        <td class="c-rt${ED}" data-l="Маршрут" data-ed="Маршрут" title="${esc(r["Маршрут"]||"")}">${
             _s(r,"Маршрут")
               ? routeArrows(r["Маршрут"]).split("→").map(x=>x.trim()).filter(Boolean)
                   .map((x,i)=>`${i?'<span class="rtar">→</span>':""}${esc(x)}`).join("<br>")
@@ -1648,7 +1672,7 @@ PAGES.dispatch = async () => {
               : '<span class="cell-muted">—</span>'}${
             (isAir(r)||_s(r,"Вид перевезення")==="авто"||!_s(r,"Лінія")) ? ""
               : `<br><span class="cell-muted">${esc(r["Лінія"])}</span>`}</td>
-        <td class="mono c-bl">${isAir(r)
+        <td class="mono c-bl" data-l="Коносамент / контейнер">${isAir(r)
             ? (_s(r,"Авіанакладна") ? `${esc(r["Авіанакладна"])}<br><span class="cell-muted">авіанакладна</span>`
                                     : '<span class="cell-muted">авіа — накладної немає</span>')
             : `${_s(r,"HBL") ? `<span class="ln" title="домашній коносамент"><i class="blt">HBL</i>${esc(r["HBL"])}</span>` : ""}${
@@ -1656,9 +1680,9 @@ PAGES.dispatch = async () => {
                 (!_s(r,"HBL") && !_s(r,"BL")) ? '<span class="ln cell-muted">—</span>' : ""}${_s(r,"Контейнер").split(",")
                 .map(c=>c.trim()).filter(Boolean)
                 .map(c=>`<span class="ln">${trackLink(r, c, "cell-muted")}</span>`).join("")}`}</td>
-        <td class="c-ves${ED}" data-ed="Судно">${esc(r["Судно"]||"—")}</td>
-        <td class="mono dt${ED}" data-ed="Stuffing" title="дата стафіровки">${dateB(r["Stuffing"])}</td>
-        <td class="mono dt${ED}" data-ed="${_s(r,"Здача в порт (факт)") ? "Здача в порт (факт)" : "Гейт ін"}"
+        <td class="c-ves${ED}" data-l="Судно" data-ed="Судно">${esc(r["Судно"]||"—")}</td>
+        <td class="mono dt${ED} sec" data-l="Stuffing" data-ed="Stuffing" title="дата стафіровки">${dateB(r["Stuffing"])}</td>
+        <td class="mono dt${ED} sec" data-l="Gate in / здача" data-ed="${_s(r,"Здача в порт (факт)") ? "Здача в порт (факт)" : "Гейт ін"}"
             title="${_s(r,"Здача в порт (факт)")
               ? "фактична здача в порт — від неї рахуємо демередж і зберігання"
               : "Gate in — заїзд у порт"}">${
@@ -1668,29 +1692,29 @@ PAGES.dispatch = async () => {
                «не читається взагалі, сильно заважають». Обидва поля лишаються
                окремими й редагуються в картці угоди. */
             dateB(_s(r,"Здача в порт (факт)") ? r["Здача в порт (факт)"] : r["Гейт ін"])}</td>
-        <td class="mono dt${ED}${_s(r,"Напрямок")==="Експорт"?" keydt":""}" data-ed="ETD (факт)">${etdOf(r)
+        <td class="mono dt${ED}${_s(r,"Напрямок")==="Експорт"?" keydt":""}" data-l="ETD POL" data-ed="ETD (факт)">${etdOf(r)
             /* Підпис «план» прибрано 01.08.2026: ETD і так планова дата, доки
                немає фактичної. Значення береться з «ETD (факт)», а якщо його
                немає — з «ETD (план)», тому окремо позначати нічого не треба. */
             ? dateB(etdOf(r))
             : '<span class="cell-muted">—</span>'}</td>
-        <td class="mono dt${ED}${_s(r,"Напрямок")==="Імпорт"?" keydt":""}" data-ed="ETA">${dateB(r["ETA"])}${(()=>{
+        <td class="mono dt${ED}${_s(r,"Напрямок")==="Імпорт"?" keydt":""}" data-l="ETA POD" data-ed="ETA">${dateB(r["ETA"])}${(()=>{
             const c = etaChanged(r) ? etaChange(r) : null;
             return c ? `<br><span class="wasdt" title="дата прибуття змінилася ${fmtD(c.when)}">було ${fmtD(c.from)}</span>` : "";
           })()}</td>
-        <td class="mono dt${ED}" data-ed="ETA сухий порт" title="${
+        <td class="mono dt${ED} sec" data-l="ETA dry port" data-ed="ETA сухий порт" title="${
             isRail(r) ? "ETA сухий порт" : "сухий порт буває лише на залізничних перевезеннях"}">${
             _s(r,"ETA сухий порт") ? dateB(r["ETA сухий порт"])
               : (isRail(r) ? '<span class="cell-muted">—</span>'
                            : '<span class="cell-muted">—</span>')}</td>
-        <td class="mono dt${ED}" data-ed="Gate out for delivery" title="виїзд із сухого порту на авто — послуга «остання миля»">${
+        <td class="mono dt${ED} sec" data-l="Gate out delivery" data-ed="Gate out for delivery" title="виїзд із сухого порту на авто — послуга «остання миля»">${
             dateB(r["Gate out for delivery"])}</td>
-        <td class="${ED.trim()}" data-ed="Статус">${stPill(r["Статус"])}</td>
-        <td class="mono${ED}" data-ed="Подача авто (факт)" title="дата подачі авто">${truckDate(r)
+        <td class="${ED.trim()}" data-l="Статус" data-ed="Статус">${stPill(r["Статус"])}</td>
+        <td class="mono${ED}" data-l="Авто" data-ed="Подача авто (факт)" title="дата подачі авто">${truckDate(r)
             ? `${dateB(truckDate(r))}${_s(r,"Подача авто (факт)")?"":'<span class="cell-muted"> план</span>'}`
             : (truckLate(r) ? '<span style="color:#d1453b;font-weight:700">немає</span>' : '<span class="cell-muted">—</span>')}${
             _s(r,"Номер авто") ? `<br><span class="cell-muted">${esc(r["Номер авто"])}</span>` : ""}</td>
-        <td class="cell-muted c-com${ED}" data-ed="Коментар" title="${esc(r["Коментар"]||"")}">${esc(r["Коментар"]||"")}</td>
+        <td class="cell-muted c-com${ED}" data-l="Коментар" data-ed="Коментар" title="${esc(r["Коментар"]||"")}">${esc(r["Коментар"]||"")}</td>
         <td>${docBtn(r)}</td>
       </tr>`).join("") : `<tr><td colspan="17" class="cell-muted">Нічого не знайдено.</td></tr>`);
     const ft = $("filt-toggle");
@@ -1699,7 +1723,13 @@ PAGES.dispatch = async () => {
     ft.setAttribute("aria-expanded", on ? "true" : "false");
     ft.textContent = (on ? "✕ Сховати фільтри" : "⚙ Фільтри");
   });
-  const dt = $("done-toggle");
+    /* На телефоні картка не має бути з десятком прочерків: клітинки без даних
+       ховаємо (прохання користувачки 02.08.2026 — «роби на телефоні картки»). */
+    if (isPhone()) $("drows").querySelectorAll("td[data-l]").forEach(td=>{
+      const t = td.textContent.replace(/[\s\u2014\u2013-]/g, "");
+      td.classList.toggle("empty", t === "");
+    });
+    const dt = $("done-toggle");
     if (dt) dt.addEventListener("click", ()=>{ SHOW_DONE = !SHOW_DONE; draw(); });
     $("drows").querySelectorAll("tr[data-id]").forEach(tr=>tr.addEventListener("click",()=>openRow(all.find(x=>String(x.Id)===tr.dataset.id))));
     // клік по номеру відкриває трекінг лінії, а не картку угоди
