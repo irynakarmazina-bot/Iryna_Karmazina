@@ -263,9 +263,14 @@ tr.exp>td{padding:0;background:var(--surface-2)}
 /* судно й літак — головне плече, тому крупніші за решту (02.08.2026) */
 .nd .dot.big svg{width:43px;height:43px}
 .nd.now .dot.big svg{width:48px;height:48px}
+/* Поточне місцезнаходження має бути видно ОДРАЗУ: кільце в колір виду
+   перевезення + ореол + більший кружок. Раніше різниця була ледь помітна
+   (зауваження користувачки 02.08.2026). */
 .nd.now .dot{width:80px;height:80px;margin-top:-4px;
-  background:color-mix(in srgb,var(--mc) 17%,#fff);
-  box-shadow:0 0 0 4px color-mix(in srgb,var(--mc) 12%,transparent)}
+  background:color-mix(in srgb,var(--mc) 18%,#fff);
+  border:2.5px solid var(--mc);
+  box-shadow:0 0 0 6px color-mix(in srgb,var(--mc) 13%,transparent)}
+.nd.now .ttl{font-weight:800}
 .nd.now .dot svg{width:38px;height:38px;stroke-width:2.1}
 /* Майбутні етапи лишаються в кольорі виду перевезення, лише блідіші —
    сірий робив схему «мертвою». Прозорість не використовуємо: від неї текст
@@ -591,7 +596,24 @@ function routeHtml(r){
     "Вивантажений в сухому порту":"dry", "На кордоні":"border",
     "Вантаж доставлено":"done",
   };
-  let cur = st.findIndex(x => x.k === ST_STEP[s(r,"Статус")]);
+  /* Порядок статусів — щоб знайти найближчий крок, якщо точного в ланцюжку немає. */
+  const ST_ORDER = ["Букінг","Виконується","Стафіровка","В порту відправлення",
+    "Завантажений на судно","В морі","Вивантажений в порту прибуття",
+    "Завантажений на авто","Завантажений на потяг","Вивантажений в сухому порту",
+    "На кордоні","Вантаж доставлено"];
+  const stNow = s(r,"Статус");
+  let key = ST_STEP[stNow];
+  /* В ЕКСПОРТІ «Завантажений на авто/потяг» — це плече ДО порту, і вузол
+     називається інакше. Без цієї підміни підсвітка не знаходила крок узагалі
+     і зникала (зауваження користувачки 02.08.2026). */
+  if (key === "land" && !st.some(x => x.k === "land"))
+    key = st.some(x => x.k === "carauto") ? "carauto" : "stuff";
+  let cur = st.findIndex(x => x.k === key);
+  if (cur < 0){
+    // крок для цього статусу відсутній — відкочуємось до найближчого попереднього
+    for (let j = ST_ORDER.indexOf(stNow); j >= 0 && cur < 0; j--)
+      cur = st.findIndex(x => x.k === ST_STEP[ST_ORDER[j]]);
+  }
   if (cur < 0){                               // статусу немає в мапі — за датами
     cur = st.findIndex(x => !(x.f && past(x.d2 || x.d)));
     if (cur < 0) cur = st.length - 1;
