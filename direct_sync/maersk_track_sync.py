@@ -385,11 +385,23 @@ def parse_events(events, row, today_iso, statuses=frozenset()):
     if gtot:
         out["Гейт аут"] = gtot
 
-    # статус: 8-модель, «Завантажений» розділений на авто/потяг
-    last = sorted(events, key=_dt)[-1]
-    mode = (last.get("transportCall") or {}).get("modeOfTransport") or ""
-    code = (last.get("equipmentEventTypeCode") or last.get("transportEventTypeCode")
-            or last.get("shipmentEventTypeCode") or "")
+    # статус: 8-модель, «Завантажений» розділений на авто/потяг.
+    #
+    # ВАЖЛИВО (виправлено 02.08.2026): статус беремо ТІЛЬКИ з подій, які
+    # (а) фактичні — eventClassifierCode == "ACT", і (б) вже відбулися.
+    # Було: бралася просто остання подія за датою. Maersk віддає весь план
+    # рейсу наперед, тому «остання» — це прогноз на майбутнє.
+    # Угода 260 (експорт ГРАНД МАРИН, стафіровка аж 03.08): з 10 подій дві
+    # фактичні (CONF) і вісім планових; останньою була ARRI EST 22.10.2026
+    # на судні XIAMEN → платформа поставила «В морі» вантажу, який ще навіть
+    # не завантажений. Помітила користувачка, а не я.
+    # Якщо фактичних подій ще немає — статус НЕ чіпаємо взагалі.
+    actual = [e for e in events
+              if e.get("eventClassifierCode") == "ACT" and _dt(e)[:10] <= today_iso]
+    last = sorted(actual, key=_dt)[-1] if actual else None
+    mode = (last.get("transportCall") or {}).get("modeOfTransport") or "" if last else ""
+    code = ((last.get("equipmentEventTypeCode") or last.get("transportEventTypeCode")
+             or last.get("shipmentEventTypeCode") or "") if last else "")
     is_vessel = mode in ("VESSEL", "")
     load_st = "Завантажений на потяг" if mode == "RAIL" else "Завантажений на авто"
     st = ""
