@@ -1,1 +1,1 @@
-{"id": "deploy-ui-8", "cmd": "bash /root/deploy_ui.sh main 2>&1 | tail -3 && echo -n 'viewport у фінансах: ' && grep -c 'name=\"viewport\"' /root/unitex-os-www/findash.html && echo -n 'графіки сховані на телефоні: ' && grep -c 'ГРАФІКИ НА ТЕЛЕФОНІ' /root/unitex-os-www/findash.html"}
+{"id": "deploy-ui-9", "cmd": "bash /root/deploy_ui.sh main 2>&1 | tail -3 && echo -n 'картки (mcards) у викладеній версії: ' && grep -c 'mcards tbody tr{display:block' /root/unitex-os-www/index.html"}
