@@ -1,7 +1,7 @@
 {
-  "stdout": "   журнал: 2026-08-02T17:36:36\tmain\t10813dfcd\tв. 02.08 14:36\tindex.html:256686 findash.html:26184 finperiod.html:17458\trelay: деплой: картки диспетчеризації на телефоні\n   UI 200  FINDASH 200\nDEPLOY_OK · гілка main · коміт 10813dfcd · позначка «в. 02.08 14:36»\nкартки в диспетчеризації: 1\n",
+  "stdout": "   журнал: 2026-08-02T18:34:25\tmain\tdcdc41d37\tв. 02.08 15:33\tindex.html:258207 findash.html:28273 finperiod.html:17527\trelay: деплой: калькуляція на телефоні\n   UI 200  FINDASH 200\nDEPLOY_OK · гілка main · коміт dcdc41d37 · позначка «в. 02.08 15:33»\nкартки (mcards) у викладеній версії: 1\n",
   "stderr": "",
   "returncode": 0,
-  "id": "deploy-ui-7",
-  "ts": "2026-08-02T14:36:36Z"
+  "id": "deploy-ui-9",
+  "ts": "2026-08-02T15:34:25Z"
 }
