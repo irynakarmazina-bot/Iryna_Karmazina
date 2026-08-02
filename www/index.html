@@ -2494,10 +2494,12 @@ PAGES.finance = async () => {
   $("page-actions").innerHTML = `
     <button class="btn" id="rep-oper">⚡ Оперативний фінансовий звіт</button>
     <button class="btn" id="rep-period">📆 Фінансовий звіт за період</button>
+    <button class="btn" id="rep-maersk">🚢 Оплати Маерску</button>
     <span id="fin-refresh-slot" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"></span>`;
   $("content").innerHTML = '<div id="rep-body"></div>';
   $("rep-oper").addEventListener("click", ()=>renderOper());
   $("rep-period").addEventListener("click", ()=>renderPeriod());
+  $("rep-maersk").addEventListener("click", ()=>renderMaersk());
   renderOper();
 };
 
@@ -2869,6 +2871,49 @@ async function renderPeriod(){
   catch(e){ $("rep-body").innerHTML = `<div class="note">⚠ ${esc(e.message)}</div>`; return; }
   $("fin-refresh-slot").innerHTML = refreshBar(js.mtime, renderPeriod);
   $("rep-body").innerHTML = finFrame("finperiod", "/finperiod.html?v=19", js.data);
+  window.scrollTo(0,0);
+}
+
+/* ===== ОПЛАТИ МАЕРСКУ (запит користувачки 02.08.2026) =====
+   Джерело — computed/maersk_payments.json, який рахує finrep/maersk_payments.py:
+   рухи грошей з Експедитора, де контрагент Maersk A/S і це виплата (expense_uo > 0).
+   Вид оплати і валюта не фільтруються: сума в У.О. + розбивка по валютах і касах.
+
+   УВАГА: цей блок уже ТРИЧІ зникав із main при злитті гілок (02.08.2026 —
+   коміти bebd596 → 2822835). Перед деплоєм фасада перевіряти, що він на місці:
+   `grep -c 'function renderMaersk' www/index.html` має дати 1, а не 0. */
+async function renderMaersk(){
+  $("rep-body").innerHTML = '<div class="card"><p class="sub">Рахую оплати Маерску…</p></div>';
+  let js;
+  try{ js = await fetchFin("maersk_payments"); }
+  catch(e){ $("rep-body").innerHTML = `<div class="note">⚠ ${esc(e.message)}</div>`; return; }
+  const D = js.data || js;
+  const rows = D.rows || [];
+  const money = v => fmtN(v, 2);
+  const pairs = o => Object.entries(o || {}).filter(([,v])=>v)
+      .sort((a,b)=>b[1]-a[1]).map(([k,v])=>`${esc(k)} ${money(v)}`).join(" · ") || "—";
+  const body = rows.map(r=>`<tr>
+      <td>${esc(r.label || r.month)}</td>
+      <td class="num"><b>${money(r.uo)}</b></td>
+      <td class="num">${esc(r.count)}</td>
+      <td>${pairs(r.byCurrency)}</td>
+      <td>${pairs(r.byMethod)}</td></tr>`);
+  if (rows.length) body.push(`<tr style="font-weight:700;border-top:2px solid var(--line)">
+      <td>РАЗОМ</td><td class="num">${money(D.totalUo)}</td><td class="num">${esc(D.count)}</td>
+      <td>${pairs(D.byCurrency)}</td><td>${pairs(D.byMethod)}</td></tr>`);
+  const exc = D.excluded || {};
+  $("fin-refresh-slot").innerHTML = js.mtime ? refreshBar(js.mtime, renderMaersk) : "";
+  $("rep-body").innerHTML = `
+    <div class="card">
+      <h3>🚢 Оплати Маерску по місяцях</h3>
+      <p class="sub">контрагент <b>${esc((D.counterparties||["Maersk A/S"]).join(", "))}</b> ·
+        усі види оплати і всі валюти · суми в У.О. (USD-еквівалент)</p>
+      ${rows.length ? finTable(["Місяць","Сума У.О.","Платежів","У валютах платежу","Через касу / банк"], body)
+                    : '<p class="sub">Оплат не знайдено.</p>'}
+      <div class="note">Не входять: внутрішні перекази — ${esc(exc.transfers ?? 0)},
+        надходження/повернення від Маерска — ${esc(exc.incomes ?? 0)}.
+        Джерело: ${esc(D.source || "normalized/cash_moves.csv")}.</div>
+    </div>`;
   window.scrollTo(0,0);
 }
 
