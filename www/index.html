@@ -465,6 +465,11 @@
   .dispscroll thead th{position:sticky;top:0;z-index:3;background:var(--surface);
     box-shadow:inset 0 -1px 0 var(--line)}
   tr.done td{color:var(--ink-2)}
+  /* смужка згорнутих доставлених угод */
+  tr.donebar td{background:var(--surface-2);padding:4px 8px;border-bottom:1px solid var(--line)}
+  tr.donebar button{border:0;background:transparent;color:var(--ink-2);font:inherit;font-size:12px;
+    cursor:pointer;padding:2px 4px}
+  tr.donebar button:hover{color:var(--ink)}
   table{border-collapse:collapse;width:100%;font-size:13px}
 /* Шапка таблиці: темніший і жирніший текст замість дрібного сірого,
    нижчі відступи (зауваження користувачки 01.08.2026 — «купа дрібного
@@ -590,7 +595,7 @@
       <div class="spacer"></div>
       <!-- Позначка версії: по ній видно, чи браузер підтягнув свіжу сторінку.
            Оновлюється автоматично при кожному викладенні (scripts/stamp.sh). -->
-      <div class="buildstamp" id="buildstamp" title="версія сторінки — якщо не збігається з тим, що я назвала, натисни Ctrl+F5">в. 02.08 08:53</div>
+      <div class="buildstamp" id="buildstamp" title="версія сторінки — якщо не збігається з тим, що я назвала, натисни Ctrl+F5">в. 02.08 09:26</div>
     </nav>
     <div class="main">
       <div class="topbar">
@@ -1524,6 +1529,7 @@ PAGES.dispatch = async () => {
   };
 
   let firstDraw = true;
+  let SHOW_DONE = false;              // доставлені за замовчуванням згорнуті
   const draw = (keep) => {
     const q=$("q").value.toLowerCase(), st=$("stf").value;
     const dir=$("dirf").value, line=$("linef").value, cli=$("clif").value;
@@ -1535,7 +1541,16 @@ PAGES.dispatch = async () => {
       (!man || _s(r,"Менеджер")===man) && (!opm || _s(r,"Оп. менеджер")===opm) &&
       (!mode || _s(r,"Вид перевезення")===mode) &&
       (!q || [r["Угода"],r["Клієнт"],r["BL"],r["HBL"],r["Контейнер"],r["Судно"],r["Номер авто"],r["Водій (ПІБ)"]].join(" ").toLowerCase().includes(q)));
-    $("drows").innerHTML = list.length ? list.map(r=> logist ? `
+    /* Доставлені ХОВАЄМО ЗГОРТАННЯМ, а не прокруткою. Прокрутка не працювала,
+       коли рядків мало або коли фільтр змінювався (тричі поверталася до цього).
+       Тепер вони фізично сховані, а над ними — смужка «Доставлені (N)». */
+    const doneList = list.filter(_done), actList = list.filter(r=>!_done(r));
+    const shown = SHOW_DONE ? list : actList;
+    const bar = doneList.length
+      ? `<tr class="donebar"><td colspan="${logist?7:17}">
+           <button id="done-toggle" type="button">${SHOW_DONE?"▾":"▸"} Доставлені (${doneList.length})</button>
+         </td></tr>` : "";
+    $("drows").innerHTML = bar + (shown.length ? shown.map(r=> logist ? `
       <tr data-id="${r.Id}" class="${r["Статус"]==='Вантаж доставлено'?'done':''}" style="cursor:pointer">
         <td class="mono"><b>${esc(r["Угода"])}</b></td><td>${esc(r["Клієнт"]||"—")}</td>
         <td class="mono">${esc(r["Контейнер"]||"—")}</td><td class="${ED.trim()}" data-ed="Статус">${stPill(r["Статус"])}</td>
@@ -1613,7 +1628,9 @@ PAGES.dispatch = async () => {
             _s(r,"Номер авто") ? `<br><span class="cell-muted">${esc(r["Номер авто"])}</span>` : ""}</td>
         <td class="cell-muted c-com${ED}" data-ed="Коментар" title="${esc(r["Коментар"]||"")}">${esc(r["Коментар"]||"")}</td>
         <td>${docBtn(r)}</td>
-      </tr>`).join("") : `<tr><td colspan="17" class="cell-muted">Нічого не знайдено.</td></tr>`;
+      </tr>`).join("") : `<tr><td colspan="17" class="cell-muted">Нічого не знайдено.</td></tr>`);
+    const dt = $("done-toggle");
+    if (dt) dt.addEventListener("click", ()=>{ SHOW_DONE = !SHOW_DONE; draw(); });
     $("drows").querySelectorAll("tr[data-id]").forEach(tr=>tr.addEventListener("click",()=>openRow(all.find(x=>String(x.Id)===tr.dataset.id))));
     // клік по номеру відкриває трекінг лінії, а не картку угоди
     $("drows").querySelectorAll("a.tl").forEach(a=>a.addEventListener("click", e=>e.stopPropagation()));
@@ -1639,22 +1656,8 @@ PAGES.dispatch = async () => {
       if (keep){
         const tr = $("drows").querySelector('tr[data-id="' + keep.id + '"]');
         if (tr) box.scrollTop = Math.max(0, tr.offsetTop - keep.delta);
-      } else {
-        /* Доставлені завжди ховаються ПІД шапкою — і при першому показі, і після
-           кожної зміни фільтра (раніше прокрутка робилась лише один раз, тому
-           після відбору «Менеджер: Ірина» доставлені знову були на екрані).
-           Якщо рядків мало і прокручувати нікуди — додаємо запас знизу рівно
-           на ту висоту, якої бракує (зауваження користувачки 02.08.2026). */
-        const firstOpen = $("drows").querySelector("tr:not(.done)");
-        box.style.paddingBottom = "0px";
-        if (firstOpen){
-          const need = Math.max(0, firstOpen.offsetTop - 2);
-          const avail = Math.max(0, box.scrollHeight - box.clientHeight);
-          if (need > avail) box.style.paddingBottom = (need - avail) + "px";
-          box.scrollTop = need;
-        } else {
-          box.scrollTop = 0;          // доставлених немає або самі доставлені
-        }
+      } else if (!SHOW_DONE){
+        box.scrollTop = 0;            // доставлені сховані — показуємо з початку
       }
       firstDraw = false;
     }
