@@ -1,11 +1,1 @@
-{"id": "maersk-cur-probe-0802", "cmd": "cd /root/unitex-finrep && python3 -c \"
-import csv,re,collections
-P=re.compile('аерск|aersk',re.I)
-rows=[r for r in csv.DictReader(open('normalized/cash_moves.csv',encoding='utf-8')) if P.search(str(r.get('counterparty') or ''))]
-pays=[r for r in rows if (r.get('expense_uo') or '').strip() not in ('','0')]
-print('виплат:',len(pays))
-print('expense заповнено:',sum(1 for r in pays if (r.get('expense') or '').strip()))
-print('currency заповнено:',sum(1 for r in pays if (r.get('currency') or '').strip()))
-print('валюти:',dict(collections.Counter((r.get('currency') or 'порожньо').strip() for r in pays)))
-print('приклад рядка:',{k:(v[:28] if isinstance(v,str) else v) for k,v in list(pays[0].items())})
-\" 2>&1 | tail -12 | base64 -w0; echo; echo ---; grep -n 'name\\|dashboard\\|period\\|ALLOW\\|FILES' /root/findata.py 2>/dev/null | head -20 | base64 -w0"}
+{"id": "diag-11", "cmd": "echo IyAtKi0gY29kaW5nOiB1dGYtOCAtKi0KIiIi0KnQviDRgdCw0LzQtSDQstGW0LTRgdGW0Y/Qu9C+0YHRjCDQv9GW0YHQu9GPINC30LLRg9C20LXQvdC90Y8g0LTQviDQtNCy0L7RhSDRgNCw0YXRg9C90LrRltCyINCu0L3RltGC0LXQutGB0LAuIiIiCmltcG9ydCB0eXBlcywgY29sbGVjdGlvbnMKc3JjID0gb3BlbigiL3Jvb3QvdW5pdGV4LWZpbnJlcC9lbmdpbmUvbG9jYWxfY29zdHMucHkiLCBlbmNvZGluZz0idXRmLTgiKS5yZWFkKCkucmVwbGFjZSgKICAgICdpZiBfX25hbWVfXyA9PSAiX19tYWluX18iOlxuICAgIG1haW4oKScsICIiKQptb2QgPSB0eXBlcy5Nb2R1bGVUeXBlKCJsYyIpOyBleGVjKGNvbXBpbGUoc3JjLCAibGMiLCAiZXhlYyIpLCBtb2QuX19kaWN0X18pCmMgPSBtb2QuY2xpZW50KCkKZGVhbHMgPSBtb2QuY29sbGVjdChjLCBtb2QuU1RBVFVTRVMsIHNldCgpKQpCID0gbW9kLkJBTktTCmNudCA9IGNvbGxlY3Rpb25zLkNvdW50ZXIoKQpsb3N0ID0gMC4wCmZvciBkIGluIGRlYWxzLnZhbHVlcygpOgogICAgaWYgbm90IGRbIm5faW52Il0gb3Igbm90IGRbImFsbF9wYWlkIl06CiAgICAgICAgY29udGludWUKICAgIGsgPSBkWyJwYXlfa2luZHMiXQogICAgaWYgayA8PSBCOgogICAgICAgIGNvbnRpbnVlCiAgICBwcm9maXQgPSBkWyJyZXZlbnVlIl0gLSBkWyJjb3N0Il0KICAgIGRpZmYgPSBwcm9maXQgLSBkWyJmZWUiXQogICAgaWYgayAmIEI6CiAgICAgICAgdGFnID0gItC80ZbRiNCw0L3RljogJXMiICUgIiArICIuam9pbihzb3J0ZWQoaykpCiAgICBlbHNlOgogICAgICAgIHRhZyA9ICLRgtGW0LvRjNC60LggJXMiICUgIiArICIuam9pbihzb3J0ZWQoaykpCiAgICBjbnRbdGFnXSArPSAxCiAgICBpZiBkaWZmID4gMDoKICAgICAgICBsb3N0ICs9IGRpZmYKZm9yIGssIG4gaW4gY250Lm1vc3RfY29tbW9uKDEwKToKICAgIHByaW50KCIlM2QgICVzIiAlIChuLCBrWzo3NV0pKQpwcmludCgiXG7RgNCw0LfQvtC8INCy0ZbQtNGB0ZbRj9C90L4g0YPQs9C+0LQ6Iiwgc3VtKGNudC52YWx1ZXMoKSksICLCtyDRl9GF0L3RjyDRgNGW0LfQvdC40YbRjzogJS4yZiDQo9CeIiAlIGxvc3QpCg== | base64 -d > /root/tg_d10.py && python3 /root/tg_d10.py 2>&1 | tail -12"}
