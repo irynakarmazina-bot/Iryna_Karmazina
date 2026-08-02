@@ -1,7 +1,7 @@
 {
-  "stdout": "через Caddy: 000\n\nугод 167 разом 50469.96 поле date у першому рядку: 2025-10-17\n",
+  "stdout": "{\n\temail irynakarmazina@gmail.com\n}\n\nhttps://134.209.94.12 {\n\ttls {\n\t\tissuer acme {\n\t\t\tprofile shortlived\n\t\t}\n\t}\n\tencode gzip\n\thandle /api/* {\n\t\treverse_proxy 127.0.0.1:8080\n\t}\n===\nхост: \ncash-refresh(еталон): 000\n",
   "stderr": "head: cannot open '/tmp/lc.txt' for reading: No such file or directory\n",
-  "returncode": 0,
-  "id": "check-3",
-  "ts": "2026-08-02T08:07:08Z"
+  "returncode": 1,
+  "id": "check-4",
+  "ts": "2026-08-02T08:07:25Z"
 }
