@@ -1,7 +1,7 @@
 {
-  "stdout": "   журнал: 2026-08-02T18:34:25\tmain\tdcdc41d37\tв. 02.08 15:33\tindex.html:258207 findash.html:28273 finperiod.html:17527\trelay: деплой: калькуляція на телефоні\n   UI 200  FINDASH 200\nDEPLOY_OK · гілка main · коміт dcdc41d37 · позначка «в. 02.08 15:33»\nкартки (mcards) у викладеній версії: 1\n",
+  "stdout": "/root/Iryna_Karmazina/server/deploy_ui.sh\n/root/deploy_ui.sh\n--- CHECK ---\n   коміт: 529e7c1d0 · 2026-08-02 20:15:24 +0000\n   опис:  relay: перевірка стану сервера перед деплоєм\nУВАГА: браузер (playwright) не знайдено — перевірку сторінок у браузері пропущено\n       це НЕ помилка: крок доступний там, де встановлено playwright + Chromium\nCHECK_OK — фасад можна викладати\n   на сервері: 258207 б · позначка «в. 02.08 15:33»\n   у гілці:    268690 б · позначка «в. 02.08 20:15»\nCHECK_ONLY: версії різні — деплой оновить сервер\n--- що зараз на сервері ---\nrenderMaersk: 0\n",
   "stderr": "",
-  "returncode": 0,
-  "id": "deploy-ui-9",
-  "ts": "2026-08-02T15:34:25Z"
+  "returncode": 1,
+  "id": "deploy-ui-10",
+  "ts": "2026-08-02T20:15:30Z"
 }
