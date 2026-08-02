@@ -60,6 +60,21 @@ def logo():
         return ""
 
 
+# Правова форма для показу в кабінеті. За замовчуванням «ТОВ»; винятки —
+# клієнти, у яких форма інша або її показувати не треба (вимога користувачки
+# 02.08.2026: «Космов не треба додавати ТОВ, там буде виключення»).
+NO_LEGAL = {"космов"}
+
+
+def client_title(name):
+    n = re.sub(r"\s+", " ", str(name or "")).strip()
+    if not n or n.lower() in NO_LEGAL:
+        return n
+    if re.search(r"(ТОВ|ООО|ЧП|ПП|LLC|LTD)", n, re.I):
+        return n                      # форма вже є в назві — не дублюємо
+    return "ТОВ " + n
+
+
 def nz(v):
     return re.sub(r"\s+", " ", str(v or "")).strip()
 
@@ -100,7 +115,7 @@ body{margin:0;background:var(--paper);color:var(--ink);
   font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
 header{background:var(--surface);border-bottom:1px solid var(--line);
   padding:12px 26px;display:flex;align-items:center;gap:18px;position:sticky;top:0;z-index:5}
-header img{height:42px}
+header img{height:56px}
 .hdr-t{font-weight:700;font-size:15px}
 .hdr-s{color:var(--muted);font-size:13px}
 .spacer{flex:1}
@@ -169,17 +184,12 @@ tr.exp>td{padding:0;background:var(--surface-2)}
 .nd .dt{font-size:12px;font-weight:700;margin-top:3px;font-variant-numeric:tabular-nums}
 .nd .dt.dim{color:var(--muted);font-weight:600}
 .nd .plan{font-size:10px;color:var(--muted)}
-/* «Кордон» — не вузол маршруту, а роздільник: без заливки, пунктиром */
-.nd.brd .dot{border-style:dashed;background:transparent}
-.nd.brd .ttl{text-transform:uppercase;letter-spacing:.05em;font-size:10.5px;color:var(--muted)}
-.lgnd{display:flex;flex-wrap:wrap;align-items:center;gap:6px 16px;margin-top:16px;
-  padding-top:12px;border-top:1px solid var(--line-soft);font-size:11.5px;color:var(--muted)}
-.lgnd span{display:inline-flex;align-items:center;gap:6px}
-.lgnd .sp{flex:1 1 20px}
-.lgnd i{display:inline-block;width:18px;height:2px;background:var(--ink-2)}
-.lgnd .ln-dot{background:none;border-top:2px dashed var(--ink-2);height:0}
-.lgnd .ln-pale{background:var(--line)}
-.lgnd .sw{width:11px;height:11px;border-radius:3px}
+/* «Кордон» — роздільник між ділянками маршруту */
+.brd{flex:0 0 62px;text-align:center;padding-top:6px}
+.brd .bln{height:44px;border-left:2px dashed var(--line);margin:0 auto;width:0}
+.brd .blb{font-size:10px;font-weight:700;letter-spacing:.06em;color:var(--muted);
+  text-transform:uppercase;margin-top:8px}
+.brd .bld{font-size:11.5px;font-weight:700;margin-top:3px;font-variant-numeric:tabular-nums}
 /* деталі + документи */
 .cols{display:grid;grid-template-columns:1.15fr 1fr;gap:18px;margin-top:18px}
 @media(max-width:1000px){.cols{grid-template-columns:1fr}}
@@ -305,7 +315,10 @@ function steps(r){
   const A = air(r), R = rail(r), imp = s(r,"Напрямок") !== "Експорт";
   const route = s(r,"Маршрут").split(/→|->/).map(x=>x.trim()).filter(Boolean);
   const from = route[0] || "", to = route.length > 1 ? route[1] : "";
-  const fin  = s(r,"Кінцева точка доставки") || (route.length > 2 ? route[route.length-1] : "");
+  /* Кінцеву точку беремо ТІЛЬКИ з однойменного поля. Остання ланка «Маршруту»
+     часто сухий порт (Мостиська), а не місце доставки — підставляти її не можна
+     (зауваження користувачки 02.08.2026). Немає поля — не показуємо нічого. */
+  const fin  = s(r,"Кінцева точка доставки");
   const etd  = s(r,"ETD (факт)") || s(r,"ETD (план)"), etdF = !!s(r,"ETD (факт)");
   const eta  = s(r,"ETA порт (факт)") || s(r,"ETA"),   etaF = !!s(r,"ETA порт (факт)");
   const moveI = A ? "plane" : (R ? "train" : (modeOf(r) === "road" ? "truck" : "ship"));
@@ -338,9 +351,15 @@ function steps(r){
   /* ІМПОРТ */
   const car  = s(r,"Подача авто (факт)") || s(r,"Подача авто (план)") || s(r,"Гейт аут");
   const carF = !!(s(r,"Подача авто (факт)") || s(r,"Гейт аут"));
+  /* Вид наземного плеча беремо зі СТАТУСУ, якщо він прямо його називає, і лише
+     інакше — з «Вид перевезення». Причина (угода 239, 02.08.2026): трекінг
+     поставив «Завантажений на потяг», а в полі виду стояло «фрахт+ТЕО+авто»,
+     і схема малювала авто. Статус тут свіжіший за довідкове поле. */
+  const st = s(r,"Статус");
+  const byTrain = /потяг/i.test(st) ? true : (/на авто/i.test(st) ? false : R);
   const land = [];
-  land.push({ t: R ? "Завантажений на потяг" : "Завантажений на авто",
-              i: R ? "train" : "truck", d: car, f: carF, p:"" });
+  land.push({ t: byTrain ? "Завантажений на потяг" : "Завантажений на авто",
+              i: byTrain ? "train" : "truck", d: car, f: carF, p:"" });
   if (R || s(r,"ETA сухий порт"))
     land.push({ t:"Сухий порт", i:"crane", d:s(r,"ETA сухий порт"),
                 f:false, p:s(r,"Сухий порт") });
@@ -383,9 +402,17 @@ function routeHtml(r){
 
   const cells = [];
   st.forEach((x, i) => {
+    /* «КОРДОН» — не вузол маршруту, а роздільник між ділянками: тонка
+       пунктирна лінія з підписом, як у макеті користувачки (02.08.2026).
+       Кола з іконкою в нього немає. */
+    if (x.i === "border"){
+      cells.push(`<div class="brd"><div class="bln"></div>
+        <div class="blb">КОРДОН</div>
+        ${x.d ? `<div class="bld">${fmt(x.d)}</div>` : ""}</div>`);
+      return;
+    }
     if (i) cells.push(`<div class="cn ${state[i-1]==="done"?"on":""}"></div>`);
-    const border = x.i === "border";
-    cells.push(`<div class="nd ${state[i]} ${border?"brd":""}">
+    cells.push(`<div class="nd ${state[i]}">
       <div class="dot">${svg(x.i)}</div>
       <div class="ttl">${esc(x.t)}</div>
       ${x.p ? `<div class="place">${esc(x.p)}</div>` : ""}
@@ -398,13 +425,6 @@ function routeHtml(r){
 
   return `<div class="route" style="--mc:${P.c};--mbg:${P.bg}">
     <div class="chain">${cells.join("")}</div>
-    <div class="lgnd">
-      <span><i class="ln-solid"></i>виконано</span>
-      <span><i class="ln-dot"></i>у процесі</span>
-      <span><i class="ln-pale"></i>заплановано</span>
-      <span class="sp"></span>
-      ${Object.keys(MODE_PAL).map(k=>`<span><i class="sw" style="background:${MODE_PAL[k].c}"></i>${MODE_PAL[k].nm}</span>`).join("")}
-    </div>
   </div>`;
 }
 
@@ -544,6 +564,7 @@ def main():
 
     import datetime
     html = (TPL.replace("__LOGO__", logo())
+               .replace("__CLIENTFULL__", client_title(a.client))
                .replace("__CLIENT__", a.client)
                .replace("__TODAY__", datetime.date.today().isoformat())
                .replace("__DATA__", json.dumps(data, ensure_ascii=False)))
