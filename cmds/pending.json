@@ -1,1 +1,1 @@
-{"id": "why-vessel-4", "cmd": "timeout 100 python3 -u /root/why_no_vessel.py --limit 6 2>&1 | head -40"}
+{"id": "why-vessel-5", "cmd": "pgrep -af why_no_vessel >/dev/null && echo 'фоновий ще працює' || echo 'фоновий завершився'; wc -l /root/why_vessel.out; tail -22 /root/why_vessel.out"}
