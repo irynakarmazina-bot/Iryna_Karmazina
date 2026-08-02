@@ -1,14 +1,1 @@
-{"id": "findata-maersk-0802", "cmd": "( cp -n /root/findata.py /root/findata.py.bak-0802; python3 - <<'PY'
-import re
-p='/root/findata.py'
-s=open(p,encoding='utf-8').read()
-if 'maersk_payments' in s:
-    print('вже є')
-else:
-    s2=re.sub(r'(\"localcosts\":\s*\"local_costs\.json\",)', r'\\1\\n    \"maersk_payments\": \"maersk_payments.json\",', s, count=1)
-    if s2==s:
-        print('НЕ ЗНАЙШЛА куди вставити — нічого не міняла')
-    else:
-        open(p,'w',encoding='utf-8').write(s2); print('додано maersk_payments')
-PY
-echo '--- FILES тепер ---'; sed -n '8,20p' /root/findata.py; echo '--- сервіс ---'; systemctl list-units --type=service --all 2>/dev/null | grep -i 'findata\\|finrep' | head -5; systemctl restart findata 2>&1 | head -2; sleep 2; systemctl is-active findata ) 2>&1 | base64 -w0"}
+{"id": "findata-maersk-fix-0802", "cmd": "cp -n /root/findata.py /root/findata.py.bak-0802; python3 /root/patch_findata.py 2>&1 | head -5; echo '--- FILES ---'; sed -n '8,20p' /root/findata.py; echo '--- сервіс ---'; systemctl list-units --type=service --all | grep -i findata | head -3; systemctl restart findata 2>&1 | head -2; systemctl is-active findata"}
