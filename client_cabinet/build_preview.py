@@ -155,7 +155,11 @@ main{max-width:1560px;margin:0 auto;padding:24px 30px 70px}
 /* плитки — з кольоровими іконками, як на дашборді ЕРП */
 .tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:22px}
 .tile{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);
-  padding:16px 18px;box-shadow:var(--shadow);display:flex;align-items:center;gap:14px}
+  padding:16px 18px;box-shadow:var(--shadow);display:flex;align-items:center;gap:14px;
+  cursor:pointer;text-align:left;font:inherit;color:inherit;width:100%;
+  transition:border-color .12s,box-shadow .12s}
+.tile:hover{border-color:#c9c8bf}
+.tile.on{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
 .ic{width:42px;height:42px;border-radius:11px;display:flex;align-items:center;
   justify-content:center;flex:none}
 .ic svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:1.8;
@@ -622,11 +626,19 @@ function panel(r){
 
 /* ── таблиця ──────────────────────────────────────────── */
 let FILTER="act", Q="";
+/* Плитки зверху — це відбори, а не просто числа: клік по «доставлено» показує
+   таблицю доставлених, по «прибувають за 7 днів» — тільки їх, повторний клік
+   по тій самій плитці скидає відбір (прохання користувачки 02.08.2026). */
+const isSoon  = r => { const e=s(r,"ETA");
+  return !done(r) && !!e && e >= TODAY && e <= addDays(TODAY,7); };
+const hasDocs = r => (r._docs || []).length > 0;
 function visible(){
   const q=Q.toLowerCase();
   return DEALS.filter(r=>{
     if (FILTER==="act"  && done(r)) return false;
     if (FILTER==="done" && !done(r)) return false;
+    if (FILTER==="soon" && !isSoon(r)) return false;
+    if (FILTER==="docs" && !hasDocs(r)) return false;
     if (!q) return true;
     return ["Угода","BL","HBL","Контейнер","Судно","Маршрут"].some(k=>s(r,k).toLowerCase().includes(q));
   });
@@ -639,18 +651,21 @@ function stCls(r){ const x=s(r,"Статус");
 function render(){
   const rows = visible();
   const act = DEALS.filter(r=>!done(r));
-  const soon = act.filter(r=>{const e=s(r,"ETA"); return e && e>=TODAY && e<=addDays(TODAY,7);});
+  const soon = DEALS.filter(isSoon);
   const docs = DEALS.reduce((n,r)=>n+(r._docs||[]).length,0);
   const TICON =[["ship","ic-blue"],["port","ic-amber"],["box","ic-green"],["doc","ic-vio"]];
+  const TFILT =["act","soon","done","docs"];
   document.getElementById("tiles").innerHTML = [
     [act.length,"вантажів у дорозі"],
     [soon.length,"прибувають за 7 днів"],
     [DEALS.length-act.length,"доставлено"],
     [docs,"документів доступно"],
-  ].map(([n,l],i)=>`<div class="tile">
+  ].map(([n,l],i)=>`<button class="tile ${FILTER===TFILT[i]?"on":""}" data-f="${TFILT[i]}">
       <div class="ic ${TICON[i][1]}">${svg(TICON[i][0])}</div>
       <div><div class="n">${n}</div><div class="l">${l}</div></div>
-    </div>`).join("");
+    </button>`).join("");
+  // перемикач під пошуком завжди показує той самий відбір, що й плитки
+  document.querySelectorAll("#seg button").forEach(b=>b.classList.toggle("on", b.dataset.f===FILTER));
 
   document.getElementById("rows").innerHTML = rows.length ? rows.map(r=>{
     const conts = s(r,"Контейнер").split(",").map(x=>x.trim()).filter(Boolean);
@@ -686,6 +701,11 @@ function toggle(tr){
   e.className="exp"; e.innerHTML=`<td colspan="9">${panel(r)}</td>`;
   tr.after(e);
 }
+document.getElementById("tiles").addEventListener("click",e=>{
+  const t=e.target.closest(".tile"); if(!t) return;
+  FILTER = (FILTER === t.dataset.f) ? "all" : t.dataset.f;
+  render();
+});
 document.getElementById("q").addEventListener("input",e=>{Q=e.target.value;render();});
 document.getElementById("seg").addEventListener("click",e=>{
   const b=e.target.closest("button"); if(!b) return;
