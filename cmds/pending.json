@@ -1,1 +1,1 @@
-{"id": "check-deploy-and-status-0802", "cmd": "/root/deploy_ui.sh main --check 2>&1 | base64 -w0; echo; echo ---; tail -4 /root/direct-sync/sync.log 2>/dev/null | base64 -w0; echo; echo ---; ls /root/unitex-os-www/DEPLOYED.json /root/unitex-os-www/DEPLOY_LOG.tsv 2>&1 | head -3"}
+{"id": "first-real-deploy-0802", "cmd": "/root/deploy_ui.sh main 2>&1 | base64 -w0; echo; echo ---; cat /root/unitex-os-www/DEPLOYED.json | base64 -w0; echo; echo ---; cat /root/unitex-os-www/DEPLOY_LOG.tsv | base64 -w0; echo; echo ---; ls -1 /root/unitex-os-www/.backups/ | head"}
