@@ -1,7 +1,7 @@
 {
-  "stdout": "створено колонку «Переказ за кордон»\nстворено колонку «Дата переказу»\nстворено колонку «Сума переказу»\n",
+  "stdout": "#!/usr/bin/env python3\n# -*- coding: utf-8 -*-\n\"\"\"Тригер для залишків грошей. Порт 8791.\n\n/refresh — оновити залишки з Експедитора і перебудувати фінзвіт\n           (спершу синхронно рахуємо каси в normalized/cash_balances.csv,\n            потім у фоні запускаємо звичайний run.sh — так звіт бачить свіжу касу).\n/sheet   — ОКРЕМО ПО ЗАПИТУ: порахувати і вивантажити залишки в Google-таблицю\n           (аркуш «Імпорт_Залишки»). Працює синхронно й повертає підсумок.\n\nТокен той самий, що в фінзвітного тригера: /root/unitex-finrep/secure/trigger_token\nКлючі Google тут не зберігаються — запис у таблицю йде через n8n-проксі.\n\"\"\"\nimport http.server\nimport json\nimport socketserver\nimport subprocess\nimport urllib.parse\n\nPORT = 8791\nTOKEN = open(\"/root/unitex-finrep/secure/trigger_token\").read().strip()\nPY = \"/root/unitex-finrep/.venv/bin/python\"\nSCRIPT = \"/root/unitex-finrep/engine/cash_from_odata.py\"\nWORKDIR = \"/root/unitex-finrep\"\n\n",
   "stderr": "",
   "returncode": 0,
-  "id": "cols-1",
-  "ts": "2026-08-02T08:04:08Z"
+  "id": "recon-26",
+  "ts": "2026-08-02T08:05:54Z"
 }
