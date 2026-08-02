@@ -2102,11 +2102,124 @@ PAGES.crm = async () => {
       картка контакту, історія листування, нагадування, джерело клієнта.</div></div>`;
 };
 
+/* ===== БУХ. ОБЛІК → «Локальні витрати за кордоном» =====
+   Таблиця угод, у яких профіт більший за винагороду експедитора: різницю компанія
+   переказує за кордон як локальні витрати. Дані рахує finrep/local_costs.py з
+   Експедитора (OData) і кладе в computed/local_costs.json; сюди вони приходять через
+   /finrep-data?name=localcosts (та сама рольова перевірка, що й для фінзвітів). */
 PAGES.accounting = async () => {
   $("content").innerHTML = `<div class="card"><h3>🧾 Бухгалтерський облік</h3>
-    <p class="sub">первинні документи, акти, рахунки, звірки</p>
-    <div class="note">🛠 Розділ у розробці. Дані для нього вже є: рахунки клієнтам і постачальникам,
-      проводки з субконто, залишки по касах. Скажи, з чого почати.</div></div>`;
+    <p class="sub">локальні витрати за кордоном — угоди, де профіт більший за винагороду експедитора</p>
+    <div class="note">⏳ Рахую по кожній угоді…</div></div>`;
+  let js;
+  try { js = await fetchFin("localcosts"); }
+  catch(e){
+    $("content").innerHTML = `<div class="card"><h3>🧾 Бухгалтерський облік</h3>
+      <div class="note">⚠ Не вдалося отримати дані: ${esc(e.message)}</div></div>`;
+    return;
+  }
+  // /finrep-data віддає {file, mtime, data} — самі рядки лежать у .data
+  const d = js.data || {};
+  const rows = d.rows || [];
+  // Маршруту в Експедиторі немає (поля «Пункт відправлення/призначення» порожні в усіх
+  // угодах) — беремо його з таблиці диспетчеризації платформи за номером угоди.
+  // Звідти ж підстраховуємо коносамент і контейнер, якщо в Експедиторі порожньо.
+  try {
+    const byNum = new Map();
+    (await dispRows()).forEach(r => byNum.set(String(r["Угода"]||"").trim(), r));
+    rows.forEach(r => {
+      const p = byNum.get(String(r.num));
+      if (!p) return;
+      r.route = r.route || String(p["Маршрут"]||"").trim();
+      r.bl = r.bl || String(p["BL"]||"").trim();
+      r.cont = r.cont || String(p["Контейнер"]||"").trim();
+    });
+  } catch(e){ /* платформа недоступна — таблиця все одно показується */ }
+  const pos = rows.filter(r => r.diff > 0);
+  const stamp = js.mtime ? new Date(js.mtime*1000).toLocaleString("uk-UA",
+      {day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}) : "—";
+
+  $("page-actions").innerHTML = `<button class="btn ghost" id="lc-csv">⬇ Вивантажити в CSV</button>`;
+
+  $("content").innerHTML = `
+  <div class="card">
+    <h3>🌍 Локальні витрати за кордоном</h3>
+    <p class="sub">угоди зі статусами ${esc((d.statuses||[]).join(", "))} · дані з Експедитора станом на ${stamp}</p>
+    <div class="tiles" style="margin-top:12px">
+      <div class="tile tready"><div class="tbody"><div class="lbl">Угод із різницею</div>
+        <div class="val">${pos.length}</div><div class="hint">з ${rows.length} переглянутих</div></div></div>
+      <div class="tile tready"><div class="tbody"><div class="lbl">Разом до переказу</div>
+        <div class="val">${fmtN(pos.reduce((s,r)=>s+r.diff,0), 2)}</div><div class="hint">УО (USD-еквівалент)</div></div></div>
+      <div class="tile tready"><div class="tbody"><div class="lbl">Уже виділено в рахунках</div>
+        <div class="val">${fmtN(rows.reduce((s,r)=>s+(r.local_abroad||0),0), 2)}</div>
+        <div class="hint">стаття «Локальні витрати за кордоном»</div></div></div>
+    </div>
+    <div class="note" style="margin-top:12px">
+      <b>Як рахується:</b> профіт = усі доходні рахунки угоди мінус усі витратні (в УО, проведені,
+      без інформативних) — формула звірена з «Фактичним прибутком» Експедитора.
+      Винагорода = рядки доходних рахунків зі статтею «Винагорода експедитора».
+      ${(d.info_bank_guids||[]).length
+        ? `До профіту додано інфо та банківські комісії, якщо по угоді їх більше ${fmtN(d.info_min,0)} УО.`
+        : `⚠ Інфо та банківські комісії <b>поки не додані</b>: довідник статей Експедитора
+           не опублікований в API, чекаю підтвердження назв.`}
+      Різниця = профіт (+ інфо та комісії) − винагорода; типово показані тільки додатні.
+    </div>
+    <div class="filters" style="margin-top:12px">
+      <input id="lc-q" placeholder="пошук: угода, коносамент, контейнер, маршрут" style="min-width:280px">
+      <select id="lc-st"><option value="">Усі статуси</option>
+        ${[...new Set(rows.map(r=>r.status))].map(s=>`<option>${esc(s)}</option>`).join("")}</select>
+      <label style="display:flex;align-items:center;gap:6px;font-size:13px">
+        <input type="checkbox" id="lc-all"> показати й угоди без різниці</label>
+      <span id="lc-count" class="sub"></span>
+    </div>
+    <div id="lc-table"></div>
+  </div>`;
+
+  const visible = () => {
+    const q = ($("lc-q").value||"").trim().toLowerCase();
+    const st = $("lc-st").value;
+    const all = $("lc-all").checked;
+    return rows.filter(r => (all || r.diff > 0) && (!st || r.status === st) &&
+      (!q || [r.num,r.bl,r.cont,r.route].join(" ").toLowerCase().includes(q)));
+  };
+  const draw = () => {
+    const list = visible();
+    $("lc-count").textContent = `показано ${list.length} · різниця ${
+      list.reduce((s,r)=>s+r.diff,0).toLocaleString("uk-UA",{maximumFractionDigits:2})} УО`;
+    $("lc-table").innerHTML = finTable(
+      ["№ угоди","Статус","Коносамент","Контейнер","Маршрут","Оплата від клієнта",
+       "Профіт","Винагорода","Інфо+комісії","Різниця"],
+      list.map(r => `<tr>
+        <td class="mono">${esc(r.num)}</td>
+        <td>${esc(r.status)}</td>
+        <td class="mono">${esc(r.bl) || "<span class='sub'>—</span>"}</td>
+        <td class="mono">${esc(r.cont) || "<span class='sub'>—</span>"}</td>
+        <td>${esc(r.route) || "<span class='sub'>—</span>"}</td>
+        <td class="mono">${r.paid ? esc(r.paid.split("-").reverse().join(".")) : "<span class='sub'>не оплачено</span>"}</td>
+        <td style="text-align:right">${fmtN(r.profit,2)}</td>
+        <td style="text-align:right">${r.fee ? fmtN(r.fee,2) : "<span class='sub'>немає статті</span>"}</td>
+        <td style="text-align:right">${r.info_added ? fmtN(r.info_added,2)
+          : (r.info_bank ? `<span class="sub">${fmtN(r.info_bank,2)}</span>` : "")}</td>
+        <td style="text-align:right"><b>${fmtN(r.diff,2)}</b></td></tr>`));
+  };
+  ["lc-q","lc-st","lc-all"].forEach(id =>
+    $(id).addEventListener(id === "lc-q" ? "input" : "change", draw));
+  draw();
+
+  $("lc-csv").addEventListener("click", () => {
+    const head = ["Номер угоди","Статус","Коносамент лінійний","Контейнер","Маршрут",
+      "Дата оплати від клієнта","Профіт УО","Винагорода експедитора УО","Інфо+комісії УО",
+      "Різниця до переказу УО"];
+    const e2 = v => '"' + String(v==null?"":v).replace(/"/g,'""') + '"';
+    const csv = [head.map(e2).join(";")].concat(visible().map(r => [r.num,r.status,r.bl,r.cont,
+      r.route,r.paid,r.profit,r.fee,r.info_added,r.diff].map(e2).join(";"))).join("\r\n");
+    const blob = new Blob(["﻿"+csv], {type:"text/csv;charset=utf-8"});
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "lokalni-vytraty-za-kordonom.csv";
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(a.href), 3000);
+  });
 };
 
 PAGES.finance = async () => {
