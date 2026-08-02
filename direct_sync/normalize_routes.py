@@ -41,8 +41,11 @@ def nc(method, path, data=None):
 def all_rows():
     out, off = [], 0
     while True:
-        js = nc("GET", "/api/v2/tables/%s/records?limit=1000&offset=%d&fields=Id,Угода,%s"
-                % (TABLE, off, urllib.parse.quote(COL)))
+        # ВСІ назви колонок кирилицею — кодуємо весь параметр цілком,
+        # інакше NocoDB відповідає помилкою (перевірено 02.08.2026).
+        fields = urllib.parse.quote("Id,Угода," + COL, safe=",")
+        js = nc("GET", "/api/v2/tables/%s/records?limit=1000&offset=%d&fields=%s"
+                % (TABLE, off, fields))
         out += js.get("list", [])
         if js.get("pageInfo", {}).get("isLastPage"):
             return out
@@ -63,6 +66,7 @@ def main():
     ap.add_argument("--apply", action="store_true", help="записати зміни (інакше лише показати)")
     a = ap.parse_args()
 
+    print("=== НОРМАЛІЗАЦІЯ МАРШРУТІВ ===")
     rows = all_rows()
     changed = []
     for r in rows:
