@@ -1,7 +1,7 @@
 {
-  "stdout": "0 /root/why_vessel.out\n",
+  "stdout": "-rw-r--r-- 1 root root 0 Aug  2 10:24 /root/why_vessel.out\n284188 python3 /root/why_no_vessel.py\n284329 /bin/sh -c ls -l /root/why_vessel.out; pgrep -af why_no_vessel || echo 'процес не працює'; echo '--- пробуємо синхронно, 60 с ---'; timeout 90 python3 /root/why_no_vessel.py --limit 0 2>&1 | head -30\n--- пробуємо синхронно, 60 с ---\n",
   "stderr": "",
   "returncode": 0,
-  "id": "why-vessel-2",
-  "ts": "2026-08-02T07:25:34Z"
+  "id": "why-vessel-3",
+  "ts": "2026-08-02T07:27:32Z"
 }
