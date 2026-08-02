@@ -1,1 +1,1 @@
-{"id": "recon-2", "cmd": "cd /root/unitex-finrep/engine; wc -l odata_ingest.py odata_maps.py build_period_report.py odata_client.py; echo ===; grep -n 'Document_\\|Catalog_\\|ENTIT\\|entity' odata_ingest.py | head -60"}
+{"id": "recon-3", "cmd": "sed -n '75,175p' /root/unitex-finrep/engine/odata_ingest.py"}
