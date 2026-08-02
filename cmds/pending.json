@@ -1,1 +1,1 @@
-{"id": "recon-3", "cmd": "sed -n '75,175p' /root/unitex-finrep/engine/odata_ingest.py"}
+{"id": "recon-4", "cmd": "sed -n '95,112p' /root/unitex-finrep/engine/odata_ingest.py; echo ===CLIENT===; sed -n '1,80p' /root/unitex-finrep/engine/odata_client.py"}
