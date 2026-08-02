@@ -259,10 +259,10 @@ tr.exp>td{padding:0;background:var(--surface-2)}
 .cn.on{opacity:1}
 .nd .dot{width:72px;height:72px;margin:0 auto;border-radius:50%;
   background:var(--mbg);color:var(--mc);display:flex;align-items:center;justify-content:center}
-.nd .dot svg{width:34px;height:34px;stroke-width:1.9}
+.nd .dot svg{width:37px;height:37px;stroke-width:1.7}
 /* судно й літак — головне плече, тому крупніші за решту (02.08.2026) */
-.nd .dot.big svg{width:43px;height:43px}
-.nd.now .dot.big svg{width:48px;height:48px}
+.nd .dot.big svg{width:45px;height:45px}
+.nd.now .dot.big svg{width:50px;height:50px}
 /* Поточне місцезнаходження має бути видно ОДРАЗУ: кільце в колір виду
    перевезення + ореол + більший кружок. Раніше різниця була ледь помітна
    (зауваження користувачки 02.08.2026). */
@@ -271,7 +271,7 @@ tr.exp>td{padding:0;background:var(--surface-2)}
   border:2.5px solid var(--mc);
   box-shadow:0 0 0 6px color-mix(in srgb,var(--mc) 13%,transparent)}
 .nd.now .ttl{font-weight:800}
-.nd.now .dot svg{width:38px;height:38px;stroke-width:2.1}
+.nd.now .dot svg{width:41px;height:41px;stroke-width:1.8}
 /* Майбутні етапи лишаються в кольорі виду перевезення, лише блідіші —
    сірий робив схему «мертвою». Прозорість не використовуємо: від неї текст
    і малюнок сіріли (зауваження про тьмяність, 02.08.2026). */
@@ -394,52 +394,66 @@ const past = d => d && d <= TODAY;
    До цього були тонкі однотипні контури, де склад, кран і порт виглядали
    майже однаково — саме на це вона й вказала. */
 const I = {
- /* склад / стафіровка — будівля з колонами */
- warehouse:'<path d="M2.6 9.3 12 3.6l9.4 5.7"/><path d="M4.2 9.3h15.6"/>'
-          +'<path d="M6.1 11.6v7M9.4 11.6v7M12 11.6v7M14.6 11.6v7M17.9 11.6v7"/>'
-          +'<path d="M4.2 18.6h15.6"/><path d="M2.6 20.8h18.8"/>',
- /* митне оформлення на експорт — документ із печаткою-галочкою */
- customs:'<path d="M6.4 2.9h6.7l4.3 4.2v9.2"/><path d="M6.4 2.9v18.2h6.4"/>'
-        +'<path d="M13.1 2.9v4.2h4.3"/><path d="M9 9.6h4.6M9 12.4h3.2"/>'
-        +'<circle cx="17.2" cy="17.4" r="3.9"/><path d="M15.5 17.5l1.2 1.2 2.3-2.4"/>',
- /* імпортне митне оформлення — інспектор у кашкеті */
- officer:'<path d="M6.1 8.5h11.8"/><path d="M8.4 8.5a3.6 3.6 0 0 1 7.2 0"/>'
-        +'<circle cx="12" cy="13" r="2.9"/>'
-        +'<path d="M5.4 21.2c0-3.2 2.9-4.9 6.6-4.9s6.6 1.7 6.6 4.9"/>',
- /* портовий кран над контейнерами */
- crane:'<path d="M2.8 6.6h18.4"/><path d="M6.4 6.6v9.8M17.6 6.6v9.8"/>'
-      +'<path d="M12 6.6v3.3"/><path d="M9.5 9.9h5v3.4h-5z"/>'
-      +'<path d="M5.2 16.4h6.2v4.2H5.2z"/><path d="M13.2 17.6h5.6v3h-5.6z"/>'
-      +'<path d="M2.6 20.8h18.8"/>',
- /* судно на хвилях */
- ship:'<path d="M3.1 14.1h17.8l-2.6 4.2H5.7z"/><path d="M8.2 7.4h5.3v6.7H8.2z"/>'
-     +'<path d="M13.5 4.4h3.9l-3.9 2.5z"/><path d="M13.5 4.4v3"/>'
-     +'<path d="M2.4 20.6c1.6 0 1.6 1 3.2 1s1.6-1 3.2-1 1.6 1 3.2 1 1.6-1 3.2-1 1.6 1 3.2 1"/>',
- /* літак */
- plane:'<path d="M20.9 6.6a1.6 1.6 0 0 0-2.3-2.3l-3.9 3.9-8.1-2.4-1.5 1.5 6.3 4-3 3-3-.6-1.2 1.2 3.8 2.1 2.1 3.8 1.2-1.2-.6-3 3-3 4 6.3 1.5-1.5-2.4-8.1z"/>',
- /* потяг */
- train:'<path d="M6.2 4.2h11.6v10.2H6.2z"/><path d="M8.6 6.8h6.8v4.2H8.6z"/>'
-      +'<path d="M6.2 14.4l-2 3.6M17.8 14.4l2 3.6"/>'
-      +'<circle cx="9.1" cy="17.4" r="1.6"/><circle cx="14.9" cy="17.4" r="1.6"/>'
-      +'<path d="M2.6 20.9h18.8"/>',
- /* фура */
- truck:'<path d="M2.4 6.4h11.2v9.4H2.4z"/><path d="M13.6 9.8h3.5l3.4 3.2v2.8h-6.9z"/>'
-      +'<path d="M2.4 15.8h18.1"/>'
-      +'<circle cx="6.7" cy="18" r="2"/><circle cx="16.9" cy="18" r="2"/>',
- /* перевалка — два зустрічні контейнери-стрілки */
+ /* Стафіровка — МОРСЬКИЙ КОНТЕЙНЕР (не будівля!): корпус з верхньою і нижньою
+    обв'язкою та вертикальними ребрами. */
+ warehouse:'<rect x="2.6" y="6.4" width="18.8" height="11.2" rx="1.3"/>'
+          +'<path d="M2.6 9.3h18.8M2.6 14.7h18.8"/>'
+          +'<path d="M6.6 9.3v5.4M10.2 9.3v5.4M13.8 9.3v5.4M17.4 9.3v5.4"/>',
+ /* Митне оформлення — аркуш із загнутим кутом і ЗАЛИВНОЮ печаткою-галочкою */
+ customs:'<path d="M6.4 2.9h6.5l4.4 4.3v6.1"/>'
+        +'<path d="M17.3 15.6v4.6a1 1 0 0 1-1 1H6.4a1 1 0 0 1-1-1V3.9a1 1 0 0 1 1-1"/>'
+        +'<path d="M12.9 2.9v4.3h4.4"/><path d="M8.3 10.4h6.1M8.3 13h4.3"/>'
+        +'<circle cx="17.4" cy="17.4" r="4.2" fill="currentColor" stroke="none"/>'
+        +'<path d="M15.6 17.5l1.3 1.3 2.7-2.8" stroke="#fff" stroke-width="1.8"/>',
+ /* Імпортне митне оформлення — інспектор: ЗАЛИВНИЙ кашкет, обличчя й плечі контуром */
+ officer:'<path d="M5.9 8.1h12.2v1.7H5.9z" fill="currentColor" stroke="none"/>'
+        +'<path d="M8.2 8.1a3.8 3.8 0 0 1 7.6 0z" fill="currentColor" stroke="none"/>'
+        +'<circle cx="12" cy="13.2" r="2.9"/>'
+        +'<path d="M5.4 21.3c0-3.3 2.9-5 6.6-5s6.6 1.7 6.6 5"/>',
+ /* Порт — портовий кран зі стрілою і підвішеним контейнером */
+ crane:'<path d="M4.6 20.8V4.2"/><path d="M4.6 4.4 18.8 8.6"/>'
+      +'<path d="M15.6 7.6v3.2"/>'
+      +'<path d="M12.8 10.8h5.6v3.4h-5.6z" fill="currentColor" stroke="none"/>'
+      +'<path d="M6.4 16.4h6.2v4.4H6.4z" fill="currentColor" stroke="none"/>'
+      +'<path d="M2.4 20.8h19.2"/>',
+ /* В морі — ЗАЛИВНЕ контейнеровозне судно на хвилях */
+ ship:'<path d="M2.9 13.1h18.2l-2.2 4a1.1 1.1 0 0 1-1 .6H6.1a1.1 1.1 0 0 1-1-.6z"'
+     +' fill="currentColor" stroke="none"/>'
+     +'<path d="M7.1 7.1h4.2v5.3H7.1zM12 9.1h4.3v3.3H12z" fill="currentColor" stroke="none"/>'
+     +'<path d="M2.3 19.7c1.6 0 1.6 1.1 3.2 1.1s1.6-1.1 3.3-1.1 1.6 1.1 3.2 1.1'
+     +' 1.6-1.1 3.3-1.1 1.6 1.1 3.2 1.1"/>',
+ /* Літак — ЗАЛИВНИЙ силует */
+ plane:'<path d="M20.9 6.6a1.6 1.6 0 0 0-2.3-2.3l-3.9 3.9-8.1-2.4-1.5 1.5 6.3 4-3 3-3-.6-1.2 1.2'
+      +' 3.8 2.1 2.1 3.8 1.2-1.2-.6-3 3-3 4 6.3 1.5-1.5-2.4-8.1z"'
+      +' fill="currentColor" stroke="none"/>',
+ /* Фура — ЗАЛИВНИЙ фургон */
+ truck:'<path d="M2.2 6.7h10.6v9.1H2.2z" fill="currentColor" stroke="none"/>'
+      +'<path d="M13.6 10.1h3.3l3.4 3.3v2.4h-6.7z" fill="currentColor" stroke="none"/>'
+      +'<circle cx="6.5" cy="18.1" r="2.1" fill="currentColor" stroke="none"/>'
+      +'<circle cx="16.7" cy="18.1" r="2.1" fill="currentColor" stroke="none"/>',
+ /* Потяг — ЗАЛИВНИЙ локомотив із вікном */
+ train:'<path d="M6.1 4.1h11.8v10.3H6.1z" fill="currentColor" stroke="none"/>'
+      +'<path d="M8.5 6.7h7v4.3h-7z" fill="#fff" stroke="none"/>'
+      +'<path d="M6.1 14.4l-2.1 3.7M17.9 14.4l2.1 3.7"/>'
+      +'<circle cx="9.1" cy="17.5" r="1.7" fill="currentColor" stroke="none"/>'
+      +'<circle cx="14.9" cy="17.5" r="1.7" fill="currentColor" stroke="none"/>'
+      +'<path d="M2.5 20.9h19"/>',
+ /* Перевалка — два зустрічні напрямки */
  swap:'<path d="M3.4 8.6h14.2"/><path d="M14.6 5.4 17.8 8.6l-3.2 3.2"/>'
      +'<path d="M20.6 15.4H6.4"/><path d="M9.4 12.2 6.2 15.4l3.2 3.2"/>',
- /* доставлено — 3D-коробка */
- box:'<path d="M12 3.2 20.6 7.6v8.8L12 20.8 3.4 16.4V7.6z"/>'
-    +'<path d="M3.4 7.6 12 12l8.6-4.4"/><path d="M12 12v8.8"/>'
-    +'<path d="M7.7 5.4 16.3 9.8"/>',
- /* документ (список файлів у картці) */
+ /* Вантаж доставлено — ЗАЛИВНА коробка з видимими гранями */
+ box:'<path d="M12 2.8 21.1 7.5v9L12 21.2 2.9 16.5v-9z" fill="currentColor" stroke="none"/>'
+    +'<path d="M2.9 7.5 12 12.2l9.1-4.7M12 12.2v9" stroke="#fff" stroke-width="1.5"/>',
+ /* Документ у списку файлів */
  doc:'<path d="M6.5 3h7l4 4v14h-11z"/><path d="M13.5 3v4h4"/><path d="M9 12h6M9 16h6"/>',
  port:'<circle cx="12" cy="4.6" r="1.9"/><path d="M12 6.8V19.4"/><path d="M8.3 10h7.4"/>'
      +'<path d="M4.8 13.4a7.2 7.2 0 0 0 14.4 0"/>',
 };
+/* Кожна іконка сама вирішує, де заливка, а де контур: у макеті користувачки
+   судно, фура, коробка й літак — суцільні, а контейнер, кран і документ —
+   контурні. Тому загальні атрибути тут лише як типове значення. */
 const svg = (k, px) => `<svg viewBox="0 0 24 24" width="${px||21}" height="${px||21}" fill="none"
-  stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">${I[k]}</svg>`;
+  stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${I[k]}</svg>`;
 
 /* ── колір за видом перевезення (як у макеті користувачки) ──────────── */
 const MODE_PAL = {
