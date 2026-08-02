@@ -1,7 +1,7 @@
 {
-  "stdout": "index: 221063\nstamp: в. 02.08 04:43\npage-actions: 7\nUI 200\n",
+  "stdout": "версія: в. 02.08 04:45\nдодати користувача: 2\nзадати пароль: 2\nгенератор: 1\n",
   "stderr": "",
   "returncode": 0,
-  "id": "ui-topbar-live-0802",
-  "ts": "2026-08-02T04:43:46Z"
+  "id": "deploy-users",
+  "ts": "2026-08-02T04:46:09Z"
 }
