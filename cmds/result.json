@@ -1,7 +1,7 @@
 {
-  "stdout": "коносамент   заповнено 141 з 167 (84%)\nконтейнер    заповнено 150 з 167 (90%)\nмаршрут      заповнено   0 з 167 (0%)\nдата оплати  заповнено 166 з 167 (99%)\nвинагорода   заповнено 135 з 167 (81%)\n\nприклади маршрутів: []\nприклади без маршруту, №: ['5', '110', '45', '57', '58', '8', '35', '31', '144', '109', '19', '60']\n",
-  "stderr": "",
+  "stdout": "FILES доповнено\n16:    \"localcosts\": \"local_costs.json\",\nactive\n",
+  "stderr": "cp: warning: behavior of -n is non-portable and may change in future; use --update=none instead\n",
   "returncode": 0,
-  "id": "diag-8",
-  "ts": "2026-08-02T07:52:57Z"
+  "id": "deploy-1",
+  "ts": "2026-08-02T07:54:08Z"
 }
