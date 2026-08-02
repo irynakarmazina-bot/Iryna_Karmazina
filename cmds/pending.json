@@ -1,1 +1,1 @@
-{"id": "deploy-ui-6", "cmd": "bash /root/deploy_ui.sh main 2>&1 | tail -3 && echo -n 'мобільне меню у викладеній версії: ' && grep -c 'openMenu' /root/unitex-os-www/index.html"}
+{"id": "deploy-ui-7", "cmd": "bash /root/deploy_ui.sh main 2>&1 | tail -3 && echo -n 'картки в диспетчеризації: ' && grep -c 'ДИСПЕТЧЕРИЗАЦІЯ НА ТЕЛЕФОНІ' /root/unitex-os-www/index.html"}
