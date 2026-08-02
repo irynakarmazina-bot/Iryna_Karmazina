@@ -480,10 +480,11 @@ function steps(r){
        оформлення). У випадку перевезення на потягу — після стафіровки
        додається Сухий порт та потім Завантаження на потяг з датою.» */
     const pre = [
-      { k:"carauto", t:"Автоперевезення<br>та оформлення", i:"truck",
+      { k:"carauto", t:"Автоперевезення", i:"truck",
         d:s(r,"Подача авто (факт)") || s(r,"Подача авто (план)"),
         f:!!s(r,"Подача авто (факт)"), p:from },
-      { k:"stuff", t:"Стафіровка", i:"warehouse", d:s(r,"Stuffing"), f:true, p:from },
+      { k:"stuff", t:"Стафіровка<br>та оформлення", i:"warehouse",
+        d:s(r,"Stuffing"), f:true, p:from },
     ];
     if (byTrainX){
       pre.push({ k:"dry", t:"Сухий порт", i:"crane", d:s(r,"ETA сухий порт"),
