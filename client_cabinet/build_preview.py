@@ -39,6 +39,10 @@ CLIENT_COLS = [
     "Gate out for delivery", "На кордоні", "Перетин кордону (факт)",
     "Кінцева точка доставки", "Планова до клієнта (план)",
     "Планова до клієнта (факт)", "Вивантаження у отримувача (факт)",
+    # УВАГА: сюди йде лише «Коментар клієнту». Внутрішній «Коментар» (службові
+    # нотатки менеджерів) у кабінет НЕ передається — його немає в цьому списку,
+    # і додавати не можна.
+    "Коментар клієнту",
 ]
 # Документи, які бачить клієнт (префікс у назві файла). «Внутрішній» — не бачить.
 CLIENT_DOCS = ["Домашній коносамент", "Лінійний коносамент", "Т1", "Реліз", "ЦМР",
@@ -218,6 +222,9 @@ tbody tr:last-child td{border-bottom:0}
 .pill.ok{background:var(--pos-bg);color:var(--pos)}
 .pill.wait{background:var(--warn-bg);color:var(--warn)}
 .docn{display:inline-flex;align-items:center;gap:6px;color:var(--accent-ink);font-weight:600}
+/* Коментар — крайня права колонка. Джерело ТІЛЬКИ «Коментар клієнту»;
+   службові нотатки менеджерів у кабінет не потрапляють (02.08.2026). */
+th.cmt,td.cmt{width:230px;max-width:230px;white-space:normal;color:var(--ink-2);font-size:13px}
 
 /* ===== розгорнута картка угоди — за макетом ===== */
 tr.exp>td{padding:0;background:var(--surface-2)}
@@ -338,6 +345,7 @@ tr.exp>td{padding:0;background:var(--surface-2)}
       <thead><tr>
         <th>Угода</th><th></th><th>Маршрут</th><th>Коносамент / контейнер</th>
         <th>Судно</th><th>Відправлення</th><th>Прибуття</th><th>Статус</th><th>Документи</th>
+        <th class="cmt">Коментар</th>
       </tr></thead>
       <tbody id="rows"></tbody>
     </table>
@@ -726,8 +734,10 @@ function render(){
       <td class="mono">${s(r,"ETA")?`<span class="d">${fmt(s(r,"ETA"))}</span>`:'<span class="dim">—</span>'}</td>
       <td><span class="pill ${stCls(r)}">${esc(s(r,"Статус")||"—")}</span></td>
       <td>${nd?`<span class="docn">${svg("doc")}${nd}</span>`:'<span class="dim">—</span>'}</td>
+      <td class="cmt">${s(r,"Коментар клієнту")
+          ? esc(s(r,"Коментар клієнту")) : '<span class="dim">—</span>'}</td>
     </tr>`;
-  }).join("") : `<tr><td colspan="9" class="empty" style="padding:20px 12px">Нічого не знайдено.</td></tr>`;
+  }).join("") : `<tr><td colspan="10" class="empty" style="padding:20px 12px">Нічого не знайдено.</td></tr>`;
 
   document.querySelectorAll("tr.deal").forEach(tr=>tr.addEventListener("click",()=>toggle(tr)));
 }
@@ -740,7 +750,7 @@ function toggle(tr){
   tr.classList.add("open");
   const r = DEALS.find(d=>String(d["Угода"])===tr.dataset.id);
   const e = document.createElement("tr");
-  e.className="exp"; e.innerHTML=`<td colspan="9">${panel(r)}</td>`;
+  e.className="exp"; e.innerHTML=`<td colspan="10">${panel(r)}</td>`;
   tr.after(e);
 }
 document.getElementById("tiles").addEventListener("click",e=>{
