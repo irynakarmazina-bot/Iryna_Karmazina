@@ -342,6 +342,15 @@ const fmt = v => { const m=/(\d{4})-(\d{2})-(\d{2})/.exec(String(v||"")); return
 const fmtY = v => { const m=/(\d{4})-(\d{2})-(\d{2})/.exec(String(v||"")); return m?`${m[3]}.${m[2]}.${m[1]}`:""; };
 const fmtDM = v => { const m=/(\d{4})-(\d{2})-(\d{2})/.exec(String(v||"")); return m?`${m[3]}.${m[2]}`:""; };
 const esc = t => String(t==null?"":t).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+/* Маршрут завжди зі стрілочками, як би його не ввели в Експедиторі:
+   «Долина - Роттердам», «Долина -Роттердам», «Долина -> Роттердам» →
+   «Долина → Роттердам». Дефіс БЕЗ пробілів не чіпаємо, інакше зламається
+   «Порт-Саїд» (02.08.2026). Та сама логіка, що у фасаді. */
+const routeArrows = v => String(v == null ? "" : v)
+  .replace(/\s*(?:-->|->|→|—|–)\s*/g, " → ")
+  .replace(/\s+-\s*|\s*-\s+/g, " → ")
+  .replace(/\s*→\s*/g, " → ")
+  .replace(/\s{2,}/g, " ").trim();
 const air  = r => /авіа/i.test(s(r,"Вид перевезення"));
 const rail = r => /залізни/i.test(s(r,"Вид перевезення"));
 const done = r => s(r,"Статус")==="Вантаж доставлено";
@@ -435,7 +444,7 @@ const days = (a, b) => {
    ці кроки малюємо без дати, лише як етап. */
 function steps(r){
   const A = air(r), R = rail(r), imp = s(r,"Напрямок") !== "Експорт";
-  const route = s(r,"Маршрут").split(/→|->/).map(x=>x.trim()).filter(Boolean);
+  const route = routeArrows(s(r,"Маршрут")).split("→").map(x=>x.trim()).filter(Boolean);
   const from = route[0] || "", to = route.length > 1 ? route[1] : "";
   /* Кінцеву точку беремо ТІЛЬКИ з однойменного поля. Остання ланка «Маршруту»
      часто сухий порт (Мостиська), а не місце доставки — підставляти її не можна
@@ -567,7 +576,7 @@ function panel(r){
   const docs = (r._docs||[]);
   const P = pal(r), M = modeOf(r);
   const badge = {sea:"⚓", air:"✈", road:"🚚", rail:"🚆"}[M];
-  const route = s(r,"Маршрут").split(/→|->/).map(x=>x.trim()).filter(Boolean);
+  const route = routeArrows(s(r,"Маршрут")).split("→").map(x=>x.trim()).filter(Boolean);
   const dest  = s(r,"Кінцева точка доставки") || (route.length > 1 ? route[1] : "");
   /* Рядок деталей через крапки — як у макеті користувачки:
      FCL · 1×40' · Лінія · Судно / рейс · Контейнер */
@@ -661,7 +670,7 @@ function render(){
       <td class="mono num">${esc(s(r,"Угода"))}</td>
       <td><span class="chip ${s(r,"Напрямок")==="Експорт"?"exp":""}">${
           s(r,"Напрямок")==="Імпорт"?"ІМП":(s(r,"Напрямок")==="Експорт"?"ЕКС":"ТРН")}</span></td>
-      <td>${esc(s(r,"Маршрут")||"—")}</td>
+      <td>${esc(routeArrows(s(r,"Маршрут"))||"—")}</td>
       <td class="mono">${bl?`<b>${esc(bl)}</b>`:'<span class="dim">—</span>'}${
           conts.map(c=>`<br><span class="dim">${esc(c)}</span>`).join("")}</td>
       <td>${esc(s(r,"Судно")||"—")}</td>

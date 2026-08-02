@@ -590,7 +590,7 @@
       <div class="spacer"></div>
       <!-- Позначка версії: по ній видно, чи браузер підтягнув свіжу сторінку.
            Оновлюється автоматично при кожному викладенні (scripts/stamp.sh). -->
-      <div class="buildstamp" id="buildstamp" title="версія сторінки — якщо не збігається з тим, що я назвала, натисни Ctrl+F5">в. 02.08 08:21</div>
+      <div class="buildstamp" id="buildstamp" title="версія сторінки — якщо не збігається з тим, що я назвала, натисни Ctrl+F5">в. 02.08 08:23</div>
     </nav>
     <div class="main">
       <div class="topbar">
@@ -1554,7 +1554,7 @@ PAGES.dispatch = async () => {
         <td class="c-cli" title="${esc(r["Клієнт"]||"")}">${esc(cliName(r["Клієнт"])||"—")}</td>
         <td class="c-rt${ED}" data-ed="Маршрут" title="${esc(r["Маршрут"]||"")}">${
             _s(r,"Маршрут")
-              ? _s(r,"Маршрут").split(/→|->/).map(x=>x.trim()).filter(Boolean)
+              ? routeArrows(r["Маршрут"]).split("→").map(x=>x.trim()).filter(Boolean)
                   .map((x,i)=>`${i?'<span class="rtar">→</span>':""}${esc(x)}`).join("<br>")
               : '<span class="cell-muted">—</span>'}${
             _s(r,"Кінцева точка доставки")
@@ -2003,7 +2003,21 @@ async function logAction(action, obj, field, before, after){
   }catch(e){ /* журнал не критичний */ }
 }
 
+/* Маршрут завжди показуємо і зберігаємо зі стрілочками, як би його не ввели:
+   «Долина - Роттердам», «Долина -Роттердам», «Долина -> Роттердам», «Долина — Роттердам»
+   → «Долина → Роттердам». Дефіс БЕЗ пробілів не чіпаємо — інакше зламаються
+   назви на кшталт «Порт-Саїд» чи «Кам'янець-Подільський» (02.08.2026). */
+function routeArrows(v){
+  return String(v == null ? "" : v)
+    .replace(/\s*(?:-->|->|→|—|–)\s*/g, " → ")   // стрілки й довгі тире
+    .replace(/\s+-\s*|\s*-\s+/g, " → ")        // дефіс, у якого є пробіл хоча б з одного боку
+    .replace(/\s*→\s*/g, " → ")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+}
+
 async function saveField(row, col, val){
+  if (col === "Маршрут") val = routeArrows(val);   // зберігаємо вже нормалізовано
   const before = row[col];
   await api(`/api/v2/tables/${T["Диспетчеризація"]}/records`, {method:"PATCH",
     body: JSON.stringify([{Id: row.Id, [col]: val}])});
@@ -2016,6 +2030,7 @@ function cardVal(r, f){
   const v = r[f];
   if (v===null || v===undefined || v==="") return "—";
   if (CARD_DATE.test(f) && !CARD_SELECT[f]){ const d = fmtD(v); if (d) return d; }
+  if (f === "Маршрут") return routeArrows(v);
   return String(v);
 }
 
