@@ -1,7 +1,7 @@
 {
-  "stdout": "бекап зроблено\nauthcheck.py на місці\ncash_trigger.py оновлено\nсервіс: active\n\n=== ГОЛОВНА ПЕРЕВІРКА: чи закрита діра ===\n1) як стороння людина (лише токен Caddy, без входу): 401\n   відповідь: Цю дію можна запускати лише з платформи, після входу. Онови сторінку і спробуй ще раз.\n2) з підробленим ключем сесії: 401\n   відповідь: Сесія завершилась — увійди в платформу знову.\n\n=== лог сервісу ===\nAug 03 12:23:02 ubuntu-s-1vcpu-1gb-ams3 systemd[1]: Stopping cashtrigger.service - Unitex cash balances trigger (port 8791)...\nAug 03 12:23:02 ubuntu-s-1vcpu-1gb-ams3 systemd[1]: cashtrigger.service: Deactivated successfully.\nAug 03 12:23:02 ubuntu-s-1vcpu-1gb-ams3 systemd[1]: Stopped cashtrigger.service - Unitex cash balances trigger (port 8791).\nAug 03 12:23:02 ubuntu-s-1vcpu-1gb-ams3 systemd[1]: cashtrigger.service: Consumed 1.024s CPU time.\nAug 03 12:23:02 ubuntu-s-1vcpu-1gb-ams3 systemd[1]: Started cashtrigger.service - Unitex cash balances trigger (port 8791).\n",
+  "stdout": "усього угод: 267\nзі статусом «Вантаж доставлено»: 229\n\nусі статуси в базі:\n   Вантаж доставлено                  229\n   В морі                             21\n   Букінг                             5\n   Виконується                        4\n   Завантажений на потяг              3\n   Скасована                          2\n   Вивантажений в порту прибуття      1\n   Завантажений на авто               1\n   Стафіровка                         1\n\nостанні 5 доставлених:\n   угода 258    ІВІНГ                  ETA 2026-07-24\n   угода 209    ІВІНГ                  ETA 2026-07-24\n   угода 210    Деко Дизайн Плюс / Хім ETA 2026-07-22\n   угода 248    Мірандор               ETA 2026-07-19\n   угода 249    Мірандор               ETA 2026-07-19\n",
   "stderr": "",
   "returncode": 0,
-  "id": "auth-deploy-1",
-  "ts": "2026-08-03T09:23:04Z"
+  "id": "diag-done-1",
+  "ts": "2026-08-03T09:50:06Z"
 }
