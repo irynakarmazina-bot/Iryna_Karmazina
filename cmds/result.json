@@ -1,7 +1,7 @@
 {
-  "stdout": "CHECK_OK — фасад можна викладати\n   бекап: index-20260803-113445.html (273027 б)\n   бекап: findash-20260803-113445.html (28273 б)\n   бекап: finperiod-20260803-113445.html (17527 б)\n   бекап: cabinet-20260803-113445.html (325762 б)\n   копій, старших за 14 днів, немає — нічого не прибираю\n   усього копій у архіві: 14\n   журнал: 2026-08-03T11:34:45\tmain\t8747e6e66\tв. 03.08 08:34\tindex.html:279130 findash.html:28273 finperiod.html:17527\trelay: деплой фасада з виправленнями тихих помилок\n   UI 200  FINDASH 200\nDEPLOY_OK · гілка main · коміт 8747e6e66 · позначка «в. 03.08 08:34»\n--- перевірка викладеного ---\nfunction sysWarn                       1\nсервер відповів не даними 1\nДовідник клієнтів не завантажився 1\nНЕ ВИДНО позначок про 1\nfunction renderMaersk                  2\nfunction safeHtml                      1\nfunction num(v)                        1\n--- реле працює на новому коді? ---\nMon 2026-08-03 11:30:48 EEST\nстан черги збережено: -rw-r--r-- 1 root root 1624 Aug  3 11:33 /root/.cmd_runner_state.json\n",
+  "stdout": "=== сервіс cashtrigger ===\n{ path=/usr/bin/python3 ; argv[]=/usr/bin/python3 /root/cash_trigger.py ; ignore_errors=no ; start_time=[Sun 2026-08-02 11:06:31 EEST] ; stop_time=[n/a] ; pid=287084 ; code=(null) ; status=0/0 }\n\nactive\n=== усі копії cash_trigger.py на сервері ===\n/root/cash_trigger.py\n/root/Iryna_Karmazina/finrep/cash_trigger.py\n/root/cash_trigger.py.bak-localcosts\n=== хто слухає порт 8791 ===\nLISTEN 0      5          127.0.0.1:8791      0.0.0.0:*    users:((\"python3\",pid=287084,fd=3))                     \n=== що саме запускається (перші рядки ExecStart) ===\nExecStart=/usr/bin/python3 /root/cash_trigger.py\n=== чи збігається з репо ===\n/root/cash_trigger.py                         ЗБІГАЄТЬСЯ З РЕПО\n/root/Iryna_Karmazina/finrep/cash_trigger.py  ЗБІГАЄТЬСЯ З РЕПО\n=== що запускає run.sh ===\n/root/unitex-finrep/run.sh\n",
   "stderr": "",
   "returncode": 0,
-  "id": "deploy-ui-14",
-  "ts": "2026-08-03T08:34:46Z"
+  "id": "diag-cash-1",
+  "ts": "2026-08-03T08:45:58Z"
 }
