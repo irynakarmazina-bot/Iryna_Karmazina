@@ -1,13 +1,1 @@
-{"id": "nc-user-check-2", "cmd": "python3 -u -c \"
-import sqlite3
-c=sqlite3.connect('/root/nocodb-data/noco.db')
-tbl=[r[0] for r in c.execute(\\\"select name from sqlite_master where type='table' and (name like '%base_users%' or name like '%project_users%')\\\")]
-print('таблиці доступів:', tbl)
-for t in tbl:
-    cols=[x[1] for x in c.execute('PRAGMA table_info(%s)'%t)]
-    print('---',t,cols)
-    for row in c.execute('select * from %s'%t):
-        print('   ', dict(zip(cols,row)))
-users={r[0]:r[1] for r in c.execute('select id,email from nc_users_v2')}
-print('користувачі:', users)
-\" 2>&1 | head -30"}
+{"id": "nc-user-check-3", "cmd": "echo CmltcG9ydCBzcWxpdGUzCmMgPSBzcWxpdGUzLmNvbm5lY3QoIi9yb290L25vY29kYi1kYXRhL25vY28uZGIiKQp0YmwgPSBbclswXSBmb3IgciBpbiBjLmV4ZWN1dGUoInNlbGVjdCBuYW1lIGZyb20gc3FsaXRlX21hc3RlciB3aGVyZSB0eXBlPSd0YWJsZScgYW5kIChuYW1lIGxpa2UgJyViYXNlX3VzZXJzJScgb3IgbmFtZSBsaWtlICclcHJvamVjdF91c2VycyUnKSIpXQpwcmludCgi0YLQsNCx0LvQuNGG0ZYg0LTQvtGB0YLRg9C/0ZbQsjoiLCB0YmwpCnVzZXJzID0ge3JbMF06IHJbMV0gZm9yIHIgaW4gYy5leGVjdXRlKCJzZWxlY3QgaWQsZW1haWwgZnJvbSBuY191c2Vyc192MiIpfQpmb3IgdCBpbiB0Ymw6CiAgICBjb2xzID0gW3hbMV0gZm9yIHggaW4gYy5leGVjdXRlKCJQUkFHTUEgdGFibGVfaW5mbyglcykiICUgdCldCiAgICBwcmludCgiLS0tIiwgdCkKICAgIGZvciByb3cgaW4gYy5leGVjdXRlKCJzZWxlY3QgKiBmcm9tICVzIiAlIHQpOgogICAgICAgIGQgPSBkaWN0KHppcChjb2xzLCByb3cpKQogICAgICAgIHByaW50KCIgICAiLCB1c2Vycy5nZXQoZC5nZXQoImZrX3VzZXJfaWQiKSwgZC5nZXQoImZrX3VzZXJfaWQiKSksICLihpIg0YDQvtC70Ywg0YMg0LHQsNC30ZY6IiwgZC5nZXQoInJvbGVzIikpCg== | base64 -d > /root/chk.py && python3 -u /root/chk.py 2>&1 | head -20"}
