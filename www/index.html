@@ -689,7 +689,7 @@
       <div class="spacer"></div>
       <!-- Позначка версії: по ній видно, чи браузер підтягнув свіжу сторінку.
            Оновлюється автоматично при кожному викладенні (scripts/stamp.sh). -->
-      <div class="buildstamp" id="buildstamp" title="версія сторінки — якщо не збігається з тим, що я назвала, натисни Ctrl+F5">в. 03.08 09:13</div>
+      <div class="buildstamp" id="buildstamp" title="версія сторінки — якщо не збігається з тим, що я назвала, натисни Ctrl+F5">в. 03.08 10:19</div>
     </nav>
     <div class="main">
       <div class="topbar">
@@ -1568,7 +1568,14 @@ PAGES.dispatch = async () => {
     "На кордоні":9, "Вантаж доставлено":10};
   const _rank = r => { const v = ST_RANK[_s(r,"Статус")]; return v === undefined ? -1 : v; };
   all.sort((a,b)=>{
-    const ra = _done(a)?0:1, rb = _done(b)?0:1;
+    /* Доставлені — В КІНЕЦЬ. Було навпаки: вони стояли ПЕРШИМИ, і їх ховали
+       прокруткою «під шапку». Прокрутка не трималась (мала кількість рядків,
+       зміна фільтра), тому 02.08 їх згорнули під смужку — і 03.08.2026
+       користувачка не побачила 229 угод із 267: «в таблиці вказані не всі
+       перевезення». Вимога: «доставлені мають бути завжди в переліку, як і всі
+       інші, просто ховатися під шапку». Тепер вони просто останні в списку —
+       нічого не ховається і не згортається, достатньо прокрутити вниз. */
+    const ra = _done(a)?1:0, rb = _done(b)?1:0;
     if (ra !== rb) return ra - rb;
     const ea=_key(a), eb=_key(b);
     if (!ea && !eb) return (_rank(b) - _rank(a)) || (_num(a) - _num(b));
@@ -1781,7 +1788,6 @@ PAGES.dispatch = async () => {
   };
 
   let firstDraw = true;
-  let SHOW_DONE = false;              // доставлені за замовчуванням згорнуті
   const draw = (keep) => {
     const q=$("q").value.toLowerCase(), st=$("stf").value;
     const dir=$("dirf").value, line=$("linef").value, cli=$("clif").value;
@@ -1817,18 +1823,14 @@ PAGES.dispatch = async () => {
        коли рядків мало або коли фільтр змінювався (тричі поверталася до цього).
        Тепер вони фізично сховані, а над ними — смужка «Доставлені (N)». */
     const doneList = list.filter(_done), actList = list.filter(r=>!_done(r));
-    const shown = SHOW_DONE ? list : actList;
-    const bar = doneList.length
-      ? `<tr class="donebar"><td colspan="${logist?7:17}">
-           <button id="done-toggle" type="button">${SHOW_DONE?"▾":"▸"} Доставлені (${doneList.length})</button>
-         </td></tr>` : "";
+    const shown = list;               // доставлені завжди в переліку, просто внизу
+    const bar = "";
     /* Порожній екран має пояснювати САМ СЕБЕ, а не мовчати. Три різні випадки —
        три різні тексти, щоб не гадати, чи це збій, чи справді немає угод. */
     const emptyMsg = () => {
       if (!all.length)
         return "Угод у базі немає. Якщо це несподівано — натисни «⟳ Оновити з Експедитора».";
-      if (list.length && !shown.length)
-        return `Усі знайдені угоди (${list.length}) — доставлені. Натисни «Доставлені» вище, щоб їх показати.`;
+
       if (!activeF.length)
         return "Нічого не знайдено.";
       return `<b>Жодна угода не підходить одразу під усі увімкнені відбори.</b>
@@ -1933,8 +1935,7 @@ PAGES.dispatch = async () => {
     ft.textContent = (on ? "✕ Сховати фільтри" : "⚙ Фільтри");
   });
     markEmptyCells($("drows"));
-    const dt = $("done-toggle");
-    if (dt) dt.addEventListener("click", ()=>{ SHOW_DONE = !SHOW_DONE; draw(); });
+
     $("drows").querySelectorAll("tr[data-id]").forEach(tr=>tr.addEventListener("click",()=>openRow(all.find(x=>String(x.Id)===tr.dataset.id))));
     // клік по номеру відкриває трекінг лінії, а не картку угоди
     $("drows").querySelectorAll("a.tl").forEach(a=>a.addEventListener("click", e=>e.stopPropagation()));
@@ -1960,8 +1961,8 @@ PAGES.dispatch = async () => {
       if (keep){
         const tr = $("drows").querySelector('tr[data-id="' + keep.id + '"]');
         if (tr) box.scrollTop = Math.max(0, tr.offsetTop - keep.delta);
-      } else if (!SHOW_DONE){
-        box.scrollTop = 0;            // доставлені сховані — показуємо з початку
+      } else {
+        box.scrollTop = 0;            // зверху активні, доставлені — нижче за прокруткою
       }
       firstDraw = false;
     }
