@@ -261,5 +261,12 @@ def main():
           % (len(todo), len(patches), len(no_data), fails))
 
 
+# Замок «один запуск за раз» — див. direct_sync/runlock.py.
+# Таймер, кнопка на платформі і ручний запуск можуть накластися;
+# два паралельні прогони створюють дублікати угод у базі.
 if __name__ == "__main__":
-    main()
+    import os as _os, sys as _sys
+    _sys.path.insert(0, _os.path.dirname(_os.path.abspath(__file__)))
+    from runlock import single_run
+    with single_run("cosco"):
+        main()

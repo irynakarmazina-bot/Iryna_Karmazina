@@ -168,6 +168,16 @@
   .login-err{display:none;margin-top:12px;background:var(--crit-bg);color:var(--crit-text);
     border-radius:8px;padding:9px 12px;font-size:13.5px}
 
+  /* смуга системного попередження: пояснює, чому екран виглядає незвично
+     (напр. не вдалося визначити роль). Не зникає сама — лише по кнопці. */
+  #syswarn{display:none;align-items:flex-start;gap:10px;margin:0 0 12px;
+    background:var(--warn-bg);color:var(--warn-text);border-radius:8px;
+    padding:10px 12px;font-size:13.5px;line-height:1.45}
+  #syswarn span{flex:1}
+  #syswarn button{background:none;border:0;color:inherit;cursor:pointer;
+    font-size:15px;line-height:1;padding:2px 4px;opacity:.7}
+  #syswarn button:hover{opacity:1}
+
   /* палітро-перемикач */
   .pal-row{display:flex;align-items:center;gap:10px;margin-top:18px;padding-top:14px;border-top:1px solid var(--line-soft)}
   .pal-row .lbl{font-size:12.5px;color:var(--muted)}
@@ -691,6 +701,11 @@
         </div>
         <button class="btn ghost" id="logout">Вийти</button>
       </div>
+      <!-- Смуга системного попередження. На відміну від тосту, НЕ зникає сама:
+           повідомляє про збій, який впливає на те, що видно на екрані
+           (напр. не вдалося визначити роль). Ховається кнопкою або сама,
+           коли причина зникла. -->
+      <div id="syswarn" role="alert"></div>
       <div class="content" id="content"></div>
     </div>
   </div>
@@ -857,12 +872,25 @@ async function api(path, opts={}){
   if (JWT) h["xc-auth"] = JWT;
   const r = await fetch(path, Object.assign({}, opts, {headers:h}));
   if (r.status === 401){ doLogout(); throw new Error("сесія завершилась — увійди знову"); }
-  let js = null;
-  try { js = await r.json(); } catch(e){ js = null; }
+  /* Читаємо тіло ТЕКСТОМ і лише потім розбираємо. Було: `await r.json()` у
+     try/catch, а при невдачі — тихо `{}`. Через це відповідь «200 OK, але не
+     дані» (сторінка помилки від Caddy, обрив з'єднання, перезапуск NocoDB)
+     виглядала для сторінки як «даних немає» — порожня таблиця БЕЗ жодного
+     попередження. Перевірено 02.08.2026 у браузері: екран при битій відповіді
+     і при справді порожній базі був ІДЕНТИЧНИЙ, відрізнити неможливо.
+     Тепер: порожнє тіло — це нормально (так відповідають деякі записи),
+     а НЕ-порожнє і не-JSON — це збій, і про нього кажемо вголос. */
+  const raw = await r.text();
+  let js = null, parseFail = false;
+  if (raw.trim()){
+    try { js = JSON.parse(raw); } catch(e){ parseFail = true; }
+  }
   if (!r.ok){
     const m = (js && (js.msg || js.message || js.error)) || "";
     throw new Error((typeof m === "string" && m ? m : "помилка сервера") + " (HTTP " + r.status + ")");
   }
+  if (parseFail)
+    throw new Error("сервер відповів не даними — схоже, він перезапускається. Спробуй за хвилину");
   return js || {};
 }
 async function loadAll(table){
@@ -918,8 +946,11 @@ async function enter(){
     const meta = await api(`/api/v2/meta/bases/${BASE_ID}/tables`);
     (meta.list||[]).forEach(t=>{ T[t.title] = t.id; });
     if (T["Користувачі"]){
-      const u = await api(`/api/v2/tables/${T["Користувачі"]}/records?limit=100`);
-      const rec = (u.list||[]).find(x=>String(x["Email"]||"").toLowerCase() === em);
+      // loadAll, а не limit=100: у довіднику може стати більше 100 записів, і тоді
+      // співробітник просто не знайшовся б — роль тихо впала б до «Перегляд»,
+      // а перевірка «Активний» перестала б працювати. Без жодного попередження.
+      const list = await loadAll(T["Користувачі"]);
+      const rec = list.find(x=>String(x["Email"]||"").toLowerCase() === em);
       if (rec && rec["Активний"] === false){
         // доступ заблоковано адміністратором — не пускаємо взагалі, а не «тільки перегляд»
         doLogout();
@@ -938,7 +969,15 @@ async function enter(){
       }
       else ROLE = "Перегляд";
     }
-  } catch(e){ ROLE = "Перегляд"; }
+  } catch(e){
+    /* Було: тихо ROLE = "Перегляд". Адміністратор під час перезапуску бази
+       бачив «🔒 доступно лише фінансовим ролям» і думав, що їй забрали права.
+       Тепер роль так само знижується (щоб нічого не зламати випадковою дією),
+       але про причину сказано вголос, і видно, що це збій, а не рішення. */
+    ROLE = "Перегляд";
+    sysWarn("Не вдалося визначити твою роль (" + (e.message || "збій зв'язку") +
+            "). Тимчасово ввімкнено тільки перегляд — онови сторінку, коли зв'язок відновиться.");
+  }
   $("u-role").textContent = ROLE;
   logAction("вхід у платформу", "", "", "", "");
   buildNav();
@@ -1255,6 +1294,19 @@ const gateInMissing = r => _s(r,"Напрямок") === "Експорт" && !isD
   && !DEPARTED[_s(r,"Статус")] && !_s(r,"ETD (факт)");
 let toastTimer=null;
 function toast(m){ const t=$("toast"); t.textContent=m; t.style.display="block"; clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.style.display="none",4000); }
+/* Системне попередження — те, що НЕ можна показувати тостом на 4 секунди,
+   бо воно пояснює, чому екран виглядає не так, як зазвичай. Тримається, доки
+   не закриють. sysWarn("") прибирає смугу. */
+function sysWarn(msg){
+  const el = $("syswarn");
+  if (!el) return;
+  if (!msg){ el.innerHTML = ""; el.style.display = "none"; return; }
+  el.innerHTML = `<span>⚠ ${esc(msg)}</span>
+    <button type="button" id="syswarn-x" title="сховати">✕</button>`;
+  el.style.display = "flex";
+  const x = $("syswarn-x");
+  if (x) x.addEventListener("click", ()=>sysWarn(""));
+}
 
 /* ===== сторінки ===== */
 const PAGES = {};
@@ -2015,8 +2067,18 @@ let CLIENTS_CACHE = null;
 async function clientRec(name){
   if (!name) return {};
   if (!CLIENTS_CACHE){
-    try{ const js = await api(`/api/v2/tables/${T["Клієнти"]}/records?limit=200`); CLIENTS_CACHE = js.list || []; }
-    catch(e){ CLIENTS_CACHE = []; }
+    /* Було: при збої запису в кеш клали ПОРОЖНІЙ список — і він там залишався
+       до перезавантаження сторінки. Тобто один випадковий збій мережі означав,
+       що ВСІ документи до кінця дня формувались без реквізитів клієнта
+       (номер договору, ЄДРПОУ, директор), і ніхто про це не знав.
+       Тепер: кеш не псуємо, кажемо вголос і даємо наступній спробі спрацювати.
+       loadAll замість limit=200 — щоб клієнти не обрізались мовчки. */
+    try{ CLIENTS_CACHE = await loadAll(T["Клієнти"]); }
+    catch(e){
+      sysWarn("Довідник клієнтів не завантажився (" + (e.message || "збій зв'язку") +
+              "). Реквізити в документах будуть порожні — онови сторінку перед тим, як їх формувати.");
+      return {};
+    }
   }
   const n = String(name).trim();
   return CLIENTS_CACHE.find(c=>Object.values(c).some(v=>typeof v==="string" && v.trim()===n)) || {};
@@ -2415,7 +2477,15 @@ PAGES.accounting = async () => {
       r.sentDate = String(p["Дата переказу"]||"").slice(0,10);
       r.sentAmt = p["Сума переказу"];
     });
-  } catch(e){ /* платформа недоступна — таблиця все одно показується */ }
+  } catch(e){
+    /* Було: помилка мовчки ковталась, і таблиця показувалась так, ніби переказів
+       не було ЖОДНОГО — плитка «Уже переказано» давала 0, а в колонці стояло
+       «цієї угоди немає в таблиці». Бухгалтер міг зробити повторний переказ.
+       Тепер кажемо прямо: цифри неповні, і чому. */
+    sysWarn("Дані диспетчеризації не завантажились (" + (e.message || "збій зв'язку") +
+            "). У таблиці немає маршрутів і, найважливіше, НЕ ВИДНО позначок про " +
+            "вже зроблені перекази — не орієнтуйся на них, поки не оновиш сторінку.");
+  }
   const pos = rows.filter(r => r.diff > 0);
   const stamp = js.mtime ? new Date(js.mtime*1000).toLocaleString("uk-UA",
       {day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}) : "—";
