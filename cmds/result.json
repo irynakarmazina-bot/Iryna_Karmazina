@@ -1,7 +1,7 @@
 {
-  "stdout": "таблиці доступів: ['nc_base_users_v2']\n--- nc_base_users_v2\n    irynakarmazina@gmail.com → роль у базі: owner\n    v.pontus@unitex.od.ua → роль у базі: editor\n",
+  "stdout": "=== SMTP у NocoDB (для «Забули пароль») ===\n(порожньо = пошта не налаштована)\n",
   "stderr": "",
   "returncode": 0,
-  "id": "nc-user-check-3",
-  "ts": "2026-08-03T10:02:19Z"
+  "id": "smtp-check-1",
+  "ts": "2026-08-03T10:02:52Z"
 }
