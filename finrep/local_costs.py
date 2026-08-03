@@ -256,8 +256,16 @@ def main():
                 "statuses": [STATUS_UK.get(s, s) for s in STATUSES],
                 "skipped": dict(skipped), "screened": len(deals),
                 "total_diff": round(sum(r["diff"] for r in pos), 2), "count": len(pos)}
-        with open(OUT, "w", encoding="utf-8") as fh:
+        # Пишемо в тимчасовий файл поруч і лише потім підміняємо одним рухом.
+        # Інакше обрив посеред запису (або читання сторінкою в цю саму мить)
+        # давав би наполовину записаний JSON — сторінка «Бух. облік» показала б
+        # порожнечу або впала, і причина була б незрозуміла.
+        tmp = OUT + ".tmp"
+        with open(tmp, "w", encoding="utf-8") as fh:
             json.dump(data, fh, ensure_ascii=False)
+            fh.flush()
+            os.fsync(fh.fileno())
+        os.replace(tmp, OUT)
         print("записано:", OUT)
 
 

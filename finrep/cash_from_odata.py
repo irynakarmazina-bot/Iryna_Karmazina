@@ -157,11 +157,18 @@ def write_csv(rows, dry):
         bak = CSV_PATH + ".bak-" + datetime.datetime.now().strftime("%Y%m%d-%H%M")
         shutil.copy2(CSV_PATH, bak)
         log("Копія попереднього CSV: %s" % os.path.basename(bak))
-    with open(CSV_PATH, "w", encoding="utf-8", newline="") as f:
+    # Атомарний запис: спершу тимчасовий файл поруч, потім підміна одним рухом.
+    # Раніше обрив посеред запису лишав би обрізаний CSV, а звіт прочитав би
+    # неповні залишки кас і показав неправдиві цифри — мовчки.
+    tmp_csv = CSV_PATH + ".tmp"
+    with open(tmp_csv, "w", encoding="utf-8", newline="") as f:
         w = csv.writer(f)
         w.writerow(["cash_name", "currency", "amount", "amount_uo"])
         for nm, cu, a, u in rows:
             w.writerow([nm, cu, "%.2f" % a, "%.2f" % u])
+        f.flush()
+        os.fsync(f.fileno())
+    os.replace(tmp_csv, CSV_PATH)
     log("CSV оновлено: %s (%d кас)" % (CSV_PATH, len(rows)))
 
 

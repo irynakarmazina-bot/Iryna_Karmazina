@@ -11,8 +11,12 @@
 Токен той самий, що в фінзвітного тригера: /root/unitex-finrep/secure/trigger_token
 Ключі Google тут не зберігаються — запис у таблицю йде через n8n-проксі.
 """
+import contextlib
+import errno
+import fcntl
 import http.server
 import json
+import os
 import socketserver
 import subprocess
 import urllib.parse
@@ -23,6 +27,43 @@ PY = "/root/unitex-finrep/.venv/bin/python"
 SCRIPT = "/root/unitex-finrep/engine/cash_from_odata.py"
 LOCALCOSTS = "/root/unitex-finrep/engine/local_costs.py"
 WORKDIR = "/root/unitex-finrep"
+RUN_QUEUED = "/root/unitex-finrep/run_queued.sh"
+LOCK_DIR = os.environ.get("RUNLOCK_DIR", "/var/lock")
+
+
+class Busy(Exception):
+    """Таке саме завдання вже виконується."""
+
+
+@contextlib.contextmanager
+def only_one(name):
+    """Замок «це завдання виконується лише в одному екземплярі».
+
+    Навіщо (рішення користувачки 03.08.2026): кнопки «⟳ Підтягнути свіжі дані» і
+    «⟳ Перерахувати з Експедитора» раніше запускали розрахунок на КОЖНЕ натискання.
+    Подвійний клік або клік під час нічного перерахунку = два процеси пишуть в одні
+    й ті самі файли (normalized/*, computed/*), і звіт може прочитати наполовину
+    перезаписані дані. Тепер друге натискання отримує чесне «вже виконується».
+    """
+    path = os.path.join(LOCK_DIR, "unitex-%s.lock" % name)
+    try:
+        os.makedirs(LOCK_DIR, exist_ok=True)
+    except OSError as e:
+        if e.errno != errno.EEXIST:
+            raise
+    fh = open(path, "w")
+    try:
+        try:
+            fcntl.flock(fh, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError:
+            raise Busy(name)
+        fh.write("%d\n" % os.getpid())
+        fh.flush()
+        yield
+    finally:
+        with contextlib.suppress(Exception):
+            fcntl.flock(fh, fcntl.LOCK_UN)
+        fh.close()
 
 
 def run(args, timeout, script=None):
@@ -45,36 +86,49 @@ class H(http.server.BaseHTTPRequestHandler):
         if params.get("token", [""])[0] != TOKEN:
             return self._send(403, {"error": "forbidden"})
 
-        if q.path == "/refresh":
-            try:
-                rc, out = run(["--csv"], 600)
-            except subprocess.TimeoutExpired:
-                return self._send(504, {"error": "Експедитор не відповів за 10 хв"})
-            if rc != 0:
-                return self._send(500, {"error": "не вдалося порахувати каси", "log": out[-1200:]})
-            subprocess.Popen(["/bin/bash", "/root/unitex-finrep/run.sh"])
-            line = [x for x in out.splitlines() if x.startswith("CASH_OK")]
-            return self._send(200, {"status": "started", "cash": line[0] if line else "", "log": out[-1500:]})
+        try:
+            if q.path == "/refresh":
+                with only_one("cash"):
+                    try:
+                        rc, out = run(["--csv"], 600)
+                    except subprocess.TimeoutExpired:
+                        return self._send(504, {"error": "Експедитор не відповів за 10 хв"})
+                    if rc != 0:
+                        return self._send(500, {"error": "не вдалося порахувати каси", "log": out[-1200:]})
+                # Перебудова звіту йде ЧЕРЕЗ ЧЕРГУ (finrep/run_queued.sh): один
+                # перерахунок виконується, максимум один чекає, зайві натискання
+                # відсіюються. Раніше кожен клік стартував ще один run.sh поверх
+                # попереднього — і вони писали в одні й ті самі файли.
+                subprocess.Popen(["/bin/bash", RUN_QUEUED])
+                line = [x for x in out.splitlines() if x.startswith("CASH_OK")]
+                return self._send(200, {"status": "started", "cash": line[0] if line else "", "log": out[-1500:]})
 
-        # локальні витрати за кордоном — перерахунок за кнопкою в «Бух. обліку»
-        if q.path == "/localcosts":
-            try:
-                rc, out = run([], 600, LOCALCOSTS)
-            except subprocess.TimeoutExpired:
-                return self._send(504, {"error": "Експедитор не відповів за 10 хв"})
-            if rc != 0:
-                return self._send(500, {"error": "не вдалося порахувати", "log": out[-1200:]})
-            return self._send(200, {"status": "ok", "log": out[-1500:]})
+            # локальні витрати за кордоном — перерахунок за кнопкою в «Бух. обліку»
+            if q.path == "/localcosts":
+                with only_one("localcosts"):
+                    try:
+                        rc, out = run([], 600, LOCALCOSTS)
+                    except subprocess.TimeoutExpired:
+                        return self._send(504, {"error": "Експедитор не відповів за 10 хв"})
+                    if rc != 0:
+                        return self._send(500, {"error": "не вдалося порахувати", "log": out[-1200:]})
+                    return self._send(200, {"status": "ok", "log": out[-1500:]})
 
-        if q.path == "/sheet":
-            try:
-                rc, out = run(["--csv", "--sheet"], 600)
-            except subprocess.TimeoutExpired:
-                return self._send(504, {"error": "не вклалися за 10 хв"})
-            if rc != 0:
-                return self._send(500, {"error": "не вдалося вивантажити", "log": out[-1200:]})
-            line = [x for x in out.splitlines() if x.startswith("CASH_OK")]
-            return self._send(200, {"status": "ok", "cash": line[0] if line else "", "log": out[-1500:]})
+            if q.path == "/sheet":
+                with only_one("cash"):
+                    try:
+                        rc, out = run(["--csv", "--sheet"], 600)
+                    except subprocess.TimeoutExpired:
+                        return self._send(504, {"error": "не вклалися за 10 хв"})
+                    if rc != 0:
+                        return self._send(500, {"error": "не вдалося вивантажити", "log": out[-1200:]})
+                    line = [x for x in out.splitlines() if x.startswith("CASH_OK")]
+                    return self._send(200, {"status": "ok", "cash": line[0] if line else "", "log": out[-1500:]})
+        except Busy as b:
+            # 409 = «конфлікт»: не помилка, а «зачекай, це вже рахується»
+            return self._send(409, {"status": "busy", "task": str(b),
+                                    "error": "Це вже виконується — зачекай, поки завершиться, "
+                                             "і онови сторінку. Другий раз запускати не треба."})
 
         return self._send(404, {"error": "not found"})
 
@@ -82,6 +136,14 @@ class H(http.server.BaseHTTPRequestHandler):
         pass
 
 
-socketserver.TCPServer.allow_reuse_address = True
-with socketserver.TCPServer(("127.0.0.1", PORT), H) as httpd:
+# ThreadingTCPServer, а не TCPServer: сервер однопотоковий вішав УСІ запити на час
+# розрахунку (до 10 хв), і навіть швидка перевірка стану не проходила — виглядало
+# як «платформа зависла». Від паралельних розрахунків захищають замки вище, а не
+# однопотоковість. daemon_threads — щоб перезапуск сервісу не чекав на робочі потоки.
+class Server(socketserver.ThreadingTCPServer):
+    allow_reuse_address = True
+    daemon_threads = True
+
+
+with Server(("127.0.0.1", PORT), H) as httpd:
     httpd.serve_forever()
