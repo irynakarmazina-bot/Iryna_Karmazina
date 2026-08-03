@@ -1,7 +1,7 @@
 {
-  "stdout": "бекап cash_trigger\nскопійовано cash_trigger.py\nскопійовано run_queued.sh\nскопійовано local_costs.py\nскопійовано cash_from_odata.py\nсервіс: active\nслухає 8791: 1\n--- звірка з репо ---\ncash_trigger ЗБІГАЄТЬСЯ\nlocal_costs ЗБІГАЄТЬСЯ\ncash_from_odata ЗБІГАЄТЬСЯ\n",
+  "stdout": "=== 1. перше натискання (у фоні) + друге через 2 с ===\nперше: 200\nдруге (під час першого): 200\n  текст: ok\n=== 2. чекаємо завершення першого ===\n  перше завершилось: ok\n=== 3. замки на місці ===\n   /var/lock/unitex-localcosts.lock\n   /var/lock/unitex-maersk.lock\n=== 4. атомарний запис: тимчасових файлів не лишилось ===\n  чисто\n",
   "stderr": "",
   "returncode": 0,
-  "id": "cash-deploy-1",
-  "ts": "2026-08-03T08:55:53Z"
+  "id": "cash-verify-1",
+  "ts": "2026-08-03T08:57:54Z"
 }
