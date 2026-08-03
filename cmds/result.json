@@ -1,7 +1,7 @@
 {
-  "stdout": "   журнал: 2026-08-03T13:24:05\tmain\t10527bdfa\tв. 03.08 10:23\tindex.html:282423 findash.html:28273 finperiod.html:17527\trelay: деплой — доставлені вгорі під шапкою\n   UI 200  FINDASH 200\nDEPLOY_OK · гілка main · коміт 10527bdfa · позначка «в. 03.08 10:23»\nпозначка: в. 03.08 10:23\n",
+  "stdout": "   журнал: 2026-08-03T13:32:11\tmain\tdac32d08d\tв. 03.08 10:32\tindex.html:285675 findash.html:28273 finperiod.html:17527\trelay: деплой — підпис під кнопками оновлення\n   UI 200  FINDASH 200\nDEPLOY_OK · гілка main · коміт dac32d08d · позначка «в. 03.08 10:32»\nпозначка: в. 03.08 10:32\nпідпис під кнопкою: 1\n",
   "stderr": "",
   "returncode": 0,
-  "id": "deploy-ui-17",
-  "ts": "2026-08-03T10:24:05Z"
+  "id": "deploy-ui-18",
+  "ts": "2026-08-03T10:32:11Z"
 }
