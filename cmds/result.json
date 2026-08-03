@@ -1,7 +1,7 @@
 {
-  "stdout": "репо оновлено\nбекап maersk_track_sync.py\nбекап expeditor_direct_sync.py\nбекап cosco_track_sync.py\nскопійовано maersk_track_sync.py\nскопійовано expeditor_direct_sync.py\nскопійовано cosco_track_sync.py\nскопійовано runlock.py\n--- звірка ---\nmaersk_track_sync.py           ЗБІГАЄТЬСЯ\nexpeditor_direct_sync.py       ЗБІГАЄТЬСЯ\ncosco_track_sync.py            ЗБІГАЄТЬСЯ\nrunlock.py                     ЗБІГАЄТЬСЯ\nНапрямок у READ_FIELDS на сервері: 4\n",
+  "stdout": "=== 1. пробний прогін Maersk (без запису) ===\n[dry-run] Без коносамента і без номера контейнера — не трекаються: 29\n[dry-run] Пропущено скасованих в Експедиторі: 1\n[dry-run] Угод для трекінгу: 3 (усього в платформі 267)\n[dry-run] Токен Maersk отримано\n[dry-run] Оновити угод: 0; без даних: 2; помилки: 0\n[dry-run] Без даних у Maersk: угода 250/272050345(404 немає даних), угода 251/274014640(404 немає даних)\n[dry-run] Контейнер іншої лінії — Maersk його не бачить (1): угода 246/MSBU7836715\nMAERSK_DRY tracked=3 would_update=0\n=== 2. чи бачить скрипт Напрямок ===\nугод усього: 267 | з полем Напрямок: 267\nекспортних: 20\n=== 3. замок працює? два запуски одночасно ===\nВЖЕ ВИКОНУЄТЬСЯ: інший запуск «maersk» ще працює (/var/lock/unitex-maersk.lock). Цей запуск пропускаю — це не помилка.\n--- перший завершився: ---\n[dry-run] Пропущено скасованих в Експедиторі: 1\n[dry-run] Угод для трекінгу: 1 (усього в платформі 267)\n[dry-run] Токен Maersk отримано\n",
   "stderr": "",
   "returncode": 0,
-  "id": "sync-copy-1",
-  "ts": "2026-08-03T08:31:43Z"
+  "id": "sync-verify-1",
+  "ts": "2026-08-03T08:33:21Z"
 }
