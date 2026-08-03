@@ -274,8 +274,22 @@ def parse_events(events, row, today_iso, statuses=frozenset()):
         out["Звірка"] = ""          # розбіжність зникла — прибираємо стару позначку
 
     ves = sorted([e for e in events if (e.get("transportCall") or {}).get("modeOfTransport") == "VESSEL"], key=_dt)
-    arr = sorted([e for e in events if e.get("transportEventTypeCode") == "ARRI"
-                  or e.get("equipmentEventTypeCode") == "ARRI"], key=_dt)
+    # «ETA порт» — це прибуття в ПОРТ, тобто подія МОРСЬКОГО плеча.
+    # Було: бралась остання подія ARRI будь-яким транспортом. Для угод із
+    # залізничним плечем після порту це давало дату прибуття ПОТЯГА.
+    # Приклад 03.08.2026, угода 236 (Chennai → Gdansk → Мостиська):
+    #   2026-08-01 ARRI ACT  VESSEL  Gdansk Baltic HUB   ← справжнє прибуття в порт
+    #   2026-08-08 ARRI EST  RAIL    Мостиська           ← бралось помилково
+    # У платформі стояло 08.08 (прогноз по залізниці), а закреслене «було
+    # 01.08» було насправді ПРАВИЛЬНОЮ датою. Статус при цьому був вірний,
+    # бо він рахується лише з фактичних подій.
+    # Якщо морських подій немає взагалі (суто залізнична відправка) —
+    # поводимось як раніше і беремо останню ARRI, щоб не втратити дату.
+    arr_all = sorted([e for e in events if e.get("transportEventTypeCode") == "ARRI"
+                      or e.get("equipmentEventTypeCode") == "ARRI"], key=_dt)
+    arr_ves = [e for e in arr_all
+               if (e.get("transportCall") or {}).get("modeOfTransport") == "VESSEL"]
+    arr = arr_ves or arr_all
     last_arr = arr[-1] if arr else None
 
     eta_iso, actual = "", False
