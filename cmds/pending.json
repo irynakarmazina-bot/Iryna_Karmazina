@@ -1,1 +1,13 @@
-{"id": "nc-user-check-1", "cmd": "echo '=== 1. чи пускає API-токен до керування користувачами ==='; curl -s -o /tmp/u.json -w '%{http_code}\\n' -H \"xc-token: $(cat /root/nocodb-token.txt)\" http://localhost:8080/api/v1/users; head -c 200 /tmp/u.json; echo; echo '=== 2. де база NocoDB ==='; ls -la /root/nocodb 2>/dev/null | head -5; find /root -maxdepth 3 -name 'noco.db' 2>/dev/null | head -3; echo '=== 3. чи є акаунт v.pontus (лише наявність, без паролів) ==='; DB=$(find /root -maxdepth 4 -name 'noco.db' 2>/dev/null | head -1); if [ -n \"$DB\" ]; then python3 -c \"import sqlite3,sys;c=sqlite3.connect(sys.argv[1]);print([r for r in c.execute(\\\"select email, roles, invite_token is not null from nc_users_v2\\\")])\" \"$DB\"; else echo 'файл бази не знайдено'; fi"}
+{"id": "nc-user-check-2", "cmd": "python3 -u -c \"
+import sqlite3
+c=sqlite3.connect('/root/nocodb-data/noco.db')
+tbl=[r[0] for r in c.execute(\\\"select name from sqlite_master where type='table' and (name like '%base_users%' or name like '%project_users%')\\\")]
+print('таблиці доступів:', tbl)
+for t in tbl:
+    cols=[x[1] for x in c.execute('PRAGMA table_info(%s)'%t)]
+    print('---',t,cols)
+    for row in c.execute('select * from %s'%t):
+        print('   ', dict(zip(cols,row)))
+users={r[0]:r[1] for r in c.execute('select id,email from nc_users_v2')}
+print('користувачі:', users)
+\" 2>&1 | head -30"}
