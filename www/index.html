@@ -689,7 +689,7 @@
       <div class="spacer"></div>
       <!-- Позначка версії: по ній видно, чи браузер підтягнув свіжу сторінку.
            Оновлюється автоматично при кожному викладенні (scripts/stamp.sh). -->
-      <div class="buildstamp" id="buildstamp" title="версія сторінки — якщо не збігається з тим, що я назвала, натисни Ctrl+F5">в. 03.08 10:23</div>
+      <div class="buildstamp" id="buildstamp" title="версія сторінки — якщо не збігається з тим, що я назвала, натисни Ctrl+F5">в. 03.08 10:32</div>
     </nav>
     <div class="main">
       <div class="topbar">
@@ -898,6 +898,31 @@ async function api(path, opts={}){
    підставляв службовий токен — тобто їх міг смикати будь-хто, хто знає адресу
    сайту, навіть не входячи в платформу. Тепер надсилаємо свій ключ, і сервер
    перевіряє роль. Помилки доступу показуємо людською мовою. */
+/* Підпис під кнопкою оновлення: що і коли сталося. Вимога користувачки
+   03.08.2026: «якщо оновлено — писати Оновлено та коли; якщо не оновилося —
+   писати, що помилка оновлення». Раніше був лише тост на 4 секунди: відвернувся —
+   і не знаєш, спрацювало чи ні. Підпис лишається на екрані.
+   Стан зберігається на час сесії, тому видно і після переходу між сторінками. */
+function refreshNote(slotId, state, msg){
+  const el = $(slotId);
+  const when = new Date().toLocaleString("uk-UA",
+    {day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"});
+  const rec = state === "ok"   ? {css:"var(--good-text)", txt:"✅ Оновлено " + when}
+            : state === "busy" ? {css:"var(--warn-text)", txt:"⏳ " + msg}
+            : state === "run"  ? {css:"var(--ink-2)",     txt:"⏳ " + msg}
+            :                    {css:"var(--crit-text)", txt:"⚠ Помилка оновлення " + when + " — " + msg};
+  if (state !== "run") sessionStorage.setItem("note:" + slotId, JSON.stringify({...rec, when}));
+  if (el) el.innerHTML = `<span style="color:${rec.css};font-size:12.5px">${esc(rec.txt)}</span>`;
+}
+/* Показати збережений підпис після перемальовування сторінки. */
+function restoreNote(slotId){
+  const el = $(slotId);
+  if (!el) return;
+  try{
+    const r = JSON.parse(sessionStorage.getItem("note:" + slotId) || "null");
+    if (r) el.innerHTML = `<span style="color:${r.css};font-size:12.5px">${esc(r.txt)}</span>`;
+  }catch(e){ /* зіпсований запис — просто нічого не показуємо */ }
+}
 async function svc(path){
   const r = await fetch(path, {headers: JWT ? {"xc-auth": JWT} : {}});
   let js = null;
@@ -2536,7 +2561,9 @@ PAGES.accounting = async () => {
       {day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}) : "—";
 
   $("page-actions").innerHTML = `
-    <button class="btn" id="lc-recalc" title="дані станом на ${stamp}">⟳ Перерахувати з Експедитора</button>
+    <span style="display:inline-flex;flex-direction:column;gap:2px">
+      <button class="btn" id="lc-recalc" title="дані станом на ${stamp}">⟳ Перерахувати з Експедитора</button>
+      <span id="lc-note"></span></span>
     <button class="btn ghost" id="lc-csv">⬇ Вивантажити в CSV</button>`;
 
   $("content").innerHTML = `
@@ -2658,6 +2685,7 @@ PAGES.accounting = async () => {
     draw();
   }
 
+  restoreNote("lc-note");
   ["lc-q","lc-st","lc-all","lc-base","lc-from","lc-to","lc-sent"].forEach(id =>
     $(id).addEventListener(id === "lc-q" ? "input" : "change", draw));
   $("lc-reset").addEventListener("click", () => {
@@ -2671,11 +2699,14 @@ PAGES.accounting = async () => {
   $("lc-recalc").addEventListener("click", async () => {
     const b = $("lc-recalc");
     b.disabled = true; b.textContent = "⏳ Рахую з Експедитора (~1 хв)…";
+    refreshNote("lc-note", "run", "Рахую з Експедитора…");
     try{
       await svc("/localcosts-refresh");
+      refreshNote("lc-note", "ok");
       toast("✅ Перераховано"); await PAGES.accounting();
     }catch(e){
       b.disabled = false; b.textContent = "⟳ Перерахувати з Експедитора";
+      refreshNote("lc-note", /вже виконується/.test(e.message)?"busy":"err", e.message);
       toast("⚠ Не вдалося перерахувати: " + e.message);
     }
   });
@@ -3026,6 +3057,7 @@ function refreshBar(mtime, onFresh){
     if (!b) return;
     b.addEventListener("click", async ()=>{
       b.disabled = true; b.textContent = "⏳ Тягну з Експедитора (~2 хв)…";
+      refreshNote("fin-note", "run", "Тягну з Експедитора…");
       try{
         // /cash-refresh спершу перераховує залишки кас з Експедитора, потім
         // запускає звичайну перебудову звіту — інакше звіт брав би стару касу
@@ -3034,16 +3066,30 @@ function refreshBar(mtime, onFresh){
         const poll = setInterval(async ()=>{
           try{
             const js = await fetchFin("dashboard");
-            if (js.mtime > t0 + 5){ clearInterval(poll); toast("✅ Дані оновлено з Експедитора"); onFresh(); }
+            if (js.mtime > t0 + 5){ clearInterval(poll); refreshNote("fin-note","ok");
+              toast("✅ Дані оновлено з Експедитора"); onFresh(); }
           }catch(e){}
         }, 15000);
-        setTimeout(()=>clearInterval(poll), 240000);
-      }catch(e){ b.disabled=false; b.textContent="⟳ Підтягнути свіжі дані з Експедитора"; toast("⚠ Не вдалося запустити"); }
+        // Якщо за 4 хвилини файл так і не оновився — це НЕ «мовчки нічого»,
+        // а помилка: кажемо про неї і повертаємо кнопку в робочий стан.
+        setTimeout(()=>{
+          clearInterval(poll);
+          const bb = $("fin-refresh");
+          if (bb && bb.disabled){
+            bb.disabled = false; bb.textContent = "⟳ Підтягнути свіжі дані з Експедитора";
+            refreshNote("fin-note","err","дані не оновились за 4 хвилини. Спробуй ще раз; якщо повториться — скажи Клоду");
+          }
+        }, 240000);
+      }catch(e){ b.disabled=false; b.textContent="⟳ Підтягнути свіжі дані з Експедитора";
+        refreshNote("fin-note", /вже виконується/.test(e.message)?"busy":"err", e.message); }
     });
   }, 0);
   // кнопка живе у верхній панелі (слот #fin-refresh-slot), поруч із кнопками звітів
-  return `<button class="btn" id="fin-refresh" style="padding:7px 14px;font-size:13px"
-    title="дані станом на ${stamp}">⟳ Підтягнути свіжі дані з Експедитора</button>`;
+  setTimeout(()=>restoreNote("fin-note"), 0);
+  return `<span style="display:inline-flex;flex-direction:column;gap:2px">
+    <button class="btn" id="fin-refresh" style="padding:7px 14px;font-size:13px"
+      title="дані станом на ${stamp}">⟳ Підтягнути свіжі дані з Експедитора</button>
+    <span id="fin-note"></span></span>`;
 }
 function finTable(headers, rows){
   return `<div class="tablewrap"><table><thead><tr>${headers.map(h=>`<th>${h}</th>`).join("")}</tr></thead>
