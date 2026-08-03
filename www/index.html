@@ -773,6 +773,15 @@
 const $ = id => document.getElementById(id);
 function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
 
+/* Українське відмінювання після числа: 1 угода, 2 угоди, 5 угод, 11 угод, 22 угоди. */
+function plural(n, one, few, many){
+  const a = Math.abs(n) % 100, b = a % 10;
+  if (a > 10 && a < 20) return many;
+  if (b === 1) return one;
+  if (b >= 2 && b <= 4) return few;
+  return many;
+}
+
 /* Розмітка статей «Інструкцій» — єдине місце у фасаді, де вміст із бази
    вставляється як HTML, а не як текст (статті перенесені з Notion і мають
    заголовки, списки, посилання). Перевірено 02.08.2026: до цієї правки
@@ -1701,13 +1710,33 @@ PAGES.dispatch = async () => {
     const q=$("q").value.toLowerCase(), st=$("stf").value;
     const dir=$("dirf").value, line=$("linef").value, cli=$("clif").value;
     const man=$("manf").value, opm=$("opmf").value, mode=$("modef").value;
+    const matchQ = r => [r["Угода"],r["Клієнт"],r["BL"],r["HBL"],r["Контейнер"],r["Судно"],r["Номер авто"],r["Водій (ПІБ)"]]
+      .join(" ").toLowerCase().includes(q);
     const list = all.filter(r =>
       (!quick || quick.test(r)) &&
       (!st || r["Статус"]===st) &&
       (!dir || r["Напрямок"]===dir) && (!line || r["Лінія"]===line) && (!cli || _s(r,"Клієнт")===cli) &&
       (!man || _s(r,"Менеджер")===man) && (!opm || _s(r,"Оп. менеджер")===opm) &&
       (!mode || _s(r,"Вид перевезення")===mode) &&
-      (!q || [r["Угода"],r["Клієнт"],r["BL"],r["HBL"],r["Контейнер"],r["Судно"],r["Номер авто"],r["Водій (ПІБ)"]].join(" ").toLowerCase().includes(q)));
+      (!q || matchQ(r)));
+    /* Які відбори зараз увімкнені і скільки угод дає КОЖЕН окремо.
+       Потрібно для чесного порожнього екрана: 03.08.2026 користувачка побачила
+       «Нічого не знайдено» при увімкнених «змінилася дата прибуття» + клієнт
+       ГРАНД МАРИН + менеджер Ірина і не могла зрозуміти, чи зникли дані.
+       Дані були на місці — просто ці три умови разом не перетинались (у базі
+       267 угод, з них 5 зі зміненою датою, і жодна не ГРАНД МАРИН).
+       Тепер видно, що ввімкнено і що кожна умова окремо щось знаходить. */
+    const activeF = [
+      quick && {label:"«"+quick.label+"»", n: all.filter(quick.test).length},
+      st    && {label:"статус: "+st,                n: all.filter(r=>r["Статус"]===st).length},
+      dir   && {label:"напрямок: "+dir,             n: all.filter(r=>r["Напрямок"]===dir).length},
+      line  && {label:"лінія: "+line,               n: all.filter(r=>r["Лінія"]===line).length},
+      cli   && {label:"клієнт: "+cli,               n: all.filter(r=>_s(r,"Клієнт")===cli).length},
+      man   && {label:"менеджер: "+man,             n: all.filter(r=>_s(r,"Менеджер")===man).length},
+      opm   && {label:"оп. менеджер: "+opm,         n: all.filter(r=>_s(r,"Оп. менеджер")===opm).length},
+      mode  && {label:"вид перевезення: "+mode,     n: all.filter(r=>_s(r,"Вид перевезення")===mode).length},
+      q     && {label:"пошук: "+$("q").value.trim(), n: all.filter(matchQ).length},
+    ].filter(Boolean);
     /* Доставлені ХОВАЄМО ЗГОРТАННЯМ, а не прокруткою. Прокрутка не працювала,
        коли рядків мало або коли фільтр змінювався (тричі поверталася до цього).
        Тепер вони фізично сховані, а над ними — смужка «Доставлені (N)». */
@@ -1717,6 +1746,21 @@ PAGES.dispatch = async () => {
       ? `<tr class="donebar"><td colspan="${logist?7:17}">
            <button id="done-toggle" type="button">${SHOW_DONE?"▾":"▸"} Доставлені (${doneList.length})</button>
          </td></tr>` : "";
+    /* Порожній екран має пояснювати САМ СЕБЕ, а не мовчати. Три різні випадки —
+       три різні тексти, щоб не гадати, чи це збій, чи справді немає угод. */
+    const emptyMsg = () => {
+      if (!all.length)
+        return "Угод у базі немає. Якщо це несподівано — натисни «⟳ Оновити з Експедитора».";
+      if (list.length && !shown.length)
+        return `Усі знайдені угоди (${list.length}) — доставлені. Натисни «Доставлені» вище, щоб їх показати.`;
+      if (!activeF.length)
+        return "Нічого не знайдено.";
+      return `<b>Жодна угода не підходить одразу під усі увімкнені відбори.</b>
+        <div style="margin:8px 0 0;font-weight:400">Зараз увімкнено:</div>
+        <ul style="margin:4px 0 10px 18px;font-weight:400">${
+          activeF.map(f=>`<li>${esc(f.label)} — окремо ${f.n} ${plural(f.n,"угода","угоди","угод")}</li>`).join("")}</ul>
+        <button class="btn ghost" id="reset-filters" type="button">✕ Скинути всі відбори</button>`;
+    };
     $("drows").innerHTML = bar + (shown.length ? shown.map(r=> logist ? `
       <tr data-id="${r.Id}" class="${r["Статус"]==='Вантаж доставлено'?'done':''}" style="cursor:pointer">
         <td class="mono"><b>${esc(r["Угода"])}</b></td><td>${esc(r["Клієнт"]||"—")}</td>
@@ -1795,7 +1839,17 @@ PAGES.dispatch = async () => {
             _s(r,"Номер авто") ? `<br><span class="cell-muted">${esc(r["Номер авто"])}</span>` : ""}</td>
         <td class="cell-muted c-com${ED}" data-l="Коментар" data-ed="Коментар" title="${esc(r["Коментар"]||"")}">${esc(r["Коментар"]||"")}</td>
         <td>${docBtn(r)}</td>
-      </tr>`).join("") : `<tr><td colspan="17" class="cell-muted">Нічого не знайдено.</td></tr>`);
+      </tr>`).join("") : `<tr><td colspan="${logist?7:17}" class="cell-muted" style="padding:18px">${emptyMsg()}</td></tr>`);
+    /* Скидання всіх відборів одним кліком. Якщо увімкнено швидкий фільтр із
+       дашборда — його теж треба зняти, а він живе поза draw(), тому сторінку
+       перемальовуємо через go(). Інакше — досить перемалювати таблицю. */
+    const rf = $("reset-filters");
+    if (rf) rf.addEventListener("click", ()=>{
+      ["q","stf","dirf","linef","clif","manf","opmf","modef"].forEach(id=>{
+        const el = $(id); if (el) el.value = "";
+      });
+      if (DISP_QUICK){ DISP_QUICK = null; go("dispatch"); } else draw();
+    });
     const ft = $("filt-toggle");
   if (ft) ft.addEventListener("click", ()=>{
     const box = $("filters"), on = box.classList.toggle("open");
