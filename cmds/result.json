@@ -1,7 +1,7 @@
 {
-  "stdout": "=== сервіс cashtrigger ===\n{ path=/usr/bin/python3 ; argv[]=/usr/bin/python3 /root/cash_trigger.py ; ignore_errors=no ; start_time=[Sun 2026-08-02 11:06:31 EEST] ; stop_time=[n/a] ; pid=287084 ; code=(null) ; status=0/0 }\n\nactive\n=== усі копії cash_trigger.py на сервері ===\n/root/cash_trigger.py\n/root/Iryna_Karmazina/finrep/cash_trigger.py\n/root/cash_trigger.py.bak-localcosts\n=== хто слухає порт 8791 ===\nLISTEN 0      5          127.0.0.1:8791      0.0.0.0:*    users:((\"python3\",pid=287084,fd=3))                     \n=== що саме запускається (перші рядки ExecStart) ===\nExecStart=/usr/bin/python3 /root/cash_trigger.py\n=== чи збігається з репо ===\n/root/cash_trigger.py                         ЗБІГАЄТЬСЯ З РЕПО\n/root/Iryna_Karmazina/finrep/cash_trigger.py  ЗБІГАЄТЬСЯ З РЕПО\n=== що запускає run.sh ===\n/root/unitex-finrep/run.sh\n",
+  "stdout": "бекап cash_trigger\nскопійовано cash_trigger.py\nскопійовано run_queued.sh\nскопійовано local_costs.py\nскопійовано cash_from_odata.py\nсервіс: active\nслухає 8791: 1\n--- звірка з репо ---\ncash_trigger ЗБІГАЄТЬСЯ\nlocal_costs ЗБІГАЄТЬСЯ\ncash_from_odata ЗБІГАЄТЬСЯ\n",
   "stderr": "",
   "returncode": 0,
-  "id": "diag-cash-1",
-  "ts": "2026-08-03T08:45:58Z"
+  "id": "cash-deploy-1",
+  "ts": "2026-08-03T08:55:53Z"
 }
