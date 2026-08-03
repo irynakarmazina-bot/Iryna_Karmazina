@@ -1,7 +1,7 @@
 {
-  "stdout": "=== SMTP у NocoDB (для «Забули пароль») ===\n(порожньо = пошта не налаштована)\n",
+  "stdout": "ВИКЛАДЕНА ВЕРСІЯ:\n  donebar            7\n  done-toggle        2\n  Доставлені ( 2\n  SHOW_DONE          5\n  fitDispScroll      4\n  позначка версії: в. 03.08 09:13\n\nУ РЕПО (main):\n  donebar            7\n  done-toggle        2\n  Доставлені ( 2\n\nЧИ ОДНАКОВІ:\n  так\n",
   "stderr": "",
   "returncode": 0,
-  "id": "smtp-check-1",
-  "ts": "2026-08-03T10:02:52Z"
+  "id": "diag-donebar-1",
+  "ts": "2026-08-03T10:09:31Z"
 }
