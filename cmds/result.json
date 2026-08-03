@@ -1,7 +1,7 @@
 {
-  "id": "nc-user-check-2",
-  "stdout": "",
-  "stderr": "cmds/pending.json не є коректним JSON (Invalid control character at: line 1 column 51 (char 50)). Команду НЕ виконано. Формуй файл через json.dump і перевіряй json.load перед пушем.",
-  "returncode": -2,
-  "ts": "2026-08-03T10:01:52Z"
+  "stdout": "таблиці доступів: ['nc_base_users_v2']\n--- nc_base_users_v2\n    irynakarmazina@gmail.com → роль у базі: owner\n    v.pontus@unitex.od.ua → роль у базі: editor\n",
+  "stderr": "",
+  "returncode": 0,
+  "id": "nc-user-check-3",
+  "ts": "2026-08-03T10:02:19Z"
 }
