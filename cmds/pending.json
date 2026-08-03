@@ -1,1 +1,1 @@
-{"id": "deploy-ui-17", "cmd": "bash /root/Iryna_Karmazina/server/deploy_ui.sh main 2>&1 | tail -3; echo -n 'позначка: '; grep -o 'id=\"buildstamp\"[^>]*>[^<]*' /root/unitex-os-www/index.html | sed 's/.*>//'"}
+{"id": "deploy-ui-18", "cmd": "bash /root/Iryna_Karmazina/server/deploy_ui.sh main 2>&1 | tail -3; echo -n 'позначка: '; grep -o 'id=\"buildstamp\"[^>]*>[^<]*' /root/unitex-os-www/index.html | sed 's/.*>//'; echo -n 'підпис під кнопкою: '; grep -c 'function refreshNote' /root/unitex-os-www/index.html"}
