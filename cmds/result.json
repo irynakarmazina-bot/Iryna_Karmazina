@@ -1,7 +1,7 @@
 {
-  "stdout": "=== де Caddyfile ===\n/root/Caddyfile\n/root/Caddyfile.bak-http\n/root/Caddyfile.tpl\n/root/Caddyfile.bak-cash\n/root/Caddyfile.new\n/root/Caddyfile.bak-localcosts\n/root/Caddyfile.bak-1785057761\n/root/Caddyfile.bak-1785078733\n/root/Caddyfile.https\n=== службові маршрути в ньому ===\nфайл: /root/Caddyfile\n16-\t\treverse_proxy 127.0.0.1:8080\n17-\t}\n18:\thandle /finrep-data* {\n19-\t\treverse_proxy 127.0.0.1:8789\n20-\t}\n21:\thandle /finrep-run {\n22-\t\trewrite * /run?token=ab035256f864e587ac4f2173ff0e9b12\n23-\t\treverse_proxy 127.0.0.1:8787\n24-\t}\n25:\thandle /sync {\n26-\t\trewrite * /run?token=84e86ebff415eea4223397784afc815c\n27-\t\treverse_proxy 127.0.0.1:8788\n28-\t}\n29:\thandle /cash-refresh {\n30-\t\trewrite * /refresh?token=ab035256f864e587ac4f2173ff0e9b12\n31-\t\treverse_proxy 127.0.0.1:8791\n32-\t}\n33-\thandle /cash-sheet {\n34-\t\trewrite * /sheet?token=ab035256f864e587ac4f2173ff0e9b12\n35-\t\treverse_proxy 127.0.0.1:8791\n36-\t}\n37:\thandle /localcosts-refresh {\n38-\t\trewrite * /localcosts?token=ab035256f864e587ac4f2173ff0e9b12\n39-\t\treverse_proxy 127.0.0.1:8791\n40-\t}\n41-\thandle /gen-doc {\n42-\t\treverse_proxy 127.0.0.1:8790\n43-\t}\n44-\thandle {\n45-\t\theader /index.html Cache-Control \"no-cache, must-revalidate\"\n",
+  "stdout": "=== хто слухає 8787 і 8788 ===\nпорт 8787: /root/unitex-finrep/.venv/bin/python /root/unitex-finrep/trigger.py \nпорт 8788: /usr/bin/python3 /root/deals_trigger.py \nпорт 8789: /usr/bin/python3 /root/findata.py \nпорт 8790: /root/docgen-venv/bin/python3 /root/docgen.py \n=== чи є ці файли в репо ===\n/root/ac.py\n/root/add_button.py\n/root/add_incoterms.py\n/root/add_vitalii.py\n/root/arap.py\n/root/at.py\n/root/audit_gaps.py\n/root/build_preview.py\n/root/bw.py\n/root/byline.py\n/root/caddy_download.py\n/root/cancel241.py\n=== deals_trigger ===\nнемає\n",
   "stderr": "",
   "returncode": 0,
-  "id": "diag-caddy-1",
-  "ts": "2026-08-03T09:07:57Z"
+  "id": "diag-ports-1",
+  "ts": "2026-08-03T09:09:48Z"
 }
