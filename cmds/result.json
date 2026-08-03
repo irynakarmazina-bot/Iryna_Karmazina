@@ -1,7 +1,7 @@
 {
-  "stdout": "ВИКЛАДЕНА ВЕРСІЯ:\n  donebar            7\n  done-toggle        2\n  Доставлені ( 2\n  SHOW_DONE          5\n  fitDispScroll      4\n  позначка версії: в. 03.08 09:13\n\nУ РЕПО (main):\n  donebar            7\n  done-toggle        2\n  Доставлені ( 2\n\nЧИ ОДНАКОВІ:\n  так\n",
+  "stdout": "   усього копій у архіві: 22\n   журнал: 2026-08-03T13:19:43\tmain\t775257b8f\tв. 03.08 10:19\tindex.html:280729 findash.html:28273 finperiod.html:17527\trelay: деплой — доставлені завжди в переліку\n   UI 200  FINDASH 200\nDEPLOY_OK · гілка main · коміт 775257b8f · позначка «в. 03.08 10:19»\nсмужку прибрано (SHOW_DONE=0): 0\nпозначка: в. 03.08 10:19\n",
   "stderr": "",
   "returncode": 0,
-  "id": "diag-donebar-1",
-  "ts": "2026-08-03T10:09:31Z"
+  "id": "deploy-ui-16",
+  "ts": "2026-08-03T10:19:44Z"
 }
