@@ -1,1 +1,1 @@
-{"id": "deploy-ui-16", "cmd": "bash /root/Iryna_Karmazina/server/deploy_ui.sh main 2>&1 | tail -4; F=/root/unitex-os-www/index.html; echo -n 'смужку прибрано (SHOW_DONE=0): '; grep -c 'SHOW_DONE' $F; echo -n 'позначка: '; grep -o 'id=\"buildstamp\"[^>]*>[^<]*' $F | sed 's/.*>//'"}
+{"id": "deploy-ui-17", "cmd": "bash /root/Iryna_Karmazina/server/deploy_ui.sh main 2>&1 | tail -3; echo -n 'позначка: '; grep -o 'id=\"buildstamp\"[^>]*>[^<]*' /root/unitex-os-www/index.html | sed 's/.*>//'"}
