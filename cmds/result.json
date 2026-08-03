@@ -1,7 +1,7 @@
 {
-  "stdout": "   бекап: findash-20260803-121513.html (28273 б)\n   бекап: finperiod-20260803-121513.html (17527 б)\n   бекап: cabinet-20260803-121513.html (325762 б)\n   копій, старших за 14 днів, немає — нічого не прибираю\n   усього копій у архіві: 18\n   журнал: 2026-08-03T12:15:13\tmain\tef7dc8c89\tв. 03.08 09:13\tindex.html:280413 findash.html:28273 finperiod.html:17527\trelay: деплой фасада — ключ сесії на службові адреси\n   UI 200  FINDASH 200\nDEPLOY_OK · гілка main · коміт ef7dc8c89 · позначка «в. 03.08 09:13»\n--- у викладеному ---\nпомічник svc: 1\nвиклики через svc: 3\n",
+  "stdout": "бекап зроблено\nauthcheck.py на місці\ncash_trigger.py оновлено\nсервіс: active\n\n=== ГОЛОВНА ПЕРЕВІРКА: чи закрита діра ===\n1) як стороння людина (лише токен Caddy, без входу): 401\n   відповідь: Цю дію можна запускати лише з платформи, після входу. Онови сторінку і спробуй ще раз.\n2) з підробленим ключем сесії: 401\n   відповідь: Сесія завершилась — увійди в платформу знову.\n\n=== лог сервісу ===\nAug 03 12:23:02 ubuntu-s-1vcpu-1gb-ams3 systemd[1]: Stopping cashtrigger.service - Unitex cash balances trigger (port 8791)...\nAug 03 12:23:02 ubuntu-s-1vcpu-1gb-ams3 systemd[1]: cashtrigger.service: Deactivated successfully.\nAug 03 12:23:02 ubuntu-s-1vcpu-1gb-ams3 systemd[1]: Stopped cashtrigger.service - Unitex cash balances trigger (port 8791).\nAug 03 12:23:02 ubuntu-s-1vcpu-1gb-ams3 systemd[1]: cashtrigger.service: Consumed 1.024s CPU time.\nAug 03 12:23:02 ubuntu-s-1vcpu-1gb-ams3 systemd[1]: Started cashtrigger.service - Unitex cash balances trigger (port 8791).\n",
   "stderr": "",
   "returncode": 0,
-  "id": "deploy-ui-15",
-  "ts": "2026-08-03T09:15:13Z"
+  "id": "auth-deploy-1",
+  "ts": "2026-08-03T09:23:04Z"
 }
