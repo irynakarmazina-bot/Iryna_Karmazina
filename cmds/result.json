@@ -1,7 +1,7 @@
 {
-  "stdout": "   усього копій у архіві: 22\n   журнал: 2026-08-03T13:19:43\tmain\t775257b8f\tв. 03.08 10:19\tindex.html:280729 findash.html:28273 finperiod.html:17527\trelay: деплой — доставлені завжди в переліку\n   UI 200  FINDASH 200\nDEPLOY_OK · гілка main · коміт 775257b8f · позначка «в. 03.08 10:19»\nсмужку прибрано (SHOW_DONE=0): 0\nпозначка: в. 03.08 10:19\n",
+  "stdout": "   журнал: 2026-08-03T13:24:05\tmain\t10527bdfa\tв. 03.08 10:23\tindex.html:282423 findash.html:28273 finperiod.html:17527\trelay: деплой — доставлені вгорі під шапкою\n   UI 200  FINDASH 200\nDEPLOY_OK · гілка main · коміт 10527bdfa · позначка «в. 03.08 10:23»\nпозначка: в. 03.08 10:23\n",
   "stderr": "",
   "returncode": 0,
-  "id": "deploy-ui-16",
-  "ts": "2026-08-03T10:19:44Z"
+  "id": "deploy-ui-17",
+  "ts": "2026-08-03T10:24:05Z"
 }
