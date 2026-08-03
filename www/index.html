@@ -689,7 +689,7 @@
       <div class="spacer"></div>
       <!-- Позначка версії: по ній видно, чи браузер підтягнув свіжу сторінку.
            Оновлюється автоматично при кожному викладенні (scripts/stamp.sh). -->
-      <div class="buildstamp" id="buildstamp" title="версія сторінки — якщо не збігається з тим, що я назвала, натисни Ctrl+F5">в. 03.08 08:34</div>
+      <div class="buildstamp" id="buildstamp" title="версія сторінки — якщо не збігається з тим, що я назвала, натисни Ctrl+F5">в. 03.08 09:13</div>
     </nav>
     <div class="main">
       <div class="topbar">
@@ -891,6 +891,30 @@ async function api(path, opts={}){
   }
   if (parseFail)
     throw new Error("сервер відповів не даними — схоже, він перезапускається. Спробуй за хвилину");
+  return js || {};
+}
+/* Службові адреси (/sync, /cash-refresh, /localcosts-refresh) запускають
+   розрахунки на сервері. Раніше вони викликались БЕЗ ключа сесії, а Caddy сам
+   підставляв службовий токен — тобто їх міг смикати будь-хто, хто знає адресу
+   сайту, навіть не входячи в платформу. Тепер надсилаємо свій ключ, і сервер
+   перевіряє роль. Помилки доступу показуємо людською мовою. */
+async function svc(path){
+  const r = await fetch(path, {headers: JWT ? {"xc-auth": JWT} : {}});
+  let js = null;
+  try { js = JSON.parse(await r.text() || "null"); } catch(e){ js = null; }
+  if (r.status === 401){
+    const m = (js && js.error) || "Сесія завершилась — увійди знову.";
+    sysWarn(m); throw new Error(m);
+  }
+  if (r.status === 403){
+    const m = (js && js.error) || "Немає прав на цю дію.";
+    sysWarn(m); throw new Error(m);
+  }
+  if (r.status === 409){
+    const m = (js && js.error) || "Це вже виконується — зачекай.";
+    toast("⏳ " + m); throw new Error(m);
+  }
+  if (!r.ok) throw new Error((js && js.error) || ("HTTP " + r.status));
   return js || {};
 }
 async function loadAll(table){
@@ -1954,7 +1978,7 @@ PAGES.dispatch = async () => {
   if (sb) sb.addEventListener("click", async ()=>{
     sb.disabled=true; sb.textContent="⏳ Оновлюю… (до 2 хв: Експедитор + трекінг)";
     try{
-      const r = await fetch("/sync"); const js = await r.json();
+      const js = await svc("/sync");
       const res = js.result||"";
       const m = /new=(\d+)/.exec(res);
       const t = /MAERSK_OK tracked=(\d+) updated=(\d+)/.exec(res);
@@ -2627,8 +2651,7 @@ PAGES.accounting = async () => {
     const b = $("lc-recalc");
     b.disabled = true; b.textContent = "⏳ Рахую з Експедитора (~1 хв)…";
     try{
-      const r = await fetch("/localcosts-refresh");
-      if (!r.ok) throw new Error("HTTP " + r.status);
+      await svc("/localcosts-refresh");
       toast("✅ Перераховано"); await PAGES.accounting();
     }catch(e){
       b.disabled = false; b.textContent = "⟳ Перерахувати з Експедитора";
@@ -2985,7 +3008,7 @@ function refreshBar(mtime, onFresh){
       try{
         // /cash-refresh спершу перераховує залишки кас з Експедитора, потім
         // запускає звичайну перебудову звіту — інакше звіт брав би стару касу
-        await fetch("/cash-refresh");
+        await svc("/cash-refresh");
         const t0 = mtime;
         const poll = setInterval(async ()=>{
           try{

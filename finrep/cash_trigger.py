@@ -19,6 +19,7 @@ import json
 import os
 import socketserver
 import subprocess
+import sys
 import urllib.parse
 
 PORT = 8791
@@ -29,6 +30,15 @@ LOCALCOSTS = "/root/unitex-finrep/engine/local_costs.py"
 WORKDIR = "/root/unitex-finrep"
 RUN_QUEUED = "/root/unitex-finrep/run_queued.sh"
 LOCK_DIR = os.environ.get("RUNLOCK_DIR", "/var/lock")
+
+# Спільна перевірка «хто це і чи можна йому» — server/authcheck.py, копія лежить
+# поруч із цим файлом на сервері (/root/authcheck.py). Якщо її раптом немає —
+# сервіс має піднятись і працювати, лише без перевірки ролі (з попередженням).
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+try:
+    import authcheck
+except Exception:  # noqa: BLE001
+    authcheck = None
 
 
 class Busy(Exception):
@@ -85,6 +95,18 @@ class H(http.server.BaseHTTPRequestHandler):
         params = urllib.parse.parse_qs(q.query)
         if params.get("token", [""])[0] != TOKEN:
             return self._send(403, {"error": "forbidden"})
+
+        # ДРУГИЙ РУБІЖ (03.08.2026): токен вище підставляє сам Caddy, тому він
+        # нікого не відсіює — досить знати адресу сайту, входити не треба.
+        # Тому додатково перевіряємо САМОГО користувача: його ключ сесії і роль.
+        # Якщо authcheck поруч немає — не падаємо, а працюємо як раніше і кажемо
+        # про це в лог: краще працюючі кнопки, ніж мертвий сервіс.
+        if authcheck is not None:
+            ok, code, msg, _role = authcheck.check(self.headers, authcheck.FIN_ROLES)
+            if not ok:
+                return self._send(code, {"error": msg})
+        else:
+            print("УВАГА: authcheck.py не знайдено — перевірка ролі ПРОПУЩЕНА", flush=True)
 
         try:
             if q.path == "/refresh":
