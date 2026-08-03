@@ -1,7 +1,7 @@
 {
-  "stdout": "=== 1. чи пускає API-токен до керування користувачами ===\n401\n{\"error\":\"ERR_API_TOKEN_NOT_ALLOWED\",\"message\":\"This request is not allowed with API token\"}\n=== 2. де база NocoDB ===\n/root/nocodb-data/noco.db\n=== 3. чи є акаунт v.pontus (лише наявність, без паролів) ===\n[('irynakarmazina@gmail.com', 'org-level-creator,super', 0), ('v.pontus@unitex.od.ua', 'org-level-viewer', 0)]\n",
-  "stderr": "",
-  "returncode": 0,
-  "id": "nc-user-check-1",
-  "ts": "2026-08-03T10:01:25Z"
+  "id": "nc-user-check-2",
+  "stdout": "",
+  "stderr": "cmds/pending.json не є коректним JSON (Invalid control character at: line 1 column 51 (char 50)). Команду НЕ виконано. Формуй файл через json.dump і перевіряй json.load перед пушем.",
+  "returncode": -2,
+  "ts": "2026-08-03T10:01:52Z"
 }
