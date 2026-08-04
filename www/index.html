@@ -689,7 +689,7 @@
       <div class="spacer"></div>
       <!-- Позначка версії: по ній видно, чи браузер підтягнув свіжу сторінку.
            Оновлюється автоматично при кожному викладенні (scripts/stamp.sh). -->
-      <div class="buildstamp" id="buildstamp" title="версія сторінки — якщо не збігається з тим, що я назвала, натисни Ctrl+F5">в. 04.08 04:29</div>
+      <div class="buildstamp" id="buildstamp" title="версія сторінки — якщо не збігається з тим, що я назвала, натисни Ctrl+F5">в. 04.08 05:11</div>
     </nav>
     <div class="main">
       <div class="topbar">
@@ -2004,7 +2004,16 @@ PAGES.dispatch = async () => {
         const firstOpen = $("drows").querySelector("tr:not(.done)");
         box.style.paddingBottom = "0px";
         if (firstOpen){
-          const need = Math.max(0, firstOpen.offsetTop - 2);
+          /* Шапка таблиці закріплена (thead th{position:sticky;top:0}), тобто
+             вона ЛЕЖИТЬ ПОВЕРХ перших рядків області прокрутки. Якщо прокрутити
+             рівно до першого активного рядка, він опиняється ПІД шапкою і видно
+             лише його низ — саме це побачила користувачка 04.08.2026 на угоді 227.
+             Тому віднімаємо ФАКТИЧНУ висоту шапки, а не підібране число:
+             висота залежить від того, скільки рядків займають заголовки, і на
+             телефоні вона інша. Плюс 6 px просвіту, щоб рядок не торкався шапки. */
+          const thead = box.querySelector("thead");
+          const headH = thead ? thead.getBoundingClientRect().height : 0;
+          const need = Math.max(0, firstOpen.offsetTop - headH - 6);
           const avail = Math.max(0, box.scrollHeight - box.clientHeight);
           if (need > avail) box.style.paddingBottom = (need - avail) + "px";
           box.scrollTop = need;
