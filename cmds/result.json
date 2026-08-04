@@ -1,7 +1,7 @@
 {
-  "stdout": "експедитор: 4с rc=0\n--- ще працює:\n      01:01 /root/unitex-finrep/.venv/bin/python /root/direct-sync/maersk_track_sync.py\n",
+  "stdout": "експедитор: 4с rc=0\n--- ще працює:\n      01:29 /root/unitex-finrep/.venv/bin/python /root/direct-sync/maersk_track_sync.py\n",
   "stderr": "",
   "returncode": 0,
-  "id": "timing3",
-  "ts": "2026-08-04T06:41:19Z"
+  "id": "timing4",
+  "ts": "2026-08-04T06:41:46Z"
 }
