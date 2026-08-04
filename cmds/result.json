@@ -1,7 +1,7 @@
 {
-  "stdout": "=== останній блок handle у Caddyfile ===\n\thandle {\n\t\theader /index.html Cache-Control \"no-cache, must-revalidate\"\n\t\theader / Cache-Control \"no-cache, must-revalidate\"\n\t\troot * /srv/www\n\t\ttry_files {path} /index.html\n\t\tfile_server\n\t}\n\n=== перевірка на вигаданій адресі ===\nhttps://IP/абракадабра123 → код 200\nперші символи відповіді: <!doctype html>\n<html lang=\"uk\">\n<head>\n<meta charset=\"utf-8\n",
+  "stdout": "перенесено\nзвірка запущена\n     1 × вивантаження 2026-04-02 РАНІШЕ за прихід у порт 2026\n     1 × є прибуття потяга 2026-04-09\nAUDIT_DONE problems=152 checked=169 nodata=70\n",
   "stderr": "",
   "returncode": 0,
-  "id": "fallback",
-  "ts": "2026-08-04T04:57:19Z"
+  "id": "audit-1",
+  "ts": "2026-08-04T05:00:40Z"
 }
