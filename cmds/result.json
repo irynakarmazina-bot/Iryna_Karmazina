@@ -1,7 +1,7 @@
 {
-  "stdout": "{\"running\": false, \"started\": \"2026-08-04T09:47:22\", \"finished\": \"2026-08-04T09:50:00\", \"ok\": true, \"result\": \"SYNC_OK deals=267 new=0 updated=0 errors=0 | MAERSK_OK tracked=33 updated=0 nodata=11 foreign=10 api_errors=0 write_fails=0 | COSCO_OK tracked=0 updated=0\", \"error\": \"\", \"steps\": [{\"name\": \"Експедитор\", \"sec\": 6, \"ok\": true, \"line\": \"SYNC_OK deals=267 new=0 updated=0 errors=0\", \"error\": \"\"}, {\"name\": \"Maersk\", \"sec\": 151, \"ok\": true, \"line\": \"MAERSK_OK tracked=33 updated=0 nodata=11 foreign=10 api_errors=0 write_fails=0\", \"error\": \"\"}, {\"name\": \"COSCO\", \"sec\": 2, \"ok\": true, \"line\": \"COSCO_OK tracked=0 updated=0\", \"error\": \"\"}]}\n",
+  "stdout": "   бекап: findash-20260804-095026.html (28273 б)\n   бекап: finperiod-20260804-095026.html (17527 б)\n   бекап: cabinet-20260804-095026.html (325762 б)\n   копій, старших за 14 днів, немає — нічого не прибираю\n   усього копій у архіві: 46\n   журнал: 2026-08-04T09:50:26\tmain\t3b5bc4147\tв. 04.08 05:11\tindex.html:291495 findash.html:28273 finperiod.html:17527\trelay: викласти фасад з підписом під кнопкою оновлення\n   UI 200  FINDASH 200\nDEPLOY_OK · гілка main · коміт 3b5bc4147 · позначка «в. 04.08 05:11»\n",
   "stderr": "",
   "returncode": 0,
-  "id": "trig3",
-  "ts": "2026-08-04T06:50:04Z"
+  "id": "depui2",
+  "ts": "2026-08-04T06:50:26Z"
 }
