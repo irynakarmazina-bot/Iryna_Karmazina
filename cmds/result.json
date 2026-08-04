@@ -1,7 +1,7 @@
 {
-  "stdout": "cash-refresh HTTP=200 час=11.320227s\nstatus started | cash CASH_OK кас=13 разом_УО=57328,70 | error None\n",
+  "stdout": "localcosts HTTP=200 час=1.749680s\nstatus ok | error None\n--- свіжість файлів фінзвіту:\n-rw-r--r-- 1 root root  3239 08-04 12:04 /root/unitex-finrep/computed/calendar-report.json\n-rw-r--r-- 1 root root 18640 08-04 12:04 /root/unitex-finrep/computed/dashboard_data.json\n-rw-r--r-- 1 root root 54773 08-04 12:04 /root/unitex-finrep/computed/local_costs.json\n-rw-r--r-- 1 root root  1913 08-02 13:57 /root/unitex-finrep/computed/maersk_payments.json\n-rw-r--r-- 1 root root 35947 08-04 12:04 /root/unitex-finrep/computed/period_report_data.json\n-rw-r--r-- 1 root root  6332 08-04 12:04 /root/unitex-finrep/computed/pnl_cf-report.json\n",
   "stderr": "",
   "returncode": 0,
-  "id": "final3",
-  "ts": "2026-08-04T09:04:26Z"
+  "id": "final4",
+  "ts": "2026-08-04T09:04:50Z"
 }
