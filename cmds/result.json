@@ -1,7 +1,7 @@
 {
-  "stdout": "унікальних кодів у POL/POD/FD: 53\n   Catalog_Города         записів  130, збіглося 53\n   Catalog_Порты          записів    3, збіглося 0\n   Catalog_Терминалы      записів    7, збіглося 0\n   Catalog_ЖДСтанции      записів    0, збіглося 0\n   Catalog_Страны         записів   28, збіглося 0\n\nРОЗШИФРОВАНО: 53 з 53\n\nТОП ПОЛ:\n    124 угод  Felixstowe\n     22 угод  Ningbo\n     15 угод  Гданськ\n     15 угод  Chennai\n      9 угод  New York\n      7 угод  Xiamen\nТОП ПОД:\n    191 угод  Gdansk\n     20 угод  Гданськ\n     16 угод  Gdynia\n      8 угод  Constanta\n      5 угод  Фрімантл\n      4 угод  Брісбейн\n",
+  "stdout": "=== /localcosts (Бух. облік) ===\nкод 200\n   ok\n\n=== /sync (Диспетчеризація, порт 8788) ===\nкод 403\n{\"error\": \"forbidden\"}\n\n=== коли востаннє рахувалися каси ===\n-rw-r--r-- 1 root root 693 Aug  2 10:31 /root/unitex-finrep/normalized/cash_balances.csv\n\n=== чи є свіжий фінзвіт ===\n-rw-r--r-- 1 root root  6330 Aug  2 10:31 /root/unitex-finrep/computed/pnl_cf-report.json\n-rw-r--r-- 1 root root  3503 Aug  2 10:31 /root/unitex-finrep/computed/reconciliation.json\n-rw-r--r-- 1 root root  2041 Aug  2 10:31 /root/unitex-finrep/computed/registers-report.json\n-rw-r--r-- 1 root root  4269 Aug  2 10:31 /root/unitex-finrep/computed/retro-report.json\n",
   "stderr": "",
   "returncode": 0,
-  "id": "geo-resolve",
-  "ts": "2026-08-04T05:37:32Z"
+  "id": "btn-health",
+  "ts": "2026-08-04T05:38:13Z"
 }
