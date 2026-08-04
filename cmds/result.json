@@ -1,7 +1,7 @@
 {
-  "stdout": "=== чи викликає хтось sheet ===\nу run.sh: 0\n0\nу всіх .sh на сервері: у cron: 0\n0\nу systemd-таймерах: \n=== рядки блоку /cash-sheet у Caddyfile ===\n33:\thandle /cash-sheet {\n\n=== скільки всього маршрутів handle ===\n10\n",
-  "stderr": "",
-  "returncode": 0,
-  "id": "sheet-check",
-  "ts": "2026-08-04T04:35:42Z"
+  "stdout": "бекап: /root/Caddyfile.bak-rmsheet-20260804-073620\nвирізано блоків: 1\n",
+  "stderr": "^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/subprocess.py\", line 548, in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/subprocess.py\", line 1026, in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n  File \"/usr/lib/python3.12/subprocess.py\", line 1955, in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nFileNotFoundError: [Errno 2] No such file or directory: 'caddy'\n",
+  "returncode": 1,
+  "id": "rm-sheet",
+  "ts": "2026-08-04T04:36:20Z"
 }
