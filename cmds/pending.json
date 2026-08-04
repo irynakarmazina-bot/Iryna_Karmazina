@@ -1,1 +1,1 @@
-{"id": "final2", "cmd": "bash /root/Iryna_Karmazina/server/deploy_ui.sh main 2>&1 | tail -2"}
+{"id": "final3", "cmd": "curl -sk -m 290 -o /tmp/cr.json -w 'cash-refresh HTTP=%{http_code} час=%{time_total}s\\n' https://134.209.94.12/cash-refresh; python3 -c \"import json;d=json.load(open('/tmp/cr.json'));print('status',d.get('status'),'| cash',d.get('cash'),'| error',str(d.get('error'))[:120])\""}
