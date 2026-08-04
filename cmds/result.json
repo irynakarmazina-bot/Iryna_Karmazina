@@ -1,7 +1,7 @@
 {
-  "stdout": "=== /localcosts (Бух. облік) ===\nкод 200\n   ok\n\n=== /sync (Диспетчеризація, порт 8788) ===\nкод 403\n{\"error\": \"forbidden\"}\n\n=== коли востаннє рахувалися каси ===\n-rw-r--r-- 1 root root 693 Aug  2 10:31 /root/unitex-finrep/normalized/cash_balances.csv\n\n=== чи є свіжий фінзвіт ===\n-rw-r--r-- 1 root root  6330 Aug  2 10:31 /root/unitex-finrep/computed/pnl_cf-report.json\n-rw-r--r-- 1 root root  3503 Aug  2 10:31 /root/unitex-finrep/computed/reconciliation.json\n-rw-r--r-- 1 root root  2041 Aug  2 10:31 /root/unitex-finrep/computed/registers-report.json\n-rw-r--r-- 1 root root  4269 Aug  2 10:31 /root/unitex-finrep/computed/retro-report.json\n",
+  "stdout": "опубліковано зараз: 705\nсутностей згадано в коді: 16\n\n✅ Є В ЕКСПЕДИТОРІ (14):\n   Catalog_Валюты\n   Catalog_ВидОплаты\n   Catalog_ВидыРасходов\n   Catalog_Клиенты\n   Catalog_Контрагенты\n   Catalog_Линии\n   Catalog_СчетаПоставщиков\n   Catalog_ФизическиеЛица\n   ChartOfAccounts_Хозрасчетный\n   Document_НакладныеРасходы\n   Document_РасходнаяНакладная\n   Document_Сделка\n   Document_Счет\n   Document_Счет_ТЧ\n\n❌ НЕМАЄ — код їх запитує, а вони не опубліковані (2):\n   AccountingRegister_Хозрасчетный                використовує: cash_from_odata.py\n   AccountingRegister_Хозрасчетный_RecordType     використовує: attrib_probe.py, cash_probe.py, cash_v4.py, \n",
   "stderr": "",
   "returncode": 0,
-  "id": "btn-health",
-  "ts": "2026-08-04T05:38:13Z"
+  "id": "deps",
+  "ts": "2026-08-04T05:44:47Z"
 }
