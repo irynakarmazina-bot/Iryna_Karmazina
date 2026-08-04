@@ -1,1 +1,1 @@
-{"id": "cab2", "cmd": "ls -l --time-style=+'%Y-%m-%d_%H:%M' /root/unitex-os-www/cabinet*.html 2>&1 | awk '{print $6, $5, $7}'; echo '--- доступність:'; for f in cabinet.html cabinet-gm.html; do printf '%s ' $f; curl -sk -o /dev/null -w 'HTTP=%{http_code} байт=%{size_download}\\n' https://134.209.94.12/$f; done; echo '--- угод у файлах:'; for f in cabinet.html cabinet-gm.html; do printf '%s ' $f; grep -c 'data-deal\\|Угода' /root/unitex-os-www/$f 2>/dev/null || echo 0; done"}
+{"id": "depui4", "cmd": "bash /root/Iryna_Karmazina/server/deploy_ui.sh main 2>&1 | tail -2"}
