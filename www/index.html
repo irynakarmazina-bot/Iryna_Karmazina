@@ -2080,6 +2080,11 @@ PAGES.dispatch = async () => {
     }
     refreshNote("disp-note","err","минуло 15 хвилин без відповіді — скажи Клоду");
   };
+  /* Якщо сторінку перезавантажили посеред оновлення — підхоплюємо його назад.
+     Без цього після F5 підпис був порожній, і виглядало б, ніби нічого не йде. */
+  if (sb) svc("/sync-state").then(st=>{
+    if (st && st.running){ refreshNote("disp-note","busy","Оновлення вже йде…"); watchSync(); }
+  }).catch(()=>{ /* стан не дізнались — просто не показуємо нічого */ });
   if (sb) sb.addEventListener("click", async ()=>{
     sb.disabled = true;
     refreshNote("disp-note","run","Оновлюю… це близько 2,5 хвилин");

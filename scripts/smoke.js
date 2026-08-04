@@ -54,10 +54,24 @@ const META = {
 
 // Локальний сервер: віддає лише файли з теки www — інакше Playwright не зможе
 // підмінити запити до /api (див. причину 2 у шапці).
+/* Службові адреси платформи — їх обслуговує не файловий сервер, а тригери на
+   VPS (порти 8788/8791). Тут віддаємо коротку заглушку, інакше перевірка каже
+   «немає файла поруч з index.html: sync-state», хоча файла там і не має бути. */
+const SERVICE = {
+  "sync-state": { running: false, ok: true, result: "SYNC_OK deals=1 new=0", error: "", steps: [] },
+  "sync": { status: "started" },
+  "cash-refresh": { status: "started" },
+  "localcosts-refresh": { status: "ok" },
+};
+
 function serve(dir, missing) {
   return new Promise(resolve => {
     const srv = http.createServer((req, res) => {
       const name = decodeURIComponent(req.url.split("?")[0]).replace(/^\/+/, "") || "index.html";
+      if (Object.prototype.hasOwnProperty.call(SERVICE, name)) {
+        res.setHeader("Content-Type", "application/json; charset=utf-8");
+        return res.end(JSON.stringify(SERVICE[name]));
+      }
       const p = path.join(dir, path.basename(name));
       fs.readFile(p, (err, buf) => {
         // Файла немає поруч з index.html. Найчастіше це findash.html /
