@@ -52,6 +52,11 @@ def single_run(name, wait=0, quiet=False):
             if time.time() >= deadline:
                 fh.close()
                 if not quiet:
+                    # ALREADY_RUNNING — мітка для того, хто нас запустив
+                    # (deals_trigger.py): «це не помилка, просто зайнято».
+                    # Без мітки тригер бачив лише «скрипт нічого не сказав» і
+                    # показував користувачці помилку там, де її не було.
+                    print("ALREADY_RUNNING %s" % name, file=sys.stderr)
                     print("ВЖЕ ВИКОНУЄТЬСЯ: інший запуск «%s» ще працює (%s). "
                           "Цей запуск пропускаю — це не помилка." % (name, path),
                           file=sys.stderr)
