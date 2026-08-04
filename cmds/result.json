@@ -1,7 +1,7 @@
 {
-  "stdout": "   журнал: 2026-08-04T08:11:56\tmain\tf124a2c6b\tв. 04.08 05:11\tindex.html:287140 findash.html:28273 finperiod.html:17527\trelay: деплой — виправлено прокрутку під шапку\n   UI 200  FINDASH 200\nDEPLOY_OK · гілка main · коміт f124a2c6b · позначка «в. 04.08 05:11»\nпозначка: в. 04.08 05:11\n",
+  "stdout": "=== запускаю розрахунок кас напряму ===\n                                  ^^^^^^^^^^^^^^^^^^\n  File \"/root/unitex-finrep/engine/cash_from_odata.py\", line 92, in compute\n    rows = records(c)\n           ^^^^^^^^^^\n  File \"/root/unitex-finrep/engine/cash_from_odata.py\", line 69, in records\n    with urllib.request.urlopen(req, timeout=300, context=c._ctx) as r:  # noqa: SLF001\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/urllib/request.py\", line 215, in urlopen\n    return opener.open(url, data, timeout)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/urllib/request.py\", line 521, in open\n    response = meth(req, response)\n               ^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/urllib/request.py\", line 630, in http_response\n    response = self.parent.error(\n               ^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/urllib/request.py\", line 559, in error\n    return self._call_chain(*args)\n           ^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/urllib/request.py\", line 492, in _call_chain\n    result = func(*args)\n             ^^^^^^^^^^^\n  File \"/usr/lib/python3.12/urllib/request.py\", line 639, in http_error_default\n    raise HTTPError(req.full_url, code, msg, hdrs, fp)\nurllib.error.HTTPError: HTTP Error 404: Not found\n--- код виходу: 0\n\n=== чи є мої зміни у файлі на сервері ===\n163:    tmp_csv = CSV_PATH + \".tmp\"\n164:    with open(tmp_csv, \"w\", encoding=\"utf-8\", newline=\"\") as f:\n170:        os.fsync(f.fileno())\n171:    os.replace(tmp_csv, CSV_PATH)\n\n=== чи збігається з репо ===\nЗБІГАЄТЬСЯ\n",
   "stderr": "",
   "returncode": 0,
-  "id": "deploy-ui-19",
-  "ts": "2026-08-04T05:11:57Z"
+  "id": "cash-err",
+  "ts": "2026-08-04T05:35:10Z"
 }
