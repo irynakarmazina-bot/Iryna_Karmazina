@@ -1,7 +1,7 @@
 {
-  "stdout": "фасад надсилає ключ (svc): 6\nвиклики через svc: 3\nпідпис під кнопкою: 1\nпозначка версії: в. 03.08 10:32\n\n=== чи проходить запит З ключем (імітую браузер) ===\nпробний вхід із хибним паролем: HTTPError 400\n",
+  "stdout": "=== коли востаннє викликали /cash-sheet ===\n\n=== чи є в run.sh або cron ===\n(у cron немає)\n\n=== що за таблиця (без ключів) ===\nTraceback (most recent call last):\n  File \"<string>\", line 1, in <module>\nFileNotFoundError: [Errno 2] No such file or directory: '/root/unitex-finrep/secure/config.json'\n\n=== чи є ще щось, що пише в Google ===\n__pycache__\nbuild_dashboard_data.py\nbuild_period_report.py\ncalendar_inputs.py\ncash_from_odata.py\ncheck_odata.py\ncommon.py\nconsolidate.py\nfill_dashboard_values.py\nlocal_costs.py\nmonthly_series.py\nodata_client.py\nodata_ingest.py\nodata_maps.py\noverhead.py\nparse.py\npnl_cf.py\nrebuild_dashboard.py\nregisters.py\nretro_nwc.py\n",
   "stderr": "",
   "returncode": 0,
-  "id": "facade-chk",
-  "ts": "2026-08-03T11:42:50Z"
+  "id": "sheet-why",
+  "ts": "2026-08-04T04:27:04Z"
 }
