@@ -1,7 +1,7 @@
 {
-  "stdout": "=== коли востаннє викликали /cash-sheet ===\n\n=== чи є в run.sh або cron ===\n(у cron немає)\n\n=== що за таблиця (без ключів) ===\nTraceback (most recent call last):\n  File \"<string>\", line 1, in <module>\nFileNotFoundError: [Errno 2] No such file or directory: '/root/unitex-finrep/secure/config.json'\n\n=== чи є ще щось, що пише в Google ===\n__pycache__\nbuild_dashboard_data.py\nbuild_period_report.py\ncalendar_inputs.py\ncash_from_odata.py\ncheck_odata.py\ncommon.py\nconsolidate.py\nfill_dashboard_values.py\nlocal_costs.py\nmonthly_series.py\nodata_client.py\nodata_ingest.py\nodata_maps.py\noverhead.py\nparse.py\npnl_cf.py\nrebuild_dashboard.py\nregisters.py\nretro_nwc.py\n",
+  "stdout": "сервіс: active\n   журнал: 2026-08-04T07:30:51\tmain\ta54f60c50\tв. 04.08 04:29\tindex.html:286101 findash.html:28273 finperiod.html:17527\trelay: попереджувальний режим + деплой фасада\n   UI 200  FINDASH 200\nDEPLOY_OK · гілка main · коміт a54f60c50 · позначка «в. 04.08 04:29»\n\n=== ПЕРЕВІРКА: запит БЕЗ ключа має ПРОЙТИ і потрапити в журнал ===\nкод: 200\nвідповідь: ok\n\n=== журнал ===\n2026-08-04 07:30:51 /localcosts    роль=невідома               ВІДМОВИВ БИ 401 (Цю дію можна запускати лише з платформи, після входу. Онови )\n2026-08-04 07:30:51 /localcosts    ПОПЕРЕДЖУВАЛЬНИЙ РЕЖИМ — запит пропущено попри відмову\n",
   "stderr": "",
   "returncode": 0,
-  "id": "sheet-why",
-  "ts": "2026-08-04T04:27:04Z"
+  "id": "warnmode",
+  "ts": "2026-08-04T04:30:53Z"
 }
