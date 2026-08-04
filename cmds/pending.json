@@ -1,1 +1,1 @@
-{"id": "cash1", "cmd": "echo CmV4ZWMgPiAvdG1wL2Nhc2hydW4ubG9nIDI+JjEKY2QgL3Jvb3QvdW5pdGV4LWZpbnJlcApzPSQoZGF0ZSArJXMpCi4vLnZlbnYvYmluL3B5dGhvbiBlbmdpbmUvY2FzaF9mcm9tX29kYXRhLnB5IC0tY3N2OyByYz0kPwplY2hvICJjYXNoIHJjPSRyYyDQt9CwICQoKCAkKGRhdGUgKyVzKS1zICkp0YEiCmxzIC1sIC0tdGltZS1zdHlsZT0rJVktJW0tJWRcICVIOiVNIG5vcm1hbGl6ZWQvY2FzaF9iYWxhbmNlcy5jc3YgMj4mMQplY2hvIENBU0hfUlVOX0RPTkUK | base64 -d > /tmp/cashrun.sh; rm -f /tmp/cashrun.log; nohup bash /tmp/cashrun.sh >/dev/null 2>&1 & echo запущено"}
+{"id": "cash2", "cmd": "cat /tmp/cashrun.log 2>&1 | tail -25"}
