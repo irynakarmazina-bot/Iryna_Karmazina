@@ -1,7 +1,7 @@
 {
-  "stdout": "",
-  "stderr": "Timeout (120s)",
-  "returncode": -1,
-  "id": "syncdiag4",
-  "ts": "2026-08-04T06:39:41Z"
+  "stdout": "запущено у фоні\n",
+  "stderr": "",
+  "returncode": 0,
+  "id": "timing1",
+  "ts": "2026-08-04T06:40:13Z"
 }
