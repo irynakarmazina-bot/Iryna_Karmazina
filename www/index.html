@@ -2032,7 +2032,15 @@ PAGES.dispatch = async () => {
            зміни фільтра. Якщо рядків мало і прокручувати нікуди — додаємо запас
            знизу рівно на ту висоту, якої бракує. */
         const firstOpen = $("drows").querySelector("tr:not(.done)");
-        box.style.paddingBottom = "0px";
+        /* Запас знизу — СПРАВЖНІЙ порожній блок, а не padding-bottom.
+           Перевірено в браузері 04.08.2026: відступ знизу браузер НЕ додає до
+           області прокрутки (треба 238, запас лишався 130, прокрутка спинялась
+           на 130). Саме тому доставлені не ховались під шапку, а нижня угода
+           була видна не повністю — користувачка це й побачила.
+           Порожній блок додається до scrollHeight завжди й у всіх браузерах. */
+        box.style.paddingBottom = "";
+        const oldSpacer = $("dscroll-spacer");
+        if (oldSpacer) oldSpacer.remove();
         if (firstOpen){
           /* Шапка таблиці закріплена (thead th{position:sticky;top:0}), тобто
              вона ЛЕЖИТЬ ПОВЕРХ перших рядків області прокрутки. Якщо прокрутити
@@ -2044,8 +2052,33 @@ PAGES.dispatch = async () => {
           const thead = box.querySelector("thead");
           const headH = thead ? thead.getBoundingClientRect().height : 0;
           const need = Math.max(0, firstOpen.offsetTop - headH - 6);
-          const avail = Math.max(0, box.scrollHeight - box.clientHeight);
-          if (need > avail) box.style.paddingBottom = (need - avail) + "px";
+          /* СКІЛЬКИ ЗАПАСУ ТРЕБА. Рахуємо від ГРАНИЧНОЇ висоти рамки, а не від
+             її поточної. Причина (виміряно 04.08.2026): у .dispscroll задано
+             max-height, тобто рамка РОЗТЯГУЄТЬСЯ під вміст, доки не впреться в
+             межу. Поки вміст коротший за межу, рамка росте разом із запасом —
+             і прокрутки не з'являється НІКОЛИ, скільки запасу не додай.
+             Стара формула (need - (scrollHeight - clientHeight)) саме тому й не
+             працювала при малій кількості рядків: 3 доставлені + 2 активні
+             давали запас 144 px замість потрібних 588, рамка просто ставала
+             вищою. Це те, що побачила користувачка з фільтром «Ірина»:
+             доставлені лишались на екрані, вільного місця знизу не з'являлось,
+             а нижній рядок був обрізаний.
+             Правильно: вміст має перевищити межу рівно на `need`. */
+          /* Висоту вмісту беремо з САМОЇ ТАБЛИЦІ, а не з box.scrollHeight:
+             у рамки є min-height:300px, тому scrollHeight ніколи не буває
+             меншим за 300, і при кількох рядках він завищений — запас виходив
+             на 10 px замалий. */
+          const tbl = box.querySelector("table");
+          const contentH = tbl ? tbl.getBoundingClientRect().height : box.scrollHeight;
+          const maxH = parseFloat(getComputedStyle(box).maxHeight) || box.clientHeight;
+          const extra = need + maxH - contentH;
+          if (extra > 0){
+            const sp = document.createElement("div");
+            sp.id = "dscroll-spacer";
+            sp.setAttribute("aria-hidden", "true");
+            sp.style.height = extra + "px";
+            box.appendChild(sp);
+          }
           box.scrollTop = need;
         } else {
           box.scrollTop = 0;          // доставлених немає або самі доставлені

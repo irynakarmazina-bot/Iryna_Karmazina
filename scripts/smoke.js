@@ -46,6 +46,24 @@ const ROW = {
 const TABLES = ["Диспетчеризація", "Користувачі", "Клієнти", "Задачі",
                 "Журнал дій", "Калькуляції", "Інструкції"];
 
+/* Диспетчеризація — перша таблиця в TABLES, тому її id «t1» (див. META нижче). */
+const DISP_ID = "t1";
+/* ДВІ різні суміші рядків, і обидві потрібні:
+   «багато» — доставлених більше, ніж влізає на екран (звичайний стан таблиці);
+   «мало»   — усе разом коротше за рамку таблиці. Саме на «мало» ламалося
+              ховання доставлених під шапку: рамка має max-height, тобто
+              розтягується під вміст, і запас знизу просто робив її вищою.
+              Користувачка побачила це з фільтром «Ірина» (04.08.2026).
+   На «багато» стара, хибна версія проходила — тому одного набору мало. */
+const mix = (done, act) => [
+  ...Array.from({ length: done }, (_, i) => ({ ...ROW, Id: 100 + i, "Угода": String(100 + i),
+    "Статус": "Вантаж доставлено", "ETA": "2026-0" + (1 + (i % 6)) + "-15" })),
+  ...Array.from({ length: act }, (_, i) => ({ ...ROW, Id: 200 + i, "Угода": String(200 + i),
+    "Статус": "В морі", "ETA": "2026-09-" + (10 + i) })),
+];
+const DISP_MIX = { "багато рядків": mix(25, 4), "мало рядків": mix(3, 2) };
+let dispMix = "багато рядків";
+
 const META = {
   list: TABLES.map((title, i) => ({ id: "t" + (i + 1), title })),
   columns: [{ title: "Статус", uidt: "SingleSelect",
@@ -107,6 +125,13 @@ async function run(browser, url, file, viewport, label, missing) {
       return route.fulfill({ status: 200, contentType: "application/json",
         body: JSON.stringify(META) });
     }
+    /* Диспетчеризації даємо БАГАТО доставлених і кілька активних — саме та
+       суміш, на якій тричі ламалося «доставлені ховаються під шапку»
+       (01.08, 03.08, 04.08.2026). З одним рядком ця перевірка нічого не бачила. */
+    if (u.includes(DISP_ID)) {
+      return route.fulfill({ status: 200, contentType: "application/json",
+        body: JSON.stringify({ list: DISP_MIX[dispMix], pageInfo: { isLastPage: true } }) });
+    }
     return route.fulfill({ status: 200, contentType: "application/json",
       body: JSON.stringify({ list: [ROW], pageInfo: { isLastPage: true } }) });
   });
@@ -152,6 +177,42 @@ async function run(browser, url, file, viewport, label, missing) {
     if (st.banner) notes.push(st.banner);
     if (lost.length) notes.push("немає файла поруч з index.html: " + lost.join(", "));
     if (st.sw > st.iw + 1) notes.push(`сторінка поїхала вбік (${st.sw} проти ${st.iw})`);
+    /* Диспетчеризація: доставлені мають ховатися ПІД шапкою, а найнижчий рядок —
+       вміщатися повністю. Ламалося тричі (01.08, 03.08, 04.08.2026), тому
+       перевіряємо машиною, а не оком. На телефоні правило інше: там таблиця
+       без власної прокрутки, доставлені йдуть ПІСЛЯ активних. */
+    if (p === "dispatch") {
+      for (const mixName of Object.keys(DISP_MIX)) {
+      dispMix = mixName;
+      // перемальовуємо таблицю на цій суміші рядків
+      await page.evaluate(() => { DISP_CACHE = null; return go("dispatch"); });
+      await page.waitForTimeout(700);
+      const s = await page.evaluate(() => {
+        const box = document.getElementById("dscroll");
+        const rows = [...document.querySelectorAll("#drows tr")];
+        if (!box || !rows.length) return null;
+        // На телефоні таблиця не має власної прокрутки — правило там інше
+        const phone = getComputedStyle(box).overflowY === "visible";
+        const boxRect = box.getBoundingClientRect();
+        /* Липкі саме клітинки заголовка (thead th{position:sticky}), а не сам
+           <thead>: він їде вгору разом із таблицею, тому його .bottom для
+           розрахунку не годиться — беремо ВИСОТУ і кладемо її від верху рамки.
+           На цьому я вже помилилась один раз, коли писала цю перевірку. */
+        const head = box.querySelector("thead");
+        const headBottom = boxRect.top + (head ? head.getBoundingClientRect().height : 0);
+        const seen = rows.find(r => r.getBoundingClientRect().top >= headBottom - 1);
+        const last = rows[rows.length - 1].getBoundingClientRect();
+        return { phone, firstSeenDone: !!seen && seen.classList.contains("done"),
+                 firstSeenNo: seen ? seen.cells[0].innerText.trim() : "?",
+                 lastCut: last.bottom > boxRect.bottom + 1 };
+      });
+      if (s && !s.phone) {
+        if (s.firstSeenDone) notes.push(`${mixName}: доставлені не сховались під шапку — зверху видно угоду ${s.firstSeenNo}`);
+        if (s.lastCut) notes.push(`${mixName}: нижній рядок видно не повністю — не вистачає запасу знизу`);
+      }
+      }
+      dispMix = Object.keys(DISP_MIX)[0];
+    }
     if (notes.length) { bad.push(`  ✗ ${p} [${label}]: ${notes.join(" ;; ")}`); }
     else console.log(`  ✓ ${p}`);
   }
