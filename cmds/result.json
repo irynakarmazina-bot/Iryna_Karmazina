@@ -1,7 +1,7 @@
 {
-  "stdout": "   UI 200  FINDASH 200\nDEPLOY_OK · гілка main · коміт 80bc18d6e · позначка «в. 04.08 05:11»\n",
+  "stdout": "cash-refresh HTTP=200 час=11.320227s\nstatus started | cash CASH_OK кас=13 разом_УО=57328,70 | error None\n",
   "stderr": "",
   "returncode": 0,
-  "id": "final2",
-  "ts": "2026-08-04T09:03:53Z"
+  "id": "final3",
+  "ts": "2026-08-04T09:04:26Z"
 }
