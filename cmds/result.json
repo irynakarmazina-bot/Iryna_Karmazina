@@ -1,7 +1,7 @@
 {
-  "stdout": "=== що віддає /cash-sheet тепер ===\n<!doctype html>\n<html lang=\"uk\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>UNITEX ERP</title>\n<style>\n  :root{\n    color-scheme: light;\n\n\nтип вмісту: text/html; charset=utf-8\n\n=== чи запускається розрахунок (шукаємо ознаки) ===\nу відповіді є CASH_OK або status: 0\n0\n\n=== журнал перевірки доступу (чи був виклик) ===\n2026-08-04 07:30:51 /localcosts    роль=невідома               ВІДМОВИВ БИ 401 (Цю дію можна запускати лише з платформи, після входу. Онови )\n2026-08-04 07:30:51 /localcosts    ПОПЕРЕДЖУВАЛЬНИЙ РЕЖИМ — запит пропущено попри відмову\n\n=== робочі маршрути ===\n  /cash-refresh         1\n  /localcosts-refresh   1\n  /sync                 1\n  /finrep-data          1\n  /gen-doc              1\n",
+  "stdout": "=== останній блок handle у Caddyfile ===\n\thandle {\n\t\theader /index.html Cache-Control \"no-cache, must-revalidate\"\n\t\theader / Cache-Control \"no-cache, must-revalidate\"\n\t\troot * /srv/www\n\t\ttry_files {path} /index.html\n\t\tfile_server\n\t}\n\n=== перевірка на вигаданій адресі ===\nhttps://IP/абракадабра123 → код 200\nперші символи відповіді: <!doctype html>\n<html lang=\"uk\">\n<head>\n<meta charset=\"utf-8\n",
   "stderr": "",
   "returncode": 0,
-  "id": "verify-sheet",
-  "ts": "2026-08-04T04:38:34Z"
+  "id": "fallback",
+  "ts": "2026-08-04T04:57:19Z"
 }
