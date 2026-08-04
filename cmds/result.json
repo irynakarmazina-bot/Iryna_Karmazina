@@ -1,7 +1,7 @@
 {
-  "stdout": "=== контейнери ===\ncaddy\tcaddy:2-alpine\t\nnocodb\tnocodb/nocodb:latest\t0.0.0.0:8080->8080/tcp, [::]:8080->8080/tcp\n\n=== який контейнер бачить /root/Caddyfile ===\ncaddy → /root/Caddyfile:/etc/caddy/Caddyfile /root/unitex-os-www:/srv/www \n",
+  "stdout": "=== перевірка конфігу в контейнері ===\n{\"level\":\"info\",\"ts\":1785818278.882223,\"logger\":\"tls.cache.maintenance\",\"msg\":\"started background certificate maintenance\",\"cache\":\"0x591ac09e300\"}\n{\"level\":\"info\",\"ts\":1785818278.882488,\"logger\":\"tls.cache.maintenance\",\"msg\":\"stopped background certificate maintenance\",\"cache\":\"0x591ac09e300\"}\nValid configuration\n\n=== перезавантаження ===\n{\"level\":\"info\",\"ts\":1785818279.0091393,\"msg\":\"using config from file\",\"file\":\"/etc/caddy/Caddyfile\"}\n{\"level\":\"info\",\"ts\":1785818279.0122857,\"msg\":\"adapted config to JSON\",\"adapter\":\"caddyfile\"}\n\n=== перевірка після ===\nсайт:              200\n/cash-sheet:       200\n/findash.html:     200\n/cabinet.html:     200\nконтейнер caddy:   running\n",
   "stderr": "",
   "returncode": 0,
-  "id": "find-docker",
-  "ts": "2026-08-04T04:37:31Z"
+  "id": "reload-caddy",
+  "ts": "2026-08-04T04:38:02Z"
 }
