@@ -1,1 +1,1 @@
-{"id": "route10", "cmd": "cd /root/unitex-finrep && ./.venv/bin/python /root/direct-sync/expeditor_direct_sync.py 2>&1 | tail -10"}
+{"id": "depui1", "cmd": "bash /root/Iryna_Karmazina/server/deploy_ui.sh main 2>&1 | tail -15"}
