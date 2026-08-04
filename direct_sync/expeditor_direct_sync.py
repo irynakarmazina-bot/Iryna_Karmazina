@@ -111,6 +111,9 @@ ROUTE_ORDER = ["POL", "POD", DRY_COL, "FD"]
 # Маршрут пишемо, лише якщо зібралося щонайменше дві ланки. Інакше «Gdansk»
 # без продовження затер би нормальний маршрут, який уже стоїть у платформі.
 ROUTE_MIN_PARTS = 2
+# службовий ключ: map_deal кладе сюди список ланок, основний цикл забирає його
+# і перетворює на «Маршрут». У базу цей ключ не потрапляє.
+ROUTE_PARTS = "__route_parts"
 # «Контейнер» додано 31.07.2026: перевірка по коносаментах показала, що правий Експедитор,
 # а в платформі сиділи застарілі номери з майстер-таблиці (угоди 113, 219, 223, 224),
 # і політика «не чіпати чуже» не давала їх виправити.
@@ -356,20 +359,56 @@ def dry_field(d):
     return next((k for k in DRY_KEYS if k in d), None)
 
 
-def route_of(parts):
-    """Маршрут одним рядком з готових ланок: «Felixstowe → Gdansk → Київ».
+def route_seq(parts):
+    """Ланки маршруту з Експедитора, по порядку: POL → POD → сухий порт → FD.
 
     parts — {колонка: назва міста}. Дві поспіль однакові ланки склеюються
     (буває, коли POD і FD — те саме місто), порожні пропускаються.
-    Повертає None, якщо ланок менше за ROUTE_MIN_PARTS — тоді нічого не пишемо,
-    щоб не затерти нормальний маршрут однослівним.
     """
     seq = []
     for col in ROUTE_ORDER:
         v = (parts.get(col) or "").strip()
         if v and (not seq or seq[-1] != v):
             seq.append(v)
-    return " → ".join(seq) if len(seq) >= ROUTE_MIN_PARTS else None
+    return seq
+
+
+def split_route(text):
+    """Наявний маршрут → список ланок. Ділимо ТІЛЬКИ по стрілці: у назвах міст
+    бувають дефіси («Рава-Руська»), і поділ по дефісу розірвав би їх навпіл."""
+    return [x.strip() for x in str(text or "").split("→") if x.strip()]
+
+
+def merge_route(seq, old_text):
+    """Маршрут для запису + перелік ланок, які довелося б втратити.
+
+    ГОЛОВНЕ ПРАВИЛО: жодна ланка, яка вже є в платформі, не має зникнути.
+    Навіщо саме так (перевірено на живих даних 04.08.2026): в Експедиторі ще
+    немає реквізиту сухого порту (DR), а в платформі він стоїть третьою ланкою —
+    «Мостиська» у 124 угодах, «Тернопіль» у 1. Просте перезаписування маршруту
+    даними Експедитора стерло б цю ланку у 131 угоді з 268.
+
+    Тому: беремо ланки Експедитора, а з наявного маршруту дописуємо в кінець
+    усе, що йшло ПІСЛЯ останньої спільної ланки. Якщо після цього бодай одна
+    стара ланка все одно зникає — НЕ ПИШЕМО НІЧОГО і повертаємо її в списку
+    втрат, щоб вона потрапила в лог, а не пропала мовчки.
+
+    Приклади:
+        Експедитор [Chennai, Gdansk] + платформа «Gdansk → Мостиська»
+            → «Chennai → Gdansk → Мостиська»   (додали POL, зберегли сухий порт)
+        Експедитор [Gdansk]          + платформа «Felixstowe → Gdansk → Мостиська»
+            → нічого не пишемо, у втратах «Felixstowe»
+    """
+    old = split_route(old_text)
+    if not old:
+        return (" → ".join(seq) if len(seq) >= ROUTE_MIN_PARTS else None), []
+    common = [i for i, v in enumerate(old) if v in seq]
+    merged = seq + [v for v in old[common[-1] + 1:] if v not in seq] if common else list(seq)
+    merged = [v for i, v in enumerate(merged) if i == 0 or merged[i - 1] != v]
+    lost = [v for v in old if v not in merged]
+    if lost:
+        return None, lost
+    return (" → ".join(merged) if len(merged) >= ROUTE_MIN_PARTS else None), []
 
 
 def mark_cancelled(cancelled, by_num, allowed_statuses, dry):
@@ -432,7 +471,8 @@ def map_deal(d, names, allowed_lines, allowed_kinds, allowed_statuses=frozenset(
         v = d10(d.get(fld))
         if v:
             o[col] = v
-    # ланки маршруту — кожна окремою колонкою, і «Маршрут» як похідне від них
+    # ланки маршруту — кожна окремою колонкою; сам «Маршрут» збирається пізніше,
+    # в основному циклі, бо для злиття потрібен маршрут, який уже стоїть у платформі
     if names.get("city"):
         parts = {}
         for col, fld in CITY_FIELDS:
@@ -446,9 +486,7 @@ def map_deal(d, names, allowed_lines, allowed_kinds, allowed_statuses=frozenset(
             if v:
                 parts[DRY_COL] = v
                 o[DRY_COL] = v
-        r = route_of(parts)
-        if r:
-            o["Маршрут"] = r
+        o[ROUTE_PARTS] = route_seq(parts)
     return o
 
 
@@ -503,7 +541,7 @@ def main():
             state = {}
     date_cols = {c for c, _ in DATE_FIELDS}
 
-    to_create, to_update, eta_changes = [], [], []
+    to_create, to_update, eta_changes, route_lost = [], [], [], []
     field_hits, conflicts = {}, {}
     new_state = {}
     for d in deals:
@@ -513,6 +551,14 @@ def main():
         want = map_deal(d, names, allowed_lines, allowed_kinds, allowed_statuses)
         mine = state.get(n, {})
         cur = by_num.get(n)
+        # «Маршрут» збираємо тут, бо треба бачити, що вже стоїть у платформі:
+        # ланку, якої Експедитор ще не знає (сухий порт), не можна втрачати.
+        seq = want.pop(ROUTE_PARTS, [])
+        r, lost = merge_route(seq, (cur or {}).get("Маршрут"))
+        if r:
+            want["Маршрут"] = r
+        if lost:
+            route_lost.append("угода %s: %s" % (n, ", ".join(lost)))
         if cur is None:
             rec = dict(want)
             rec["Угода"] = n
@@ -571,6 +617,11 @@ def main():
     if conflicts:
         log("%sНЕ чіпала (у платформі чужі значення): %s" % (tag, ", ".join(
             "%s=%d" % (k, v) for k, v in sorted(conflicts.items(), key=lambda x: -x[1]))))
+    if route_lost:
+        # маршрут з Експедитора виявився БІДНІШИЙ за той, що в платформі —
+        # нічого не переписали, лише показуємо, де саме розходження
+        log("%sМаршрут НЕ переписано, бо зникли б ланки (%d): %s"
+            % (tag, len(route_lost), "; ".join(route_lost[:15])))
     if eta_changes:
         log("%sETA змінилась в Експедиторі (%d): %s" % (tag, len(eta_changes), "; ".join(eta_changes[:15])))
     elif not state:
