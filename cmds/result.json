@@ -1,7 +1,7 @@
 {
-  "stdout": "=== початок Caddyfile ===\n{\n\temail irynakarmazina@gmail.com\n}\n\nhttps://134.209.94.12 {\n\ttls {\n\t\tissuer acme {\n\t\t\tprofile shortlived\n\t\t}\n\t}\n\tencode gzip\n\thandle /api/* {\n\t\treverse_proxy 127.0.0.1:8080\n\t}\n\thandle /download/* {\n\t\treverse_proxy 127.0.0.1:8080\n\t}\n\thandle /finrep-data* {\n\t\treverse_proxy 127.0.0.1:8789\n\t}\n\thandle /finrep-run {\n\t\trewrite * /run?token=ab035256f864e587ac4f2173ff0e9b12\n\t\treverse_proxy 127.0.0.1:8787\n\t}\n\thandle /sync {\n\t\trewrite * /run?token=84e86ebff415eea4223397784afc815c\n\t\treverse_proxy 127.0.0.1:8788\n\t}\n\thandle /cash-refresh {\n\t\trewrite * /refresh?token=ab035256f864e587ac4f2173ff0e9b12\n\n=== чи є timeout у Caddy ===\n\n=== Caddy у docker? ===\ncaddy|caddy:2-alpine|\nnocodb|nocodb/nocodb:latest|0.0.0.0:8080->8080/tcp, [::]:8080->8080/tcp\n\n=== через Caddy локально ===\nдомен: \nHTTP=000 час=0.003586s\n",
-  "stderr": "head: cannot open '/tmp/s.json' for reading: No such file or directory\n",
-  "returncode": 1,
-  "id": "syncdiag3",
-  "ts": "2026-08-04T06:37:24Z"
+  "stdout": "",
+  "stderr": "Timeout (120s)",
+  "returncode": -1,
+  "id": "syncdiag4",
+  "ts": "2026-08-04T06:39:41Z"
 }
