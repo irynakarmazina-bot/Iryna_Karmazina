@@ -88,6 +88,47 @@ def get_role(jwt):
     return role
 
 
+# ── РЕЖИМ РОБОТИ ──────────────────────────────────────────────────────────
+# ENFORCE = False → «попереджувальний режим» (рішення користувачки 03.08.2026):
+#   перевірка виконується і пишеться в журнал, але НІКОГО НЕ БЛОКУЄ.
+#   Навіщо: перевірку викотили, не маючи змоги випробувати її під живим
+#   користувачем (потрібен був би чужий пароль), і кнопки перестали працювати.
+#   Тепер кілька днів дивимось у журнал на РЕАЛЬНИХ запитах, чи проходили б вони.
+# ENFORCE = True  → блокує, як і задумано. Перемикати ОДНИМ словом тут,
+#   коли в журналі буде видно, що законні запити проходять.
+ENFORCE = False
+LOG_FILE = "/root/authcheck.log"
+
+
+def _log(line):
+    stamp = time.strftime("%Y-%m-%d %H:%M:%S")
+    try:
+        with open(LOG_FILE, "a", encoding="utf-8") as f:
+            f.write("%s %s\n" % (stamp, line))
+    except Exception:
+        pass
+    print("AUTHCHECK %s" % line, flush=True)
+
+
+def guard(headers, allowed, what=""):
+    """Головна точка входу для тригерів.
+
+    Повертає None — «пропускай далі», або (код, повідомлення) — «відмов».
+    У попереджувальному режимі ЗАВЖДИ повертає None, але пише в журнал,
+    що сталося б насправді.
+    """
+    ok, code, msg, role = check(headers, allowed)
+    verdict = "ПРОПУЩЕНО" if ok else ("ВІДМОВИВ БИ %d" % code)
+    _log("%-14s роль=%-22s %s%s" % (what or "?", role or "невідома", verdict,
+                                    "" if ok else " (" + msg[:60] + ")"))
+    if ok:
+        return None
+    if not ENFORCE:
+        _log("%-14s ПОПЕРЕДЖУВАЛЬНИЙ РЕЖИМ — запит пропущено попри відмову" % (what or "?"))
+        return None
+    return code, msg
+
+
 def check(headers, allowed):
     """Повертає (ok, код, повідомлення, роль).
 

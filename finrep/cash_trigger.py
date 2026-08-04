@@ -102,9 +102,11 @@ class H(http.server.BaseHTTPRequestHandler):
         # Якщо authcheck поруч немає — не падаємо, а працюємо як раніше і кажемо
         # про це в лог: краще працюючі кнопки, ніж мертвий сервіс.
         if authcheck is not None:
-            ok, code, msg, _role = authcheck.check(self.headers, authcheck.FIN_ROLES)
-            if not ok:
-                return self._send(code, {"error": msg})
+            # guard() сам вирішує, блокувати чи лише записати в журнал —
+            # залежно від authcheck.ENFORCE. Зараз режим попереджувальний.
+            deny = authcheck.guard(self.headers, authcheck.FIN_ROLES, q.path)
+            if deny:
+                return self._send(deny[0], {"error": deny[1]})
         else:
             print("УВАГА: authcheck.py не знайдено — перевірка ролі ПРОПУЩЕНА", flush=True)
 
