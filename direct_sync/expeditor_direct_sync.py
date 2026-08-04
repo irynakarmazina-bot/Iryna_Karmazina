@@ -19,6 +19,8 @@
     (03.08.2026, вимога користувачки). Пишеться лише тоді, коли зібралося
     щонайменше дві ланки — інакше однослівний маршрут затер би нормальний;
   * нові угоди створює, наявні знаходить за номером угоди;
+  * угоди, яких в Експедиторі вже немає ЗОВСІМ, позначає статусом «Скасована»
+    (фасад такі ховає) — але тільки під запобіжником, див. mark_orphans();
   * нічого не видаляє.
 
 Чому так з ETA: перевірка 30.07.2026 показала, що в 126 угодах ETA в платформі
@@ -454,6 +456,54 @@ def mark_cancelled(cancelled, by_num, allowed_statuses, dry):
     log("Позначено скасованими: %d" % len(patch))
 
 
+def mark_orphans(all_numbers, by_num, allowed_statuses, dry):
+    """Угоди, які є в платформі, але яких в Експедиторі вже НЕМАЄ ЗОВСІМ.
+
+    Навіщо (04.08.2026): угода 242 «ЮЕЙ ТРЕЙД, Київ → Роттердам» зникла з
+    Експедитора, а в платформі так і висіла зі статусом «Вантаж доставлено» від
+    29.06 і враховувалась у показниках. Користувачка: «вона скасована, не
+    враховуй її». `mark_cancelled` таких не ловить: він читає етап «Отменена»
+    з самої угоди, а якщо угоди в Експедиторі немає — читати нічого.
+
+    ЗАПОБІЖНИК, і він тут головний. Якщо Експедитор одного разу віддасть
+    урізаний список (а таке вже було 04.08: замість 705 сутностей я отримала
+    108 через запасний шлях у клієнті), то без перевірки цей код позначив би
+    скасованими СОТНІ живих угод. Тому діємо, лише коли:
+      * Експедитор віддав щонайменше 90% від кількості рядків у платформі, і
+      * «зайвих» рядків не більше 10% від усіх.
+    Інакше нічого не пишемо — тільки голосно кажемо в лог.
+    Нічого не видаляємо: лише ставимо статус «Скасована», який фасад ховає.
+    """
+    orphans = sorted((n for n in by_num if n and n not in all_numbers),
+                     key=lambda x: int(x) if x.isdigit() else 0)
+    if not orphans:
+        return
+    rows = len(by_num)
+    log("У платформі є, а в Експедиторі немає (%d): %s" % (len(orphans), ", ".join(orphans)))
+    if len(all_numbers) < 0.9 * rows or len(orphans) > 0.1 * rows:
+        log("WARN Експедитор віддав %d угод на %d рядків платформи, «зайвих» %d — "
+            "це схоже на неповну відповідь, а не на скасування. НІЧОГО не позначаю."
+            % (len(all_numbers), rows, len(orphans)))
+        return
+    if CANCELLED_STATUS not in allowed_statuses:
+        log("WARN статусу «%s» немає серед варіантів колонки — не позначаю" % CANCELLED_STATUS)
+        return
+    patch = [{"Id": by_num[n]["Id"], "Статус": CANCELLED_STATUS} for n in orphans
+             if str(by_num[n].get("Статус") or "").strip() != CANCELLED_STATUS]
+    if not patch:
+        return
+    if dry:
+        log("DRY позначити скасованими (немає в Експедиторі): %d" % len(patch))
+        return
+    for i in range(0, len(patch), CHUNK):
+        st, js = nc("PATCH", "/api/v2/tables/%s/records" % TABLE, patch[i:i + CHUNK])
+        if st not in (200, 201):
+            log("ORPHAN_FAIL %s %s" % (st, str(js)[:200]))
+            return
+    log("Позначено скасованими (немає в Експедиторі): %d — угоди %s"
+        % (len(patch), ", ".join(orphans)))
+
+
 def map_deal(d, names, allowed_lines, allowed_kinds, allowed_statuses=frozenset()):
     """Повертає {колонка NocoDB: значення} лише з непорожніх даних Експедитора."""
     o = {}
@@ -548,6 +598,10 @@ def main():
     log("%sЗаписів у платформі: %d" % (tag, len(rows)))
 
     mark_cancelled(cancelled, by_num, allowed_statuses, dry)
+    # «зайві» рядки: угоди, яких в Експедиторі немає взагалі (див. mark_orphans).
+    # Рахуємо від УСІХ проведених угод, разом зі скасованими — інакше скасовані
+    # виглядали б як зниклі.
+    mark_orphans({num(d.get("Number")) for d in posted}, by_num, allowed_statuses, dry)
 
     state = {}
     if os.path.exists(STATE):
