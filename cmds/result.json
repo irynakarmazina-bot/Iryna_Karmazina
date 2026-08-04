@@ -1,7 +1,7 @@
 {
-  "stdout": "бекап: /root/Caddyfile.bak-20260804-094655\nблок /sync-state додано\nконфіг валідний\n{\"level\":\"info\",\"ts\":1785826016.2006683,\"msg\":\"using config from file\",\"file\":\"/etc/caddy/Caddyfile\"}\n{\"level\":\"info\",\"ts\":1785826016.2063148,\"msg\":\"adapted config to JSON\",\"adapter\":\"caddyfile\"}\nCaddy перечитав конфіг\n25:\thandle /sync {\n26-\t\trewrite * /run?token=84e86ebff415eea4223397784afc815c\n27-\t\treverse_proxy 127.0.0.1:8788\n28-\t}\n29:\thandle /sync-state {\n30-\t\trewrite * /state?token=84e86ebff415eea4223397784afc815c\n31-\t\treverse_proxy 127.0.0.1:8788\n32-\t}\n",
+  "stdout": "синтаксис ok\nactive\n--- /state одразу:\n{\"running\": false, \"started\": \"\", \"finished\": \"\", \"ok\": null, \"result\": \"\", \"error\": \"\", \"steps\": []}\n--- /run (має відповісти МИТТЄВО):\n{\"status\": \"started\", \"started\": \"2026-08-04T09:47:22\"} [час=0.015641s HTTP=202]\n--- другий /run одразу (має бути 409, теж миттєво):\n{\"status\": \"busy\", \"started\": \"2026-08-04T09:47:22\", \"error\": \"Оновлення вже виконується — зачекай, воно триває близько двох з половиною хвилин. Другий раз натискати не треба.\"} [час=0.004094s HTTP=409]\n--- /state під час роботи (має відповісти миттєво, running=true):\n{\"running\": true, \"started\": \"2026-08-04T09:47:22\", \"finished\": \"\", \"ok\": null, \"result\": \"\", \"error\": \"\", \"steps\": []} [час=0.004923s]\n",
   "stderr": "",
   "returncode": 0,
-  "id": "caddy1",
-  "ts": "2026-08-04T06:46:56Z"
+  "id": "trig1",
+  "ts": "2026-08-04T06:47:22Z"
 }
