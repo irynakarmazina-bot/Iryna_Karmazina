@@ -1,7 +1,7 @@
 {
-  "stdout": "запущено\n",
+  "stdout": "старт 06:43:34\nдруге натискання о 06:43:54 (через 20 с):\nB: HTTP=000 час=45.002984s\nhead: cannot open '/tmp/e2e_b.json' for reading: No such file or directory\nB тіло: \n",
   "stderr": "",
   "returncode": 0,
-  "id": "e2e1",
-  "ts": "2026-08-04T06:43:34Z"
+  "id": "e2e2",
+  "ts": "2026-08-04T06:45:20Z"
 }
