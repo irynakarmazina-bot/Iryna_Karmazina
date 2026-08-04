@@ -1,7 +1,7 @@
 {
-  "stdout": "   UI 200  FINDASH 200\nDEPLOY_OK · гілка main · коміт 84c7c4699 · позначка «в. 04.08 05:11»\n",
+  "stdout": "=== що лежить на сервері ===\n17:13 298354\n2\n1\n=== що віддає сайт ===\nHTTP=200 байт=298354\n2\n=== заголовки кешу ===\ncache-control: no-cache, must-revalidate\netag: \"dkg7zg48nb8o6e7m\"\nlast-modified: Tue, 04 Aug 2026 14:13:23 GMT\n",
   "stderr": "",
   "returncode": 0,
-  "id": "depui4",
-  "ts": "2026-08-04T14:13:23Z"
+  "id": "served1",
+  "ts": "2026-08-04T14:25:05Z"
 }
