@@ -1,7 +1,7 @@
 {
-  "stdout": "04.08 17:32\n",
+  "stdout": "   UI 200  FINDASH 200\nDEPLOY_OK · гілка main · коміт f053e3e6d · позначка «в. 04.08 17:40»\n",
   "stderr": "",
   "returncode": 0,
-  "id": "time1",
-  "ts": "2026-08-04T14:32:57Z"
+  "id": "depui5",
+  "ts": "2026-08-04T14:34:00Z"
 }
