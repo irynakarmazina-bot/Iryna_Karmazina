@@ -1,1 +1,1 @@
-{"id": "route9", "cmd": "cd /root/Iryna_Karmazina && git fetch origin main -q && git checkout origin/main -- direct_sync/expeditor_direct_sync.py && cp direct_sync/expeditor_direct_sync.py /root/direct-sync/ && cd /root/unitex-finrep && ./.venv/bin/python /root/direct-sync/expeditor_direct_sync.py --dry-run 2>&1 | tail -12"}
+{"id": "route10", "cmd": "cd /root/unitex-finrep && ./.venv/bin/python /root/direct-sync/expeditor_direct_sync.py 2>&1 | tail -10"}
