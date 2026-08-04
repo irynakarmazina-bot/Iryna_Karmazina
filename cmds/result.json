@@ -1,7 +1,7 @@
 {
-  "stdout": "синтаксис ok\nactive\n--- /state одразу:\n{\"running\": false, \"started\": \"\", \"finished\": \"\", \"ok\": null, \"result\": \"\", \"error\": \"\", \"steps\": []}\n--- /run (має відповісти МИТТЄВО):\n{\"status\": \"started\", \"started\": \"2026-08-04T09:47:22\"} [час=0.015641s HTTP=202]\n--- другий /run одразу (має бути 409, теж миттєво):\n{\"status\": \"busy\", \"started\": \"2026-08-04T09:47:22\", \"error\": \"Оновлення вже виконується — зачекай, воно триває близько двох з половиною хвилин. Другий раз натискати не треба.\"} [час=0.004094s HTTP=409]\n--- /state під час роботи (має відповісти миттєво, running=true):\n{\"running\": true, \"started\": \"2026-08-04T09:47:22\", \"finished\": \"\", \"ok\": null, \"result\": \"\", \"error\": \"\", \"steps\": []} [час=0.004923s]\n",
+  "stdout": "{\"running\": true, \"started\": \"2026-08-04T09:47:22\", \"finished\": \"\", \"ok\": null, \"result\": \"\", \"error\": \"\", \"steps\": []}\n--- через Caddy:\n{\"running\": true, \"started\": \"2026-08-04T09:47:22\", \"finished\": \"\", \"ok\": null, \"result\": \"\", \"error\": \"\", \"steps\": []} [HTTP=200 час=0.011890s]\n",
   "stderr": "",
   "returncode": 0,
-  "id": "trig1",
-  "ts": "2026-08-04T06:47:22Z"
+  "id": "trig2",
+  "ts": "2026-08-04T06:48:27Z"
 }
