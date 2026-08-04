@@ -1,1 +1,1 @@
-{"id": "time1", "cmd": "date '+%d.%m %H:%M'"}
+{"id": "depui5", "cmd": "bash /root/Iryna_Karmazina/server/deploy_ui.sh main 2>&1 | tail -2"}
