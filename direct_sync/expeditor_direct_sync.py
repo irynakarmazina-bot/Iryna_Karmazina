@@ -667,9 +667,16 @@ def main():
         json.dump(new_state, open(STATE, "w", encoding="utf-8"), ensure_ascii=False)
     else:
         log("WARN стан не збережено через помилки запису — наступний прогін повторить спробу")
-    log("DONE deals=%d new=%d updated=%d errors=%d" % (len(deals), len(to_create), len(to_update), errors))
-    print("SYNC_OK deals=%d new=%d updated=%d errors=%d"
-          % (len(deals), len(to_create), len(to_update), errors))
+    # last= — найбільший номер угоди, який ми бачили в Експедиторі. Потрібен
+    # фасаду, щоб під кнопкою написати «остання угода в Експедиторі: 273».
+    # Причина (04.08.2026): таблиця впорядкована за ключовою датою, тому в кінці
+    # списку стоїть не найновіша угода, і «нових угод немає» читалося як
+    # «в Експедиторі нічого нового». Тепер число видно прямо.
+    last = max((int(n) for n in (num(d.get("Number")) for d in deals) if n.isdigit()), default=0)
+    log("DONE deals=%d new=%d updated=%d errors=%d last=%d"
+        % (len(deals), len(to_create), len(to_update), errors, last))
+    print("SYNC_OK deals=%d new=%d updated=%d errors=%d last=%d"
+          % (len(deals), len(to_create), len(to_update), errors, last))
 
 
 # Замок «один запуск за раз» — див. direct_sync/runlock.py.

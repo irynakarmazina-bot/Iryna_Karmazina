@@ -342,6 +342,12 @@
   .dirchip{font-size:11px;font-weight:700;letter-spacing:.02em;border-radius:5px;padding:1px 5px;white-space:nowrap}
   .dirchip.imp{background:var(--info-bg);color:var(--info-text)}
   .dirchip.exp{background:var(--vio-bg);color:var(--vio-text)}
+  /* «нова» — угода з'явилася в таблиці за останні 7 днів. Потрібна тому, що
+     таблиця впорядкована за ключовою датою, і найновіша угода може стояти
+     всередині списку, а не в кінці (див. _isNew у PAGES.dispatch). */
+  .newchip{font-size:10px;font-weight:700;letter-spacing:.02em;border-radius:5px;
+    padding:1px 4px;margin-left:5px;white-space:nowrap;
+    background:var(--good-bg);color:var(--good-text)}
   .flag{display:inline-block;font-size:11.5px;font-weight:600;border-radius:5px;padding:1px 6px;margin:1px 2px 1px 0;white-space:nowrap}
   .flag.on{background:var(--good-bg);color:var(--good-text)}
   .flag.off{background:var(--neutral-bg);color:var(--muted);text-decoration:line-through;text-decoration-thickness:1px}
@@ -1627,7 +1633,19 @@ PAGES.dispatch = async () => {
   // швидкий фільтр із плиток дашборда (клік по плитці → сюди з готовим відбором)
   const _dt = v => { const m=/(\d{4})-(\d{2})-(\d{2})/.exec(String(v||"")); return m? new Date(+m[1],+m[2]-1,+m[3]) : null; };
   const _today = new Date(); _today.setHours(0,0,0,0);
+  /* НОВІ УГОДИ. Навіщо (04.08.2026): користувачка прокрутила таблицю донизу,
+     побачила останнім рядком угоду 271 і сказала «в мене остання угода 271» —
+     хоча 272 і 273 були в таблиці, у рядках 248 і 249. Причина не в даних:
+     таблиця впорядкована за КЛЮЧОВОЮ ДАТОЮ (її ж рішення 01.08.2026), а угоди
+     без ETA йдуть у самий низ. Тому «останній рядок» ≠ «найновіша угода»:
+     271 стояв останнім саме тому, що в нього немає ETA.
+     Порядок не міняю — його обрала користувачка. Натомість роблю новизну
+     ВИДИМОЮ: позначка «нова» біля номера і окремий швидкий відбір. */
+  const NEW_DAYS = 7;
+  const _isNew = r => { const c = dOf(String(r["CreatedAt"]||"").slice(0,10));
+    return !!c && (_today - c)/86400000 <= NEW_DAYS; };
   const QUICK = {
+    fresh:{label:"нові угоди (за "+NEW_DAYS+" днів)", test:_isNew},
     active:{label:"активні перевезення", test:r=>!_done(r)},
     sea:{label:"в морі зараз", test:r=>r["Статус"]==="В морі"},
     eta7:{label:"прибуття за 7 днів", test:r=>{ if(_done(r)) return false; const e=_dt(r["ETA"]);
@@ -1901,7 +1919,7 @@ PAGES.dispatch = async () => {
           ${truckLate(r)?`title="Імпорт у порту ${daysIn(r)} дн, авто не подане і номера немає"`
             :(stageStale(r)?`title="Статус «${esc(_s(r,"Статус"))}», а етап в Експедиторі досі «Букинг» — менеджер не вніс зміни"`
               :(gateInMissing(r)?'title="Експорт без дати заїзду в порт — її ставлять одразу після букінгу"':""))}>
-        <td class="mono"><b>${esc(r["Угода"])}</b></td>
+        <td class="mono"><b>${esc(r["Угода"])}</b>${_isNew(r)?'<span class="newchip" title="угода з\'явилася в таблиці за останні 7 днів">нова</span>':""}</td>
         <td>${r["Напрямок"]?`<span class="dirchip ${r["Напрямок"]==="Імпорт"?"imp":"exp"}">${r["Напрямок"]==="Імпорт"?"ІМП":(r["Напрямок"]==="Експорт"?"ЕКС":"ТРН")}</span>`:""}</td>
         <td class="c-cli" data-l="Клієнт" title="${esc(r["Клієнт"]||"")}">${esc(cliName(r["Клієнт"])||"—")}</td>
         <td class="c-rt${ED}" data-l="Маршрут" data-ed="Маршрут" title="${esc(r["Маршрут"]||"")}">${
@@ -2063,10 +2081,12 @@ PAGES.dispatch = async () => {
   const syncSummary = (res) => {
     const s = res || "";
     const all = /deals=(\d+)/.exec(s), nw = /new=(\d+)/.exec(s), up = /updated=(\d+)/.exec(s);
+    const last = /last=(\d+)/.exec(s);
     const t = /MAERSK_OK tracked=(\d+) updated=(\d+)/.exec(s);
     const parts = [];
     if (nw && nw[1] !== "0") parts.push(`додано нових угод: ${nw[1]}`);
     else if (all) parts.push(`усі ${all[1]} ${plural(+all[1],"угода","угоди","угод")} з Експедитора вже в таблиці`);
+    if (last && last[1] !== "0") parts.push(`остання угода в Експедиторі: ${last[1]}`);
     if (up) parts.push(up[1] === "0" ? "змін немає" : `оновлено угод: ${up[1]}`);
     if (t) parts.push(`трекінг Maersk: оновлено ${t[2]} з ${t[1]}`);
     return parts.length ? parts.join(" · ") : "готово";
