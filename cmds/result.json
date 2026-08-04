@@ -1,7 +1,7 @@
 {
-  "stdout": "перевіряю угод: 239 (усього в платформі 269)\nзвірено з подіями: 169, без даних у Maersk: 70\nугод із суперечностями: 0\n\n\n\nAUDIT_DONE problems=0 checked=169 nodata=70\n",
+  "stdout": "   журнал: 2026-08-04T08:11:56\tmain\tf124a2c6b\tв. 04.08 05:11\tindex.html:287140 findash.html:28273 finperiod.html:17527\trelay: деплой — виправлено прокрутку під шапку\n   UI 200  FINDASH 200\nDEPLOY_OK · гілка main · коміт f124a2c6b · позначка «в. 04.08 05:11»\nпозначка: в. 04.08 05:11\n",
   "stderr": "",
   "returncode": 0,
-  "id": "audit-3",
-  "ts": "2026-08-04T05:06:17Z"
+  "id": "deploy-ui-19",
+  "ts": "2026-08-04T05:11:57Z"
 }
