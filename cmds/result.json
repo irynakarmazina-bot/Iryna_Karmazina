@@ -1,7 +1,7 @@
 {
-  "stdout": "============================================================\nУГОДА 238 | статус у платформі: В морі | ETA: 2026-08-16\n  ФАКТИЧНІ події до сьогодні:\n    2026-06-22 LOAD  ACT  VESSEL  Busan new port termi\n    2026-06-23 ISSU  ACT          \n    2026-06-28 ARRI  ACT  VESSEL  Pelabuhan Tanjung Pe\n    2026-06-29 DISC  ACT  VESSEL  Pelabuhan Tanjung Pe\n    2026-07-02 LOAD  ACT  VESSEL  Pelabuhan Tanjung Pe\n    2026-07-03 DEPA  ACT  VESSEL  Pelabuhan Tanjung Pe\n  → остання фактична: 2026-07-03 DEPA транспорт=VESSEL\n  → саме з неї рахується статус; код DEPA у мапінгу дає: «В морі»\n============================================================\nУГОДА 253 | статус у платформі: В морі | ETA: 2026-09-19\n  ФАКТИЧНІ події до сьогодні:\n    2026-07-25 LOAD  ACT  VESSEL  Tobishima Minami Ter\n    2026-07-28 ISSU  ACT          \n    2026-07-31 ARRI  ACT  VESSEL  YANGSHAN SGH GUANDON\n    2026-07-31 DISC  ACT  VESSEL  YANGSHAN SGH GUANDON\n    2026-08-02 LOAD  ACT  VESSEL  YANGSHAN SGH GUANDON\n    2026-08-04 DEPA  ACT  VESSEL  YANGSHAN SGH GUANDON\n  → остання фактична: 2026-08-04 DEPA транспорт=VESSEL\n  → саме з неї рахується статус; код DEPA у мапінгу дає: «В морі»\n",
+  "stdout": "перевіряю угод: 239 (усього в платформі 269)\nзвірено з подіями: 169, без даних у Maersk: 70\nугод із суперечностями: 0\n\n\n\nAUDIT_DONE problems=0 checked=169 nodata=70\n",
   "stderr": "",
   "returncode": 0,
-  "id": "why238",
-  "ts": "2026-08-04T05:04:18Z"
+  "id": "audit-3",
+  "ts": "2026-08-04T05:06:17Z"
 }
