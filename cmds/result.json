@@ -1,7 +1,7 @@
 {
-  "stdout": "06:43:07\nекспедитор: 4с rc=0\nmaersk: 147с rc=0\nКонтейнер іншої лінії — Maersk його не бачить (10): угода 246/MSBU7836715, угода 194/HAMU5125659, угода 254/MSDU8931910, угода 237/TCNU5657992, угода 199/CAAU8501862, угода 217/TGHU1370537, угода 222/TGBU6552281, угода 267/MAGU2419496, угода 268/CMAU7498306, угода 271/SEGU1312511\nDONE tracked=33 updated=0 nodata=11 foreign=10 api_errors=0 write_fails=0\nMAERSK_OK tracked=33 updated=0 nodata=11 foreign=10 api_errors=0 write_fails=0\ncosco: 2с rc=0\nУгод COSCO для трекінгу: 0 (усього в платформі 269)\nCOSCO_OK tracked=0 updated=0\nTIMING_DONE\n--- процеси:\nжодного\n",
+  "stdout": "запущено\n",
   "stderr": "",
   "returncode": 0,
-  "id": "timing6",
-  "ts": "2026-08-04T06:43:07Z"
+  "id": "e2e1",
+  "ts": "2026-08-04T06:43:34Z"
 }
