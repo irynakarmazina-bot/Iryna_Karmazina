@@ -1,7 +1,7 @@
 {
-  "stdout": "старт 06:43:34\nдруге натискання о 06:43:54 (через 20 с):\nB: HTTP=000 час=45.002984s\nhead: cannot open '/tmp/e2e_b.json' for reading: No such file or directory\nB тіло: \n",
+  "stdout": "бекап: /root/Caddyfile.bak-20260804-094655\nблок /sync-state додано\nконфіг валідний\n{\"level\":\"info\",\"ts\":1785826016.2006683,\"msg\":\"using config from file\",\"file\":\"/etc/caddy/Caddyfile\"}\n{\"level\":\"info\",\"ts\":1785826016.2063148,\"msg\":\"adapted config to JSON\",\"adapter\":\"caddyfile\"}\nCaddy перечитав конфіг\n25:\thandle /sync {\n26-\t\trewrite * /run?token=84e86ebff415eea4223397784afc815c\n27-\t\treverse_proxy 127.0.0.1:8788\n28-\t}\n29:\thandle /sync-state {\n30-\t\trewrite * /state?token=84e86ebff415eea4223397784afc815c\n31-\t\treverse_proxy 127.0.0.1:8788\n32-\t}\n",
   "stderr": "",
   "returncode": 0,
-  "id": "e2e2",
-  "ts": "2026-08-04T06:45:20Z"
+  "id": "caddy1",
+  "ts": "2026-08-04T06:46:56Z"
 }
