@@ -1,1 +1,1 @@
-{"id": "trig3", "cmd": "for i in $(seq 1 20); do s=$(curl -s -m 10 'http://127.0.0.1:8788/state?token=84e86ebff415eea4223397784afc815c'); echo \"$s\" | grep -q '\"running\": false' && { echo \"$s\"; break; }; sleep 5; done"}
+{"id": "depui2", "cmd": "bash /root/Iryna_Karmazina/server/deploy_ui.sh main 2>&1 | tail -8"}
