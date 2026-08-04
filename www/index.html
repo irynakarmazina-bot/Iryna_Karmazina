@@ -1090,8 +1090,13 @@ function openMenu(on){
   if (b) b.setAttribute("aria-expanded", on ? "true" : "false");
 }
 
+/* Яка сторінка зараз відкрита. Потрібна фоновим завданням (оновлення
+   диспетчеризації триває 2,5 хв і може завершитись, коли людина вже перейшла
+   в інший розділ) — щоб не перемальовувати те, чого на екрані немає. */
+let CUR = "";
 function go(page){
   if (!cfg().nav.includes(page)) page = cfg().nav[0];
+  CUR = page;
   if (isPhone()) openMenu(false);          // вибрали розділ — меню ховається
   $("nav").querySelectorAll(".nav-item").forEach(b=>b.classList.toggle("active", b.dataset.page===page));
   $("page-actions").innerHTML = "";
@@ -1665,7 +1670,14 @@ PAGES.dispatch = async () => {
                    "Статус":"select", "Вид перевезення":"select"};
   // варіанти для випадайок у таблиці — свої для кожної колонки
   const ED_OPTS = {"Статус": ()=>Object.keys(STATUSES), "Вид перевезення": ()=>MODE_OPTIONS};
-  const syncBtn = cfg().sync ? '<button class="btn" id="sync-btn">⟳ Оновити з Експедитора</button>' : "";
+  /* Підпис під кнопкою — те саме, що у «Фінансах» і «Бух. обліку»: видно, чи
+     оновилося і коли. Раніше тут був лише тост на 4 секунди, і при обриві
+     запиту людина взагалі нічого не бачила (04.08.2026). */
+  const syncBtn = cfg().sync
+    ? '<span style="display:inline-flex;align-items:center;gap:8px">'
+      + '<button class="btn" id="sync-btn">⟳ Оновити з Експедитора</button>'
+      + '<span id="disp-note"></span></span>'
+    : "";
   const head = logist
     ? "<th>Угода</th><th>Клієнт</th><th>Контейнер</th><th>Статус</th><th>Номер авто</th><th>Водій</th><th>Телефон</th><th>Перетин кордону</th><th></th>"
     : "<th>Угода</th><th></th><th>Клієнт</th><th>Маршрут</th><th>Вид / лінія</th><th class=\"c-bl\">Коносамент /<br>контейнер</th><th class=\"c-ves\">Судно</th><th class=\"dt\">Stuffing</th><th class=\"dt\">Gate in /<br>здача</th><th class=\"dt\">ETD POL</th><th class=\"dt\">ETA POD</th><th class=\"dt\">ETA dry port</th><th class=\"dt\">Gate out delivery</th><th>Статус</th><th>Авто</th><th>Коментар</th><th></th>";
@@ -2032,20 +2044,58 @@ PAGES.dispatch = async () => {
   const qc = $("quick-clear");
   if (qc) qc.addEventListener("click",()=>{ DISP_QUICK=null; go("dispatch"); });
   draw();
+  restoreNote("disp-note");
   const sb = $("sync-btn");
+  /* Оновлення триває близько 2,5 хвилин (виміряно: Експедитор 4 с, трекінг
+     Maersk 147 с, COSCO 2 с). Тримати весь цей час відкритим один запит не
+     можна — будь-який обрив, і результат втрачався, хоча на сервері все
+     відпрацювало. Тому: /sync лише ЗАПУСКАЄ роботу і одразу відповідає, а ми
+     раз на 5 секунд питаємо /sync-state, чи вже готово, і пишемо це під кнопкою.
+     Опитування переживає перехід між сторінками: воно триває навіть якщо
+     кнопки на екрані вже немає, а підпис відновлюється з sessionStorage. */
+  const syncSummary = (res) => {
+    const m = /new=(\d+)/.exec(res||"");
+    const t = /MAERSK_OK tracked=(\d+) updated=(\d+)/.exec(res||"");
+    const parts = [m && m[1] !== "0" ? `додано нових угод: ${m[1]}` : "нових угод немає"];
+    if (t) parts.push(`трекінг Maersk: оновлено ${t[2]} з ${t[1]}`);
+    return parts.join(" · ");
+  };
+  const watchSync = async () => {
+    const until = Date.now() + 15*60*1000;   // межа безпеки, щоб не питати вічно
+    while (Date.now() < until){
+      await new Promise(r=>setTimeout(r, 5000));
+      let st;
+      try { st = await svc("/sync-state"); }
+      catch(e){ refreshNote("disp-note","err","не вдалося дізнатися стан: "+e.message); return; }
+      if (st.running) continue;
+      if (st.ok === false){
+        refreshNote("disp-note","err", st.error || "оновлення не пройшло");
+        return;
+      }
+      refreshNote("disp-note","ok");
+      toast("✅ " + syncSummary(st.result));
+      DISP_CACHE = null;
+      if (CUR === "dispatch") go("dispatch");
+      return;
+    }
+    refreshNote("disp-note","err","минуло 15 хвилин без відповіді — скажи Клоду");
+  };
   if (sb) sb.addEventListener("click", async ()=>{
-    sb.disabled=true; sb.textContent="⏳ Оновлюю… (до 2 хв: Експедитор + трекінг)";
+    sb.disabled = true;
+    refreshNote("disp-note","run","Оновлюю… це близько 2,5 хвилин");
     try{
-      const js = await svc("/sync");
-      const res = js.result||"";
-      const m = /new=(\d+)/.exec(res);
-      const t = /MAERSK_OK tracked=(\d+) updated=(\d+)/.exec(res);
-      const parts = [m && m[1]!=="0" ? `додано нових угод: ${m[1]}` : "нових угод немає"];
-      if (t) parts.push(`трекінг Maersk: оновлено ${t[2]} з ${t[1]}`);
-      toast("✅ " + parts.join(" · "));
-      DISP_CACHE=null; go("dispatch");
-    } catch(e){ toast("⚠ Не вдалося оновити — спробуй ще раз"); }
-    finally{ sb.disabled=false; sb.textContent="⟳ Оновити з Експедитора"; }
+      await svc("/sync");
+      watchSync();
+    } catch(e){
+      // 409 «вже виконується» — не помилка: робота йде, просто її почали раніше
+      if (/вже виконується/.test(e.message)){
+        refreshNote("disp-note","busy", e.message);
+        watchSync();
+      } else {
+        refreshNote("disp-note","err", e.message);
+      }
+    }
+    finally{ sb.disabled = false; }
   });
 };
 
