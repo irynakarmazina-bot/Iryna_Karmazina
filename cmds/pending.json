@@ -1,1 +1,1 @@
-{"id": "timing2", "cmd": "cat /tmp/synctime.log 2>&1; echo '---'; ps aux | grep -c '[m]aersk_track_sync'"}
+{"id": "timing3", "cmd": "cat /tmp/synctime.log 2>&1; echo '--- ще працює:'; ps -eo etime,cmd 2>/dev/null | grep -E '[m]aersk_track|[c]osco_track' || echo 'ні'"}
