@@ -1,7 +1,7 @@
 {
-  "stdout": "2026-08-02_17:07 137751 /root/unitex-os-www/cabinet-gm.html\n2026-08-02_23:17 325762 /root/unitex-os-www/cabinet.html\n--- доступність:\ncabinet.html HTTP=200 байт=325762\ncabinet-gm.html HTTP=200 байт=137751\n--- угод у файлах:\ncabinet.html 8\ncabinet-gm.html 8\n",
+  "stdout": "   UI 200  FINDASH 200\nDEPLOY_OK · гілка main · коміт 84c7c4699 · позначка «в. 04.08 05:11»\n",
   "stderr": "",
   "returncode": 0,
-  "id": "cab2",
-  "ts": "2026-08-04T13:52:05Z"
+  "id": "depui4",
+  "ts": "2026-08-04T14:13:23Z"
 }
