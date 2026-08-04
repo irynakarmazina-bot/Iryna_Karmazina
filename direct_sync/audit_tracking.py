@@ -72,7 +72,15 @@ def check(row, ev):
 
     act = [e for e in ev if e["act"] and e["date"] <= TODAY]
     arr_v = [e for e in ev if e["code"] == "ARRI" and e["mode"] == "VESSEL"]
-    disc_v = [e for e in ev if e["code"] == "DISC" and e["mode"] == "VESSEL" and e["act"]]
+    # Вивантаження ПРИБУТТЯМ вважається лише тоді, коли після нього вантаж
+    # більше не вантажили на судно. Інакше це ПЕРЕВАЛКА.
+    # Без цієї умови перевірка давала хибні зауваження: угоди 238 і 253 мали
+    # вивантаження в Tanjung Pelepas і Yangshan, а потім знову LOAD і DEPA —
+    # тобто вантаж у морі, і статус «В морі» правильний.
+    _disc_all = [e for e in ev if e["code"] == "DISC" and e["mode"] == "VESSEL" and e["act"]]
+    _load_after = lambda d: any(e["code"] == "LOAD" and e["mode"] == "VESSEL"
+                                and e["act"] and e["date"] >= d for e in ev)
+    disc_v = [e for e in _disc_all if not _load_after(e["date"])]
     arr_rail = [e for e in ev if e["code"] == "ARRI" and e["mode"] == "RAIL"]
     ves_named = [e for e in ev if e["mode"] == "VESSEL" and e["vessel"]]
 
