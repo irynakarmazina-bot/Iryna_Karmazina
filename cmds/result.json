@@ -1,7 +1,7 @@
 {
-  "stdout": "   UI 200  FINDASH 200\nDEPLOY_OK · гілка main · коміт 4ce169cad · позначка «в. 04.08 05:11»\nDONE deals=267 new=0 updated=0 errors=0 last=273\nSYNC_OK deals=267 new=0 updated=0 errors=0 last=273\n",
+  "stdout": "[dry-run] Записів у платформі: 269\nDRY позначити скасованими (немає в Експедиторі): 1\n",
   "stderr": "",
   "returncode": 0,
-  "id": "newchip1",
-  "ts": "2026-08-04T09:15:01Z"
+  "id": "orph1",
+  "ts": "2026-08-04T09:31:50Z"
 }
