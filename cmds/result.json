@@ -1,7 +1,7 @@
 {
-  "stdout": "   копій, старших за 14 днів, немає — нічого не прибираю\n   усього копій у архіві: 50\n   журнал: 2026-08-04T09:52:19\tmain\t1ccbe00e0\tв. 04.08 05:11\tindex.html:292045 findash.html:28273 finperiod.html:17527\trelay: викласти фасад\n   UI 200  FINDASH 200\nDEPLOY_OK · гілка main · коміт 1ccbe00e0 · позначка «в. 04.08 05:11»\n",
+  "stdout": "опубліковано зараз: 711\nЄ        AccountingRegister_Хозрасчетный\nЄ        AccountingRegister_Хозрасчетный_RecordType\nусіх AccountingRegister_*: 6\n    AccountingRegister_Бухгалтерский\n    AccountingRegister_Бухгалтерский_RecordType\n    AccountingRegister_Налоговый\n    AccountingRegister_Налоговый_RecordType\n    AccountingRegister_Хозрасчетный\n    AccountingRegister_Хозрасчетный_RecordType\n",
   "stderr": "",
   "returncode": 0,
-  "id": "depui3",
-  "ts": "2026-08-04T06:52:19Z"
+  "id": "acc1",
+  "ts": "2026-08-04T08:58:34Z"
 }
