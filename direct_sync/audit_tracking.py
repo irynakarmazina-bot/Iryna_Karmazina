@@ -50,10 +50,21 @@ def ev_rows(events):
 
 
 def check(row, ev):
-    """Список знайдених суперечностей для однієї угоди."""
+    """Список знайдених суперечностей для однієї угоди.
+
+    ВАЖЛИВО (виправлено після першого прогону 03.08.2026, який дав 417 зауважень,
+    майже всі хибні):
+      * доставлені угоди трекінг навмисно НЕ оновлює — їхні дати історичні,
+        порівнювати їх із сьогоднішніми подіями безглуздо. Пропускаємо;
+      * «ETA порт (план)» — це ПЛАН, він законно відрізняється від факту.
+        Порівнюємо тільки з «ETA порт (факт)»;
+      * назви суден Maersk віддає з пробілами по краях — порівнювати зі strip().
+    """
     bad = []
     st = str(row.get("Статус") or "").strip()
-    eta_port = d10(row.get("ETA порт (факт)")) or d10(row.get("ETA порт (план)"))
+    if st == M.DELIVERED:
+        return bad                      # заморожена угода, звіряти нема з чим
+    eta_port = d10(row.get("ETA порт (факт)"))
     disc = d10(row.get("Вивантаження в порту (факт)"))
     dry = d10(row.get("ETA сухий порт"))
     eta = d10(row.get("ETA"))
@@ -82,7 +93,7 @@ def check(row, ev):
         bad.append("ETA порт %s, а прихід судна %s (%s)"
                    % (eta_port, arr_v[-1]["date"], arr_v[-1]["place"][:18]))
 
-    # 5. вивантаження раніше за прихід у порт — так не буває
+    # 5. вивантаження раніше за ФАКТИЧНИЙ прихід у порт — так не буває
     if disc and eta_port and disc < eta_port:
         bad.append("вивантаження %s РАНІШЕ за прихід у порт %s" % (disc, eta_port))
 
@@ -90,15 +101,20 @@ def check(row, ev):
     if dry and disc and dry < disc:
         bad.append("сухий порт %s РАНІШЕ за вивантаження %s" % (dry, disc))
 
-    # 7. дата прибуття потяга є в подіях, але в платформі порожньо
+    # 7. дата прибуття потяга є в подіях, але в платформі порожньо.
+    # Дивимось лише СВІЖІ (не старші за 60 днів) — старі угоди цю колонку
+    # ніколи не отримували, бо її почали заповнювати лише 03.08.2026.
+    old_cut = (datetime.date.today() - datetime.timedelta(days=60)).isoformat()
+    arr_rail = [e for e in arr_rail if e["date"] >= old_cut]
     if arr_rail and ves_named and not dry:
         bad.append("є прибуття потяга %s, а «ETA сухий порт» порожній"
                    % arr_rail[-1]["date"])
 
     # 8. судно в платформі не збігається з жодним судном у подіях
-    if vessel and ves_named and vessel not in {e["vessel"] for e in ves_named}:
+    names = {e["vessel"].strip() for e in ves_named if e["vessel"].strip()}
+    if vessel and names and vessel.strip() not in names:
         bad.append("судно «%s» немає серед суден рейсу (%s)"
-                   % (vessel, ", ".join(sorted({e["vessel"] for e in ves_named}))[:40]))
+                   % (vessel, ", ".join(sorted(names))[:40]))
 
     # 9. ETA в майбутньому, хоча вантаж уже вивантажено
     if disc_v and eta and eta > TODAY:
