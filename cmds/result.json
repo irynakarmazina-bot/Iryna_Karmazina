@@ -1,7 +1,7 @@
 {
-  "stdout": "запущено\n",
+  "stdout": "Грошових проводок: 1759, без виду оплати в субконто: 0\n\nЗАЛИШКИ станом на 2026-08-04:\nВид оплати                     Вал             Сума             УО\nБанк Cr String Cycle LLC       USD         -5700,88       -5700,88\nБанк Юнітекс Ейч-Ді            UAH        335265,58        8625,52\nБанк Юнітекс Ейч-Ді EUR        EUR             0,00        2110,80\nБанк Юнітекс Ейч-Ді USD        USD             0,00           0,00\nБанк Юнітекс Ейч-Ді Восток     UAH         13687,45         274,53\nБанк Юнітекс Форвардинг        UAH         71213,45        1642,11\nДепозити USD                   USD          8000,00        8000,00\nКаса UAH UFWD                  UAH          7444,83         123,53\nКаса UAH UHD                   UAH         17280,99         143,94\nКаса USD UFWD                  USD         26193,46       26193,46\nКаса USD UHD                   USD         19662,91       19662,91\nКаса USD Украмарин             USD         -5682,60       -5682,60\nМаерск USD                     USD          1935,38        1935,38\nРАЗОМ                                                     57328,70\n\nКопія попереднього CSV: cash_balances.csv.bak-20260804-1201\nCSV оновлено: /root/unitex-finrep/normalized/cash_balances.csv (13 кас)\nCASH_OK кас=13 разом_УО=57328,70\ncash rc=0 за 9с\n-rw-r--r-- 1 root root 690 2026-08-04 12:01 normalized/cash_balances.csv\nCASH_RUN_DONE\n",
   "stderr": "",
   "returncode": 0,
-  "id": "cash1",
-  "ts": "2026-08-04T09:01:25Z"
+  "id": "cash2",
+  "ts": "2026-08-04T09:02:44Z"
 }
