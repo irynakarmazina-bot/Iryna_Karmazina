@@ -1,1 +1,1 @@
-{"id": "depui2", "cmd": "bash /root/Iryna_Karmazina/server/deploy_ui.sh main 2>&1 | tail -8"}
+{"id": "depui3", "cmd": "bash /root/Iryna_Karmazina/server/deploy_ui.sh main 2>&1 | tail -5"}
