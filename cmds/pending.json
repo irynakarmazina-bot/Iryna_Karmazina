@@ -1,1 +1,1 @@
-{"id": "dry-0805", "cmd": "nohup python3 /root/direct-sync/maersk_track_sync.py --dry-run > /root/direct-sync/dryrun-0805.txt 2>&1 & echo 'запущено вхолосту, перевірю за хвилину'"}
+{"id": "dryres-0805b", "cmd": "echo '--- РЕЗУЛЬТАТ ХОЛОСТОГО ПРОГОНУ ---'; tail -14 /root/direct-sync/dryrun-0805.txt"}
