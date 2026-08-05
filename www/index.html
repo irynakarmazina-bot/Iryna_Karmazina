@@ -348,6 +348,13 @@
   .newchip{font-size:10px;font-weight:700;letter-spacing:.02em;border-radius:5px;
     padding:1px 4px;margin-left:5px;white-space:nowrap;
     background:var(--good-bg);color:var(--good-text)}
+  /* Колонка «Угода»: у 46 px номер разом із чіпом «нова» не вміщався — на екрані
+     було «27…» замість «273» (зауваження користувачки 05.08.2026). Колонку
+     розширено до 64 px, і додано правила переносу: сам номер не розривається,
+     а чіп «нова» падає під нього окремим рядком. */
+  td.c-num,th.c-num{white-space:normal}
+  td.c-num>b{white-space:nowrap}
+  td.c-num .newchip{display:inline-block;margin-left:0;margin-top:2px}
   .flag{display:inline-block;font-size:11.5px;font-weight:600;border-radius:5px;padding:1px 6px;margin:1px 2px 1px 0;white-space:nowrap}
   .flag.on{background:var(--good-bg);color:var(--good-text)}
   .flag.off{background:var(--neutral-bg);color:var(--muted);text-decoration:line-through;text-decoration-thickness:1px}
@@ -695,7 +702,7 @@
       <div class="spacer"></div>
       <!-- Позначка версії: по ній видно, чи браузер підтягнув свіжу сторінку.
            Оновлюється автоматично при кожному викладенні (scripts/stamp.sh). -->
-      <div class="buildstamp" id="buildstamp" title="версія сторінки — якщо не збігається з тим, що я назвала, натисни Ctrl+F5">в. 04.08 17:40</div>
+      <div class="buildstamp" id="buildstamp" title="версія сторінки — якщо не збігається з тим, що я назвала, натисни Ctrl+F5">в. 05.08 06:45</div>
     </nav>
     <div class="main">
       <div class="topbar">
@@ -1698,7 +1705,7 @@ PAGES.dispatch = async () => {
     : "";
   const head = logist
     ? "<th>Угода</th><th>Клієнт</th><th>Контейнер</th><th>Статус</th><th>Номер авто</th><th>Водій</th><th>Телефон</th><th>Перетин кордону</th><th></th>"
-    : "<th>Угода</th><th></th><th>Клієнт</th><th>Маршрут</th><th>Вид / лінія</th><th class=\"c-bl\">Коносамент /<br>контейнер</th><th class=\"c-ves\">Судно</th><th class=\"dt\">Stuffing</th><th class=\"dt\">Gate in /<br>здача</th><th class=\"dt\">ETD POL</th><th class=\"dt\">ETA POD</th><th class=\"dt\">ETA dry port</th><th class=\"dt\">Gate out delivery</th><th>Статус</th><th>Авто</th><th>Коментар</th><th></th>";
+    : "<th class=\"c-num\">Угода</th><th></th><th>Клієнт</th><th>Маршрут</th><th>Вид / лінія</th><th class=\"c-bl\">Коносамент /<br>контейнер</th><th class=\"c-ves\">Судно</th><th class=\"dt\">Stuffing</th><th class=\"dt\">Gate in /<br>здача</th><th class=\"dt\">ETD POL</th><th class=\"dt\">ETA POD</th><th class=\"dt\">ETA dry port</th><th class=\"dt\">Gate out delivery</th><th>Статус</th><th>Авто</th><th>Коментар</th><th></th>";
   // ── активні алерти над таблицею
   const uniq = k => [...new Set(all.map(r=>_s(r,k)).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"uk"));
   const nActive = all.filter(r=>!_done(r)).length;
@@ -1755,7 +1762,10 @@ PAGES.dispatch = async () => {
                жирний 13 px «12.06.26» потребує ~72 px разом із відступами. -->
           <!-- 17 колонок, шість із них дати по 86 px (кегль дат 12.5 px).
                Сума фіксованих ~1232 px, решта — «Коментар» (01.08.2026). -->
-          <col style="width:46px"><col style="width:62px"><col style="width:84px"><col style="width:102px">
+          <!-- Перша колонка 46→64 px: номер угоди разом із чіпом «нова» не
+               вміщався, було «27…» замість «273» (05.08.2026). Різницю бере
+               на себе «Коментар» — єдина колонка без фіксованої ширини. -->
+          <col style="width:64px"><col style="width:62px"><col style="width:84px"><col style="width:102px">
           <col style="width:110px"><col style="width:124px"><col style="width:74px"><col style="width:86px">
           <col style="width:86px"><col style="width:86px"><col style="width:86px"><col style="width:86px">
           <col style="width:86px"><col style="width:106px"><col style="width:74px"><col><col style="width:32px">
@@ -1919,7 +1929,7 @@ PAGES.dispatch = async () => {
           ${truckLate(r)?`title="Імпорт у порту ${daysIn(r)} дн, авто не подане і номера немає"`
             :(stageStale(r)?`title="Статус «${esc(_s(r,"Статус"))}», а етап в Експедиторі досі «Букинг» — менеджер не вніс зміни"`
               :(gateInMissing(r)?'title="Експорт без дати заїзду в порт — її ставлять одразу після букінгу"':""))}>
-        <td class="mono"><b>${esc(r["Угода"])}</b>${_isNew(r)?'<span class="newchip" title="угода з\'явилася в таблиці за останні 7 днів">нова</span>':""}</td>
+        <td class="mono c-num"><b>${esc(r["Угода"])}</b>${_isNew(r)?'<span class="newchip" title="угода з\'явилася в таблиці за останні 7 днів">нова</span>':""}</td>
         <td>${r["Напрямок"]?`<span class="dirchip ${r["Напрямок"]==="Імпорт"?"imp":"exp"}">${r["Напрямок"]==="Імпорт"?"ІМП":(r["Напрямок"]==="Експорт"?"ЕКС":"ТРН")}</span>`:""}</td>
         <td class="c-cli" data-l="Клієнт" title="${esc(r["Клієнт"]||"")}">${esc(cliName(r["Клієнт"])||"—")}</td>
         <td class="c-rt${ED}" data-l="Маршрут" data-ed="Маршрут" title="${esc(r["Маршрут"]||"")}">${
