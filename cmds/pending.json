@@ -1,1 +1,1 @@
-{"id": "fitcols2-0805", "cmd": "bash /root/Iryna_Karmazina/server/deploy_ui.sh main 2>&1 | tail -2"}
+{"id": "cols3-0805", "cmd": "bash /root/Iryna_Karmazina/server/deploy_ui.sh main 2>&1 | tail -2"}
