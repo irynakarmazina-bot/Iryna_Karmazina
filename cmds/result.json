@@ -1,7 +1,7 @@
 {
-  "stdout": "   UI 200  FINDASH 200\nDEPLOY_OK · гілка main · коміт f053e3e6d · позначка «в. 04.08 17:40»\n",
+  "stdout": "   усього копій у архіві: 74\n   журнал: 2026-08-05T09:46:40\tmain\t0b820a2b6\tв. 05.08 06:45\tindex.html:299364 findash.html:28273 finperiod.html:17527\trelay: викласти фасад із розширеною колонкою «Угода»\n   UI 200  FINDASH 200\nDEPLOY_OK · гілка main · коміт 0b820a2b6 · позначка «в. 05.08 06:45»\n",
   "stderr": "",
   "returncode": 0,
-  "id": "depui5",
-  "ts": "2026-08-04T14:34:00Z"
+  "id": "depui-col0805",
+  "ts": "2026-08-05T06:46:40Z"
 }
