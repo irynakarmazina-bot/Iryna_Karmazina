@@ -1,7 +1,7 @@
 {
-  "stdout": "--- md5 робочого файла на сервері ---\n3ae8db060482dd7423d0c40235ec78f5  /root/direct-sync/expeditor_direct_sync.py\n--- md5 копії в репозиторії ---\n3ae8db060482dd7423d0c40235ec78f5  /root/Iryna_Karmazina/direct_sync/expeditor_direct_sync.py\n--- таймер синхронізації ---\nNEXT                         LEFT LAST                              PASSED UNIT                        ACTIVATES\nThu 2026-08-06 07:00:00 EEST  19h Wed 2026-08-05 07:00:08 EEST 4h 9min ago expeditor-direct-sync.timer expeditor-direct-sync.service\n\n",
+  "stdout": "--- ФАЙЛ ОНОВЛЕНО, бекап: expeditor_direct_sync.py.bak-0805 ---\n92a634a559a9a31db2af50153dff572a  /root/direct-sync/expeditor_direct_sync.py\n--- ПЕРЕВІРКА ПРАВИЛА НА РЕАЛЬНІЙ УГОДІ 274 ---\nетап в Експедиторі: 'Букинг'\nпідставлено дату виконання робіт: 2026-08-05 | ЕТА порожня\nНОВИЙ код  -> Статус = None\nБЕЗ правила -> Статус = 'Вантаж доставлено'\n",
   "stderr": "",
   "returncode": 0,
-  "id": "syncfile-0805",
-  "ts": "2026-08-05T08:09:25Z"
+  "id": "bookingrule-0805",
+  "ts": "2026-08-05T08:11:20Z"
 }
