@@ -449,7 +449,14 @@
      звужуємо відступи саме в них (01.08.2026). */
   .dispscroll table.fixw td.dt,.dispscroll table.fixw th.dt{padding-left:6px;padding-right:6px}
   .dispscroll table.fixw td.dt{font-size:12.5px}
-  td.c-bl .ln{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  /* Лінійний коносамент і номери контейнерів НЕ ховаються — вони мають бути видні
+     повністю (правило користувачки 05.08.2026). Ховатися дозволено лише домашньому
+     коносаменту: їх буває по два в рядок («BW26060245A, BW26060245B»), і саме він
+     роздував колонку. Повний текст — у підказці й у картці угоди. */
+  td.c-bl .ln{display:block;white-space:nowrap}
+  td.c-bl .ln.hbl{overflow:hidden;text-overflow:ellipsis}
+  /* У замірі домашній коносамент участі не бере — інакше диктував би ширину колонки */
+  .dispscroll table.fixw.measuring td.c-bl .ln.hbl{display:none}
   a.tl{color:var(--accent);text-decoration:none;border-bottom:1px dashed rgba(37,99,235,.4)}
   a.tl:hover{border-bottom-style:solid}
   a.tl.cell-muted{color:var(--ink-2);border-bottom-color:rgba(120,120,120,.35)}
@@ -724,7 +731,7 @@
       <div class="spacer"></div>
       <!-- Позначка версії: по ній видно, чи браузер підтягнув свіжу сторінку.
            Оновлюється автоматично при кожному викладенні (scripts/stamp.sh). -->
-      <div class="buildstamp" id="buildstamp" title="версія сторінки — якщо не збігається з тим, що я назвала, натисни Ctrl+F5">в. 05.08 09:31</div>
+      <div class="buildstamp" id="buildstamp" title="версія сторінки — якщо не збігається з тим, що я назвала, натисни Ctrl+F5">в. 05.08 09:48</div>
     </nav>
     <div class="main">
       <div class="topbar">
@@ -1785,7 +1792,7 @@ PAGES.dispatch = async () => {
     : "";
   const head = logist
     ? "<th>Угода</th><th>Клієнт</th><th>Контейнер</th><th>Статус</th><th>Номер авто</th><th>Водій</th><th>Телефон</th><th>Перетин кордону</th><th></th>"
-    : "<th class=\"c-num\">Угода</th><th></th><th>Клієнт</th><th>Маршрут</th><th>Вид / лінія</th><th class=\"c-bl\">Коносамент /<br>контейнер</th><th class=\"c-ves\">Судно</th><th class=\"dt\">Stuffing</th><th class=\"dt\">Gate in /<br>здача</th><th class=\"dt\">ETD POL</th><th class=\"dt\">ETA POD</th><th class=\"dt\">ETA dry port</th><th class=\"dt\">Gate out delivery</th><th>Статус</th><th>Авто</th><th>Коментар</th><th></th>";
+    : "<th class=\"c-num\">Угода</th><th></th><th>Клієнт</th><th>Маршрут</th><th>Вид / лінія</th><th class=\"c-bl\">Коносамент /<br>контейнер</th><th class=\"c-ves\">Судно</th><th class=\"dt\">Stuffing</th><th class=\"dt\">Gate in /<br>здача</th><th class=\"dt\">ETD POL</th><th class=\"dt\">ETA POD</th><th class=\"dt\">ETA<br>dry port</th><th class=\"dt\">Gate out<br>delivery</th><th>Статус</th><th>Авто</th><th>Коментар</th><th></th>";
   // ── активні алерти над таблицею
   const uniq = k => [...new Set(all.map(r=>_s(r,k)).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"uk"));
   const nActive = all.filter(r=>!_done(r)).length;
@@ -1962,7 +1969,12 @@ PAGES.dispatch = async () => {
     const tb2 = document.createElement("tbody");
     pick.forEach(tr => tb2.appendChild(tr.cloneNode(true)));
     probe.appendChild(tb2);
-    box.parentNode.appendChild(probe);
+    /* Копію кладемо ВСЕРЕДИНУ рамки, а не поруч. Це не дрібниця: усі правила
+       таблиці записані як «.dispscroll table…», і поза рамкою жодне з них на копію
+       не діяло — замість мінімальної ширини браузер рахував максимальну (текст у
+       один рядок). Через це 05.08.2026 колонки вийшли надто широкими, між ними
+       зяяло порожнє місце, а «Статус» поїхав за край екрана. */
+    box.appendChild(probe);
     const need = [...probe.tHead.rows[0].cells].map(c => Math.ceil(c.getBoundingClientRect().width));
     probe.remove();
 
@@ -1971,7 +1983,17 @@ PAGES.dispatch = async () => {
     const w = need.slice();
     if (w[FLEX_COL] !== undefined) w[FLEX_COL] = FLEX_MIN;
     const sum = w.reduce((a, b) => a + b, 0);
-    if (w[FLEX_COL] !== undefined && sum < avail) w[FLEX_COL] += avail - sum;
+    if (w[FLEX_COL] !== undefined) {
+      if (sum < avail) {
+        w[FLEX_COL] += avail - sum;             // вільне місце — «Коментарю»
+      } else if (sum > avail) {
+        /* Місця бракує — стискаємо ПЕРШИМ і тільки «Коментар»: він єдиний, кому
+           дозволено ховатися. Статус, номери й дати не чіпаємо, навіть якщо через
+           це лишиться бічна прокрутка: «статус не може ховатися за край екрана»
+           (вимога користувачки 05.08.2026). */
+        w[FLEX_COL] = Math.max(0, w[FLEX_COL] - (sum - avail));
+      }
+    }
     cols.forEach((c, i) => { c.style.width = w[i] + "px"; });
   };
   /* Під час перетягування краю вікна подія сипле десятками разів на секунду —
@@ -2126,7 +2148,7 @@ PAGES.dispatch = async () => {
         <td class="mono c-bl" data-l="Коносамент / контейнер">${isAir(r)
             ? (_s(r,"Авіанакладна") ? `${esc(r["Авіанакладна"])}<br><span class="cell-muted">авіанакладна</span>`
                                     : '<span class="cell-muted">авіа — накладної немає</span>')
-            : `${_s(r,"HBL") ? `<span class="ln" title="домашній коносамент"><i class="blt">HBL</i>${esc(r["HBL"])}</span>` : ""}${
+            : `${_s(r,"HBL") ? `<span class="ln hbl" title="домашній коносамент: ${esc(r["HBL"])}"><i class="blt">HBL</i>${esc(r["HBL"])}</span>` : ""}${
                 _s(r,"BL") ? `<span class="ln" title="лінійний коносамент"><i class="blt">BL</i>${trackLink(r, r["BL"])}</span>` : ""}${
                 (!_s(r,"HBL") && !_s(r,"BL")) ? '<span class="ln cell-muted">—</span>' : ""}${_s(r,"Контейнер").split(",")
                 .map(c=>c.trim()).filter(Boolean)
