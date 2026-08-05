@@ -170,6 +170,14 @@ CANCELLED_FILE = os.path.join(WORKDIR, "cancelled.json")
 # Тепер проставляємо їм окремий статус, а фасад ховає такі угоди скрізь.
 CANCELLED_STATUS = "Скасована"
 
+# ХТО ПОСТАВИВ СТАТУС (рішення користувачки 05.08.2026). Пишемо в окремі
+# колонки разом зі зміною статусу, щоб потім було видно, чи значення свіже і
+# чи його ставила людина. Автомат перебиває лише те, що поставив автомат.
+SRC_COL = "Статус (джерело)"
+SRC_WHEN = "Статус (оновлено)"
+STATUS_SRC = "Експедитор"
+HUMAN_SRC = "людина"
+
 WRITTEN_COLS = (
     ["Клієнт", "Напрямок", "Лінія", "Менеджер", "Агент", "Кількість", "Коментар", "Статус",
      "Етап (Експедитор)", "Маршрут", DRY_COL]
@@ -621,7 +629,7 @@ def main():
     # «Скасована» має бути серед варіантів колонки — інакше запис не пройде
     allowed_statuses = ensure_options(meta, "Статус", {CANCELLED_STATUS}, dry)
 
-    rows = nc_records(["Id", "Угода"] + WRITTEN_COLS)
+    rows = nc_records(["Id", "Угода", SRC_COL] + WRITTEN_COLS)
     by_num = {}
     for r in rows:
         by_num.setdefault(num(r.get("Угода")), r)
@@ -664,6 +672,8 @@ def main():
             rec = dict(want)
             rec["Угода"] = n
             rec.setdefault("Статус", "Букінг")
+            rec[SRC_COL] = STATUS_SRC
+            rec[SRC_WHEN] = datetime.date.today().isoformat()
             to_create.append(rec)
             for k in want:
                 field_hits[k] = field_hits.get(k, 0) + 1
@@ -687,6 +697,12 @@ def main():
                     conflicts["Статус (доставлено, не понижую)"] = \
                         conflicts.get("Статус (доставлено, не понижую)", 0) + 1
                     continue
+                if (col == "Статус" and old_s
+                        and str(cur.get(SRC_COL) or "").strip() == HUMAN_SRC):
+                    # статус виставила людина — автомат мовчить (05.08.2026)
+                    conflicts["Статус (поставила людина, не чіпаю)"] = \
+                        conflicts.get("Статус (поставила людина, не чіпаю)", 0) + 1
+                    continue
                 if col == "Статус" and val == VAGUE and old_s and old_s != VAGUE:
                     # «Виконується» — заглушка Експедитора, вона нічого не каже про етап.
                     # У платформі вже стоїть конкретний статус (ручна правка або трекінг) —
@@ -701,6 +717,9 @@ def main():
                 patch[col] = val
                 keep[col] = val
                 field_hits[col] = field_hits.get(col, 0) + 1
+            if "Статус" in patch:
+                patch[SRC_COL] = STATUS_SRC
+                patch[SRC_WHEN] = datetime.date.today().isoformat()
             if patch:
                 patch["Id"] = cur["Id"]
                 to_update.append(patch)
