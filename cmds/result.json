@@ -1,7 +1,7 @@
 {
-  "stdout": "--- ФАЙЛ ОНОВЛЕНО, бекап: expeditor_direct_sync.py.bak-0805 ---\n92a634a559a9a31db2af50153dff572a  /root/direct-sync/expeditor_direct_sync.py\n--- ПЕРЕВІРКА ПРАВИЛА НА РЕАЛЬНІЙ УГОДІ 274 ---\nетап в Експедиторі: 'Букинг'\nпідставлено дату виконання робіт: 2026-08-05 | ЕТА порожня\nНОВИЙ код  -> Статус = None\nБЕЗ правила -> Статус = 'Вантаж доставлено'\n",
+  "stdout": "  File \"<string>\", line 1\n    import json,urllib.request,urllib.parse;tok=open('/root/nocodb-token.txt').read().strip();B='http://localhost:8080/api/v2/tables/m58xsjo6at01ohl/records';def req(m,u,d=None):\n                                                                                                                                                              ^^^\nSyntaxError: invalid syntax\n",
   "stderr": "",
   "returncode": 0,
-  "id": "bookingrule-0805",
-  "ts": "2026-08-05T08:11:20Z"
+  "id": "fix274-0805",
+  "ts": "2026-08-05T08:12:14Z"
 }
