@@ -731,7 +731,7 @@
       <div class="spacer"></div>
       <!-- Позначка версії: по ній видно, чи браузер підтягнув свіжу сторінку.
            Оновлюється автоматично при кожному викладенні (scripts/stamp.sh). -->
-      <div class="buildstamp" id="buildstamp" title="версія сторінки — якщо не збігається з тим, що я назвала, натисни Ctrl+F5">в. 05.08 09:48</div>
+      <div class="buildstamp" id="buildstamp" title="версія сторінки — якщо не збігається з тим, що я назвала, натисни Ctrl+F5">в. 05.08 16:38</div>
     </nav>
     <div class="main">
       <div class="topbar">
@@ -2271,7 +2271,13 @@ PAGES.dispatch = async () => {
              телефоні вона інша. Плюс 6 px просвіту, щоб рядок не торкався шапки. */
           const thead = box.querySelector("thead");
           const headH = thead ? thead.getBoundingClientRect().height : 0;
-          const need = Math.max(0, firstOpen.offsetTop - headH - 6);
+          /* Відстань беремо через реальні координати на екрані, а не через
+             offsetTop: той рахується від «найближчого позиційованого предка», і
+             який саме це елемент, браузери визначають по-різному. Координати
+             однакові скрізь (05.08.2026). */
+          const need = Math.max(0, box.scrollTop
+            + firstOpen.getBoundingClientRect().top - box.getBoundingClientRect().top
+            - headH - 6);
           /* СКІЛЬКИ ЗАПАСУ ТРЕБА. Рахуємо від ГРАНИЧНОЇ висоти рамки, а не від
              її поточної. Причина (виміряно 04.08.2026): у .dispscroll задано
              max-height, тобто рамка РОЗТЯГУЄТЬСЯ під вміст, доки не впреться в
@@ -2291,15 +2297,27 @@ PAGES.dispatch = async () => {
           const tbl = box.querySelector("table");
           const contentH = tbl ? tbl.getBoundingClientRect().height : box.scrollHeight;
           const maxH = parseFloat(getComputedStyle(box).maxHeight) || box.clientHeight;
-          const extra = need + maxH - contentH;
-          if (extra > 0){
-            const sp = document.createElement("div");
-            sp.id = "dscroll-spacer";
-            sp.setAttribute("aria-hidden", "true");
-            sp.style.height = extra + "px";
-            box.appendChild(sp);
-          }
+          /* ПРОКРУТКА ПЕРЕВІРЯЄ САМА СЕБЕ (05.08.2026). Доти код ВІРИВ розрахунку:
+             додав запас — прокрутив — пішов далі. Якщо браузер рахує область
+             прокрутки хоч трохи інакше, прокрутка спинялась раніше, і доставлені
+             лишались на екрані. Відтворити це в контейнері неможливо: WebKit
+             (двигун Safari) сюди не встановлюється, а в Chromium випадок
+             користувачки проходив і на зламаній версії — тобто перевірити
+             розрахунком не вийде в принципі.
+             Тому міряємо ФАКТИЧНО досягнуту прокрутку і добираємо запас рівно на
+             різницю. Три спроби: кожна виправляє те, що недобрала попередня.
+             Тепер результат не залежить від того, як браузер рахує висоти. */
+          const sp = document.createElement("div");
+          sp.id = "dscroll-spacer";
+          sp.setAttribute("aria-hidden", "true");
+          sp.style.height = Math.max(0, need + maxH - contentH) + "px";
+          box.appendChild(sp);
           box.scrollTop = need;
+          for (let i = 0; i < 3 && box.scrollTop < need - 1; i++){
+            const gap = need - box.scrollTop;          // стільки не догорнулось
+            sp.style.height = ((parseFloat(sp.style.height) || 0) + gap + 1) + "px";
+            box.scrollTop = need;
+          }
         } else {
           box.scrollTop = 0;          // доставлених немає або самі доставлені
         }
