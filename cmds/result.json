@@ -1,7 +1,7 @@
 {
-  "stdout": "   UI 200  FINDASH 200\nDEPLOY_OK · гілка main · коміт 3a6ef20e9 · позначка «в. 05.08 09:26»\n",
+  "stdout": "   UI 200  FINDASH 200\nDEPLOY_OK · гілка main · коміт c6e163446 · позначка «в. 05.08 09:31»\n",
   "stderr": "",
   "returncode": 0,
-  "id": "revert-0805",
-  "ts": "2026-08-05T09:26:36Z"
+  "id": "fitcols2-0805",
+  "ts": "2026-08-05T09:31:56Z"
 }
