@@ -375,9 +375,20 @@
   /* Режим вимірювання для fitCols: кожна колонка просить рівно стільки, скільки
      треба її вмісту. Вмикається і вимикається всередині однієї функції, тому на
      екран не потрапляє — браузер малює лише кінцевий стан (05.08.2026). */
-  .dispscroll table.fixw.measuring{table-layout:auto;width:auto}
+  /* Міряємо МІНІМАЛЬНУ ширину, за якої вміст не ріжеться (width:min-content), а не
+     ширину тексту в один рядок. Різниця принципова і саме вона зламала перший
+     підхід 05.08.2026: «Вивантажений в порту прибуття» в один рядок просить ~190 px,
+     а мінімально йому треба стільки, скільки займає найдовше слово — далі пігулка
+     сама переноситься. Номери коносаментів і контейнерів при цьому не розриваються
+     (у них white-space:nowrap), тому просять повну ширину — як і має бути за
+     правилом користувачки: «ні номери угод, ні номери коносаментів, ні статуси
+     не мають ховатися або з'їжджати». */
+  .dispscroll table.fixw.measuring{table-layout:auto;width:min-content}
   .dispscroll table.fixw.measuring td,.dispscroll table.fixw.measuring th{
-    white-space:nowrap;width:auto;max-width:none;overflow:visible;text-overflow:clip}
+    width:auto;max-width:none;overflow:visible;text-overflow:clip}
+  /* Коментар — єдине, що дозволено ховати, тому в замірі він не бере участі
+     на повну: інакше один довгий коментар просив би пів екрана. */
+  .dispscroll table.fixw.measuring td.c-com{white-space:normal;max-width:90px}
   .dispscroll table.fixw td,.dispscroll table.fixw th{overflow:hidden;text-overflow:ellipsis}
   /* Вужчі бічні відступи: місце йде на самі дані, щоб рік у датах, статус
      і вид перевезення були видні повністю (зауваження користувачки 01.08.2026). */
@@ -713,7 +724,7 @@
       <div class="spacer"></div>
       <!-- Позначка версії: по ній видно, чи браузер підтягнув свіжу сторінку.
            Оновлюється автоматично при кожному викладенні (scripts/stamp.sh). -->
-      <div class="buildstamp" id="buildstamp" title="версія сторінки — якщо не збігається з тим, що я назвала, натисни Ctrl+F5">в. 05.08 09:26</div>
+      <div class="buildstamp" id="buildstamp" title="версія сторінки — якщо не збігається з тим, що я назвала, натисни Ctrl+F5">в. 05.08 09:31</div>
     </nav>
     <div class="main">
       <div class="topbar">
@@ -1886,33 +1897,31 @@ PAGES.dispatch = async () => {
   window.addEventListener("resize", fitDispScroll);
 
   /* ── ШИРИНИ КОЛОНОК ПІДБИРАЮТЬСЯ САМІ ────────────────────────────────────
-     Прохання користувачки 05.08.2026: «зроби колонки динамічними, щоб не
-     робити це вручну». Доти ширини стояли жорстко в colgroup, і щоразу, коли
-     значення не вміщалось, їх правили руками — так сьогодні виникло «27…»
-     замість «273» і «Уг…» замість «Угода».
+     ПРАВИЛО КОРИСТУВАЧКИ (05.08.2026, дослівно): «колонки мають бути по ширині
+     тексту, ні номери угод, ні номери коносаментів, ні статуси не мають ховатися
+     або з'їжджати. Назва клієнта — по ширині, можна переносити на наступну строку.
+     Коментар може ховатися».
 
-     ЩО КОШТУВАЛА ПЕРША СПРОБА (заміряно, не припущено). Найпростіший спосіб —
-     на мить перемкнути ВСЮ таблицю в режим «розкладай за вмістом» і зняти
-     ширини — дав **458 мс** на 270 рядках. Це пів секунди при кожному показі
-     таблиці, тобто саме те сповільнення, якого користувачка просила уникнути.
-     Тому міряємо не всю таблицю, а ВИБІРКУ: для кожної колонки беремо два
-     рядки з найдовшим текстом (довжина тексту — дешеве читання, розкладку не
-     чіпає), копіюємо тільки їх у невидиму таблицю поруч і міряємо її. Замість
-     270 рядків браузер розкладає щонайбільше 34.
+     ПЕРША СПРОБА ЦЬОГО Ж ДНЯ БУЛА НЕПРАВИЛЬНА і її довелося відкотити: я задала
+     кожній колонці стелю в пікселях і стискала ті, що в неї не влазили. На екрані
+     через це обрізались номери коносаментів («272623…»), номери контейнерів і
+     статуси («Виван в порт прибу»). Помилка була в самому підході: стеля — це
+     здогадка про вміст, а вміст щодня інший.
 
-     ЧОМУ СТИСКАЄМО НЕ ВСІХ. У першій спробі колонки стискались пропорційно до
-     запасу над заголовком — і дати стиснулись до 55 px замість потрібних 84,
-     через що обрізалось 2092 клітинки. Тепер колонка, чий вміст вміщається в
-     стелю, отримує рівно потрібну ширину і НЕ стискається взагалі. Стискаються
-     лише ті, чий вміст усе одно довший за стелю (клієнт, маршрут, коментар) —
-     там три крапки й були задумані, а повний текст видно при наведенні та в
-     картці угоди.
+     ЯК ПРАВИЛЬНО. Питаємо браузер, яка МІНІМАЛЬНА ширина колонки, за якої її вміст
+     не ріжеться (width:min-content), і даємо рівно її. Нічого не стискаємо:
+       * номери угод, коносаментів, контейнерів мають white-space:nowrap, тому
+         їхній мінімум — повна довжина номера, і вони не обріжуться ніколи;
+       * статус і назва клієнта переносяться по словах, тому їхній мінімум — це
+         найдовше слово; текст видно повністю, просто у два рядки;
+       * коментар — єдине, що дозволено ховати: у замірі він обмежений (див. CSS
+         .measuring td.c-com), а на екрані забирає все вільне місце, яке лишилось.
+     Якщо сума потрібних ширин більша за екран — з'являється бічна прокрутка.
+     Це свідомий вибір: краще прокрутка, ніж обрізані номери.
 
-     Стеля COL_CAP не дає одному довгому коментарю роздути таблицю; колонка зі
-     стелею 0 («Коментар») гнучка — забирає все, що лишилось. Мінімум колонки —
-     найдовше нерозривне слово заголовка, щоб «Угода» ніколи не стала «Уг…». */
-  const COL_CAP = [80, 62, 152, 150, 132, 158, 150, 96, 96, 96, 96, 96, 96, 122, 88, 0, 32];
-  const FIT_SAMPLE = 2;            // скільки найдовших рядків на колонку міряти
+     Заміри вартості — у коментарі до виклику fitCols нижче за текстом. */
+  const FLEX_COL = 15;             // «Коментар» — забирає все, що лишилось
+  const FLEX_MIN = 90;             // але не вужче за це, інакше колонка зникає
   let colFitKey = "";
   const fitCols = (force, src) => {
     const box = $("dscroll");
@@ -1922,7 +1931,7 @@ PAGES.dispatch = async () => {
     const cg = t.querySelector("colgroup");
     if (!cg || getComputedStyle(cg).display === "none") return;   // телефон: картки, не таблиця
     const cols = [...cg.children], ths = [...t.tHead.rows[0].cells];
-    if (cols.length !== ths.length || cols.length !== COL_CAP.length) return;
+    if (cols.length !== ths.length) return;
     const body = src || $("drows");
     const trs = [...body.children].filter(tr => tr.cells && tr.cells.length === cols.length);
     const avail = box.clientWidth;
@@ -1930,31 +1939,20 @@ PAGES.dispatch = async () => {
     if (!force && key === colFitKey) return;      // ні дані, ні ширина вікна не змінились
     colFitKey = key;
 
-    /* 1. Мінімум — найдовше нерозривне слово заголовка. Міряємо текст через
-          canvas: сторінку не чіпає, розкладку не перераховує. Роздільники —
-          пробіл і «/», бо саме по них заголовок і переноситься
-          («Коносамент / контейнер», «Gate out delivery»). */
-    const cs = getComputedStyle(ths[0]);
-    const g = (fitCols.cv || (fitCols.cv = document.createElement("canvas"))).getContext("2d");
-    g.font = cs.fontWeight + " " + cs.fontSize + " " + cs.fontFamily;
-    const pad = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight);
-    const minw = ths.map(th => Math.ceil(Math.max(0, ...String(th.textContent || "")
-      .split(/[\s/]+/).filter(Boolean).map(w => g.measureText(w).width))) + pad);
-
-    /* 2. Вибірка: для кожної колонки — рядки з найдовшим текстом. Це лише
-          читання textContent, без перерахунку розкладки. */
+    /* Міряємо не всю таблицю, а вибірку: для кожної колонки два рядки з найдовшим
+       текстом. Читання textContent розкладку не чіпає, тож це дешево. Заміряно:
+       розкладка всіх 270 рядків коштувала 458 мс, вибірки — 13 мс. */
     const pick = new Set();
     for (let i = 0; i < cols.length; i++) {
       const best = [];
       for (const tr of trs) {
         const len = (tr.cells[i].textContent || "").length;
-        if (best.length < FIT_SAMPLE) { best.push([len, tr]); best.sort((a, b) => a[0] - b[0]); }
+        if (best.length < 2) { best.push([len, tr]); best.sort((a, b) => a[0] - b[0]); }
         else if (len > best[0][0]) { best[0] = [len, tr]; best.sort((a, b) => a[0] - b[0]); }
       }
       best.forEach(x => pick.add(x[1]));
     }
 
-    /* 3. Копія тільки з цих рядків — і міряємо її, а не всю таблицю. */
     const probe = document.createElement("table");
     probe.className = t.className + " measuring";
     probe.style.cssText = "position:absolute;left:-99999px;top:0;visibility:hidden";
@@ -1965,36 +1963,24 @@ PAGES.dispatch = async () => {
     pick.forEach(tr => tb2.appendChild(tr.cloneNode(true)));
     probe.appendChild(tb2);
     box.parentNode.appendChild(probe);
-    const need = [...probe.tHead.rows[0].cells].map(c => c.getBoundingClientRect().width);
+    const need = [...probe.tHead.rows[0].cells].map(c => Math.ceil(c.getBoundingClientRect().width));
     probe.remove();
 
-    /* 4. Ширини. Колонка, що вміщається в стелю, отримує рівно потрібне і не
-          стискається. Решта — «м\'які»: їх і тиснемо, якщо не влазить. */
-    const soft = [];
-    const w = need.map((n, i) => {
-      const want = Math.ceil(n);
-      if (!COL_CAP[i]) return Math.max(minw[i], want);          // гнучка колонка
-      if (want > COL_CAP[i]) { soft.push(i); return COL_CAP[i]; }
-      return Math.max(minw[i], want);
-    });
-    const flex = COL_CAP.indexOf(0);
-    let sum = w.reduce((a, b) => a + b, 0);
-    if (sum < avail && flex >= 0) {
-      w[flex] += avail - sum;                                   // залишок — «Коментарю»
-    } else if (sum > avail) {
-      const idx = soft.concat(flex >= 0 && !soft.includes(flex) ? [flex] : []);
-      const slack = idx.map(i => Math.max(0, w[i] - minw[i]));
-      const total = slack.reduce((a, b) => a + b, 0);
-      if (total > 0) {
-        const cut = Math.min(sum - avail, total);
-        idx.forEach((i, k) => { w[i] = Math.round(w[i] - cut * slack[k] / total); });
-      }
-    }
+    /* Даємо рівно потрібне. Вільне місце — «Коментарю»; якщо місця не вистачає,
+       нічого не стискаємо — хай буде бічна прокрутка. */
+    const w = need.slice();
+    if (w[FLEX_COL] !== undefined) w[FLEX_COL] = FLEX_MIN;
+    const sum = w.reduce((a, b) => a + b, 0);
+    if (w[FLEX_COL] !== undefined && sum < avail) w[FLEX_COL] += avail - sum;
     cols.forEach((c, i) => { c.style.width = w[i] + "px"; });
   };
   /* Під час перетягування краю вікна подія сипле десятками разів на секунду —
      рахуємо не щоразу, а коли користувач зупинився. */
-  /* перерахунок при зміні розміру вікна теж вимкнено разом з автопідбором */
+  let colFitTimer = 0;
+  window.addEventListener("resize", () => {
+    clearTimeout(colFitTimer);
+    colFitTimer = setTimeout(() => fitCols(false), 120);
+  });
 
   /* Де саме рядок стоїть на екрані зараз — щоб після перемальовування
      повернути його на те саме місце. */
@@ -2191,14 +2177,7 @@ PAGES.dispatch = async () => {
     const parsed = document.createElement("tbody");
     parsed.innerHTML = rowsHtml;          // парсинг поза документом — розкладки не потребує
     $("drows").replaceChildren();         // порожня таблиця — розкладка дешева
-    /* АВТОПІДБІР ШИРИН ВИМКНЕНО 05.08.2026 на вимогу користувачки («поверни як
-       були колонки»): він стискав колонки, які стискати не можна, і на екрані
-       обрізались номери коносаментів («272623…»), контейнерів і статуси
-       («Виван в порт прибу»). Ширини знову беруться з colgroup.
-       Правило, за яким його треба переробити, перш ніж вмикати знову:
-       номери угод, коносаментів і статуси не ховаються і не з'їжджають ніколи;
-       назва клієнта — по ширині, дозволено переносити на наступний рядок;
-       ховатися може лише коментар. */
+    fitCols(true, parsed);
     $("drows").replaceChildren(...parsed.children);
     /* Скидання всіх відборів одним кліком. Якщо увімкнено швидкий фільтр із
        дашборда — його теж треба зняти, а він живе поза draw(), тому сторінку
