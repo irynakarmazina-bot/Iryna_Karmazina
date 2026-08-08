@@ -103,6 +103,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--write", action="store_true", help="зберегти computed/single_tax.json")
     ap.add_argument("--probe", action="store_true", help="показати поля рядків рахунка і вийти")
+    ap.add_argument("--probe2", action="store_true", help="валюта рахунків і поля сум у рядках")
     a = ap.parse_args()
     c = client()
 
@@ -112,6 +113,35 @@ def main():
         kinds = {(r.get("Description") or "").strip()
                  for r in page(c, "Catalog_ВидОплаты", ["Ref_Key", "Description"])}
         print("види оплати в Експедиторі:", " | ".join(sorted(kinds)))
+        return
+
+    if a.probe2:
+        # У ЯКІЙ ВАЛЮТІ ці рахунки і яке поле рядка є сумою в гривні.
+        cur = {r["Ref_Key"]: (r.get("Description") or "").strip()
+               for r in page(c, "Catalog_Валюты", ["Ref_Key", "Description"])}
+        pay = {r["Ref_Key"]: (r.get("Description") or "").strip()
+               for r in page(c, "Catalog_ВидОплаты", ["Ref_Key", "Description"])}
+        tgt = {k for k, v in pay.items() if v == PAY_KIND}
+        invs = [r for r in page(c, "Document_Счет",
+                                ["Ref_Key", "Number", "сумма_УЕ", "СуммаВал", "Валюта_Key",
+                                 "видОплаты_Key", "Posted", "Информативный", "ДатаОплаты"])
+                if r.get("Posted") and not r.get("Информативный")
+                and r.get("видОплаты_Key") in tgt and d10(r.get("ДатаОплаты"))]
+        print("рахунків «%s»: %d" % (PAY_KIND, len(invs)))
+        print("валюти цих рахунків:",
+              dict(collections.Counter(cur.get(r.get("Валюта_Key"), "(?)") for r in invs)))
+        by_ref = collections.defaultdict(list)
+        for l in page(c, "Document_Счет_ТЧ",
+                      ["Ref_Key", "Описание", "Сумма", "Сумма_вал", "Сумма_УЕ", "Сумма_бух"]):
+            by_ref[l.get("Ref_Key")].append(l)
+        for r in invs[:3]:
+            print("\nрахунок %s · валюта %s · сумма_УЕ=%s · СуммаВал=%s"
+                  % (r.get("Number"), cur.get(r.get("Валюта_Key"), "?"),
+                     r.get("сумма_УЕ"), r.get("СуммаВал")))
+            for l in by_ref.get(r["Ref_Key"], [])[:4]:
+                print("   «%s»: Сумма=%s Сумма_вал=%s Сумма_УЕ=%s Сумма_бух=%s"
+                      % (str(l.get("Описание"))[:26], l.get("Сумма"), l.get("Сумма_вал"),
+                         l.get("Сумма_УЕ"), l.get("Сумма_бух")))
         return
 
     # 1. номери угод
