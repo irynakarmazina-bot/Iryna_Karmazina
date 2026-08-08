@@ -1,7 +1,7 @@
 {
-  "stdout": "тека відновлення: /root/restore-test-20260808-182624\nцілість відновленої бази: ok\nтаблиць у копії: 138\nнепорожніх таблиць: 24\n   nc_audit_v2                  4938\n   nc_bpfs___audit_log          229\n   nc_grid_view_columns_v2      195\n   nc_columns_v2                195\n   xc_knex_migrationsv0         88\n   nc_col_select_options_v2     64\n   nc_plugins_v2                20\n   nc_views_v2                  7\n   nc_models_v2                 7\n   nc_grid_view_v2              7\n   nc_operation_logs            6\n   nc_store                     5\n",
+  "stdout": "непорожніх таблиць: 29\n   nc_audit_v2                        4938\n   nc_bpfs___Диспетчеризація          277\n   nc_bpfs___audit_log                229\n   nc_grid_view_columns_v2            195\n   nc_columns_v2                      195\n   xc_knex_migrationsv0               88\n   nc_col_select_options_v2           64\n   nc_bpfs___Клієнти                  21\n   nc_plugins_v2                      20\n   nc_views_v2                        7\n   nc_models_v2                       7\n   nc_grid_view_v2                    7\n   nc_bpfs___Інструкції               7\n   nc_operation_logs                  6\n",
   "stderr": "",
   "returncode": 0,
-  "id": "bkcount-0808",
-  "ts": "2026-08-08T15:26:57Z"
+  "id": "bkcount2-0808",
+  "ts": "2026-08-08T15:27:35Z"
 }
