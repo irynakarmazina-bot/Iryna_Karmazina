@@ -1,7 +1,7 @@
 {
-  "stdout": "### СПРОБА ЗАЙТИ ПАРОЛЕМ (має ВІДМОВИТИ)\nWarning: Permanently added '127.0.0.1' (ED25519) to the list of known hosts.\nroot@127.0.0.1: Permission denied (publickey).\n### ЯКІ СПОСОБИ ВХОДУ ПРОПОНУЄ СЕРВЕР\nroot@127.0.0.1: Permission denied (publickey).\n### СПРОБИ ПІДБОРУ ЗА ОСТАННЮ ГОДИНУ\n110\n### ОСТАННІ РЯДКИ ЖУРНАЛУ SSH\nAug 08 13:13:24 ubuntu-s-1vcpu-1gb-ams3 sshd[192629]: Server listening on :: port 22.\nAug 08 13:13:24 ubuntu-s-1vcpu-1gb-ams3 systemd[1]: Reloaded ssh.service - OpenBSD Secure Shell server.\nAug 08 13:13:40 ubuntu-s-1vcpu-1gb-ams3 sshd[541756]: Connection closed by authenticating user root 92.118.39.78 port 44280 [preauth]\nAug 08 13:13:47 ubuntu-s-1vcpu-1gb-ams3 sshd[541759]: Connection closed by 37.120.162.199 port 22944 [preauth]\nAug 08 13:14:04 ubuntu-s-1vcpu-1gb-ams3 sshd[541765]: Connection closed by authenticating user root 127.0.0.1 port 40978 [preauth]\nAug 08 13:14:04 ubuntu-s-1vcpu-1gb-ams3 sshd[541770]: Connection closed by authenticating user root 127.0.0.1 port 40990 [preauth]\n",
+  "stdout": "### ЧУЖЕ ЗЄДНАННЯ З LINODE (має зникнути)\nESTAB      0      0      134.209.94.12:8787    72.14.178.148:57036       \n### УСІ ЗОВНІШНІ ЗЄДНАННЯ ЗАРАЗ\n   134.209.94.12:38372 <- 149.154.166.110:443\n   134.209.94.12:8787 <- 72.14.178.148:57036\n### ПЛАТФОРМА ЗСЕРЕДИНИ\n  сайт(443): 000\n  findash:   000\n  chart.js:  000\n  NocoDB:    200\n### ВИХІД НАЗОВНІ (має працювати)\n  api.maersk.com: 404\n  github.com:     200\n### СЕРВІСИ\nactive active active active active active active active\ncaddy: Up 12 days\nnocodb: Up 2 weeks\n### СПРОБИ ПІДБОРУ ПІСЛЯ ЗМІН\n0\n",
   "stderr": "",
-  "returncode": 0,
-  "id": "sshverify-0808",
-  "ts": "2026-08-08T10:14:04Z"
+  "returncode": 1,
+  "id": "fwcheck-0808",
+  "ts": "2026-08-08T13:05:39Z"
 }
