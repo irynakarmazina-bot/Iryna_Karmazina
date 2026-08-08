@@ -1,7 +1,7 @@
 {
-  "stdout": "### VER\n{\"currentVersion\":\"2026.07.0\",\"releaseVersion\":\"2026.08.0\"}\n### BASE-USERS\nкористувачів у базі: 2\n   v.p***@unitex.od.ua | роль у NocoDB: editor\n   iry***@gmail.com | роль у NocoDB: owner\n### ENDPOINTS (код відповіді)\n  meta/bases/pbhr1qkpvx09z8m   200\n  meta/bases/pbhr1qkpvx09z8m/tables 200\n  meta/bases/pbhr1qkpvx09z8m/api-tokens 401\n  meta/bases/pbhr1qkpvx09z8m/audits 404\n### ROLES-У-ДОВІДНИКУ\nTraceback (most recent call last):\n  File \"<string>\", line 1, in <module>\n  File \"/usr/lib/python3.12/json/__init__.py\", line 293, in load\n    return loads(fp.read(),\n           ^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/json/__init__.py\", line 346, in loads\n    return _default_decoder.decode(s)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/json/decoder.py\", line 337, in decode\n    obj, end = self.raw_decode(s, idx=_w(s, 0).end())\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/json/decoder.py\", line 355, in raw_decode\n    raise JSONDecodeError(\"Expecting value\", s, err.value) from None\njson.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)\n",
+  "stdout": "### ДОВІДНИК КОРИСТУВАЧІ\nзаписів: 2\n   iryn*** | роль: Адміністратор | активний: 1\n   v.po*** | роль: Адміністратор | активний: 1\n### ПРОБА ЕНДПОІНТІВ ПРАВ (404 = такого в цій версії немає)\n  meta/bases/pbhr1qkpvx09z8m/permissions 404\n  meta/tables/meqpi0r197bz14n/permissions 404\n  meta/bases/pbhr1qkpvx09z8m/meta      404\n  meta/tables/meqpi0r197bz14n/grid/permissions 404\n  meta/bases/pbhr1qkpvx09z8m/sources   200\n### ЧИ Є ПОЛЕ roles У СПИСКУ РОЛЕЙ БАЗИ\nключі бази: ['auto_update', 'color', 'created_at', 'default_role', 'deleted', 'description', 'fk_custom_url_id', 'fk_workspace_id', 'id', 'is_meta', 'is_sandbox', 'is_sandbox_production', 'is_snapshot', 'managed_app_id', 'managed_app_master', 'managed_app_version_id', 'meta', 'order', 'password', 'permissions']\n",
   "stderr": "",
   "returncode": 0,
-  "id": "nocoroles-0807",
-  "ts": "2026-08-08T08:43:41Z"
+  "id": "nocoroles2-0807",
+  "ts": "2026-08-08T08:44:29Z"
 }
