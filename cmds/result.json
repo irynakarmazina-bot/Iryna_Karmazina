@@ -1,7 +1,7 @@
 {
-  "stdout": "   усього копій у архіві: 118\n   журнал: 2026-08-08T17:02:06\tmain\t910f0d523\tв. 08.08 09:07\tindex.html:326903 findash.html:28273 finperiod.html:17527\trelay: deploy-11\n   UI 200  FINDASH 200\nDEPLOY_OK · гілка main · коміт 910f0d523 · позначка «в. 08.08 09:07»\n",
+  "stdout": "### ПРАВА БАЗИ\n  default_role: None\n  permissions : []\n### ПОЛЯ ПРО ПРАВА В ТАБЛИЦІ\n  таблиць: 7\n  поля про права: НЕМАЄ\n### === КОНТЕЙНЕР ===\nОБРАЗ: nocodb/nocodb:latest\nСТАН: running\nМЕРЕЖА: bridge\nРЕСТАРТ: unless-stopped\nПОРТИ: {\"8080/tcp\":[{\"HostIp\":\"\",\"HostPort\":\"8080\"}]}\nENTRYPOINT: [\"/usr/bin/dumb-init\",\"--\"]\nCMD: [\"/usr/src/appEntry/start.sh\"]\nWORKDIR: /usr/src/app\nМОНТУВАННЯ (тут головне):\n  тип=bind назва= звідки=/root/nocodb-data куди=/usr/app/data rw=true\n\nЗМІННІ:\n  NC_REQUEST_BODY_SIZE=209715…\n  PATH=/usr/l…\n  NODE_VERSION=24.14.…\n  YARN_VERSION=1.22.2…\n  NC_DOCKER=0.6…\n  NODE_ENV=produc…\n  PORT=8080…\n  NC_TOOL_DIR=/usr/a…\n\nРОЗМІР ДАНИХ:\n9.6M\t/root/nocodb-data\n",
   "stderr": "",
   "returncode": 0,
-  "id": "deploy-11",
-  "ts": "2026-08-08T14:02:06Z"
+  "id": "nococfg-0808",
+  "ts": "2026-08-08T14:57:09Z"
 }
