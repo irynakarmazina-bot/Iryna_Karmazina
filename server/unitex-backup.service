@@ -1,0 +1,10 @@
+[Unit]
+Description=Щоденна резервна копія платформи (база NocoDB + службові файли)
+After=network.target docker.service
+
+[Service]
+Type=oneshot
+User=root
+ExecStart=/usr/bin/python3 /root/Iryna_Karmazina/server/backup.py
+# Копія знімається «гарячою» — зупиняти NocoDB не треба.
+TimeoutStartSec=1800
