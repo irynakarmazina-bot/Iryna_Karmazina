@@ -1,7 +1,7 @@
 {
-  "stdout": "### ФАЙЛИ КОНФІГУРАЦІЇ\n-rw-r--r-- 1 root root 3486 Aug  8  2025 /etc/ssh/sshd_config\n\n/etc/ssh/sshd_config.d/:\ntotal 16\ndrwxr-xr-x 2 root root 4096 May  6 19:27 .\ndrwxr-xr-x 4 root root 4096 Jul 15 09:42 ..\n-rw------- 1 root root   27 May  6 19:27 50-cloud-init.conf\n-rw-r--r-- 1 root root   26 Aug  5  2025 60-cloudimg-settings.conf\n### ВМІСТ sshd_config.d (перекривають головний)\n--- /etc/ssh/sshd_config.d/50-cloud-init.conf\nPasswordAuthentication yes\n--- /etc/ssh/sshd_config.d/60-cloudimg-settings.conf\nPasswordAuthentication no\n### РЯДКИ В ГОЛОВНОМУ ФАЙЛІ\n12:Include /etc/ssh/sshd_config.d/*.conf\n42:PermitRootLogin yes\n47:#PubkeyAuthentication yes\n66:#PasswordAuthentication yes\n71:KbdInteractiveAuthentication no\n88:# PasswordAuthentication.  Depending on your PAM configuration,\n94:UsePAM yes\n### ЩО ДІЄ ЗАРАЗ НАСПРАВДІ\nusepam yes\npermitrootlogin yes\npubkeyauthentication yes\npasswordauthentication yes\nkbdinteractiveauthentication no\n### ВЕРСІЯ І ЮНІТ\nOpenSSH_9.6p1 Ubuntu-3ubuntu13.18, OpenSSL 3.0.13 30 Jan 2024\nssh.service                                                                   disabled        enabled\nssh.socket                                                                    enabled         enabled\n### ЧИ Є fail2ban\ninactive\n",
+  "stdout": "бекап: /root/ssh-backup-20260808-131324\n### ПЕРЕВІРКА СИНТАКСИСУ\nсинтаксис OK\n### ЩО ДІЄ ПІСЛЯ ЗМІНИ\npermitrootlogin without-password\npubkeyauthentication yes\npasswordauthentication no\nkbdinteractiveauthentication no\n### ПЕРЕЗАВАНТАЖЕННЯ КОНФІГУ\nactive active\n### SSH ЖИВИЙ?\nLISTEN 0      4096         0.0.0.0:22        0.0.0.0:*          \nLISTEN 0      4096            [::]:22           [::]:*          \nactive active\n",
   "stderr": "",
   "returncode": 0,
-  "id": "sshconf-0808",
-  "ts": "2026-08-08T10:11:54Z"
+  "id": "sshharden-0808",
+  "ts": "2026-08-08T10:13:26Z"
 }
