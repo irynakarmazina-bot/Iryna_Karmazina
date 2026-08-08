@@ -1,7 +1,7 @@
 {
-  "stdout": "перевіряю копію: /root/backups/unitex-20260808-182533.tar.gz.gpg\n### 1. РОЗШИФРУВАННЯ\n  розшифровано\n### 2. РОЗПАКУВАННЯ\n  розпаковано:\narch.tar.gz\nconfig\nnoco.db\n### 3. ЩО ВСЕРЕДИНІ\n00-hardening.conf\nCaddyfile\nauthcheck.py\ncash_trigger.py\ncashtrigger.service\ncosco-track-sync.service\ncosco-track-sync.timer\ndeals-sync-trigger.service\ndeals_trigger.py\nfinrep-trigger.service\nmaersk-track-sync.service\nmaersk-track-sync.timer\ntrigger.py\n### 4. БАЗА З КОПІЇ — ЗВІРКА З ЖИВОЮ\n  File \"<string>\", line 12\n    n=b.execute(\"SELECT COUNT(*) FROM \\\\\"%s\\\\\"\" % x).fetchone()[0]\n                                            ^\nSyntaxError: unexpected character after line continuation character\n### 5. ЖИВА БАЗА ДЛЯ ПОРІВНЯННЯ\n   m58xsjo6at01ohl -> {\"count\":277}\n   m429u2crlavfmxc -> {\"count\":229}\n   meqpi0r197bz14n -> {\"count\":2}\n### ТЕСТОВУ ТЕКУ ЛИШАЮ: /root/restore-test-20260808-182624 (не видаляю без твого дозволу)\n11M\t/root/restore-test-20260808-182624\n",
+  "stdout": "тека відновлення: /root/restore-test-20260808-182624\nцілість відновленої бази: ok\nтаблиць у копії: 138\nнепорожніх таблиць: 24\n   nc_audit_v2                  4938\n   nc_bpfs___audit_log          229\n   nc_grid_view_columns_v2      195\n   nc_columns_v2                195\n   xc_knex_migrationsv0         88\n   nc_col_select_options_v2     64\n   nc_plugins_v2                20\n   nc_views_v2                  7\n   nc_models_v2                 7\n   nc_grid_view_v2              7\n   nc_operation_logs            6\n   nc_store                     5\n",
   "stderr": "",
   "returncode": 0,
-  "id": "bkrestore-0808",
-  "ts": "2026-08-08T15:26:25Z"
+  "id": "bkcount-0808",
+  "ts": "2026-08-08T15:26:57Z"
 }
