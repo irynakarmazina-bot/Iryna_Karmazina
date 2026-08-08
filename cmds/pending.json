@@ -1,1 +1,1 @@
-{"id": "stax-deploy-0808", "cmd": "cd /root/Iryna_Karmazina && git pull -q origin main && cp -n /root/findata.py /root/findata.py.bak-0808; python3 /root/Iryna_Karmazina/server/patch_findata.py; systemctl restart findata; sleep 2; echo findata=$(systemctl is-active findata); grep -c single_tax /root/findata.py; /root/deploy_ui.sh main 2>&1 | tail -5"}
+{"id": "stax-nofee-0808", "cmd": "cd /root/Iryna_Karmazina && git pull -q origin main && cp finrep/single_tax.py /root/unitex-finrep/ && cd /root/unitex-finrep && python3 single_tax.py --nofee 2>&1 | tail -32"}
