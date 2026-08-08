@@ -1,7 +1,7 @@
 {
-  "stdout": "### ДО\n  /tmp/perevirka.tar.gz — немає\ndrwxr-xr-x 3 root root 4096 Aug  8 18:26 /root/restore-test-20260808-182624\n### ВИДАЛЯЮ РІВНО ДВА ШЛЯХИ (без шаблонів)\n  прибрано: /tmp/perevirka.tar.gz\n  прибрано: /root/restore-test-20260808-182624\n### ПІСЛЯ — ПЕРЕВІРКА, ЩО РЕЗЕРВНІ КОПІЇ НА МІСЦІ\ntotal 700\ndrwxr-xr-x  2 root root   4096 Aug  8 18:25 .\ndrwx------ 24 root root  12288 Aug  8 19:28 ..\n-rw-r--r--  1 root root 699336 Aug  8 18:25 unitex-20260808-182533.tar.gz.gpg\n  журнал бекапів:\n2026-08-08T18:25:33\tOK\t699336\t55b20315e5feabb8\t1.5\tunitex-20260808-182533.tar.gz.gpg\n  пароль на місці:\n   /root/.backup-pass — є, права 600\n  наступна копія:\nSun 2026-08-09 03:31:32 EEST   8h -         - unitex-backup.timer unitex-backup.service\n### ІНШІ ЗБЕРЕЖЕНІ БЕКАПИ (не чіпались)\n/root/n8n-backup-20260808-162558\n/root/nocodb-container-20260808-175939.json\n/root/sec-backup-20260808-162449\n/root/ssh-backup-20260808-131324\nnocodb | Up About an hour\nnocodb-old-20260808-175939 | Exited (143) About an hour ago\n",
+  "stdout": "### ВСТАНОВЛЕННЯ rclone\nNo user sessions are running outdated binaries.\n\nNo VM guests are running outdated hypervisor (qemu) binaries on this host.\n### ВЕРСІЯ\nrclone v1.60.1-DEV\n- os/version: ubuntu 24.04 (64 bit)\n### НАЛАШТОВАНІ СХОВИЩА\n### ЧИ ПОБАЧИТЬ ЙОГО СКРИПТ БЕКАПУ\n  rclone знайдено: /usr/bin/rclone\n### ПРОБА ХОЛОСТОГО ПРОГОНУ БЕКАПУ\n   [dry-run] зашифрував би у /root/backups/unitex-20260808-193034.tar.gz.gpg\n   rclone є, але жодного сховища не налаштовано — копія ЛИШЕ тут\n   журнал: 2026-08-08T19:30:34\tOK\t0\tdry-run\t0.4\tunitex-20260808-193034.tar.gz.gpg\nГОТОВО за 0.4 с\n",
   "stderr": "",
   "returncode": 0,
-  "id": "cleanup-0808",
-  "ts": "2026-08-08T16:28:58Z"
+  "id": "rclone-0808",
+  "ts": "2026-08-08T16:30:34Z"
 }
