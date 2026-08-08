@@ -731,7 +731,7 @@
       <div class="spacer"></div>
       <!-- Позначка версії: по ній видно, чи браузер підтягнув свіжу сторінку.
            Оновлюється автоматично при кожному викладенні (scripts/stamp.sh). -->
-      <div class="buildstamp" id="buildstamp" title="версія сторінки — якщо не збігається з тим, що я назвала, натисни Ctrl+F5">в. 05.08 16:38</div>
+      <div class="buildstamp" id="buildstamp" title="версія сторінки — якщо не збігається з тим, що я назвала, натисни Ctrl+F5">в. 08.08 09:07</div>
     </nav>
     <div class="main">
       <div class="topbar">
@@ -2959,7 +2959,9 @@ PAGES.accounting = async () => {
     <span style="display:inline-flex;flex-direction:column;gap:2px">
       <button class="btn" id="lc-recalc" title="дані станом на ${stamp}">⟳ Перерахувати з Експедитора</button>
       <span id="lc-note"></span></span>
-    <button class="btn ghost" id="lc-csv">⬇ Вивантажити в CSV</button>`;
+    <button class="btn ghost" id="lc-csv">⬇ Вивантажити в CSV</button>
+    <button class="btn" id="acc-tax">🧾 Єдиний податок</button>`;
+  $("acc-tax").addEventListener("click", () => renderSingleTax());
 
   $("content").innerHTML = `
   <div class="card">
@@ -3122,6 +3124,101 @@ PAGES.accounting = async () => {
     setTimeout(()=>URL.revokeObjectURL(a.href), 3000);
   });
 };
+
+/* ===== ЄДИНИЙ ПОДАТОК (постановка користувачки 02.08.2026) =====
+   Рахунки клієнтам з формою оплати ТІЛЬКИ «Банк Юнітекс Ейч-Ді» (гривневий),
+   у яких заповнена дата оплати. Винагорода — стаття «Винагорода експедитора»
+   з рядків рахунка, гривнею з самого документа. 5% + 1% = 6%.
+   Дані рахує finrep/single_tax.py → computed/single_tax.json. */
+async function renderSingleTax(){
+  $("content").innerHTML = '<div class="card"><p class="sub">Рахую єдиний податок…</p></div>';
+  let js;
+  try { js = await fetchFin("single_tax"); }
+  catch(e){
+    $("content").innerHTML = `<div class="card"><h3>🧾 Єдиний податок</h3>
+      <div class="note">⚠ Не вдалося отримати дані: ${esc(e.message)}</div></div>`;
+    return;
+  }
+  const D = js.data || {};
+  const all = (D.rows || []).slice().sort((a,b)=> a.paid.localeCompare(b.paid) || (+a.deal)-(+b.deal));
+  const stamp = js.mtime ? new Date(js.mtime*1000).toLocaleString("uk-UA",
+      {day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}) : "—";
+  const dmin = all.length ? all[0].paid : "", dmax = all.length ? all[all.length-1].paid : "";
+
+  $("page-actions").innerHTML = `
+    <button class="btn ghost" id="tax-back">← Локальні витрати</button>
+    <label class="sub" style="margin:0">з <input type="date" id="tax-from" value="${esc(dmin)}"></label>
+    <label class="sub" style="margin:0">по <input type="date" id="tax-to" value="${esc(dmax)}"></label>
+    <button class="btn ghost" id="tax-csv">⬇ CSV</button>`;
+  $("tax-back").addEventListener("click", ()=>PAGES.accounting());
+
+  const dd = v => (v||0).toLocaleString("uk-UA",{minimumFractionDigits:2, maximumFractionDigits:2});
+  let shown = all;
+  const draw = () => {
+    const a = $("tax-from").value || dmin, b = $("tax-to").value || dmax;
+    shown = all.filter(r => r.paid >= a && r.paid <= b);
+    const sum = k => shown.reduce((s,r)=>s+(+r[k]||0), 0);
+    const body = shown.map(r=>`<tr>
+        <td class="mono"><b>${esc(r.deal)}</b></td>
+        <td class="mono">${esc(r.paid)}</td>
+        <td class="num">${dd(r.fee)}</td>
+        <td class="num">${dd(r.t5)}</td>
+        <td class="num">${dd(r.t1)}</td>
+        <td class="num"><b>${dd(r.t6)}</b></td></tr>`).join("");
+    $("tax-out").innerHTML = `
+      <div class="tiles" style="margin-bottom:14px">
+        <div class="tile tready"><div class="tbody"><div class="lbl">Сума винагороди</div>
+          <div class="val">${dd(sum("fee"))}</div><div class="hint">грн · рахунків: ${shown.length}</div></div></div>
+        <div class="tile tready"><div class="tbody"><div class="lbl">Сума 5%</div>
+          <div class="val">${dd(sum("t5"))}</div><div class="hint">єдиний податок</div></div></div>
+        <div class="tile tready"><div class="tbody"><div class="lbl">Сума 1%</div>
+          <div class="val">${dd(sum("t1"))}</div><div class="hint">військовий збір</div></div></div>
+        <div class="tile tready"><div class="tbody"><div class="lbl">Сума 6%</div>
+          <div class="val">${dd(sum("t6"))}</div><div class="hint">разом до сплати</div></div></div>
+      </div>
+      <div class="tablewrap"><table>
+        <thead><tr><th>Номер угоди</th><th>Дата оплати</th><th class="num">Винагорода</th>
+          <th class="num">5%</th><th class="num">1%</th><th class="num">Разом (6%)</th></tr></thead>
+        <tbody>${body || '<tr><td colspan="6" class="cell-muted">За цей період оплат немає.</td></tr>'}</tbody>
+        <tfoot><tr style="font-weight:700">
+          <td colspan="2">РАЗОМ за період</td>
+          <td class="num">${dd(sum("fee"))}</td><td class="num">${dd(sum("t5"))}</td>
+          <td class="num">${dd(sum("t1"))}</td><td class="num">${dd(sum("t6"))}</td></tr></tfoot>
+      </table></div>`;
+  };
+
+  $("content").innerHTML = `
+    <div class="card">
+      <h3>🧾 Єдиний податок</h3>
+      <p class="sub">рахунки клієнтам з формою оплати <b>${esc(D.payKind || "Банк Юнітекс Ейч-Ді")}</b> (грн),
+        у яких є дата оплати · суми в гривні з документа · дані з Експедитора станом на ${esc(stamp)}</p>
+      <div id="tax-out"></div>
+      <div class="note" style="margin-top:12px">
+        <b>Як відбирається:</b> проведені, не інформативні рахунки клієнтам саме з цією формою оплати
+        (євровий і USD-рахунки Ейч-Ді — окремі форми і сюди не входять).
+        Винагорода — рядки рахунка зі статтею «Винагорода експедитора».
+        5% і 1% рахуються від винагороди кожного рахунка, «Разом» = 6%.
+        Перевірено рахунків: ${esc(D.invoicesChecked ?? "—")}, відібрано: ${esc(D.invoicesSelected ?? "—")},
+        з них без рядка винагороди: ${esc(D.invoicesWithoutFee ?? "—")} (у таблицю не входять).
+      </div>
+    </div>`;
+  draw();
+  $("tax-from").addEventListener("change", draw);
+  $("tax-to").addEventListener("change", draw);
+  $("tax-csv").addEventListener("click", ()=>{
+    const e2 = v => '"' + String(v==null?"":v).replace(/"/g,'""') + '"';
+    const head = ["Номер угоди","Дата оплати","Винагорода","5%","1%","Разом 6%"];
+    const csv = [head.map(e2).join(";")].concat(
+      shown.map(r=>[r.deal,r.paid,r.fee,r.t5,r.t1,r.t6].map(e2).join(";"))).join("\r\n");
+    const blob = new Blob(["\ufeff"+csv], {type:"text/csv;charset=utf-8"});
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "yedynyi-podatok.csv";
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(a.href), 3000);
+  });
+  window.scrollTo(0,0);
+}
 
 PAGES.finance = async () => {
   const mode = cfg().fin;
