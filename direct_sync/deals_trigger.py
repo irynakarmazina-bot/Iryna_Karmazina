@@ -194,5 +194,10 @@ class Server(http.server.ThreadingHTTPServer):
 
 
 load_state()
-with Server(('0.0.0.0', PORT), H) as httpd:
+# 127.0.0.1, а не 0.0.0.0 (змінено 08.08.2026). Раніше цей сервіс слухав УСІ
+# мережеві інтерфейси, тобто був доступний просто з інтернету: `ss -ltn` показував
+# `0.0.0.0:8788`. Прикривав його лише службовий токен у запиті. Ззовні сюди не
+# ходить ніщо: єдиний шлях — Caddy (`handle /sync` → reverse_proxy 127.0.0.1:8788),
+# а Caddy працює в мережі самого хоста, тому localhost йому доступний.
+with Server(('127.0.0.1', PORT), H) as httpd:
     httpd.serve_forever()
