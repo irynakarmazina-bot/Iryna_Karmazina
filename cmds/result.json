@@ -1,7 +1,7 @@
 {
-  "stdout": "бекап: /root/ssh-backup-20260808-131324\n### ПЕРЕВІРКА СИНТАКСИСУ\nсинтаксис OK\n### ЩО ДІЄ ПІСЛЯ ЗМІНИ\npermitrootlogin without-password\npubkeyauthentication yes\npasswordauthentication no\nkbdinteractiveauthentication no\n### ПЕРЕЗАВАНТАЖЕННЯ КОНФІГУ\nactive active\n### SSH ЖИВИЙ?\nLISTEN 0      4096         0.0.0.0:22        0.0.0.0:*          \nLISTEN 0      4096            [::]:22           [::]:*          \nactive active\n",
+  "stdout": "### СПРОБА ЗАЙТИ ПАРОЛЕМ (має ВІДМОВИТИ)\nWarning: Permanently added '127.0.0.1' (ED25519) to the list of known hosts.\nroot@127.0.0.1: Permission denied (publickey).\n### ЯКІ СПОСОБИ ВХОДУ ПРОПОНУЄ СЕРВЕР\nroot@127.0.0.1: Permission denied (publickey).\n### СПРОБИ ПІДБОРУ ЗА ОСТАННЮ ГОДИНУ\n110\n### ОСТАННІ РЯДКИ ЖУРНАЛУ SSH\nAug 08 13:13:24 ubuntu-s-1vcpu-1gb-ams3 sshd[192629]: Server listening on :: port 22.\nAug 08 13:13:24 ubuntu-s-1vcpu-1gb-ams3 systemd[1]: Reloaded ssh.service - OpenBSD Secure Shell server.\nAug 08 13:13:40 ubuntu-s-1vcpu-1gb-ams3 sshd[541756]: Connection closed by authenticating user root 92.118.39.78 port 44280 [preauth]\nAug 08 13:13:47 ubuntu-s-1vcpu-1gb-ams3 sshd[541759]: Connection closed by 37.120.162.199 port 22944 [preauth]\nAug 08 13:14:04 ubuntu-s-1vcpu-1gb-ams3 sshd[541765]: Connection closed by authenticating user root 127.0.0.1 port 40978 [preauth]\nAug 08 13:14:04 ubuntu-s-1vcpu-1gb-ams3 sshd[541770]: Connection closed by authenticating user root 127.0.0.1 port 40990 [preauth]\n",
   "stderr": "",
   "returncode": 0,
-  "id": "sshharden-0808",
-  "ts": "2026-08-08T10:13:26Z"
+  "id": "sshverify-0808",
+  "ts": "2026-08-08T10:14:04Z"
 }
