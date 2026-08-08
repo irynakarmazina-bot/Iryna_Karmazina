@@ -1,7 +1,7 @@
 {
-  "stdout": "### 8787 ЩО ЦЕ\nExecStart=/root/unitex-finrep/.venv/bin/python /root/unitex-finrep/trigger.py\n### ВІДКРИТІ ЗЄДНАННЯ (зовнішні адреси)\nRecv-Q Send-Q Local Address:Port     Peer Address:Port Process\n0      0      134.209.94.12:8787    72.14.178.148:57036       \n### N8N — чи згадують воркфлоу базу\nворкфлоу всього: 19\n  УВІМК CRM Дашборд (web) | -\n  вимк  ДЗ — обробка лідів (Manual, Set, IF, S | -\n  вимк  ДЗ — обробка замовлень для CRM (Set, S | -\n  вимк  Container Tracking — Maersk | -\n  УВІМК UNITEX Telegram Bot | -\n  вимк  Дайджест новин ліній (Claude) | -\n  УВІМК Довідка про транспортні витрати | -\n  вимк  ДЗ — обробка лідів (Name/Country/Budge | -\n  вимк  Container Tracking — Maersk (CRM) | -\n  вимк  NocoDB Sync — Диспетчеризація (Sheets  | 134.209.94.12,8080,nocodb,NocoDB\n  УВІМК CRM Клієнтська вітрина (web) | -\n  вимк  ДЗ — вибір ключа трекінгу (Manual, Set | -\n  вимк  Контроль прибуття — пошта (Claude) | -\n  вимк  CMR draft — автоматизація Unitex | -\n  вимк  Нові угоди → майстер-таблиця (для Maer | 134.209.94.12,8080,NocoDB\n  вимк  My workflow | -\n  вимк  My workflow 3 | -\n  вимк  ДЗ — маршрутизація по лінії (Manual, S | -\n  УВІМК finrep-sheets-proxy | -\n",
+  "stdout": "### N8N — хто згадує 8787 / finrep\n  вимк  NocoDB Sync — Диспетчеризація (Sheet | 134.209.94.12\n       http://134.209.94.12:8080/api/v2/tables/m58xsjo6at01ohl/records\n       https://docs.google.com/spreadsheets/d/1FkvCfEZv7Ni5SYJCuaEB7BubmwPs5D0laM0A9g4byF8/edit\n  вимк  Нові угоди → майстер-таблиця (для Ma | 134.209.94.12\n       http://134.209.94.12:8080/api/v2/tables/m58xsjo6at01ohl/records\n       https://docs.google.com/spreadsheets/d/1FkvCfEZv7Ni5SYJCuaEB7BubmwPs5D0laM0A9g4byF8/edit\n### ЖУРНАЛ CADDY: чи ходять через 443 на finrep\n### ЗЄДНАННЯ ЗАРАЗ\n0      0      134.209.94.12:8787    72.14.178.148:57036       \n",
   "stderr": "",
   "returncode": 0,
-  "id": "ports-who-0808",
-  "ts": "2026-08-08T09:31:53Z"
+  "id": "who8787-0808",
+  "ts": "2026-08-08T09:35:13Z"
 }
