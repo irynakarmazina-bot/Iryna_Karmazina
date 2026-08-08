@@ -1,7 +1,7 @@
 {
-  "stdout": "### ДОВІДНИК КОРИСТУВАЧІ\nзаписів: 2\n   iryn*** | роль: Адміністратор | активний: 1\n   v.po*** | роль: Адміністратор | активний: 1\n### ПРОБА ЕНДПОІНТІВ ПРАВ (404 = такого в цій версії немає)\n  meta/bases/pbhr1qkpvx09z8m/permissions 404\n  meta/tables/meqpi0r197bz14n/permissions 404\n  meta/bases/pbhr1qkpvx09z8m/meta      404\n  meta/tables/meqpi0r197bz14n/grid/permissions 404\n  meta/bases/pbhr1qkpvx09z8m/sources   200\n### ЧИ Є ПОЛЕ roles У СПИСКУ РОЛЕЙ БАЗИ\nключі бази: ['auto_update', 'color', 'created_at', 'default_role', 'deleted', 'description', 'fk_custom_url_id', 'fk_workspace_id', 'id', 'is_meta', 'is_sandbox', 'is_sandbox_production', 'is_snapshot', 'managed_app_id', 'managed_app_master', 'managed_app_version_id', 'meta', 'order', 'password', 'permissions']\n",
+  "stdout": "default_role = None\npermissions  = []\nmeta         = {\"iconColor\": \"#36BFFF\"}\nis_meta/type = 1 database\n### ЧИ Є ІНТЕГРАЦІЯ РОЛЕЙ НА РІВНІ ТАБЛИЦІ\nключі таблиці: ['base_id', 'created_at', 'created_by', 'deleted', 'description', 'doc_version', 'enabled', 'fk_custom_url_id', 'fk_workspace_id', 'has_children', 'id', 'meta', 'mm', 'order', 'owned_by', 'parent_id', 'password', 'pinned', 'schema', 'source_id', 'synced', 'table_name', 'tags', 'title', 'trash_disabled', 'trash_retention_days', 'type', 'updated_at', 'updated_by', 'uuid']\n",
   "stderr": "",
   "returncode": 0,
-  "id": "nocoroles2-0807",
-  "ts": "2026-08-08T08:44:29Z"
+  "id": "nocoperm-0807",
+  "ts": "2026-08-08T08:49:19Z"
 }
