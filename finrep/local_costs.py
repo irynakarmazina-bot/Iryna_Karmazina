@@ -1,28 +1,32 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Локальні витрати за кордоном: угоди, де ПРОФІТ більший за ВИНАГОРОДУ ЕКСПЕДИТОРА.
+"""Локальні витрати за кордоном: скільки лишилось на гривневому рахунку по завершених угодах.
 
-Навіщо: різницю між профітом і винагородою експедитора компанія переказує за кордон
-як локальні витрати. У більшості угод ці витрати НЕ виділені окремою статтею в рахунку
-клієнта, тому їх треба знаходити розрахунком по кожній угоді.
+Навіщо: клієнт платить у гривні на рахунок «Банк Юнітекс Ейч-Ді», з цього ж рахунку
+оплачуються українські витрати по угоді. Те, що лишилось після цих витрат і після
+винагороди експедитора, — це локальні витрати за кордоном, які треба переказати.
+Окремою статтею в рахунку клієнта вони здебільшого не виділені, тому рахуємо.
 
-Джерело — 1С Експедитор (OData, лише читання). Нічого не змінює і не видаляє.
+Методика (уточнення користувачки 02.08.2026): профіт — це НЕ загальний прибуток по угоді,
+а різниця між надходженнями і витратами, які пройшли ПО ГРИВНЕВОМУ РАХУНКУ. Причина:
+в одній угоді бувають рахунки в різних валютах і оплати з інших кас, і вони до переказу
+за кордон стосунку не мають.
 
 Формули (усі суми в УО = USD-еквівалент, як в Експедиторі):
-    дохід(угода)   = Σ Document_Счет.сумма_УЕ                     (доходні рахунки угоди)
-    витрати(угода) = Σ Document_РасходнаяНакладная.Сумма_УЕ       (тільки проведені)
-    профіт         = дохід − витрати        ← формула звірена finrep з «Фактичним
-                                              прибутком» Експедитора
-    винагорода     = Σ рядків доходних рахунків (Document_Счет_ТЧ) зі статтею
-                     «Винагорода експедитора»
-    інфо+комісії   = Σ витратних рахунків зі статтями «Інфо» / «Банківські комісії»,
-                     додається до профіту, якщо їх сума по угоді > INFO_MIN (10 УО)
-    різниця        = профіт + інфо+комісії − винагорода           (тільки якщо > 0)
+    надходження = Σ доходних рахунків угоди, які СПЛАЧЕНІ на «Банк Юнітекс Ейч-Ді»
+    витрати     = Σ витратних рахунків угоди, СПЛАЧЕНИХ з «Банк Юнітекс Ейч-Ді»
+    профіт      = надходження − витрати
+    винагорода  = рядки тих самих доходних рахунків зі статтею «Винагорода експедитора»
+    інфо+комісії= витратні рахунки з того ж рахунку зі статтями INFO_ARTICLES;
+                  додаються до профіту, якщо їх сума по угоді > INFO_MIN
+    різниця     = профіт + інфо+комісії − винагорода       (у таблицю — тільки додатні)
+
+Джерело — 1С Експедитор (OData, лише читання). Нічого не змінює і не видаляє.
 
 Запуск:
     python3 local_costs.py                 # рахує і пише computed/local_costs.json
     python3 local_costs.py --dry-run       # тільки показати підсумок, файл не писати
-    python3 local_costs.py --check         # звірка профіту з period_report_data.json
+    python3 local_costs.py --top 15        # + перші рядки таблиці
 """
 import argparse
 import collections
@@ -34,29 +38,24 @@ import urllib.parse
 BASE = "/root/unitex-finrep"
 OUT = os.path.join(BASE, "computed", "local_costs.json")
 
-# --- статті ---
-# Довідник послуг Експедитора в OData НЕ опублікований, тому GUID статті визначається
-# за описами в рядках доходних рахунків: беремо той GUID, у рядках якого найчастіше
-# стоїть потрібна назва. Так номер статті не треба вписувати руками.
+# --- рахунок, по якому все рахується (вимога користувачки: тільки гривневі розрахунки) ---
+ACCOUNT = "Банк Юнітекс Ейч-Ді"
+
+# --- статті (довідник Catalog_СтатьиСчета опублікований Софт Про 02.08.2026) ---
 FEE_NAME = "Винагорода експедитора"
 LOCAL_ABROAD_NAME = "Локальні витрати за кордоном"
-# статті витратних рахунків «Інфо» і «Банківські комісії» — GUID підтверджує користувачка
-INFO_BANK = []
-INFO_MIN = 10.0                                        # поріг у УО (умова користувачки)
+# «інфо та банківські комісії» — вибір користувачки: всі чотири схожі статті
+INFO_ARTICLES = {"Інфо", "Комісія за переказ", "Банківський переказ", "Свіфт переказ"}
+INFO_MIN = 10.0                       # поріг у УО, рахується сумарно по угоді
 
-# Умова користувачки 02.08.2026 (з уточненнями): угода потрапляє в таблицю, якщо в ній Є
-# СПЛАЧЕНИЙ рахунок клієнту, гроші за яким прийшли на один із ДВОХ рахунків Юнітекса —
-# гривневий або євровий («бери, якщо є ці два види оплати»). Решта рахунків тієї ж угоди
-# (Форвардинг, каси USD) наявності не заважають. Список саме точними назвами, щоб схожі
-# рахунки (напр. «…Ейч-Ді Восток») не потрапили сюди самі собою.
-BANKS = {"Банк Юнітекс Ейч-Ді", "Банк Юнітекс Ейч-Ді EUR"}
-PAID = "Оплачен"
-
-STATUSES = ["Завершена", "ВыставленСчет"]              # + «Оброблена», якщо з'ясується
+# статус угоди: тільки завершені (рішення користувачки 02.08.2026)
+STATUSES = ["Завершена"]
 STATUS_UK = {"Завершена": "Завершена", "ВыставленСчет": "Виставлений рахунок",
              "Выполняется": "Виконується", "Букинг": "Букінг", "Отменена": "Скасована"}
-NULL = "00000000-0000-0000-0000-000000000000"
-EMPTY_DATE = "0001-01-01T00:00:00"
+PAID = "Оплачен"                      # значення реквізиту СтатусСчета
+# УВАГА: у витратних рахунках є ще прапорець «Оплачен» — він у ВСІХ записах False
+# (перевірено 02.08.2026: 443 рахунки зі статусом «Оплачен» мають прапорець False).
+# Орієнтуватись треба на СтатусСчета, а не на прапорець.
 
 
 def client():
@@ -90,127 +89,101 @@ def d10(x):
     return "" if (not x or x.startswith("0001-01-01")) else x[:10]
 
 
-def article_guids(lines):
-    """GUID статей за їхніми описами в рядках доходних рахунків."""
-    named = collections.defaultdict(collections.Counter)
-    for r in lines:
-        d = (r.get("Описание") or "").strip()
-        if d:
-            named[r["Статья_Key"]][d] += 1
-    best = {}
-    for g, cnt in named.items():
-        name, n = cnt.most_common(1)[0]
-        if n > best.get(name, (None, 0))[1]:
-            best[name] = (g, n)
-    return {k: v[0] for k, v in best.items()}
+def names(c, entity):
+    return {r["Ref_Key"]: (r.get("Description") or "").strip()
+            for r in page(c, entity, ["Ref_Key", "Description"])}
 
 
-def collect(c, statuses, info_bank):
+def collect(c):
+    art = names(c, "Catalog_СтатьиСчета")
+    acc = names(c, "Catalog_ВидОплаты")
+
     deals = {}
     for r in page(c, "Document_Сделка",
-                  ["Ref_Key", "Number", "Date", "Статус", "Posted", "DeletionMark",
-                   "Коносамент", "ДомашнийКоносамент", "СписокКонтейнеров",
-                   "ПунктОтправления", "ПунктНазначения", "ДатаЗавершения"]):
-        if r.get("DeletionMark"):
-            continue
-        st = str(r.get("Статус") or "")
-        if statuses and st not in statuses:
+                  ["Ref_Key", "Number", "Date", "Статус", "DeletionMark",
+                   "Коносамент", "СписокКонтейнеров", "ПунктОтправления", "ПунктНазначения",
+                   "ДатаЗавершения"]):
+        if r.get("DeletionMark") or str(r.get("Статус") or "") not in STATUSES:
             continue
         deals[r["Ref_Key"]] = {
             "num": (r.get("Number") or "").lstrip("0"),
-            "status": STATUS_UK.get(st, st),
+            "status": STATUS_UK.get(str(r.get("Статус")), str(r.get("Статус"))),
             "bl": (r.get("Коносамент") or "").strip(),
             "cont": (r.get("СписокКонтейнеров") or "").strip(),
             "route": " → ".join(x for x in [(r.get("ПунктОтправления") or "").strip(),
                                             (r.get("ПунктНазначения") or "").strip()] if x),
             "date": d10(r.get("Date")),
             "completed": d10(r.get("ДатаЗавершения")),
-            "revenue": 0.0, "cost": 0.0, "fee": 0.0, "local_abroad": 0.0,
-            "info_bank": 0.0, "paid": "", "invoices": [], "pay_kinds": set(),
-            "bank_paid": False, "n_inv": 0,
+            "revenue": 0.0, "cost": 0.0, "fee": 0.0, "local_abroad": 0.0, "info_bank": 0.0,
+            "paid": "", "n_inv": 0, "revenue_all": 0.0, "cost_all": 0.0,
         }
 
-    # довідник видів оплати — щоб відрізнити банк від каси
-    pay_names = {r["Ref_Key"]: (r.get("Description") or "").strip()
-                 for r in page(c, "Catalog_ВидОплаты", ["Ref_Key", "Description"])}
-
-    # доходні рахунки: сума по угоді + дата оплати від клієнта
+    # доходні рахунки, сплачені на потрібний рахунок
     inv_deal = {}
     for r in page(c, "Document_Счет",
-                  ["Ref_Key", "Number", "Сделка_Key", "сумма_УЕ", "ДатаОплаты", "СтатусСчета",
+                  ["Ref_Key", "Сделка_Key", "сумма_УЕ", "ДатаОплаты", "СтатусСчета",
                    "Posted", "Информативный", "видОплаты_Key"]):
         dk = r.get("Сделка_Key")
-        # чернетки й інформативні рахунки у розрахунок не входять — той самий фільтр,
-        # що й у фінзвіті (engine/odata_ingest.ingest_income)
         if dk not in deals or not r.get("Posted") or r.get("Информативный"):
             continue
-        inv_deal[r["Ref_Key"]] = dk
         d = deals[dk]
-        kind = pay_names.get(r.get("видОплаты_Key"), "")
-        d["pay_kinds"].add(kind or "(не вказано)")
+        d["revenue_all"] += f(r.get("сумма_УЕ"))          # довідково: весь дохід угоди
+        if acc.get(r.get("видОплаты_Key")) != ACCOUNT or str(r.get("СтатусСчета") or "") != PAID:
+            continue
+        inv_deal[r["Ref_Key"]] = dk
         d["n_inv"] += 1
-        if kind in BANKS and str(r.get("СтатусСчета") or "") == PAID:
-            d["bank_paid"] = True
         d["revenue"] += f(r.get("сумма_УЕ"))
-        d["invoices"].append((r.get("Number") or "").lstrip("0"))
         pd = d10(r.get("ДатаОплаты"))
         if pd and pd > d["paid"]:
             d["paid"] = pd
 
-    # рядки доходних рахунків: винагорода експедитора і вже виділені локальні витрати
-    lines = page(c, "Document_Счет_ТЧ", ["Ref_Key", "Статья_Key", "Сумма_УЕ", "Описание"])
-    art = article_guids(lines)
-    fee_g, loc_g = art.get(FEE_NAME), art.get(LOCAL_ABROAD_NAME)
-    if not fee_g:
-        raise SystemExit("не знайдено статтю «%s» у рядках доходних рахунків" % FEE_NAME)
-    for r in lines:
+    # рядки цих рахунків: винагорода експедитора і вже виділені локальні витрати
+    for r in page(c, "Document_Счет_ТЧ", ["Ref_Key", "Статья_Key", "Сумма_УЕ"]):
         dk = inv_deal.get(r.get("Ref_Key"))
         if not dk:
             continue
-        if r.get("Статья_Key") == fee_g:
+        nm = art.get(r.get("Статья_Key"), "")
+        if nm == FEE_NAME:
             deals[dk]["fee"] += f(r.get("Сумма_УЕ"))
-        elif r.get("Статья_Key") == loc_g:
+        elif nm == LOCAL_ABROAD_NAME:
             deals[dk]["local_abroad"] += f(r.get("Сумма_УЕ"))
 
-    # витратні рахунки: собівартість + окремо інфо та банківські комісії
+    # витратні рахунки, оплачені з того самого рахунку
     for r in page(c, "Document_РасходнаяНакладная",
-                  ["Сделка_Key", "Сумма_УЕ", "Услуга_Key", "Posted"]):
+                  ["Сделка_Key", "Сумма_УЕ", "Услуга_Key", "Posted", "ВидОплаты_Key",
+                   "СтатусСчета"]):
         dk = r.get("Сделка_Key")
         if dk not in deals or not r.get("Posted"):
             continue
-        deals[dk]["cost"] += f(r.get("Сумма_УЕ"))
-        if r.get("Услуга_Key") in info_bank:
-            deals[dk]["info_bank"] += f(r.get("Сумма_УЕ"))
+        d = deals[dk]
+        d["cost_all"] += f(r.get("Сумма_УЕ"))             # довідково: всі витрати угоди
+        if acc.get(r.get("ВидОплаты_Key")) != ACCOUNT or str(r.get("СтатусСчета") or "") != PAID:
+            continue
+        d["cost"] += f(r.get("Сумма_УЕ"))
+        if art.get(r.get("Услуга_Key"), "") in INFO_ARTICLES:
+            d["info_bank"] += f(r.get("Сумма_УЕ"))
     return deals
 
 
 def build(deals):
-    """Рядки таблиці + причини, чому угоди відсіялись.
-
-    Беремо угоди, у яких Є хоч один СПЛАЧЕНИЙ доходний рахунок з оплатою на рахунок
-    Юнітекса (грн або євро). Угоди, де таких оплат немає взагалі (тільки каси, тільки
-    Форвардинг або нічого не сплачено), у таблицю не потрапляють — але їхню кількість
-    показуємо, щоб було видно, що саме відсіялось.
-    """
+    """Рядки таблиці + причини, чому угоди відсіялись."""
     rows, skipped = [], collections.Counter()
     for d in deals.values():
         if not d["n_inv"]:
-            skipped["без доходних рахунків"] += 1
-            continue
-        if not d["bank_paid"]:
-            skipped["немає сплаченого рахунку на Юнітекс грн/євро"] += 1
+            skipped["немає сплаченого рахунку клієнта на «%s»" % ACCOUNT] += 1
             continue
         profit = round(d["revenue"] - d["cost"], 2)
         add = round(d["info_bank"], 2) if d["info_bank"] > INFO_MIN else 0.0
-        diff = round(profit + add - d["fee"], 2)
         rows.append({
             "num": d["num"], "status": d["status"], "bl": d["bl"], "cont": d["cont"],
             "route": d["route"], "paid": d["paid"], "completed": d["completed"],
             "date": d["date"],
             "revenue": round(d["revenue"], 2), "cost": round(d["cost"], 2),
-            "profit": profit, "fee": round(d["fee"], 2), "info_bank": round(d["info_bank"], 2),
-            "info_added": add, "local_abroad": round(d["local_abroad"], 2), "diff": diff,
-            "pay_kinds": sorted(d["pay_kinds"]),
+            "revenue_all": round(d["revenue_all"], 2), "cost_all": round(d["cost_all"], 2),
+            "profit": profit, "fee": round(d["fee"], 2),
+            "info_bank": round(d["info_bank"], 2), "info_added": add,
+            "local_abroad": round(d["local_abroad"], 2),
+            "diff": round(profit + add - d["fee"], 2),
         })
     rows.sort(key=lambda r: -r["diff"])
     return rows, skipped
@@ -219,41 +192,34 @@ def build(deals):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--dry-run", action="store_true")
-    ap.add_argument("--check", action="store_true")
     ap.add_argument("--top", type=int, default=0)
     a = ap.parse_args()
 
     c = client()
-    deals = collect(c, STATUSES, set(INFO_BANK))
+    deals = collect(c)
     rows, skipped = build(deals)
     pos = [r for r in rows if r["diff"] > 0]
-    print("угод у статусах %s: %d" % ("/".join(STATUS_UK.get(s, s) for s in STATUSES), len(deals)))
-    print("з них підходять (є сплачений рахунок на Юнітекс грн/євро): %d" % len(rows))
+    print("угод у статусі %s: %d" % ("/".join(STATUS_UK.get(s, s) for s in STATUSES), len(deals)))
+    print("з них із оплатою на «%s»: %d" % (ACCOUNT, len(rows)))
     for k, n in skipped.most_common():
         print("   відсіяно — %s: %d" % (k, n))
-    print("з них профіт > винагороди: %d, сума до переказу: %.2f УО" %
+    print("профіт > винагороди: %d угод, сума до переказу: %.2f УО" %
           (len(pos), sum(r["diff"] for r in pos)))
-    print("вже виділені «Локальні витрати за кордоном» у рахунках: %d угод, %.2f УО" %
-          (sum(1 for r in rows if r["local_abroad"]), sum(r["local_abroad"] for r in rows)))
-    by = collections.Counter(r["status"] for r in pos)
-    print("розріз за статусом:", dict(by))
+    print("інфо та комісії з цього ж рахунку: %.2f УО (додано в %d угодах)" %
+          (sum(r["info_bank"] for r in rows), sum(1 for r in rows if r["info_added"])))
+    print("вже виділені «%s» у рахунках: %d угод, %.2f УО" %
+          (LOCAL_ABROAD_NAME, sum(1 for r in rows if r["local_abroad"]),
+           sum(r["local_abroad"] for r in rows)))
     if a.top:
         for r in pos[:a.top]:
-            print("  №%-5s %-22s профіт %9.2f  винагорода %9.2f  різниця %9.2f" %
-                  (r["num"], r["status"], r["profit"], r["fee"], r["diff"]))
-
-    if a.check:
-        p = os.path.join(BASE, "computed", "period_report_data.json")
-        ref = {x["num"]: x for x in json.load(open(p, encoding="utf-8")).get("deals", [])}
-        bad = [r for r in rows if r["num"] in ref and abs(ref[r["num"]]["profit"] - r["profit"]) > 1]
-        print("звірка профіту з period_report_data.json: спільних угод %d, розбіжностей %d" %
-              (sum(1 for r in rows if r["num"] in ref), len(bad)))
-        for r in bad[:5]:
-            print("   №%s: у звіті %.2f, у мене %.2f" % (r["num"], ref[r["num"]]["profit"], r["profit"]))
+            print("  №%-5s надійшло %9.2f  витрати %9.2f  профіт %9.2f  винагорода %7.2f"
+                  "  інфо %6.2f  різниця %9.2f" %
+                  (r["num"], r["revenue"], r["cost"], r["profit"], r["fee"],
+                   r["info_added"], r["diff"]))
 
     if not a.dry_run:
-        data = {"rows": rows, "info_bank_guids": INFO_BANK, "info_min": INFO_MIN,
-                "statuses": [STATUS_UK.get(s, s) for s in STATUSES],
+        data = {"rows": rows, "account": ACCOUNT, "info_articles": sorted(INFO_ARTICLES),
+                "info_min": INFO_MIN, "statuses": [STATUS_UK.get(s, s) for s in STATUSES],
                 "skipped": dict(skipped), "screened": len(deals),
                 "total_diff": round(sum(r["diff"] for r in pos), 2), "count": len(pos)}
         with open(OUT, "w", encoding="utf-8") as fh:
