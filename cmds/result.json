@@ -1,7 +1,7 @@
 {
-  "stdout": "### ФАЙЛИ В НОВОМУ КОНТЕЙНЕРІ\n/usr/src/app/node_modules/openai/src/resources/uploads\n/usr/src/app/node_modules/openai/resources/uploads\n--- вміст:\n/usr/app/data/noco.db\n--- розмір data:\n9.5M\t/usr/app/data\n### ЩО ЗАПИСАНО В СТАРОМУ КОНТЕЙНЕРІ (його шар)\n### СКІЛЬКИ УГОД МАЮТЬ ФАЙЛИ\nTraceback (most recent call last):\n  File \"<string>\", line 1, in <module>\n  File \"/usr/lib/python3.12/json/__init__.py\", line 293, in load\n    return loads(fp.read(),\n           ^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/json/__init__.py\", line 346, in loads\n    return _default_decoder.decode(s)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/json/decoder.py\", line 337, in decode\n    obj, end = self.raw_decode(s, idx=_w(s, 0).end())\n### ЧИ ВІДДАЄТЬСЯ ФАЙЛ\nTraceback (most recent call last):\n  File \"<string>\", line 1, in <module>\n  File \"/usr/lib/python3.12/json/__init__.py\", line 293, in load\n",
+  "stdout": "записів усього: 277\nполя з файлами: ['Файли']\nугод із файлами: 0 | файлів усього: 0\n### ЗМІНИ В ШАРІ СТАРОГО КОНТЕЙНЕРА (усі)\nC /usr\nA /usr/app\nA /usr/app/data\n  (порожньо = у шар нічого не писалось)\n",
   "stderr": "",
   "returncode": 0,
-  "id": "files-0808",
-  "ts": "2026-08-08T15:07:10Z"
+  "id": "files2-0808",
+  "ts": "2026-08-08T15:07:52Z"
 }
