@@ -1,7 +1,7 @@
 {
-  "stdout": "### ПРАВА БАЗИ\n  default_role: None\n  permissions : []\n### ПОЛЯ ПРО ПРАВА В ТАБЛИЦІ\n  таблиць: 7\n  поля про права: НЕМАЄ\n### === КОНТЕЙНЕР ===\nОБРАЗ: nocodb/nocodb:latest\nСТАН: running\nМЕРЕЖА: bridge\nРЕСТАРТ: unless-stopped\nПОРТИ: {\"8080/tcp\":[{\"HostIp\":\"\",\"HostPort\":\"8080\"}]}\nENTRYPOINT: [\"/usr/bin/dumb-init\",\"--\"]\nCMD: [\"/usr/src/appEntry/start.sh\"]\nWORKDIR: /usr/src/app\nМОНТУВАННЯ (тут головне):\n  тип=bind назва= звідки=/root/nocodb-data куди=/usr/app/data rw=true\n\nЗМІННІ:\n  NC_REQUEST_BODY_SIZE=209715…\n  PATH=/usr/l…\n  NODE_VERSION=24.14.…\n  YARN_VERSION=1.22.2…\n  NC_DOCKER=0.6…\n  NODE_ENV=produc…\n  PORT=8080…\n  NC_TOOL_DIR=/usr/a…\n\nРОЗМІР ДАНИХ:\n9.6M\t/root/nocodb-data\n",
-  "stderr": "",
-  "returncode": 0,
-  "id": "nococfg-0808",
-  "ts": "2026-08-08T14:57:09Z"
+  "stdout": "",
+  "stderr": "/bin/sh: 1: Syntax error: redirection unexpected\n",
+  "returncode": 2,
+  "id": "nocoport-0808",
+  "ts": "2026-08-08T14:58:18Z"
 }
