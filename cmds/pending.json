@@ -1,1 +1,1 @@
-{"id": "single-tax-probe2-0802", "cmd": "cd /root/Iryna_Karmazina && git pull -q origin main && cp finrep/single_tax.py /root/unitex-finrep/ && cd /root/unitex-finrep && python3 single_tax.py --probe2 2>&1 | tail -22"}
+{"id": "stax-probe2-b", "cmd": "cd /root/Iryna_Karmazina && git pull -q origin main && cp finrep/single_tax.py /root/unitex-finrep/ && cd /root/unitex-finrep && python3 single_tax.py --probe2 2>&1 | tail -20"}
