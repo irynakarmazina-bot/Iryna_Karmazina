@@ -1,7 +1,7 @@
 {
-  "stdout": "бекап: /root/sec-backup-20260808-162449\nрепо оновлено\ntrigger.py: 0.0.0.0 -> 127.0.0.1, TCPServer -> ThreadingTCPServer\n### СИНТАКСИС\n  OK\n### ЗНАЧЕННЯ\n122:ENFORCE = True\n202:with Server(('127.0.0.1', PORT), H) as httpd:\n17:socketserver.ThreadingTCPServer.allow_reuse_address = True\n18:with socketserver.ThreadingTCPServer(('127.0.0.1', PORT), H) as httpd:\n### ПЕРЕЗАПУСК\nactive active\n### ЯК СЛУХАЮТЬ ТЕПЕР\nLISTEN 0      5          127.0.0.1:8788      0.0.0.0:*          \nLISTEN 0      5          127.0.0.1:8791      0.0.0.0:*          \nLISTEN 0      5          127.0.0.1:8787      0.0.0.0:*          \n### ЧИ ПРАЦЮЮТЬ МАРШРУТИ ЧЕРЕЗ CADDY\n  /sync-state   401\n  /finrep-data  400\n  сайт          200\n",
+  "stdout": "воркфлоу всього: 19\n  ОНОВЛЕНО: NocoDB Sync — Диспетчеризація (Sheets → пл | замін: 3 | активний: False\n  ОНОВЛЕНО: Нові угоди → майстер-таблиця (для Maersk-т | замін: 1 | активний: False\nбекап оригіналів: /root/n8n-backup-20260808-162558\n--- звірка після:\n    NocoDB Sync — Диспетчеризація (Sheets → пл | стара адреса: 0 | нова: 3\n    Нові угоди → майстер-таблиця (для Maersk-т | стара адреса: 0 | нова: 1\n",
   "stderr": "",
   "returncode": 0,
-  "id": "applysec-0808",
-  "ts": "2026-08-08T13:24:54Z"
+  "id": "n8nfix-0808",
+  "ts": "2026-08-08T13:26:03Z"
 }
