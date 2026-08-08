@@ -1,7 +1,7 @@
 {
-  "stdout": "",
-  "stderr": "/bin/sh: 1: Syntax error: redirection unexpected\n",
-  "returncode": 2,
-  "id": "nocoport-0808",
-  "ts": "2026-08-08T14:58:18Z"
+  "stdout": "### КОНТЕЙНЕРИ\ncaddy | Up 13 days | \nnocodb | Up 2 weeks | 0.0.0.0:8080->8080/tcp, [::]:8080->8080/tcp\n### БАЗА ВІДПОВІДАЄ?\n{\"currentVersion\":\"2026.07.0\",\"releaseVersion\":\"2026.08.0\"}\n### САЙТ\n  https://IP/ -> 200\n### ПОРТ 8080\nLISTEN 0      4096         0.0.0.0:8080      0.0.0.0:*          \nLISTEN 0      4096            [::]:8080         [::]:*          \n### ЧИ ЛИШИЛИСЬ СЛІДИ МОЄЇ КОМАНДИ\n",
+  "stderr": "",
+  "returncode": 0,
+  "id": "nocostate-0808",
+  "ts": "2026-08-08T14:58:56Z"
 }
