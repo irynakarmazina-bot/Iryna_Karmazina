@@ -104,6 +104,8 @@ def main():
     ap.add_argument("--write", action="store_true", help="зберегти computed/single_tax.json")
     ap.add_argument("--probe", action="store_true", help="показати поля рядків рахунка і вийти")
     ap.add_argument("--probe2", action="store_true", help="валюта рахунків і поля сум у рядках")
+    ap.add_argument("--nofee", action="store_true",
+                    help="показати відібрані рахунки БЕЗ рядка винагороди і що в них замість неї")
     a = ap.parse_args()
     c = client()
 
@@ -178,6 +180,7 @@ def main():
             "paid": paid,
             "rate": (uah / uo) if uo else 0.0,   # курс саме цього рахунка
             "status": str(r.get("СтатусСчета") or ""),
+            "total_uah": uah, "arts": collections.Counter(),
             "fee_uah": 0.0, "fee_uo": 0.0,
         }
     print("рахунків клієнтам усього (проведених, не інформативних): %d" % total_inv)
@@ -193,9 +196,23 @@ def main():
         sys.exit("не знайдено статтю «%s» у рядках рахунків" % FEE_NAME)
     for r in lines:
         i = inv.get(r.get("Ref_Key"))
-        if i and r.get("Статья_Key") == fee_g:
+        if not i:
+            continue
+        if r.get("Статья_Key") == fee_g:
             i["fee_uah"] += f(r.get("Сумма"))       # пряма гривнева сума рядка
             i["fee_uo"] += f(r.get("Сумма_УЕ"))     # той самий рядок у USD — для довідки
+        else:
+            i["arts"][(r.get("Описание") or "(без опису)").strip()] += f(r.get("Сумма"))
+
+    if a.nofee:
+        bad = [i for i in inv.values() if not i["fee_uah"] and not i["fee_uo"]]
+        print("\nРАХУНКИ БЕЗ РЯДКА «%s»: %d" % (FEE_NAME, len(bad)))
+        for i in sorted(bad, key=lambda x: x["paid"]):
+            arts = " · ".join("%s %s" % (k, money(v)) for k, v in i["arts"].most_common())
+            print("  угода %-5s рахунок %-6s оплачено %s  сума рахунка %12s грн"
+                  % (i["deal"], i["num"], i["paid"], money(i["total_uah"])))
+            print("      статті: %s" % (arts or "(рядків немає)"))
+        return
 
     rows = []
     for i in inv.values():
