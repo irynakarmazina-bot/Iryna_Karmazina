@@ -1,7 +1,7 @@
 {
-  "stdout": "порожня команда: перезаписую result.json, щоб службові токени не лежали у файлі\n",
+  "stdout": "Диспетчеризація              m58xsjo6at01ohl\nКлієнти                      mgik03ijqyyct6v\nЗадачі                       mfo372vhs3fbbw7\nКористувачі                  meqpi0r197bz14n\nІнструкції                   mvm5xu2mcidt1j3\nКалькуляції                  mxtg3fvrmtflaid\nЖурнал дій                   m429u2crlavfmxc\n",
   "stderr": "",
   "returncode": 0,
-  "id": "noop-0811",
-  "ts": "2026-08-10T14:14:07Z"
+  "id": "tables-0811",
+  "ts": "2026-08-10T14:16:36Z"
 }
