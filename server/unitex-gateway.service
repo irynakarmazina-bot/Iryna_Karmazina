@@ -1,0 +1,23 @@
+[Unit]
+# Прошарок між фасадом і NocoDB. Стоїть ПОРУЧ: доки маршрут /api/* у Caddy
+# дивиться на 8080, ця служба нікого не обслуговує і нічого не ламає.
+# Перехід — зміна одного поля upstream у конфізі Caddy, відкат — те саме назад.
+Description=Unitex ERP gateway (права на сервері, перед NocoDB)
+After=network-online.target docker.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 /root/gateway.py
+Environment=GATEWAY_PORT=8792
+# ⚠️ ПОКИ ТІЛЬКИ ДИВИМОСЬ: GATEWAY_ENFORCE не виставлений, тобто перевірка
+# рахується і пишеться в /root/gateway.log, але нікого не блокує. Вмикати
+# блокування — додати сюди Environment=GATEWAY_ENFORCE=1 і перезапустити,
+# але тільки після того, як журнал покаже, що законні запити проходять.
+Restart=on-failure
+RestartSec=5
+StandardOutput=append:/root/gateway.out
+StandardError=append:/root/gateway.out
+
+[Install]
+WantedBy=multi-user.target
