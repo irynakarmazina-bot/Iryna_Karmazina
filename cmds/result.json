@@ -1,7 +1,7 @@
 {
-  "stdout": "Диспетчеризація              m58xsjo6at01ohl\nКлієнти                      mgik03ijqyyct6v\nЗадачі                       mfo372vhs3fbbw7\nКористувачі                  meqpi0r197bz14n\nІнструкції                   mvm5xu2mcidt1j3\nКалькуляції                  mxtg3fvrmtflaid\nЖурнал дій                   m429u2crlavfmxc\n",
+  "stdout": "скопійовано в /root/gateway.py\nсинтаксис OK\n### ТЕСТ ПРАВИЛ\n  ✓ обрізка відповіді: з 3 рядків лишилось 2, чужого немає\n\nGATEWAY_RULES_OK — усі 21 перевірок пройшли\n### ЗАПУСК (режим тільки дивлюсь)\n",
   "stderr": "",
-  "returncode": 0,
-  "id": "tables-0811",
-  "ts": "2026-08-10T14:16:36Z"
+  "returncode": -15,
+  "id": "gw-deploy-0811",
+  "ts": "2026-08-10T14:20:29Z"
 }
