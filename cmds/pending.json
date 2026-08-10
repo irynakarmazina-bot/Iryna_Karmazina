@@ -1,1 +1,1 @@
-{"id": "caddy-0811", "cmd": "echo '### CADDYFILE'; cat /etc/caddy/Caddyfile; echo; echo '### ЩО СЛУХАЄ НА LOCALHOST'; ss -ltnp 2>/dev/null | grep 127.0.0.1 | head -20"}
+{"id": "caddy2-0811", "cmd": "echo '### ДЕ КОНФІГ CADDY'; systemctl cat caddy 2>/dev/null | head -20; echo; echo '### ФАЙЛИ'; ls -l /etc/caddy/ 2>/dev/null; find / -maxdepth 4 -iname 'Caddyfile*' 2>/dev/null | head; echo; echo '### ЖИВИЙ КОНФІГ З API'; curl -s http://127.0.0.1:2019/config/ | head -c 3000"}
