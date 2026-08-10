@@ -1,7 +1,7 @@
 {
-  "stdout": "### БЕКАП ЧИННОГО КАБІНЕТУ\n  збережено: cabinet-20260810-171108-before-rebuild.html\n### ЗБІРКА\nклієнт: Мірандор — угод 128\nOK /root/unitex-os-www/cabinet.html — 128 угод, 254604 байт\n### ЩО ВИЙШЛО\n-rw-r--r-- 1 root root 330772 Aug 10 17:11 /root/unitex-os-www/cabinet.html\n3\n### ЧИ ВІДДАЄТЬСЯ\ncabinet.html -> 200\n",
-  "stderr": "",
+  "stdout": "### CADDYFILE\n\n### ЩО СЛУХАЄ НА LOCALHOST\nLISTEN 0      5          127.0.0.1:8788      0.0.0.0:*    users:((\"python3\",pid=545373,fd=3))                     \nLISTEN 0      5          127.0.0.1:8789      0.0.0.0:*    users:((\"python3\",pid=539694,fd=3))                     \nLISTEN 0      5          127.0.0.1:8790      0.0.0.0:*    users:((\"python3\",pid=192606,fd=3))                     \nLISTEN 0      5          127.0.0.1:8791      0.0.0.0:*    users:((\"python3\",pid=355826,fd=3))                     \nLISTEN 0      5          127.0.0.1:8787      0.0.0.0:*    users:((\"python\",pid=545374,fd=3))                      \nLISTEN 0      4096       127.0.0.1:2019      0.0.0.0:*    users:((\"caddy\",pid=52136,fd=7))                        \nLISTEN 0      4096       127.0.0.1:8080      0.0.0.0:*    users:((\"docker-proxy\",pid=547393,fd=8))                \n",
+  "stderr": "cat: /etc/caddy/Caddyfile: No such file or directory\n",
   "returncode": 0,
-  "id": "cabinet-0811",
-  "ts": "2026-08-10T14:11:09Z"
+  "id": "caddy-0811",
+  "ts": "2026-08-10T14:12:50Z"
 }
