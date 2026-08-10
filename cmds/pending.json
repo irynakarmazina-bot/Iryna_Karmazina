@@ -1,1 +1,1 @@
-{"id": "ui-roles-0811", "cmd": "cd /root/Iryna_Karmazina && git pull -q origin main && bash server/deploy_ui.sh main 2>&1 | tail -8"}
+{"id": "fin-nav-0811", "cmd": "set -u; cd /root/Iryna_Karmazina && git pull -q origin main && cp server/gateway.py /root/gateway.py && systemctl restart unitex-gateway && sleep 2 && echo -n 'служба: ' && systemctl is-active unitex-gateway && python3 scripts/gateway_rules.py 2>&1 | tail -2 && bash server/deploy_ui.sh main 2>&1 | tail -4"}
