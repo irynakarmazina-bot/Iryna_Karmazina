@@ -1,7 +1,7 @@
 {
-  "stdout": "### ВХОЛОСТУ\nзараз: irinabuhgalter33@gmail.com → роль у базі = НЕМАЄ\n--dry-run: додала б роль «editor». Нічого не записую.\n### ДАЮ ДОСТУП\nзараз: irinabuhgalter33@gmail.com → роль у базі = НЕМАЄ\nстало:  irinabuhgalter33@gmail.com → роль у базі = editor\nГОТОВО\n### УЧАСНИКИ БАЗИ ПІСЛЯ\n   v.pontus@unitex.od.ua              editor\n   irinabuhgalter33@gmail.com         editor\n   irynakarmazina@gmail.com           owner\n### ПРОШАРОК\nactive\n### ФАСАД\n   журнал: 2026-08-10T19:53:08\tmain\t475d58798\tв. 10.08 19:52\tindex.html:334012 findash.html:29444 finperiod.html:17527\trelay: дати бухгалтерці доступ до бази, оновити прошарок, викласти фасад\n   UI/FINDASH/CHART: 200 200 200\nDEPLOY_OK · гілка main · коміт 475d58798 · позначка «в. 10.08 19:52»\n",
+  "stdout": "   журнал: 2026-08-10T20:00:49\tmain\tb63c753dd\tв. 10.08 20:00\tindex.html:334664 findash.html:29444 finperiod.html:17527\trelay: викласти фасад — фінансист заходить у Фінанси\n   UI/FINDASH/CHART: 200 200 200\nDEPLOY_OK · гілка main · коміт b63c753dd · позначка «в. 10.08 20:00»\n",
   "stderr": "",
   "returncode": 0,
-  "id": "grant-0811",
-  "ts": "2026-08-10T16:53:08Z"
+  "id": "fin-first-0811",
+  "ts": "2026-08-10T17:00:49Z"
 }
