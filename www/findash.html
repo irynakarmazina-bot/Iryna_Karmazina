@@ -277,7 +277,14 @@ function renderSig(){
   var sc={warn:"#e6a817",bad:"#d1453b",ok:"#1a8f5c"};
   document.getElementById("sig").innerHTML=D.signals.map(function(s){return '<div class="sig"><span class="dot" style="background:'+sc[s[0]]+'"></span><div><b>'+s[1]+'</b>'+(s[2]?' <span class="n '+(s[0]=="bad"?"neg":"")+'">'+s[2]+'</span>':"")+'</div></div>'}).join("");
 }
+/* Панель ховається, якщо даних немає ВЗАГАЛІ. Це не косметика: сервер
+   (/root/findata.py) не віддає «Внески власників» ролі, якій вони не належать,
+   тому сюди вони просто не приходять. Без цієї перевірки D.equity.map падав би
+   з помилкою і забирав із собою решту boot() — графік NWC, посилання й депозити,
+   тобто зламався б увесь звіт, а не одна панель. */
+function hidePanel(id){ var p=document.getElementById(id); if(p)p.style.display="none"; }
 function renderEquity(){
+  if(!D.equity||!D.equity.length){ hidePanel("eqp"); return; }
   var h='<table><tr><th>Власник</th><th class="n">Внесено</th><th class="n">Вилучено</th><th class="n">Чисто</th></tr>'+D.equity.map(function(r,i){var b=i==(D.equity.length-1)?' style="font-weight:bold"':'';return '<tr'+b+'><td>'+r[0]+'</td><td class="n">'+f(r[1])+'</td><td class="n">'+f(r[2])+'</td><td class="n">'+f(r[3])+'</td></tr>'}).join("")+'</table>';
   var det=D.equityMonthly||[];
   if(det.length){
@@ -301,6 +308,10 @@ function chartForecast(){
   ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,position:"top",labels:{boxWidth:12,boxHeight:2,font:{size:10}}}},scales:{y:{ticks:{callback:function(v){return(v/1000)+"K"}}}}}});
 }
 function chartNwc(){
+  /* Те саме, що й з «Внесками власників»: немає даних — немає панелі.
+     Плитка «Робочий капітал (NWC)» угорі від цього НЕ залежить — вона бере
+     D.cards.nwc, а не D.nwcMonthly, і лишається на місці. */
+  if(!D.nwcMonthly||!D.nwcMonthly.length){ hidePanel("nwc"); return; }
   new Chart(document.getElementById("nwcc"),{type:"bar",data:{labels:D.nwcMonthly.map(function(r){return r[0]}),datasets:[{label:"NWC",data:D.nwcMonthly.map(function(r){return r[1]}),backgroundColor:"#3b6fd4"},{label:"з деп.",data:D.nwcMonthly.map(function(r){return r[2]-r[1]}),backgroundColor:"#1a8f5c"}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"bottom"}},scales:{x:{stacked:true},y:{stacked:true,ticks:{callback:function(v){return(v/1000)+"K"}}}}}});
 }
 /* ── дані передає платформа (батьківське вікно), а не Apps Script ──
