@@ -106,17 +106,30 @@
   :root[data-theme="dark"][data-palette="ocean"]{ --accent-ink:#7dd3fc }
   :root[data-theme="dark"][data-palette="emerald"]{ --accent-ink:#6ee7b7 }
 
+  /* ОДИН шрифт на всю платформу, в ОДНОМУ місці. Порядок усередині списку має
+     значення: `-apple-system` СТОЇТЬ ПЕРШИМ навмисно.
+     Причина (зауваження користувачки 11.08.2026, скрін випадайки «Усі менеджери»):
+     у Safari на Mac рідне випадне меню — це вікно операційної системи, і назву
+     `system-ui` воно не розпізнає, тому падало на стандартний шрифт із засічками.
+     На самій сторінці `system-ui` працює, тому решта екрана виглядала правильно,
+     а список — ні. `-apple-system` розпізнається і там, і там.
+     На Windows/Android `-apple-system` просто ігнорується і працює `system-ui`,
+     тобто для них нічого не змінюється. */
+  :root{
+    --ui-font: -apple-system, BlinkMacSystemFont, system-ui, "Segoe UI", Roboto,
+               "Helvetica Neue", Arial, sans-serif;
+  }
   *{box-sizing:border-box}
   html,body{margin:0;padding:0}
   body{
-    font-family:system-ui,-apple-system,"Segoe UI",sans-serif;
+    font-family:var(--ui-font);
     background:var(--paper); color:var(--ink);
     font-size:15px; line-height:1.5; min-height:100vh;
   }
   button{font:inherit}
   /* Усі form-контроли беруть шрифт сторінки. Без явного font-family браузер
      підставляє свій системний — саме це було видно у випадайках фільтрів. */
-  input,select,textarea,button,option{font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
+  input,select,textarea,button,option{font-family:var(--ui-font)}
   :focus-visible{outline:2px solid var(--accent); outline-offset:2px; border-radius:4px}
   @media (prefers-reduced-motion: reduce){ *{transition:none!important;animation:none!important} }
   .article h2{font-size:15px;color:var(--accent-ink);margin:18px 0 6px}
@@ -547,9 +560,9 @@
      чужий шрифт (зауваження користувачки 01.08.2026). */
   .filters input,.filters select{padding:6px 8px;border:1px solid var(--line);border-radius:7px;
     background:var(--surface);color:var(--ink);
-    font-family:system-ui,-apple-system,"Segoe UI",sans-serif;
+    font-family:var(--ui-font);
     font-size:12.5px;font-weight:500;line-height:1.4}
-  .filters option{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;font-size:13px}
+  .filters option{font-family:var(--ui-font);font-size:13px}
   /* Ширина випадайки задана жорстко: інакше браузер розтягує її під найдовший
      варіант списку («Вивантажений в порту прибуття») і поруч з'являється
      порожнеча, а самі фільтри не вміщаються в один рядок (01.08.2026). */
@@ -731,7 +744,7 @@
       <div class="spacer"></div>
       <!-- Позначка версії: по ній видно, чи браузер підтягнув свіжу сторінку.
            Оновлюється автоматично при кожному викладенні (scripts/stamp.sh). -->
-      <div class="buildstamp" id="buildstamp" title="версія сторінки — якщо не збігається з тим, що я назвала, натисни Ctrl+F5">в. 10.08 20:00</div>
+      <div class="buildstamp" id="buildstamp" title="версія сторінки — якщо не збігається з тим, що я назвала, натисни Ctrl+F5">в. 10.08 20:18</div>
     </nav>
     <div class="main">
       <div class="topbar">
@@ -1822,7 +1835,7 @@ PAGES.dispatch = async () => {
      запиту людина взагалі нічого не бачила (04.08.2026). */
   const syncBtn = cfg().sync
     ? '<span style="display:inline-flex;align-items:center;gap:8px">'
-      + '<button class="btn" id="sync-btn">⟳ Оновити з Експедитора</button>'
+      + '<button class="btn" id="sync-btn">⟳ Оновити</button>'
       + '<span id="disp-note"></span></span>'
     : "";
   const head = logist
@@ -1849,7 +1862,13 @@ PAGES.dispatch = async () => {
   /* Алерти живуть у ВЕРХНІЙ строці сторінки (#page-actions), а не окремим
      рядком над таблицею: так вони не з'їдають висоту і таблиця починається
      одразу з фільтрів (прохання користувачки 02.08.2026). */
+  /* «Всі угоди» — ПЕРШОЮ у верхній строці (вказівка користувачки 11.08.2026).
+     Навіщо: значки поруч (алерти) звужують таблицю до свого набору, а швидкий
+     фільтр з дашборда — до свого. Повернутись до повного списку можна було лише
+     ✕ на чіпі фільтра або вручну перебравши всі випадайки. Тепер це одна кнопка:
+     вона скидає І швидкий фільтр, І всі поля фільтрів. */
   const alertHtml = `<div class="alertbar">
+        <span class="abadge clickable" id="all-deals" title="показати всі угоди: скинути пошук, фільтри і швидкий фільтр">Всі угоди <b>${all.length}</b></span>
         <span class="abadge">Активних <b>${nActive}</b><span class="cell-muted" style="font-size:11px">з ${all.length}</span></span>
         ${ALERTS.map(a=>`<span class="abadge ${a.cls} clickable" data-q="${a.q}">${esc(a.nm)} <b>${a.n}</b></span>`).join("")}
         ${quick? `<span class="quickchip">Фільтр: ${esc(quick.label)} — ${quickCount}<button id="quick-clear" title="скинути фільтр">✕</button></span>`:""}
@@ -2135,7 +2154,7 @@ PAGES.dispatch = async () => {
        три різні тексти, щоб не гадати, чи це збій, чи справді немає угод. */
     const emptyMsg = () => {
       if (!all.length)
-        return "Угод у базі немає. Якщо це несподівано — натисни «⟳ Оновити з Експедитора».";
+        return "Угод у базі немає. Якщо це несподівано — натисни «⟳ Оновити».";
 
       if (!activeF.length)
         return "Нічого не знайдено.";
@@ -2361,12 +2380,33 @@ PAGES.dispatch = async () => {
     }
     $("drows").querySelectorAll(".docs-btn").forEach(b=>b.addEventListener("click",(e)=>{ e.stopPropagation(); openDocs(all.find(x=>String(x.Id)===b.dataset.doc)); }));
   };
-  ["q","dirf","stf","modef","linef","clif","manf","opmf"].forEach(id=>$(id).addEventListener(id==="q"?"input":"change",draw));
+  /* ⚠️ draw() ВИКЛИКАЄМО БЕЗ АРГУМЕНТІВ — саме тому тут стрілка, а не просто
+     `draw`. Перший аргумент draw(keep) означає «поверни оцей рядок туди, де він
+     був на екрані» і використовується після правки угоди. Якщо передати сюди
+     сам draw, слухач подій підставить йому ОБ'ЄКТ ПОДІЇ, keep стане істинним, і
+     код піде гілкою «відновити позицію» — шукатиме рядок tr[data-id="undefined"],
+     не знайде і НЕ ЗРОБИТЬ НІЧОГО. Наслідок, який побачила користувачка
+     11.08.2026: на основному екрані доставлені сховані під шапкою, а щойно
+     вибрати менеджера — вони знову на весь екран, бо прокрутка не спрацювала.
+     Відтворено і перевірено в браузері: scripts/mgrscroll.js. */
+  ["q","dirf","stf","modef","linef","clif","manf","opmf"]
+    .forEach(id=>$(id).addEventListener(id==="q"?"input":"change", ()=>draw()));
   $("page-actions").querySelectorAll(".abadge[data-q]").forEach(b=>b.addEventListener("click",()=>{
     DISP_QUICK = (DISP_QUICK === b.dataset.q) ? null : b.dataset.q; go("dispatch");
   }));
   const qc = $("quick-clear");
   if (qc) qc.addEventListener("click",()=>{ DISP_QUICK=null; go("dispatch"); });
+  /* «Всі угоди»: скидаємо і швидкий фільтр, і поля. go("dispatch") перемальовує
+     сторінку заново, тому поля треба чистити ДО нього — інакше вони відновляться
+     з тими самими значеннями, бо беруться з DOM, а не зі стану. */
+  const ad = $("all-deals");
+  if (ad) ad.addEventListener("click",()=>{
+    ["q","dirf","stf","modef","linef","clif","manf","opmf"].forEach(id=>{
+      const el = $(id); if (el) el.value = "";
+    });
+    DISP_QUICK = null;
+    go("dispatch");
+  });
   draw();
   restoreNote("disp-note");
   const sb = $("sync-btn");
