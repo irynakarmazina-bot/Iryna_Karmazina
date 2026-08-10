@@ -731,7 +731,7 @@
       <div class="spacer"></div>
       <!-- Позначка версії: по ній видно, чи браузер підтягнув свіжу сторінку.
            Оновлюється автоматично при кожному викладенні (scripts/stamp.sh). -->
-      <div class="buildstamp" id="buildstamp" title="версія сторінки — якщо не збігається з тим, що я назвала, натисни Ctrl+F5">в. 10.08 18:23</div>
+      <div class="buildstamp" id="buildstamp" title="версія сторінки — якщо не збігається з тим, що я назвала, натисни Ctrl+F5">в. 10.08 18:59</div>
     </nav>
     <div class="main">
       <div class="topbar">
@@ -1003,7 +1003,15 @@ const RC = {
      угод з Експедитора, а не фінанси; фінансові кнопки лишаються фінансовим ролям. */
   "Сейлз-менеджер":       { nav:["dashboard","tasks","dispatch","calc","finance","clients","crm","instr","users"], scope:"mgr", fin:"personal", sync:true, edit:true },
   "Бухгалтер":            { nav:["dashboard","tasks","dispatch","calc","finance","clients","accounting","instr","users"], scope:"all", fin:"acct", sync:true },
-  "Фінансист":            { nav:["dashboard","tasks","dispatch","calc","finance","clients","accounting","instr","users"], scope:"all", fin:"full", sync:true },
+  /* Фінансисту не потрібні ні CRM, ні диспетчеризація (рішення користувачки
+     11.08.2026) — його робота це «Фінанси» і «Бух. облік».
+     УВАГА на майбутнє: прибрано СТОРІНКУ, а не доступ до таблиці угод. Сторінка
+     «Бух. облік» читає з «Диспетчеризації» маршрут, коносамент і контейнер, а
+     галочку «переказано» ПИШЕ туди ж (saveField → «Переказ за кордон», «Дата
+     переказу», «Сума переказу»). Прибереш таблицю — відвалиться саме те, заради
+     чого роль і заводили. Тому в прошарку (server/gateway.py) «Диспетчеризація»
+     для цієї ролі лишається, але тільки на читання і на ці три колонки. */
+  "Фінансист":            { nav:["dashboard","tasks","calc","finance","clients","accounting","instr","users"], scope:"all", fin:"full", sync:true },
   "Операційний менеджер": { nav:["dashboard","tasks","dispatch","clients","crm","instr","users"], scope:"ops", fin:"none", sync:true, edit:true },
   "Логіст":               { nav:["dispatch","instr","users"], scope:"all", cols:"logist", fin:"none", sync:false, edit:true },
   "Перегляд":             { nav:["dashboard","tasks","dispatch","calc","finance","clients","instr","users"], scope:"all", fin:"blur", sync:false },

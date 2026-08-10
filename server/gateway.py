@@ -88,6 +88,17 @@ ROLE_TABLES = {
 # ── кому дозволено ЗМІНЮВАТИ (поле edit у RC) ─────────────────────────────
 ROLE_EDIT = {"Адміністратор", "Сейлз-менеджер", "Операційний менеджер", "Логіст"}
 
+# ── вузький виняток: галочка «переказано» ─────────────────────────────────
+# Бухгалтер і Фінансист права редагування НЕ мають (у RC немає edit), але на
+# сторінці «Бух. облік» ставлять позначку переказу за кордон — у фасаді це окрема
+# умова `canMark` (fin === "acct" || "full"), і пише вона в таблицю угод.
+# Без цього винятку прошарок, коли ми його ввімкнемо, заблокував би саме те,
+# заради чого роль «Фінансист» і заводили.
+# Прошарок тут СУВОРІШИЙ за фасад: дозволені рівно три колонки. Фасад більше й не
+# просить, але браузер може попросити що завгодно — і ось це вже не пройде.
+MARK_ROLES = {"Бухгалтер", "Фінансист"}
+MARK_FIELDS = {"Id", "Переказ за кордон", "Дата переказу", "Сума переказу"}
+
 # ── чиї рядки видно (функція scoped у фасаді) ─────────────────────────────
 # mgr → бачить угоди, де він «Менеджер»; ops → де він «Оп. менеджер».
 # Калькуляції менеджер теж бачить тільки свої (рядок 3877 фасада).
@@ -169,7 +180,24 @@ def table_of(path):
     return None
 
 
-def decide(method, path, role, name):
+def payload_fields(payload):
+    """Які колонки просять змінити. None — розібрати не вдалося (тоді це «ні»)."""
+    if not payload:
+        return set()
+    try:
+        js = json.loads(payload.decode("utf-8"))
+    except Exception:  # noqa: BLE001
+        return None
+    recs = js if isinstance(js, list) else [js]
+    out = set()
+    for r in recs:
+        if not isinstance(r, dict):
+            return None
+        out |= set(r.keys())
+    return out
+
+
+def decide(method, path, role, name, fields=None):
     """Чи можна. Повертає (дозволено, причина, поле_обмеження або None).
 
     Свідомо fail-closed: невідома роль, невідома таблиця, невідомий метод —
@@ -191,7 +219,17 @@ def decide(method, path, role, name):
         return False, "роль «%s» не має доступу до «%s»" % (role, tname), None
     if method not in ("GET", "HEAD"):
         if role not in ROLE_EDIT:
-            return False, "роль «%s» не може змінювати дані" % role, None
+            # єдиний виняток — позначка переказу за кордон, і тільки PATCH
+            mark_ok = (role in MARK_ROLES and tname == "Диспетчеризація"
+                       and method == "PATCH")
+            if not mark_ok:
+                return False, "роль «%s» не може змінювати дані" % role, None
+            if fields is None:
+                return False, "не вдалося розібрати, що саме змінюють", None
+            extra = fields - MARK_FIELDS
+            if extra:
+                return False, ("роль «%s» може міняти лише позначку переказу, а не %s"
+                               % (role, ", ".join(sorted(extra))[:80])), None
         if tname == "Журнал дій" and method == "DELETE":
             return False, "журнал дій не видаляється", None
     scope = ROLE_SCOPE.get(role)
@@ -228,7 +266,14 @@ class Handler(BaseHTTPRequestHandler):
     def _pass(self, method):
         jwt = self.headers.get("xc-auth") or ""
         email, name, role = whoami(jwt)
-        ok, why, field = decide(method, self.path, role, name)
+
+        # Тіло читаємо ДО рішення: щоб перевірити, які саме колонки міняють,
+        # його треба вже мати. Прочитати його потім не можна — потік уже вичерпано.
+        length = int(self.headers.get("Content-Length") or 0)
+        payload = self.rfile.read(length) if length else None
+
+        ok, why, field = decide(method, self.path, role, name,
+                                payload_fields(payload))
 
         who = email or "невідомий"
         if not ok:
@@ -237,9 +282,6 @@ class Handler(BaseHTTPRequestHandler):
                    "" if ENFORCE else "  [ТІЛЬКИ ДИВЛЮСЬ, пропускаю]"))
             if ENFORCE:
                 return self._json(403, {"error": "Немає прав: %s" % why})
-
-        length = int(self.headers.get("Content-Length") or 0)
-        payload = self.rfile.read(length) if length else None
 
         req = urllib.request.Request(NC + self.path, data=payload, method=method)
         for h in ("xc-auth", "xc-token", "Content-Type", "Accept"):

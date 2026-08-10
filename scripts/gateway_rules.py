@@ -77,6 +77,31 @@ def run():
                   % ("можна" if want_ok else "НІ",
                      (" · поле «%s»" % want_field) if want_field else "", why))
 
+    # ── галочка «переказано»: вузький виняток для бухгалтера і фінансиста ──
+    # Фасад дозволяє їм це окремою умовою canMark, хоча права edit у них немає.
+    # Прошарок має пропустити рівно цю дію і не пропустити нічого більше.
+    MARK = '[{"Id":5,"Переказ за кордон":true,"Дата переказу":"2026-08-11","Сума переказу":120}]'
+    SNEAK = '[{"Id":5,"Переказ за кордон":true,"Статус":"Вантаж доставлено"}]'
+    extra = [
+        ("фінансист ставить позначку переказу → можна", "PATCH", DISP, "Фінансист",
+         "Оля", MARK, True),
+        ("бухгалтер ставить позначку переказу → можна", "PATCH", DISP, "Бухгалтер",
+         "Оля", MARK, True),
+        ("фінансист під виглядом позначки міняє СТАТУС → ні", "PATCH", DISP,
+         "Фінансист", "Оля", SNEAK, False),
+        ("фінансист лізе правити калькуляції → ні", "PATCH", CALC, "Фінансист",
+         "Оля", MARK, False),
+        ("«Перегляд» ставить позначку переказу → ні", "PATCH", DISP, "Перегляд",
+         "Гість", MARK, False),
+    ]
+    for name, method, path, role, who, body, want_ok in extra:
+        ok, why, _ = G.decide(method, path, role, who, G.payload_fields(body.encode()))
+        good = ok == want_ok
+        bad += 0 if good else 1
+        print("  %s %-58s → %s" % ("✓" if good else "✗", name[:58], "можна" if ok else "НІ"))
+        if not good:
+            print("      ОЧІКУВАЛОСЬ: %s   (причина: %s)" % ("можна" if want_ok else "НІ", why))
+
     # окремо: сама обрізка рядків
     body = ('{"list":[{"Id":1,"Менеджер":"Іван"},{"Id":2,"Менеджер":"Оксана"},'
             '{"Id":3,"Менеджер":"Іван"}],"pageInfo":{"isLastPage":true}}').encode()
@@ -86,7 +111,7 @@ def run():
     print("  %s обрізка відповіді: з %d рядків лишилось %d, чужого немає"
           % ("✓" if okc else "✗", was, now))
 
-    total = len(CASES) + 1
+    total = len(CASES) + len(extra) + 1
     print()
     if bad:
         print("GATEWAY_RULES_FAIL — не виконано: %d з %d" % (bad, total))
