@@ -33,9 +33,17 @@ SQLite `Connection.backup()` — «гаряча» копія: SQLite сам ст
 а пароль був лише на ньому — вивантажені назовні копії неможливо розшифрувати,
 і вся ця робота марна.
 
-ВИДАЛЕННЯ: скрипт НІЧОГО НЕ ВИДАЛЯЄ. Старі копії накопичуються. При ~3 МБ на
-добу це ~1 ГБ на рік при 16 ГБ вільних. Прибирання старих копій — окреме
-рішення користувачки (правило 6 у CLAUDE.md: жодних видалень без дозволу).
+ЗБЕРІГАННЯ: рішення користувачки 10.08.2026 — «копії зберігаються 10 днів,
+потім перезаписуються». Тому скрипт прибирає копії, старші за KEEP_DAYS,
+і на сервері, і на Google Drive.
+⚠️ Правило 6 CLAUDE.md забороняє видалення за шаблоном, тому прибирання
+обставлене трьома запобіжниками:
+  1) видаляються ЛИШЕ файли з точним іменем виду unitex-РРРРММДД-ГГХХСС.tar.gz.gpg
+     і ЛИШЕ з теки OUT_DIR — жодних масок, жодних wildcard;
+  2) KEEP_MIN найсвіжіших копій не видаляються НІКОЛИ, хоч би скільки їм було.
+     Навіщо: якщо бекапи зламаються і ніхто не помітить, чисте правило за віком
+     через 10 днів витерло б останнє, що лишилось;
+  3) кожне видалення пишеться в /root/backup_log.tsv поіменно.
 
 ЗАПУСК:  python3 /root/Iryna_Karmazina/server/backup.py
          --dry-run  — показати, що робив би, нічого не створюючи
@@ -43,12 +51,18 @@ SQLite `Connection.backup()` — «гаряча» копія: SQLite сам ст
 import datetime
 import hashlib
 import os
+import re
 import shutil
 import sqlite3
 import subprocess
 import sys
 import tarfile
 import tempfile
+import time
+
+KEEP_DAYS = 10          # скільки днів жиє копія (рішення користувачки 10.08.2026)
+KEEP_MIN = 3            # стільки найсвіжіших не чіпаємо НІКОЛИ, навіть якщо старі
+NAME_RE = re.compile(r"^unitex-\d{8}-\d{6}\.tar\.gz\.gpg$")   # точне ім'я, не маска
 
 DB = "/root/nocodb-data/noco.db"
 ATTACH_DIRS = ["/root/nocodb-data/nc"]      # тека вкладень NocoDB; з'явиться з першим файлом
@@ -171,6 +185,62 @@ def offsite(path):
     return out
 
 
+def rotate():
+    """Прибрати копії, старші за KEEP_DAYS — і на сервері, і на Google Drive.
+
+    Свідомо НЕ використовує масок і не викликає `rm` із шаблоном. Спершу
+    складається поіменний список кандидатів, потім кожен видаляється окремо
+    за повним шляхом. KEEP_MIN найсвіжіших виключаються зі списку до перевірки віку.
+    """
+    if not os.path.isdir(OUT_DIR):
+        return []
+    files = [f for f in os.listdir(OUT_DIR) if NAME_RE.match(f)]
+    if not files:
+        return []
+    # Сортуємо за ФАКТИЧНОЮ датою файла, а не за іменем. В іменах дата теж є, і
+    # зазвичай порядки збігаються — але спиратись на цей збіг не можна: досить
+    # одного файла, скопійованого з іншим іменем, і «три найсвіжіші» виявились би
+    # зовсім не найсвіжішими. Перевірено на підробних файлах 10.08.2026.
+    files.sort(key=lambda f: os.path.getmtime(os.path.join(OUT_DIR, f)))
+    protected = set(files[-KEEP_MIN:])          # найсвіжіші — недоторканні
+    cutoff = time.time() - KEEP_DAYS * 86400
+    doomed = [f for f in files
+              if f not in protected
+              and os.path.getmtime(os.path.join(OUT_DIR, f)) < cutoff]
+    if not doomed:
+        log("   прибирання: нічого не старше за %d днів (копій: %d)" % (KEEP_DAYS, len(files)))
+        return []
+    done = []
+    for f in doomed:
+        full = os.path.join(OUT_DIR, f)
+        if DRY:
+            log("   [dry-run] прибрав би %s" % full)
+            done.append(f)
+            continue
+        try:
+            os.remove(full)                      # поіменно, повним шляхом
+            log("   прибрано з сервера: %s" % f)
+            done.append(f)
+        except Exception as e:
+            log("   НЕ вдалося прибрати %s: %s" % (f, str(e)[:80]))
+    # те саме на Drive — теж поіменно
+    if shutil.which("rclone") and not DRY:
+        try:
+            remotes = subprocess.run(["rclone", "listremotes"], capture_output=True,
+                                     text=True, timeout=30).stdout.split()
+        except Exception:
+            remotes = []
+        for r in remotes:
+            for f in done:
+                try:
+                    subprocess.run(["rclone", "deletefile", "%sunitex-backups/%s" % (r, f)],
+                                   capture_output=True, text=True, timeout=120)
+                except Exception as e:
+                    log("   НЕ вдалося прибрати %s з %s: %s" % (f, r, str(e)[:60]))
+            log("   прибрано зі сховища %s: %d шт." % (r, len(done)))
+    return done
+
+
 def main():
     started = datetime.datetime.now()
     ts = started.strftime("%Y%m%d-%H%M%S")
@@ -246,10 +316,25 @@ def main():
         for line in offsite(enc if not DRY else tar_path):
             log("   %s" % line)
 
-        # 8. журнал
+        # 8. інструкція відновлення — поруч із копіями і на Drive.
+        #    Навіщо: у момент аварії GitHub може бути недоступний, або людині
+        #    просто не до пошуку репозиторію. Інструкція має лежати ТАМ ЖЕ, де копії.
+        #    Кладемо в OUT_DIR — звідти її підхопить те саме вивантаження.
+        #    NAME_RE її не впізнає, тому прибирання старих копій її не зачепить.
+        src_doc = "/root/Iryna_Karmazina/server/RESTORE.md"
+        if os.path.exists(src_doc) and not DRY:
+            shutil.copy2(src_doc, os.path.join(OUT_DIR, "ЯК-ВІДНОВИТИ.md"))
+            log("   інструкція відновлення покладена поруч із копіями")
+
+        # 9. прибирання старих (тільки ПІСЛЯ того, як нова копія успішно створена
+        #    і вивантажена — щоб не вийшло «прибрав старі, а нову не зробив»)
+        removed = rotate()
+
+        # 9. журнал
         took = (datetime.datetime.now() - started).total_seconds()
         row = "\t".join([started.isoformat(timespec="seconds"), "OK",
-                         str(encsize), digest[:16], "%.1f" % took, os.path.basename(enc)])
+                         str(encsize), digest[:16], "%.1f" % took, os.path.basename(enc),
+                         ("прибрано:" + ",".join(removed)) if removed else "прибрано:—"])
         if not DRY:
             with open(LOG, "a") as f:
                 f.write(row + "\n")
