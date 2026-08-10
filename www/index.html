@@ -731,7 +731,7 @@
       <div class="spacer"></div>
       <!-- Позначка версії: по ній видно, чи браузер підтягнув свіжу сторінку.
            Оновлюється автоматично при кожному викладенні (scripts/stamp.sh). -->
-      <div class="buildstamp" id="buildstamp" title="версія сторінки — якщо не збігається з тим, що я назвала, натисни Ctrl+F5">в. 10.08 19:47</div>
+      <div class="buildstamp" id="buildstamp" title="версія сторінки — якщо не збігається з тим, що я назвала, натисни Ctrl+F5">в. 10.08 19:52</div>
     </nav>
     <div class="main">
       <div class="topbar">
@@ -1011,7 +1011,7 @@ const RC = {
      переказу», «Сума переказу»). Прибереш таблицю — відвалиться саме те, заради
      чого роль і заводили. Тому в прошарку (server/gateway.py) «Диспетчеризація»
      для цієї ролі лишається, але тільки на читання і на ці три колонки. */
-  "Фінансист":            { nav:["dashboard","tasks","calc","finance","clients","accounting","instr","users"], scope:"all", fin:"full", sync:true },
+  "Фінансист":            { nav:["dashboard","tasks","finance","clients","accounting","instr","users"], scope:"all", fin:"full", sync:true },
   "Операційний менеджер": { nav:["dashboard","tasks","dispatch","clients","crm","instr","users"], scope:"ops", fin:"none", sync:true, edit:true },
   "Логіст":               { nav:["dispatch","instr","users"], scope:"all", cols:"logist", fin:"none", sync:false, edit:true },
   "Перегляд":             { nav:["dashboard","tasks","dispatch","calc","finance","clients","instr","users"], scope:"all", fin:"blur", sync:false },
@@ -3456,7 +3456,25 @@ function bindUserAdmin(rows){
     save.disabled = true; msg("⏳ Створюю акаунт…");
     try{
       await ncAuth("/api/v1/auth/user/signup", {email: email, password: pw});
-      msg("⏳ Акаунт створено, додаю в довідник…");
+      /* КРОК, ЯКОГО ТУТ НЕ БУЛО (знайдено 11.08.2026 на живому користувачі).
+         Створення акаунта НЕ дає доступу до самої бази. Людина заходила, але
+         перший же запит за списком таблиць отримував
+             403 Forbidden — You do not have permission to view list of tables
+             with the roles: .          (роль у базі порожня)
+         Далі платформа лишалась без переліку таблиць, роль падала до «Перегляд»,
+         і кожна сторінка казала «Table 'undefined' not found». Виглядало як
+         «платформа зламалась», хоча користувача просто не пустили в базу.
+         Перевірено: у бухгалтера роль у базі була None, у решти — editor/owner.
+
+         Чому саме `editor`, а не `viewer`: платформа ПИШЕ навіть при звичайному
+         вході (запис у «Журнал дій» рядком нижче), тож viewer падав би одразу.
+         ⚠️ editor у NocoDB = читання і запис УСІХ таблиць. Наші ролі обмежують
+         тільки те, що показує сторінка. Саме цю дірку закриває прошарок
+         (server/gateway.py) — доки він не ввімкнений, обмеження косметичне. */
+      msg("⏳ Акаунт створено, даю доступ до бази…");
+      await api(`/api/v2/meta/bases/${BASE_ID}/users`, {method:"POST",
+        body: JSON.stringify({email: email, roles: "editor"})});
+      msg("⏳ Доступ надано, додаю в довідник…");
       await api(`/api/v2/tables/${T["Користувачі"]}/records`, {method:"POST",
         body: JSON.stringify([{Email: email, "Ім'я": first, "Прізвище": last,
                                "Роль": role, "Активний": true}])});
@@ -4226,7 +4244,7 @@ PAGES.users = async () => {
       <button class="btn" id="nu-save" style="margin-top:10px">Створити користувача</button>
       <p class="sub" id="nu-msg" style="margin-top:8px"></p>
     </div>` : ""}
-    <div class="card"><h3>Ролі (довідка)</h3>
+    ${isAdmin ? `<div class="card"><h3>Ролі (довідка)</h3>
       <div class="tablewrap"><table><tbody>
         <tr><td><b>Адміністратор</b></td><td>повний доступ до всього</td></tr>
         <tr><td><b>Сейлз-менеджер</b></td><td>свої угоди і клієнти, свій фінзвіт, документи по своїх угодах</td></tr>
@@ -4235,7 +4253,10 @@ PAGES.users = async () => {
         <tr><td><b>Операційний менеджер</b></td><td>свої угоди (де він оп. менеджер), всі дані перевезення, документи</td></tr>
         <tr><td><b>Логіст</b></td><td>диспетчеризація: авто, водій, статус, пункт перетину</td></tr>
         <tr><td><b>Перегляд</b></td><td>тільки перегляд, фінансові цифри приховані</td></tr>
-      </tbody></table></div></div>
+      </tbody></table></div></div>` : ""}
+    <!-- Довідка ролей — тільки адміністратору (вказівка користувачки 11.08.2026).
+         Раніше цю картку бачили всі: кожен співробітник читав перелік чужих
+         рівнів доступу, хоча керує ролями тільки адміністратор. -->
     ${isAdmin ? `<div class="card"><h3>🗂 Журнал подій</h3>
       <p class="sub">хто заходив і що змінював — за часом, від найсвіжішого</p>
       <div class="filters" style="margin:10px 0 0">
