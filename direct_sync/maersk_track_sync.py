@@ -49,6 +49,8 @@ DELIVERED = "Вантаж доставлено"
 # Доти подія ARRI на судні давала «В морі», і вантаж, який уже стоїть у порту,
 # показувався як такий, що пливе. Саме це вона побачила на угоді 256.
 ARRIVED = "Прибув у порт"
+# Заїзд контейнера у ворота порту ВІДПРАВЛЕННЯ (додано 10.08.2026, див. GTIN нижче).
+IN_POL = "В порту відправлення"
 # Хто поставив статус. Автомат перебиває лише те, що поставив автомат:
 # якщо в колонці «Статус (джерело)» стоїть «людина», трекінг статус не чіпає.
 STATUS_SRC = "трекінг Maersk"
@@ -264,6 +266,11 @@ def bl_from_events(events):
 def parse_events(events, row, today_iso, statuses=frozenset()):
     """Портована логіка вузла «Розбір». Повертає {колонка: значення}."""
     out = {}
+    # Напрямок потрібен у ДВОХ місцях: при виборі судна і при розборі GTIN.
+    # Рахуємо його ОДИН раз тут, на початку. Раніше він обчислювався всередині
+    # `if named_ves:` (вибір судна) — тобто за відсутності названого судна змінної
+    # просто не існувало, і звернення до неї нижче впало б з помилкою.
+    is_export = str(row.get("Напрямок") or "").strip() == "Експорт"
     if not str(row.get("BL") or "").strip():
         bl = bl_from_events(events)
         if bl:
@@ -326,7 +333,7 @@ def parse_events(events, row, today_iso, statuses=frozenset()):
     named_ves = [e for e in ves
                  if ((e.get("transportCall") or {}).get("vessel") or {}).get("vesselName")]
     if named_ves:
-        is_export = str(row.get("Напрямок") or "").strip() == "Експорт"
+        # is_export уже обчислено на початку функції — тут лише використовуємо
         tc = (named_ves[0] if is_export else named_ves[-1]).get("transportCall") or {}
         vessel = (tc.get("vessel") or {}).get("vesselName") or ""
         voyage = tc.get("carrierVoyageNumber") or tc.get("exportVoyageNumber") or tc.get("importVoyageNumber") or ""
@@ -466,7 +473,20 @@ def parse_events(events, row, today_iso, statuses=frozenset()):
     elif code == "GTOT":
         st = load_st
     elif code == "GTIN":
-        st = DELIVERED if mode == "TRUCK" else load_st
+        # GTIN = заїзд контейнера у ворота. Той самий код означає ПРОТИЛЕЖНЕ
+        # залежно від напрямку:
+        #   ІМПОРТ  — авто привезло контейнер отримувачу, це КІНЕЦЬ шляху;
+        #   ЕКСПОРТ — авто привезло контейнер У ПОРТ ВІДПРАВЛЕННЯ, це ПОЧАТОК.
+        # Виправлено 10.08.2026 після угоди 259 (експорт Солоницівка → Гданськ):
+        # 10.08 контейнер заїхав у Гданськ, трекінг побачив GTIN+TRUCK і поставив
+        # «Вантаж доставлено» — за день до відплиття (ETD факт 11.08) і за півтора
+        # місяця до прибуття (ETA 24.09). Помітила користувачка на екрані, не код.
+        # Гірше: «доставлено» ще й заморожує запис (див. умову was != DELIVERED
+        # нижче), тож угода простояла б так увесь рейс.
+        if mode == "TRUCK":
+            st = IN_POL if is_export else DELIVERED
+        else:
+            st = load_st
     was = str(row.get("Статус") or "")
     src = str(row.get("Статус (джерело)") or "").strip()
     if st and was != DELIVERED and st != was:

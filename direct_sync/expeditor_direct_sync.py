@@ -525,12 +525,30 @@ def mark_orphans(all_numbers, by_num, allowed_statuses, dry):
 def map_deal(d, names, allowed_lines, allowed_kinds, allowed_statuses=frozenset()):
     """Повертає {колонка NocoDB: значення} лише з непорожніх даних Експедитора."""
     o = {}
+    # Напрямок рахуємо НА ПОЧАТКУ: він потрібен і для запису колонки (нижче),
+    # і для правила «дата виконання робіт». Раніше він обчислювався тільки внизу,
+    # уже після того, як статус був виставлений — тобто правилу був недоступний.
+    kind = KIND_MAP.get(str(d.get("Вид") or "").strip())
+    is_export = kind == "Експорт"
     raw_stage = str(d.get("Статус") or "").strip()
     if raw_stage:
         o[STAGE_COL] = raw_stage
     stage = STAGE_MAP.get(raw_stage)
     works = d10(d.get(WORKS_DONE_FIELD))
-    if works and works <= datetime.date.today().isoformat():
+    if works and works <= datetime.date.today().isoformat() and not is_export:
+        # ⚠️ ТІЛЬКИ ДЛЯ ІМПОРТУ/ТРАНЗИТУ (виправлено 10.08.2026).
+        # «ДатаВыполненияРабот» означає різне залежно від напрямку:
+        #   ІМПОРТ  — експедитор довіз вантаж отримувачу, це справді доставка;
+        #   ЕКСПОРТ — експедитор здав контейнер У ПОРТ ВІДПРАВЛЕННЯ, тобто виконав
+        #             СВОЮ частину, а вантаж лише вирушає.
+        # Випадок угоди 251 (експорт Солоницівка → Гданськ → Брісбейн): етап
+        # «ВыставленСчет» (за мапінгом «Виконується»), ETD факт 29.07, ETA 02.10 —
+        # а в платформі 06.08 з'явилось «Вантаж доставлено» з джерелом «Експедитор».
+        # Спрацював саме цей виняток: дата робіт була (здача в порт), ЕТА в
+        # Експедиторі порожня, тому перевірка «works >= eta» не мала з чим
+        # порівнювати і пропустила. Та сама діра, що й в угоді 274.
+        # Це той самий за змістом недогляд, що й GTIN у maersk_track_sync.py:
+        # подія, яка для імпорту означає кінець шляху, для експорту означає початок.
         eta = d10(d.get("ЕТА"))
         if not eta or works >= eta:          # роботи виконані вже після прибуття
             stage = DELIVERED
@@ -550,7 +568,7 @@ def map_deal(d, names, allowed_lines, allowed_kinds, allowed_statuses=frozenset(
         stage = None
     if stage and (not allowed_statuses or stage in allowed_statuses):
         o["Статус"] = stage
-    kind = KIND_MAP.get(str(d.get("Вид") or "").strip())
+    # kind уже обчислено на початку функції — тут лише записуємо
     if kind and kind in allowed_kinds:
         o["Напрямок"] = kind
     for col, val in (("Клієнт", ref(names, "client", d.get("Клиент_Key"))),
