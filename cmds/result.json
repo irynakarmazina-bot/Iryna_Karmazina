@@ -1,7 +1,7 @@
 {
-  "stdout": "=== УЧАСНИКИ БАЗИ (кого NocoDB реально пускає) ===\n   v.pontus@unitex.od.ua              роль у базі=editor\n   irinabuhgalter33@gmail.com         роль у базі=None\n   irynakarmazina@gmail.com           роль у базі=owner\n\n=== РЯДКИ ДОВІДНИКА «Користувачі» ===\n   irynakarmazina@gmail.com           роль=Адміністратор          активний=1\n   v.pontus@unitex.od.ua              роль=Адміністратор          активний=1\n   irinabuhgalter33@gmail.com         роль=Фінансист              активний=1\n",
+  "stdout": "### ВХОЛОСТУ\nзараз: irinabuhgalter33@gmail.com → роль у базі = НЕМАЄ\n--dry-run: додала б роль «editor». Нічого не записую.\n### ДАЮ ДОСТУП\nзараз: irinabuhgalter33@gmail.com → роль у базі = НЕМАЄ\nстало:  irinabuhgalter33@gmail.com → роль у базі = editor\nГОТОВО\n### УЧАСНИКИ БАЗИ ПІСЛЯ\n   v.pontus@unitex.od.ua              editor\n   irinabuhgalter33@gmail.com         editor\n   irynakarmazina@gmail.com           owner\n### ПРОШАРОК\nactive\n### ФАСАД\n   журнал: 2026-08-10T19:53:08\tmain\t475d58798\tв. 10.08 19:52\tindex.html:334012 findash.html:29444 finperiod.html:17527\trelay: дати бухгалтерці доступ до бази, оновити прошарок, викласти фасад\n   UI/FINDASH/CHART: 200 200 200\nDEPLOY_OK · гілка main · коміт 475d58798 · позначка «в. 10.08 19:52»\n",
   "stderr": "",
   "returncode": 0,
-  "id": "newuser-0811",
-  "ts": "2026-08-10T16:48:16Z"
+  "id": "grant-0811",
+  "ts": "2026-08-10T16:53:08Z"
 }
