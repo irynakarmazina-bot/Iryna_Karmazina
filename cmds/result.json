@@ -1,7 +1,7 @@
 {
-  "stdout": "### ПАТЧ\nкопія: /root/findata.py.bak-20260810-193910\nготово: фінансист більше не отримує equity, equityMonthly, nwcMonthly\nсинтаксис після правки — OK\n### ПЕРЕЗАПУСК\nслужба: active\n### ЩО ТЕПЕР У ФАЙЛІ\n76:HIDE_BY_ROLE = {\n81:def hide_for_role(role, name, data):\n83:    keys = HIDE_BY_ROLE.get((role, name))\n115:            data = hide_for_role(role, name, data)\n### ЧИ ВІДДАЄ ЗВІТ (адмінський ключ не підходить — тут потрібен ключ сесії, тому лише код відповіді)\n  /finrep-data?name=dashboard без ключа -> 403\n### ВИКЛАДАЮ ФАСАД\n   усього копій у архіві: 135\n   журнал: 2026-08-10T19:39:15\tmain\tab695c1a3\tв. 10.08 18:59\tindex.html:330565 findash.html:29444 finperiod.html:17527\trelay: застосувати патч звіту для ролі Фінансист і викласти фасад\n   UI/FINDASH/CHART: 200 200 200\nDEPLOY_OK · гілка main · коміт ab695c1a3 · позначка «в. 10.08 18:59»\n",
+  "stdout": "=== УЧАСНИКИ БАЗИ (кого NocoDB реально пускає) ===\n   v.pontus@unitex.od.ua              роль у базі=editor\n   irinabuhgalter33@gmail.com         роль у базі=None\n   irynakarmazina@gmail.com           роль у базі=owner\n\n=== РЯДКИ ДОВІДНИКА «Користувачі» ===\n   irynakarmazina@gmail.com           роль=Адміністратор          активний=1\n   v.pontus@unitex.od.ua              роль=Адміністратор          активний=1\n   irinabuhgalter33@gmail.com         роль=Фінансист              активний=1\n",
   "stderr": "",
   "returncode": 0,
-  "id": "findata-do-0811",
-  "ts": "2026-08-10T16:39:15Z"
+  "id": "newuser-0811",
+  "ts": "2026-08-10T16:48:16Z"
 }
