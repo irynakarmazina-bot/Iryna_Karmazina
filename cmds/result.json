@@ -1,7 +1,7 @@
 {
-  "stdout": "### ЧИ ЖИВИЙ\n604320 /bin/sh -c set -u; echo '### ЧИ ЖИВИЙ'; pgrep -af '/root/gateway.py' || echo '  не запущений'; ss -ltn 2>/dev/null | grep -q 8792 && echo '  слухає 8792' || echo '  8792 вільний'; echo '### ПЕРЕЗАПУСК ВІДВ ЯЗАНО ВІД КОНСОЛІ'; pkill -f '/root/gateway.py' 2>/dev/null; sleep 1; setsid nohup python3 /root/gateway.py </dev/null >/root/gateway.out 2>&1 & sleep 3; pgrep -af '/root/gateway.py' | head -2; echo '### ПРОЗОРІСТЬ: 8080 vs 8792'; T=$(cat /root/nocodb-token.txt); A=$(curl -s -H \"xc-token: $T\" 'http://127.0.0.1:8080/api/v2/tables/m58xsjo6at01ohl/records?limit=3&fields=Id'); B=$(curl -s -H \"xc-token: $T\" 'http://127.0.0.1:8792/api/v2/tables/m58xsjo6at01ohl/records?limit=3&fields=Id'); [ \"$A\" = \"$B\" ] && echo \"  збігаються: $A\" || { echo '  РОЗІЙШЛИСЬ'; echo \"   8080: $A\"; echo \"   8792: $B\"; }; echo '### ЖУРНАЛ ПРОШАРКУ'; tail -6 /root/gateway.log 2>/dev/null || echo '  журнал порожній'\n  8792 вільний\n### ПЕРЕЗАПУСК ВІДВ ЯЗАНО ВІД КОНСОЛІ\n",
+  "stdout": "### СТАН СЛУЖБИ\nactive\nLISTEN 0      5          127.0.0.1:8792      0.0.0.0:*          \n### ПРОЗОРІСТЬ: 8080 vs 8792\n  збігаються: {\"list\":[{\"Id\":1},{\"Id\":15},{\"Id\":55}],\"pageInfo\":{\"totalRows\":277,\"page\":1,\"pageSize\":3,\"isFirstPage\":true,\"isLastPage\":false}}\n### ЧИ ЗАЛИШИВСЯ CADDY НА 8080 (має бути так)\n\"path\":[\"/api/*\"]\n  контекст маршруту /api/*: ['8080']\n### ЖУРНАЛ ПРОШАРКУ\n2026-08-10 17:21:53 старт на 127.0.0.1:8792 · режим: тільки дивлюсь\n2026-08-10 17:21:56 GET /api/v2/tables/m58xsjo6at01ohl/records?limit=3&fields=Id · невідомий · роль=— · роль невідома  [ТІЛЬКИ ДИВЛЮСЬ, пропускаю]\n",
   "stderr": "",
-  "returncode": -15,
-  "id": "gw-run-0811",
-  "ts": "2026-08-10T14:20:57Z"
+  "returncode": 0,
+  "id": "gw-svc-0811",
+  "ts": "2026-08-10T14:21:56Z"
 }
