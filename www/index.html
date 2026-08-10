@@ -731,7 +731,7 @@
       <div class="spacer"></div>
       <!-- Позначка версії: по ній видно, чи браузер підтягнув свіжу сторінку.
            Оновлюється автоматично при кожному викладенні (scripts/stamp.sh). -->
-      <div class="buildstamp" id="buildstamp" title="версія сторінки — якщо не збігається з тим, що я назвала, натисни Ctrl+F5">в. 10.08 19:52</div>
+      <div class="buildstamp" id="buildstamp" title="версія сторінки — якщо не збігається з тим, що я назвала, натисни Ctrl+F5">в. 10.08 20:00</div>
     </nav>
     <div class="main">
       <div class="topbar">
@@ -1011,7 +1011,13 @@ const RC = {
      переказу», «Сума переказу»). Прибереш таблицю — відвалиться саме те, заради
      чого роль і заводили. Тому в прошарку (server/gateway.py) «Диспетчеризація»
      для цієї ролі лишається, але тільки на читання і на ці три колонки. */
-  "Фінансист":            { nav:["dashboard","tasks","finance","clients","accounting","instr","users"], scope:"all", fin:"full", sync:true },
+  /* Порядок у nav — це НЕ лише порядок кнопок: перший пункт відкривається одразу
+     після входу (enter() робить go(cfg().nav[0])). Тому «finance» стоїть першим
+     навмисно — вказівка користувачки 11.08.2026: фінансист заходить одразу у
+     «Фінанси», дашборда в нього немає взагалі.
+     Якщо він усе ж набере адресу дашборда, go() поверне його на «Фінанси»:
+     `if (!cfg().nav.includes(page)) page = cfg().nav[0]`. */
+  "Фінансист":            { nav:["finance","tasks","clients","accounting","instr","users"], scope:"all", fin:"full", sync:true },
   "Операційний менеджер": { nav:["dashboard","tasks","dispatch","clients","crm","instr","users"], scope:"ops", fin:"none", sync:true, edit:true },
   "Логіст":               { nav:["dispatch","instr","users"], scope:"all", cols:"logist", fin:"none", sync:false, edit:true },
   "Перегляд":             { nav:["dashboard","tasks","dispatch","calc","finance","clients","instr","users"], scope:"all", fin:"blur", sync:false },
