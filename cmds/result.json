@@ -1,7 +1,7 @@
 {
-  "stdout": "   журнал: 2026-08-10T20:00:49\tmain\tb63c753dd\tв. 10.08 20:00\tindex.html:334664 findash.html:29444 finperiod.html:17527\trelay: викласти фасад — фінансист заходить у Фінанси\n   UI/FINDASH/CHART: 200 200 200\nDEPLOY_OK · гілка main · коміт b63c753dd · позначка «в. 10.08 20:00»\n",
+  "stdout": "### ЩО ЛЕЖИТЬ НА СЕРВЕРІ\n\"Фінансист\":            { nav:[\"finance\",\"tasks\",\"clients\",\"accounting\",\"instr\",\"users\"]\n   позначка: в. 10.08 20:00\n   розмір: 334664\n### ЩО ВІДДАЄ САЙТ ЧЕРЕЗ HTTPS (як бачить браузер)\n\"Фінансист\":            { nav:[\"finance\",\"tasks\",\"clients\",\"accounting\",\"instr\",\"users\"]\n   позначка: в. 10.08 20:00\n### ЗАГОЛОВКИ КЕШУ\ncache-control: no-cache, must-revalidate\netag: \"dklfawon37yf7688\"\nlast-modified: Mon, 10 Aug 2026 17:00:49 GMT\n",
   "stderr": "",
   "returncode": 0,
-  "id": "fin-first-0811",
-  "ts": "2026-08-10T17:00:49Z"
+  "id": "cache-0811",
+  "ts": "2026-08-10T17:04:15Z"
 }
