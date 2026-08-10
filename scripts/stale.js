@@ -50,7 +50,7 @@ const TABLES = ["Диспетчеризація", "Користувачі", "К�
 const META = {
   list: TABLES.map((t, i) => ({ id: "t" + (i + 1), title: t })),
   columns: [{ title: "Статус", uidt: "SingleSelect",
-              colOptions: { options: [{ title: "В морі" }, { title: "Прибув у порт" }] } }],
+              colOptions: { options: [{ title: "В морі" }, { title: "В порту призначення" }] } }],
 };
 const SERVICE = { "sync-state": { running: false, ok: true, result: "", error: "", steps: [] } };
 

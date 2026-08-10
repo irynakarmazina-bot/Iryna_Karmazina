@@ -39,14 +39,14 @@ const BASE = {
 const ROWS = [
   { ...BASE, Id: 1, "Угода": "224", "Статус": "Вивантажений в порту прибуття" },
   { ...BASE, Id: 2, "Угода": "1275", "Статус": "Завантажений на потяг" },
-  { ...BASE, Id: 3, "Угода": "256", "Статус": "Прибув у порт" },
+  { ...BASE, Id: 3, "Угода": "256", "Статус": "В порту призначення" },
 ];
 const TABLES = ["Диспетчеризація", "Користувачі", "Клієнти", "Задачі", "Журнал дій",
                 "Калькуляції", "Інструкції"];
 const META = {
   list: TABLES.map((t, i) => ({ id: "t" + (i + 1), title: t })),
   columns: [{ title: "Статус", uidt: "SingleSelect",
-              colOptions: { options: [{ title: "Прибув у порт" }] } }],
+              colOptions: { options: [{ title: "В порту призначення" }] } }],
 };
 const SERVICE = { "sync-state": { running: false, ok: true, result: "", error: "", steps: [] } };
 
