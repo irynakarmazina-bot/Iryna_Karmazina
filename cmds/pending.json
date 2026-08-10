@@ -1,1 +1,1 @@
-{"id": "findata-0811", "cmd": "echo '### РОЗМІР'; wc -l /root/findata.py; echo '### ФАЙЛ'; cat /root/findata.py"}
+{"id": "findata-dry-0811", "cmd": "set -u; cd /root/Iryna_Karmazina && git pull -q origin main; echo '### ЯКА СЛУЖБА ВІДДАЄ ЗВІТ (порт 8789)'; ss -ltnp 2>/dev/null | grep 8789; systemctl list-units --type=service --state=running --no-legend 2>/dev/null | grep -i 'fin\\|data' | head -5; echo '### ПАТЧ ВХОЛОСТУ'; cp server/patch_findata_roles.py /root/ && python3 /root/patch_findata_roles.py --dry-run"}
