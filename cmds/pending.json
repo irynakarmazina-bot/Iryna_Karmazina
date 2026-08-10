@@ -1,1 +1,1 @@
-{"id": "rename-dry-0811", "cmd": "cd /root/Iryna_Karmazina && git pull -q origin main && cp direct_sync/rename_status_option.py /root/direct-sync/ && python3 /root/direct-sync/rename_status_option.py --dry-run 2>&1 | tail -20"}
+{"id": "rename-do-0811", "cmd": "python3 /root/direct-sync/rename_status_option.py 2>&1 | tail -12"}
