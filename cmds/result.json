@@ -1,7 +1,7 @@
 {
-  "stdout": "### СТАН РЕПО НА СЕРВЕРІ\n?? chat_history.json\n?? notes/\n?? stats.json\n?? voice_prefs.json\n  HEAD:       5b70837aa\n  origin/main: fb065ae76\n### ЩО КАЖЕ PULL\nFrom https://github.com/irynakarmazina-bot/Iryna_Karmazina\n * branch                main       -> FETCH_HEAD\nUpdating 5b70837aa..fb065ae76\nFast-forward\n cmds/pending.json                    |  2 +-\n cmds/result.json                     | 10 +++++-----\n direct_sync/expeditor_direct_sync.py | 22 ++++++++++++++++++++--\n direct_sync/maersk_track_sync.py     | 24 ++++++++++++++++++++++--\n 4 files changed, 48 insertions(+), 10 deletions(-)\n### ЧИ Є ПРАВКИ В РЕПО НА СЕРВЕРІ\n1\n1\n### ЧИ Є ПРАВКИ В РОБОЧІЙ КОПІЇ\n0\n0\n",
+  "stdout": "### ПЕРЕКЛАДАЮ РОБОЧІ КОПІЇ\n  скопійовано\n  синтаксис OK\n### ПРАВКИ НА МІСЦІ?\n  maersk:    1\n  expeditor: 1\n### ВИПРАВЛЯЮ СТАТУСИ УГОД 251 і 259\n  угода 251: було 'Вантаж доставлено' (джерело 'Експедитор')\n           стало В порту відправлення\n  угода 259: було 'Вантаж доставлено' (джерело 'трекінг Maersk')\n           стало В порту відправлення\n### ЗАПУСКАЮ ТРЕКІНГ — хай перерахує з реальних подій\nБез коносамента і без номера контейнера — не трекаються: 31\nПропущено скасованих в Експедиторі: 1\nУгод для трекінгу: 36 (усього в платформі 277)\nТокен Maersk отримано\n",
   "stderr": "",
-  "returncode": 1,
-  "id": "whypull-0810",
-  "ts": "2026-08-10T09:30:00Z"
+  "returncode": 0,
+  "id": "statusfix2-0810",
+  "ts": "2026-08-10T09:33:39Z"
 }
