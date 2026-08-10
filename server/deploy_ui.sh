@@ -28,6 +28,16 @@ WWW="${WWW:-/root/unitex-os-www}"
 BACKUPS="$WWW/.backups"
 KEEP_DAYS=14                            # скільки ДНІВ зберігати бекапи (не «скільки штук»)
 FILES="index.html findash.html finperiod.html"
+# Файли, які теж треба класти на сервер, але це НЕ сторінки (не .html).
+# chart.min.js доданий 07.08.2026. Дві причини, обидві перевірені:
+#   1. index.html підключає його рядком <script src="/chart.min.js">, але сам
+#      файл цим скриптом не викладався ніколи — зміна в репозиторії на сервер
+#      штатним шляхом не доїжджала;
+#   2. без нього перевірка smoke.js на КАНДИДАТІ падала з «немає файла поруч з
+#      index.html: chart.min.js» — тобто на справному фасаді. На сервері це не
+#      спливало лише тому, що там немає playwright і крок пропускається. Варто
+#      було б колись поставити браузер на VPS — і жоден деплой не пройшов би.
+ASSETS="chart.min.js"
 # Файли, які цей скрипт НЕ викладає, але зобов'язаний зберегти перед викладенням.
 # Кабінет клієнтів збирається окремо (client_cabinet/build_preview.py), проте
 # лежить у тій самій теці й може постраждати — тому копію робимо і з нього.
@@ -88,7 +98,7 @@ fi
 
 # ── 4. перевірка кандидата (до копіювання) ────────────────────────────────
 TMP="$(mktemp -d)"; trap 'rm -rf "$TMP"' EXIT
-for f in $FILES; do
+for f in $FILES $ASSETS; do
   git show "FETCH_HEAD:www/$f" > "$TMP/$f" 2>/dev/null || die "у гілці немає www/$f"
 done
 if [ -x "$REPO/scripts/check_facade.sh" ] || [ -f "$REPO/scripts/check_facade.sh" ]; then
@@ -120,11 +130,19 @@ for f in $FILES $EXTRA_BACKUP; do
   cp -p "$src" "$BACKUPS/${f%.html}-$TS.html" || die "не вдалося зробити бекап $f"
   echo "   бекап: ${f%.html}-$TS.html ($(stat -c%s "$src") б)"
 done
+# Не-html файли бекапимо під власним іменем із суфіксом .bak — інакше
+# ${f%.html} лишив би «chart.min.js-<час>.html», тобто js під виглядом сторінки.
+for f in $ASSETS; do
+  src="$WWW/$f"
+  [ -f "$src" ] || continue
+  cp -p "$src" "$BACKUPS/$f-$TS.bak" || die "не вдалося зробити бекап $f"
+  echo "   бекап: $f-$TS.bak ($(stat -c%s "$src") б)"
+done
 # Прибирання СТРОГО за віком. Файли -before-rollback не чіпаємо ніколи: це
 # останній слід того, що було до відкату, і саме він потрібен, коли відкат
 # виявився помилкою.
-OLD="$(find "$BACKUPS" -maxdepth 1 -name '*.html' ! -name '*-before-rollback.html' \
-        -mtime +$KEEP_DAYS 2>/dev/null)"
+OLD="$(find "$BACKUPS" -maxdepth 1 \( -name '*.html' -o -name '*.bak' \) \
+        ! -name '*-before-rollback.html' -mtime +$KEEP_DAYS 2>/dev/null)"
 if [ -n "$OLD" ]; then
   echo "$OLD" | xargs -r rm -f
   echo "   прибрано копій, старших за $KEEP_DAYS днів: $(echo "$OLD" | wc -l)"
@@ -134,8 +152,12 @@ fi
 echo "   усього копій у архіві: $(ls -1 "$BACKUPS"/*.html 2>/dev/null | wc -l)"
 
 # ── 5. копіювання + журнал ────────────────────────────────────────────────
-for f in $FILES; do
+for f in $FILES $ASSETS; do
   cp "$TMP/$f" "$WWW/$f" || die "не вдалося скопіювати $f"
+done
+# Звірка «доїхало те саме»: ловить обірваний cp, брак місця на диску, права.
+for f in $FILES $ASSETS; do
+  cmp -s "$TMP/$f" "$WWW/$f" || die "після копіювання $f на сервері відрізняється від кандидата"
 done
 STAMP="$(grep -o 'id="buildstamp"[^>]*>[^<]*' "$SERVED" | sed 's/.*>//')"
 
@@ -159,9 +181,56 @@ with open(os.path.join(www, "DEPLOY_LOG.tsv"), "a") as fh:
 print("   журнал:", line)
 PY
 
-# ── 6. чи відповідає сайт ─────────────────────────────────────────────────
+# ── 6. чи відповідає сайт + АВТОВІДКАТ ────────────────────────────────────
+# Було (до 07.08.2026): код відповіді сайту лише ДРУКУВАВСЯ. Навіть 500
+# закінчувався рядком DEPLOY_OK, і зламаний фасад лишався на сервері до того
+# часу, поки його не побачить користувачка. Тепер перевірка вирішує.
+#
+# ЩО САМЕ ЦЕ ЛОВИТЬ І ЧОГО НЕ ЛОВИТЬ — чесно:
+#   ловить: сайт не віддається взагалі, сторінка не знайшлась, Caddy впав,
+#           файл доїхав побитим (звірка cmp вище);
+#   НЕ ловить: сторінка віддається, але виглядає не так. Вигляд перевіряється
+#           ДО копіювання (check_facade.sh + smoke/cols/stale) і лише там, де
+#           встановлено playwright. На VPS браузера немає.
+# Відкат робиться РІВНО ОДИН РАЗ, з бекапів цього ж запуску ($TS). Циклу немає.
+site_codes(){
+  printf '%s %s %s' \
+    "$(curl -sk -o /dev/null -w '%{http_code}' --max-time 15 "https://$1/")" \
+    "$(curl -sk -o /dev/null -w '%{http_code}' --max-time 15 "https://$1/findash.html")" \
+    "$(curl -sk -o /dev/null -w '%{http_code}' --max-time 15 "https://$1/chart.min.js")"
+}
+
 IP="$(curl -s -4 --max-time 10 ifconfig.me || true)"
-if [ -n "$IP" ]; then
-  echo "   UI $(curl -sk -o /dev/null -w '%{http_code}' "https://$IP/")  FINDASH $(curl -sk -o /dev/null -w '%{http_code}' "https://$IP/findash.html")"
+if [ -z "$IP" ]; then
+  echo "   ⚠️ не вдалося дізнатись зовнішню адресу — перевірку сайту ПРОПУЩЕНО"
+  echo "      (це не «все гаразд», це «не перевірено»); відкат не робиться"
+else
+  CODES="$(site_codes "$IP")"
+  echo "   UI/FINDASH/CHART: $CODES"
+  if [ "$CODES" != "200 200 200" ]; then
+    # одна повторна спроба: коротка мережева заминка не привід відкочувати
+    sleep 3
+    CODES="$(site_codes "$IP")"
+    echo "   повторна перевірка:  $CODES"
+  fi
+  if [ "$CODES" != "200 200 200" ]; then
+    echo "   ❌ сайт не відповідає як слід — ВІДКОЧУЮ на версію, що була до цього запуску"
+    restored=""; missing=""
+    for f in $FILES; do
+      b="$BACKUPS/${f%.html}-$TS.html"
+      if [ -f "$b" ]; then cp "$b" "$WWW/$f" && restored="$restored $f"; else missing="$missing $f"; fi
+    done
+    for f in $ASSETS; do
+      b="$BACKUPS/$f-$TS.bak"
+      if [ -f "$b" ]; then cp "$b" "$WWW/$f" && restored="$restored $f"; else missing="$missing $f"; fi
+    done
+    echo "$(date -Is)	AUTO-ROLLBACK	з $TS	повернуто:${restored:- нічого}	без бекапу:${missing:- —}" \
+      >> "$WWW/DEPLOY_LOG.tsv"
+    echo "   повернуто:${restored:- нічого}"
+    [ -n "$missing" ] && echo "   ⚠️ без бекапу (їх на сервері не було до деплою):$missing"
+    echo "   стан після відкату: $(site_codes "$IP")"
+    echo "DEPLOY_ROLLED_BACK · гілка $BR · коміт ${SHA:0:9} · причина: сайт віддав «$CODES» замість «200 200 200»"
+    exit 1
+  fi
 fi
 echo "DEPLOY_OK · гілка $BR · коміт ${SHA:0:9} · позначка «$STAMP»"

@@ -16,8 +16,13 @@ const path = require("path");
 const fs = require("fs");
 const { chromium } = require(process.env.PW || "playwright");
 
-const FILE = path.join(__dirname, "..", "www", "index.html");
+/* Шлях приймається аргументом (як у smoke.js) НАВМИСНО: deploy_ui.sh перевіряє
+   не той файл, що лежить у репозиторії, а КАНДИДАТА, витягнутого з гілки у
+   тимчасову теку. Без аргументу перевірка дивилась би на репозиторій і сказала б
+   «усе гаразд» про зовсім інший файл — тобто гірше, ніж не перевіряти взагалі. */
+const FILE = process.argv[2] || path.join(__dirname, "..", "www", "index.html");
 const DIR = path.dirname(FILE);
+const PAGE = path.basename(FILE);
 const day = n => new Date(Date.now() - n * 86400000).toISOString().slice(0, 10);
 
 const BASE = {
@@ -79,7 +84,7 @@ const serve = dir => new Promise(res => {
     return route.fulfill({ status: 200, contentType: "application/json",
       body: JSON.stringify({ list: [], pageInfo: { isLastPage: true } }) });
   });
-  await page.goto(`http://127.0.0.1:${port}/index.html`);
+  await page.goto(`http://127.0.0.1:${port}/${PAGE}`);
   await page.evaluate(() => { sessionStorage.setItem("jwt", "stub-jwt"); sessionStorage.setItem("email", "t@e.com"); });
   await page.reload();
   await page.waitForTimeout(400);
