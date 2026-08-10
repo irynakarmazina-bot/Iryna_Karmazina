@@ -312,11 +312,7 @@ def main():
             digest, encsize = sha256(enc), os.path.getsize(enc)
             log("   зашифровано: %s (%.1f МБ)" % (enc, encsize / 1048576.0))
 
-        # 7. назовні
-        for line in offsite(enc if not DRY else tar_path):
-            log("   %s" % line)
-
-        # 8. інструкція відновлення — поруч із копіями і на Drive.
+        # 7. інструкція відновлення — поруч із копіями і на Drive.
         #    Навіщо: у момент аварії GitHub може бути недоступний, або людині
         #    просто не до пошуку репозиторію. Інструкція має лежати ТАМ ЖЕ, де копії.
         #    Кладемо в OUT_DIR — звідти її підхопить те саме вивантаження.
@@ -326,11 +322,16 @@ def main():
             shutil.copy2(src_doc, os.path.join(OUT_DIR, "ЯК-ВІДНОВИТИ.md"))
             log("   інструкція відновлення покладена поруч із копіями")
 
+        # 8. назовні — ПІСЛЯ того, як інструкція вже лежить у теці, інакше вона
+        #    поїхала б на Drive лише наступного разу (спіймано на прогоні 10.08.2026)
+        for line in offsite(enc if not DRY else tar_path):
+            log("   %s" % line)
+
         # 9. прибирання старих (тільки ПІСЛЯ того, як нова копія успішно створена
         #    і вивантажена — щоб не вийшло «прибрав старі, а нову не зробив»)
         removed = rotate()
 
-        # 9. журнал
+        # 10. журнал
         took = (datetime.datetime.now() - started).total_seconds()
         row = "\t".join([started.isoformat(timespec="seconds"), "OK",
                          str(encsize), digest[:16], "%.1f" % took, os.path.basename(enc),
