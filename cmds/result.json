@@ -1,7 +1,7 @@
 {
-  "stdout": "### ЧИ РОЗІЙШЛИСЬ КОПІЇ НА СЕРВЕРІ\n  maersk_track_sync.py — збігався\n  expeditor_direct_sync.py — збігався\n### БЕКАП РОБОЧИХ КОПІЙ\n  збережено в /root/sync-backup-20260810-122915\n### ВИКЛАДАЮ\n  скопійовано\n  синтаксис OK\n### ЗВІРКА ПІСЛЯ\n  maersk_track_sync.py — збігається з репо\n  expeditor_direct_sync.py — збігається з репо\n### ПЕРЕВІРКА, ЩО ПРАВКИ НА МІСЦІ\n",
-  "stderr": "nt: your next pull:\nhint: \nhint:   git config pull.rebase false  # merge\nhint:   git config pull.rebase true   # rebase\nhint:   git config pull.ff only       # fast-forward only\nhint: \nhint: You can replace \"git config\" with \"git config --global\" to set a default\nhint: preference for all repositories. You can also pass --rebase, --no-rebase,\nhint: or --ff-only on the command line to override the configured default per\nhint: invocation.\nfatal: Need to specify how to reconcile divergent branches.\n",
+  "stdout": "### СТАН РЕПО НА СЕРВЕРІ\n?? chat_history.json\n?? notes/\n?? stats.json\n?? voice_prefs.json\n  HEAD:       5b70837aa\n  origin/main: fb065ae76\n### ЩО КАЖЕ PULL\nFrom https://github.com/irynakarmazina-bot/Iryna_Karmazina\n * branch                main       -> FETCH_HEAD\nUpdating 5b70837aa..fb065ae76\nFast-forward\n cmds/pending.json                    |  2 +-\n cmds/result.json                     | 10 +++++-----\n direct_sync/expeditor_direct_sync.py | 22 ++++++++++++++++++++--\n direct_sync/maersk_track_sync.py     | 24 ++++++++++++++++++++++--\n 4 files changed, 48 insertions(+), 10 deletions(-)\n### ЧИ Є ПРАВКИ В РЕПО НА СЕРВЕРІ\n1\n1\n### ЧИ Є ПРАВКИ В РОБОЧІЙ КОПІЇ\n0\n0\n",
+  "stderr": "",
   "returncode": 1,
-  "id": "statusfix-0810",
-  "ts": "2026-08-10T09:29:15Z"
+  "id": "whypull-0810",
+  "ts": "2026-08-10T09:30:00Z"
 }
