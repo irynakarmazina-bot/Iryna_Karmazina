@@ -1,7 +1,7 @@
 {
-  "stdout": "       і звернення до змінних. Вигляд сторінки там не перевіряє ніхто.\nCHECK_OK — фасад можна викладати\n   бекап: index-20260811-175309.html (341835 б)\n   бекап: findash-20260811-175309.html (29444 б)\n   бекап: finperiod-20260811-175309.html (17527 б)\n   бекап: cabinet-20260811-175309.html (330772 б)\n   бекап: chart.min.js-20260811-175309.bak (205399 б)\n   копій, старших за 14 днів, немає — нічого не прибираю\n   усього копій у архіві: 175\n   журнал: 2026-08-11T17:53:09\tmain\tde7094fce\tв. 11.08 08:48\tindex.html:346371 findash.html:29444 finperiod.html:17527\trelay: um-q57 — деплой фасаду з main\n   UI/FINDASH/CHART: 200 200 200\nDEPLOY_OK · гілка main · коміт de7094fce · позначка «в. 11.08 08:48»\n",
-  "stderr": "",
-  "returncode": 0,
-  "id": "um-q57",
-  "ts": "2026-08-11T14:53:09Z"
+  "stdout": "",
+  "stderr": "'utf-8' codec can't decode byte 0xd1 in position 900: unexpected end of data",
+  "returncode": -1,
+  "id": "um-q58",
+  "ts": "2026-08-11T14:53:52Z"
 }
