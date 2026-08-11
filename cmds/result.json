@@ -1,7 +1,7 @@
 {
-  "stdout": "БЕЗ сортування (як зараз):\n   рядків: 3618   УНІКАЛЬНИХ ключів: 1881   дублів: 1737\n   Maersk серед них: НЕМАЄ\n\nЗ сортуванням $orderby=Ref_Key:\n   рядків: 3618   УНІКАЛЬНИХ ключів: 3618   дублів: 0\n   Maersk серед них: Є\n\nТе саме для документів (Document_РасходнаяНакладная):\n   order=None     рядків 1135, унікальних 1135, дублів 0\n   order=Ref_Key  рядків 1135, унікальних 1135, дублів 0\n",
-  "stderr": "",
-  "returncode": 0,
-  "id": "um-q50",
-  "ts": "2026-08-11T14:00:40Z"
+  "stdout": "НЕ виправлено — /root/unitex-finrep/engine/odata_client.py\nЗапити йдуть без $orderby, сторінки можуть перекриватись.\nКопія попереднього файлу: /root/unitex-finrep/engine/odata_client.py.bak-20260811-1702\nВиправлено: /root/unitex-finrep/engine/odata_client.py\n=== ПЕРЕВІРКА ===\n",
+  "stderr": "  File \"<string>\", line 1\n    import sys;sys.path.insert(0,/root/unitex-finrep/engine);from odata_client import ODataClient;from odata_ingest import _name_map;c=ODataClient();m=_name_map(c,Catalog_Контрагенты);print(контрагентів\n                                 ^\nSyntaxError: invalid syntax\n",
+  "returncode": 1,
+  "id": "um-q51",
+  "ts": "2026-08-11T14:02:16Z"
 }
