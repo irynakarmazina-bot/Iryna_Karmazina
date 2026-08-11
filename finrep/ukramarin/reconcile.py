@@ -5,9 +5,11 @@
 ДЖЕРЕЛА
   * баланс   — xlsx користувачки, аркуш Sheet1: дата | дохід | коментар | витрата | коментар
   * каса     — finrep/ukramarin/expeditor_um_cash.csv, знято з
-               /root/unitex-finrep/normalized/cash_moves.csv (payment_method = «Каса USD Украмарин»)
-               через Git Relay. Підсумки транскрипції звірені з підрахунком на сервері:
-               58 рухів, надходження 149 428,36, витрати 147 160,96 — до копійки.
+               НАПРЯМУ з 1С (OData, регістр «Хозрасчетный» + субконто ВидОплаты), а НЕ з
+               normalized/cash_moves.csv — той файл кнопка «Підтягнути свіжі дані» не оновлює
+               (станом на 11.08.2026 він від 23.07 і в ньому бракує і хвоста, і приходу 1 386,00).
+               Звірено з «Випискою банку» 1С: вікно 02.02–11.08.2026 дає прихід 117 706,00 /
+               витрати 118 309,00 і кінцеве сальдо −176,60 — збіг до копійки.
 
 ЩО РОБИТЬ
   1. Порівнює підсумки по кожній стороні.
@@ -26,9 +28,10 @@ import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 CASH = os.path.join(HERE, "expeditor_um_cash.csv")
-# Останній рух у вивантаженні каси. Усе, що в балансі пізніше, порівнювати НЕМА З ЧИМ.
-CASH_LAST_DATE = "2026-07-15"
-DATE_TOL = 45          # днів: баланс і Експедитор ставлять різні дати одній операції
+# Кінець покритого періоду. Дані знято напряму з 1С (OData) станом на 11.08.2026.
+CASH_LAST_DATE = "2026-08-11"
+DATE_TOL = 90          # днів: баланс і Експедитор ставлять різні дати одній операції
+DATE_WARN = 30         # більший розрив дат — показати окремо як розбіжність дати
 MAX_COMBO = 4          # скільки рухів каси максимум складаємо в один рядок балансу
 
 
@@ -182,6 +185,21 @@ def main():
                  " + ".join(money(x["amt"]) for x in ls),
                  " + ".join(money(c["amt"]) for c in right),
                  (ls[0]["note"] or "—")[:34]))
+
+    far = []
+    for left, right, kind in pairs:
+        ls = left if isinstance(left, list) else [left]
+        gap = max(days(x["date"], c["date"]) for x in ls for c in right)
+        if gap > DATE_WARN:
+            far.append((gap, ls, right))
+    print("\n⚠️ ЗІЙШЛОСЬ ПО СУМІ, АЛЕ РІЗНІ ДАТИ (розрив > %d днів)" % DATE_WARN)
+    if not far:
+        print("   — немає")
+    for gap, ls, right in sorted(far, key=lambda x: -x[0]):
+        print("   %s  %s %s «%s»  →  в Експедиторі %s  (розрив %d дн.)"
+              % (ls[0]["date"], money(sum(x["amt"] for x in ls)),
+                 "дох" if ls[0]["side"] == "in" else "вит", (ls[0]["note"] or "—")[:34],
+                 ", ".join(c["date"] for c in right), gap))
 
     a = block("❗ Є В БАЛАНСІ, НЕМАЄ В КАСІ ЕКСПЕДИТОРА", free_b, "рядок")
     b_ = block("❗ Є В КАСІ ЕКСПЕДИТОРА, НЕМАЄ В БАЛАНСІ",
