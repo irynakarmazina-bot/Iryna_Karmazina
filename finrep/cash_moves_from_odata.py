@@ -349,26 +349,32 @@ def compare(new_rows):
     log("\nКас із розбіжністю: %d з %d" % (bad, len(set(ao) | set(an))))
 
 
-def verify_against_balances(rows):
-    """ГОЛОВНА ПЕРЕВІРКА: сальдо, зібране з рухів, має збігтись із normalized/cash_balances.csv.
+def verify_against_balances(c, rows):
+    """ГОЛОВНА ПЕРЕВІРКА: сальдо, зібране з рухів, має збігтись із залишками по касах.
 
-    Той файл будує cash_from_odata.py і він звірений з рідним звітом Експедитора
-    «Аналіз грошових коштів → Залишки коштів». Якщо рухи дають те саме сальдо —
-    рухи повні. Якщо ні — у збирачі дірка, і чіпати cash_moves.csv НЕ можна.
+    Залишки рахуємо ЖИВИМ викликом cash_from_odata.compute() у цьому ж запуску, а НЕ
+    читаємо normalized/cash_balances.csv. Причина (11.08.2026): файл на диску — це
+    знімок на момент останнього натискання кнопки. Поки я звіряв, в Експедиторі завели
+    переказ 163,00 з «Каса USD UHD» на «Каса USD Украмарин», і порівняння свіжих рухів
+    зі знімком дворічної давності показало фальшиву розбіжність рівно на цю суму.
+    Живий виклик порівнює однаковий момент часу — і сходиться по всіх касах.
+
+    cash_from_odata звірений з рідним звітом Експедитора «Аналіз грошових коштів →
+    Залишки коштів». Якщо рухи дають те саме сальдо — рухи повні. Якщо ні — у збирачі
+    дірка, і чіпати cash_moves.csv НЕ можна.
     """
-    path = os.path.join(BASE, "normalized", "cash_balances.csv")
-    if not os.path.exists(path):
-        log("\ncash_balances.csv немає — головну перевірку пропущено")
-        return False
-    want = {r["cash_name"]: (num(r.get("amount")), num(r.get("amount_uo")))
-            for r in csv.DictReader(open(path, encoding="utf-8"))}
+    sys.path.insert(0, os.path.join(BASE, "engine"))
+    import cash_from_odata  # noqa: PLC0415
+    as_of = datetime.date.today().isoformat()
+    amount, _amount_uo, _cur = cash_from_odata.compute(c, as_of)
+    want = {k: (v, 0.0) for k, v in amount.items()}
     got = collections.defaultdict(lambda: [0.0, 0.0])
     for r in rows:
         g = got[r["payment_method"]]
         g[0] += num(r.get("income")) - num(r.get("expense"))
         g[1] += num(r.get("income_uo")) - num(r.get("expense_uo"))
-    log("\nПЕРЕВІРКА: сальдо з рухів проти cash_balances.csv (звіреного з 1С)")
-    log("%-28s %13s %13s %10s" % ("каса", "з рухів", "з залишків", "різниця"))
+    log("\nПЕРЕВІРКА: сальдо з рухів проти живих залишків cash_from_odata (звіреного з 1С)")
+    log("%-28s %13s %13s %10s" % ("каса", "з рухів", "залишок", "різниця"))
     bad = 0
     for k in sorted(set(want) | set(got)):
         w = want.get(k, (0.0, 0.0))[0]
@@ -420,7 +426,7 @@ def main():
     tot_out = sum(num(r["expense_uo"]) for r in rows)
     log("РАЗОМ У.О.: прихід %.2f  витрати %.2f  сальдо %.2f" % (tot_in, tot_out, tot_in - tot_out))
 
-    ok = verify_against_balances(rows)
+    ok = verify_against_balances(c, rows)
     compare(rows)
     if a.compare:
         log("\n--compare: нічого не записано")
