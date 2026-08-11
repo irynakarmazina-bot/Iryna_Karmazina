@@ -1,7 +1,7 @@
 {
-  "stdout": "   журнал: 2026-08-11T11:46:49\tmain\tc338b2a31\tв. 11.08 08:48\tindex.html:341835 findash.html:29444 finperiod.html:17527\trelay: deploy-13\n   UI/FINDASH/CHART: 200 200 200\nDEPLOY_OK · гілка main · коміт c338b2a31 · позначка «в. 11.08 08:48»\n",
+  "stdout": "EXISTS: True\nCOLS: ['document', 'date', 'payment_method', 'counterparty', 'supplier_invoice_ref', 'deal', 'vid', 'operation', 'currency', 'income', 'income_uo', 'expense', 'expense_uo', 'supplier_invoice_ref2', 'note', 'category', 'owner', 'transfer_group_key', 'transit_flag', 'fx_bug_flag']\nROWS: 1165\n--- ВИДИ ОПЛАТИ ---\n   50  Банк Cr String Cycle LLC\n  573  Банк Юнітекс Ейч-Ді\n    7  Банк Юнітекс Ейч-Ді EUR\n    5  Банк Юнітекс Ейч-Ді USD\n   17  Банк Юнітекс Ейч-Ді Восток\n  118  Банк Юнітекс Форвардинг\n    1  Депозити USD\n    9  Каса UAH UFWD\n   75  Каса UAH UHD\n   82  Каса USD UFWD\n   41  Каса USD UHD\n   58  Каса USD Украмарин\n  129  Маерск USD\n--- ДІАПАЗОН ДАТ ---\n2025-10-01 ... 2026-07-15\n",
   "stderr": "",
   "returncode": 0,
-  "id": "deploy-13",
-  "ts": "2026-08-11T08:46:50Z"
+  "id": "um-q1",
+  "ts": "2026-08-11T09:05:11Z"
 }
