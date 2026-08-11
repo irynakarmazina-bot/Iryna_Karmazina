@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Локальні витрати за кордоном: скільки лишилось на гривневому рахунку по завершених угодах.
+"""Локальні витрати за кордоном: скільки лишилось на рахунках Юнітекса по угодах.
 
 Навіщо: клієнт платить у гривні на рахунок «Банк Юнітекс Ейч-Ді», з цього ж рахунку
 оплачуються українські витрати по угоді. Те, що лишилось після цих витрат і після
@@ -52,8 +52,10 @@ LOCAL_ABROAD_NAME = "Локальні витрати за кордоном"
 INFO_ARTICLES = {"Інфо", "Комісія за переказ", "Банківський переказ", "Свіфт переказ"}
 INFO_MIN = 10.0                       # поріг у УО, рахується сумарно по угоді
 
-# статус угоди: тільки завершені (рішення користувачки 02.08.2026)
-STATUSES = ["Завершена"]
+# Статус угоди НЕ фільтрує вибірку (рішення користувачки 11.08.2026:
+# «беремо всі сплачені рахунки на клієнтів, статус угоди неважливий»).
+# Порожній список = беремо угоди з будь-яким статусом; сам статус лишається в таблиці колонкою.
+STATUSES = []
 STATUS_UK = {"Завершена": "Завершена", "ВыставленСчет": "Виставлений рахунок",
              "Выполняется": "Виконується", "Букинг": "Букінг", "Отменена": "Скасована"}
 PAID = "Оплачен"                      # значення реквізиту СтатусСчета
@@ -107,7 +109,7 @@ def collect(c):
                   ["Ref_Key", "Number", "Date", "Статус", "DeletionMark",
                    "Коносамент", "СписокКонтейнеров", "ПунктОтправления", "ПунктНазначения",
                    "ДатаЗавершения"]):
-        if r.get("DeletionMark") or str(r.get("Статус") or "") not in STATUSES:
+        if r.get("DeletionMark") or (STATUSES and str(r.get("Статус") or "") not in STATUSES):
             continue
         deals[r["Ref_Key"]] = {
             "num": (r.get("Number") or "").lstrip("0"),
@@ -203,7 +205,7 @@ def main():
     deals = collect(c)
     rows, skipped = build(deals)
     pos = [r for r in rows if r["diff"] > 0]
-    print("угод у статусі %s: %d" % ("/".join(STATUS_UK.get(s, s) for s in STATUSES), len(deals)))
+    print("угод переглянуто (статус не фільтрує): %d" % len(deals))
     print("з них із оплатою на %s: %d" % (" або ".join(ACCOUNTS), len(rows)))
     for k, n in skipped.most_common():
         print("   відсіяно — %s: %d" % (k, n))
@@ -223,7 +225,8 @@ def main():
 
     if not a.dry_run:
         data = {"rows": rows, "account": ACCOUNT, "accounts": ACCOUNTS, "info_articles": sorted(INFO_ARTICLES),
-                "info_min": INFO_MIN, "statuses": [STATUS_UK.get(s, s) for s in STATUSES],
+                "info_min": INFO_MIN,
+                "statuses": [STATUS_UK.get(s, s) for s in STATUSES] or ["будь-який статус"],
                 "skipped": dict(skipped), "screened": len(deals),
                 "total_diff": round(sum(r["diff"] for r in pos), 2), "count": len(pos)}
         # Пишемо в тимчасовий файл поруч і лише потім підміняємо одним рухом.
