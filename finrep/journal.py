@@ -31,6 +31,11 @@ import os
 
 BASE = os.environ.get("FINREP_ROOT", "/root/unitex-finrep")
 PATH = os.path.join(BASE, "logs", "actions.jsonl")
+# Зведення для платформи. Лежить у computed/ і віддається тим самим захищеним
+# шляхом /finrep-data?name=pipeline, що й фінансові дані, — там перевірка ролі
+# (Адміністратор / Фінансист / Бухгалтер) уже працює, нових дірок не з'являється.
+SUMMARY = os.path.join(BASE, "computed", "pipeline.json")
+SUMMARY_LIMIT = 200
 
 
 def record(step, status="ok", **detail):
@@ -42,6 +47,33 @@ def record(step, status="ok", **detail):
         row.update({k: v for k, v in detail.items() if v is not None})
         with open(PATH, "a", encoding="utf-8") as f:
             f.write(json.dumps(row, ensure_ascii=False) + "\n")
+        _write_summary()
+    except Exception:  # noqa: BLE001, S110
+        pass
+
+
+def _write_summary():
+    """Перезбирає computed/pipeline.json після кожного запису.
+
+    Робимо це тут, а не окремим кроком конвеєра: інакше зведення відставало б
+    рівно на ті події, заради яких воно й потрібне — на помилки, що трапились
+    під час прогону.
+    """
+    try:
+        rows = read(SUMMARY_LIMIT)
+        data = {
+            "оновлено": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "подій": len(rows),
+            "проблем": sum(1 for r in rows if r.get("status") in ("fail", "warn")),
+            "події": rows[::-1],           # найсвіжіші згори
+        }
+        os.makedirs(os.path.dirname(SUMMARY), exist_ok=True)
+        tmp = SUMMARY + ".tmp"
+        with open(tmp, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=1)
+            f.flush()
+            os.fsync(f.fileno())
+        os.replace(tmp, SUMMARY)
     except Exception:  # noqa: BLE001, S110
         pass
 
@@ -72,7 +104,12 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--tail", type=int, default=30)
     ap.add_argument("--fail", action="store_true", help="тільки помилки й попередження")
+    ap.add_argument("--summary", action="store_true", help="перезібрати computed/pipeline.json")
     a = ap.parse_args()
+    if a.summary:
+        _write_summary()
+        print("зведення для платформи: %s" % SUMMARY)
+        return
     rows = read(a.tail, a.fail)
     if not rows:
         print("Журнал порожній: %s" % PATH)

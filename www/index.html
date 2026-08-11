@@ -3652,6 +3652,56 @@ async function renderAudit(){
   draw();
 }
 
+/* Журнал роботи автоматики (конвеєр даних). Джерело — logs/actions.jsonl на
+   сервері, зведене в computed/pipeline.json. Читаємо через /finrep-data: там уже
+   є перевірка ролі, окремого доступу не заводимо.
+   Це НЕ журнал дій людей (той вище, renderAudit) — тут видно роботу машини:
+   що конвеєр тягнув, скільки записів прийшло і де впав. */
+async function renderPipelineJournal(){
+  const note = () => $("pj-note");
+  let d = {};
+  try{
+    const js = await fetchFin("pipeline");
+    d = js.data || {};
+  }catch(e){
+    if (note()) note().textContent = "Не вдалося прочитати журнал: " + e.message;
+    return;
+  }
+  const list = Array.isArray(d["події"]) ? d["події"] : [];
+  const MARK = {ok:"✓", fail:"✗", warn:"!", start:"·"};
+  const COLOR = {ok:"var(--ok-text,#137333)", fail:"var(--crit-text,#b3261e)", warn:"#8a6d1f"};
+  const when = v => {
+    const d2 = new Date(String(v||"").replace(" ", "T"));
+    return isNaN(d2) ? String(v||"")
+      : d2.toLocaleString("uk-UA",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"});
+  };
+  /* Деталі в кожної події свої (у збирача рухів це числа, у кроку конвеєра —
+     останній рядок виводу), тому не малюємо фіксовані колонки, а зводимо все,
+     що є, у «ключ: значення». */
+  const details = r => Object.keys(r)
+    .filter(k => !["ts","step","status"].includes(k))
+    .map(k => `${k}: ${r[k]}`).join(" · ");
+  const draw = () => {
+    const onlyBad = $("pj-status").value === "bad";
+    const q = $("pj-q").value.toLowerCase();
+    const rows = list.filter(r =>
+      (!onlyBad || r.status === "fail" || r.status === "warn") &&
+      (!q || (String(r.step||"") + " " + details(r)).toLowerCase().includes(q)));
+    $("pj-rows").innerHTML = rows.length ? rows.map(r=>`<tr>
+      <td class="mono">${esc(when(r.ts))}</td>
+      <td>${esc(r.step||"")}</td>
+      <td style="color:${COLOR[r.status]||"inherit"};font-weight:600">${esc(MARK[r.status]||r.status||"")}</td>
+      <td class="cell-muted">${esc(details(r))}</td></tr>`).join("")
+      : '<tr><td colspan="4" class="cell-muted">Записів немає.</td></tr>';
+    const bad = d["проблем"] || 0;
+    note().textContent = `показано ${rows.length} з ${list.length} записів`
+      + (d["оновлено"] ? ` · зведено ${when(d["оновлено"])}` : "")
+      + (bad ? ` · проблем: ${bad}` : " · проблем немає");
+  };
+  ["pj-status","pj-q"].forEach(id=>$(id).addEventListener(id==="pj-q"?"input":"change", draw));
+  draw();
+}
+
 const fmtN = (v, dec=0) => {
   const n = Number(v)||0;
   const s = n.toLocaleString("uk-UA", {minimumFractionDigits:dec, maximumFractionDigits:dec});
@@ -4260,6 +4310,12 @@ PAGES.instr = async () => {
 
 PAGES.users = async () => {
   const isAdmin = ROLE === "Адміністратор";
+  /* Журнал роботи автоматики — адміністратору і фінансовим ролям (вимога
+     користувачки 11.08.2026). Той самий перелік, що в server/authcheck.py
+     (FIN_ROLES), бо дані йдуть через /finrep-data, а він пускає рівно цих трьох:
+     чужому роль на сервері все одно поверне 403, тут ми лише не малюємо картку,
+     яку людина однаково не змогла б прочитати. */
+  const isFin = ["Адміністратор", "Фінансист", "Бухгалтер"].includes(ROLE);
   const rows = isAdmin ? await loadAll(T["Користувачі"]) : [];
   const UED = isAdmin ? " ed" : "";
   $("content").innerHTML = `
@@ -4348,11 +4404,25 @@ PAGES.users = async () => {
         <tbody id="lg-rows"></tbody></table></div>
       <p class="sub" id="lg-note" style="margin-top:8px"></p>
       <div class="note">🔒 Журнал доступний лише адміністратору й нічого в ньому змінити не можна — він фіксує все.</div></div>` : ""}
+    ${isFin ? `<div class="card"><h3>⚙️ Журнал роботи автоматики</h3>
+      <p class="sub">що робив конвеєр даних: коли тягнув з Експедитора, що вийшло, де впало</p>
+      <div class="filters" style="margin:10px 0 0">
+        <select id="pj-status">
+          <option value="">Усі записи</option>
+          <option value="bad">Тільки проблеми</option>
+        </select>
+        <input id="pj-q" placeholder="пошук: крок, файл, текст помилки…">
+      </div>
+      <div class="tablewrap scrollbox" style="max-height:420px"><table>
+        <thead><tr><th>Час</th><th>Крок</th><th>Стан</th><th>Деталі</th></tr></thead>
+        <tbody id="pj-rows"></tbody></table></div>
+      <p class="sub" id="pj-note" style="margin-top:8px">завантажую…</p></div>` : ""}
     ${isAdmin ? `<div class="card"><h3>🔐 Інші налаштування</h3>
       <p class="sub">тут зʼявляться доступи клієнтів до кабінету, сповіщення й довідники</p>
       <div class="note">🛠 Розділ наповнюється. Скажи, що винести сюди першим.</div></div>` : ""}`;
   bindPalette();
   bindPasswordChange();
+  if (isFin) renderPipelineJournal();
   if (isAdmin){ renderAudit(); bindUserEdit(rows); bindUserAdmin(rows); }
 };
 
