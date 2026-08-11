@@ -1,7 +1,7 @@
 {
-  "stdout": "НЕ виправлено — /root/unitex-finrep/engine/odata_client.py\nЗапити йдуть без $orderby, сторінки можуть перекриватись.\nКопія попереднього файлу: /root/unitex-finrep/engine/odata_client.py.bak-20260811-1702\nВиправлено: /root/unitex-finrep/engine/odata_client.py\n=== ПЕРЕВІРКА ===\n",
-  "stderr": "  File \"<string>\", line 1\n    import sys;sys.path.insert(0,/root/unitex-finrep/engine);from odata_client import ODataClient;from odata_ingest import _name_map;c=ODataClient();m=_name_map(c,Catalog_Контрагенты);print(контрагентів\n                                 ^\nSyntaxError: invalid syntax\n",
-  "returncode": 1,
-  "id": "um-q51",
-  "ts": "2026-08-11T14:02:16Z"
+  "stdout": "контрагентів у мапі: 3618\nMaersk: Maersk A/S\n=== КОНВЕЄР ===\n→ Збірка оперативного дашборда (build_dashboard_data.py) ...\n     Каси у списку: 13 (порядок задано)\n→ Збірка звіту за період (build_period_report.py) ...\n   РАЗОМ       48,328   25,256   23,072\n→ Заливка у НОВУ таблицю (config.api.json) ...\n   ✓ у 1SK0AXKt0BpEaLpax49lWy3ucjpLKrD_4Yi7Stdw9qMo: W1 17250 б · W2 33552 б.\n\n✅ ГОТОВО (API-гібрид). Каси — з файлу, решта — з 1С.\n=== РЕЗУЛЬТАТ ===\nsupplier_invoices.csv: 1043 рахунків\n   №866   2026-06-25  сума=1618.59   постачальник=[Maersk A/S]\n   №896   2026-06-27  сума=285.1     постачальник=[Maersk A/S]\n   №935   2026-06-30  сума=94.86     постачальник=[Maersk A/S]\n\nБЕЗ постачальника: 20 з 1043   (було 437)\nЗ Maersk: 375 рахунків, борг разом 13637.25\n\ncash_moves.csv: 1328 рухів, без контрагента 303\n",
+  "stderr": "",
+  "returncode": 0,
+  "id": "um-q52",
+  "ts": "2026-08-11T14:03:34Z"
 }
