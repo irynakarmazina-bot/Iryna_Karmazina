@@ -31,8 +31,11 @@ NC = "http://127.0.0.1:8080"
 TABLE = "m58xsjo6at01ohl"
 TOKEN_FILE = "/root/nocodb-token.txt"
 COL = "Статус"
-OLD = "Прибув у порт"
-NEW = "В порту призначення"
+# Що на що міняти — АРГУМЕНТАМИ, а не правкою файла. Скрипт універсальний:
+# перейменування варіанта в довіднику це разова операція над ОДНИМ записом
+# довідника, а не над угодами. Статуси самих угод ставить трекінг за правилами.
+OLD = sys.argv[1] if len(sys.argv) > 1 and not sys.argv[1].startswith("--") else "Прибув у порт"
+NEW = sys.argv[2] if len(sys.argv) > 2 and not sys.argv[2].startswith("--") else "В порту призначення"
 BAK = "/root/direct-sync/status_options.bak-%s.json"
 
 TOK = open(TOKEN_FILE).read().strip()
