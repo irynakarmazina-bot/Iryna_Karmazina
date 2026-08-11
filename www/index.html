@@ -3137,7 +3137,7 @@ PAGES.accounting = async () => {
       sum.toLocaleString("uk-UA",{maximumFractionDigits:2})} УО`;
     $("lc-table").innerHTML = finTable(
       ["№ угоди","Статус","Коносамент","Контейнер","Маршрут","Оплата від клієнта",
-       "Профіт","Винагорода","Інфо+комісії","Різниця","Переказано"],
+       "Профіт","Винагорода","Курс НБУ","Винагорода, грн","Інфо+комісії","Різниця","Переказано"],
       list.map(r => `<tr class="${r.sent?"lc-sent":""}">
         <td class="mono">${esc(r.num)}</td>
         <td>${esc(r.status)}</td>
@@ -3147,6 +3147,10 @@ PAGES.accounting = async () => {
         <td class="mono">${r.paid ? dmy(r.paid) : "<span class='sub'>не оплачено</span>"}</td>
         <td style="text-align:right">${fmtN(r.profit,2)}</td>
         <td style="text-align:right">${r.fee ? fmtN(r.fee,2) : "<span class='sub'>немає статті</span>"}</td>
+        <td style="text-align:right" class="mono">${r.rate
+          ? `${fmtN(r.rate,4)}<span class="sub"> ${esc(r.fee_ccy||"")}</span>`
+          : "<span class='sub'>—</span>"}</td>
+        <td style="text-align:right">${r.fee_uah ? fmtN(r.fee_uah,2) : "<span class='sub'>—</span>"}</td>
         <td style="text-align:right">${r.info_added ? fmtN(r.info_added,2)
           : (r.info_bank ? `<span class="sub">${fmtN(r.info_bank,2)}</span>` : "")}</td>
         <td style="text-align:right"><b>${fmtN(r.diff,2)}</b></td>
@@ -3211,11 +3215,15 @@ PAGES.accounting = async () => {
 
   $("lc-csv").addEventListener("click", () => {
     const head = ["Номер угоди","Статус","Коносамент лінійний","Контейнер","Маршрут",
-      "Дата оплати від клієнта","Профіт УО","Винагорода експедитора УО","Інфо+комісії УО",
+      "Дата оплати від клієнта","Профіт УО","Винагорода експедитора УО",
+      "Валюта винагороди","Винагорода у валюті","Курс НБУ на день оплати","Винагорода грн",
+      "Інфо+комісії УО",
       "Різниця до переказу УО","Переказано","Дата переказу","Сума переказу УО"];
     const e2 = v => '"' + String(v==null?"":v).replace(/"/g,'""') + '"';
     const csv = [head.map(e2).join(";")].concat(visible().map(r => [r.num,r.status,r.bl,r.cont,
-      r.route,r.paid,r.profit,r.fee,r.info_added,r.diff,
+      r.route,r.paid,r.profit,r.fee,
+      r.fee_ccy||"", r.fee_val??"", r.rate??"", r.fee_uah??"",
+      r.info_added,r.diff,
       r.sent?"так":"ні", r.sentDate||"", r.sent?(r.sentAmt??r.diff):""].map(e2).join(";"))).join("\r\n");
     const blob = new Blob(["﻿"+csv], {type:"text/csv;charset=utf-8"});
     const a = document.createElement("a");
