@@ -1,1 +1,1 @@
-{"id": "um-q56", "cmd": "cd /root/Iryna_Karmazina && git fetch -q origin main && bash server/deploy_ui.sh main --check 2>&1 | tail -18"}
+{"id": "um-q57", "cmd": "cd /root/Iryna_Karmazina && git fetch -q origin main && bash server/deploy_ui.sh main 2>&1 | tail -12"}
