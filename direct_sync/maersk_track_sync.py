@@ -57,6 +57,13 @@ ARRIVED = "В порту призначення"
 IN_POL = "В порту відправлення"
 # Вивантаження з судна в порту призначення.
 DISCHARGED = "Вивантажений в порту прибуття"
+# Вантаж на ПЕРЕВАЛЦІ: судно прийшло і його вивантажили, але це не кінець шляху —
+# попереду ще одне морське плече. Доданий 11.08.2026 після угоди 238 (Бусан →
+# Гданськ через Танджунг Пелепас і Вільгельмсгафен): 07.08 контейнер вивантажили
+# у Вільгельмсгафені, і платформа показала «Вивантажений в порту прибуття», хоча
+# до Гданська лишалось два тижні й ще один рейс. Трекінг перевалку РОЗРІЗНЯВ, але
+# називав тим самим статусом — тобто розрізнення нічого не давало.
+TRANSSHIP = "На перевалці"
 # Умови поставки, за яких наша відповідальність закінчується ТІЛЬКИ після фінальної
 # доставки авто, а не в порту призначення. Список — вибір користувачки 02.08.2026
 # (той самий, що й на схемі кабінету клієнта, див. direct_sync/add_incoterms.py).
@@ -273,6 +280,27 @@ def _dt(e):
     return str(e.get("eventDateTime") or "")
 
 
+def vessel_move_after(events, ts):
+    """Чи є ПІСЛЯ моменту ts ще завантаження або відхід судна (хоч планові).
+
+    Це єдина ознака, за якою відрізняється ПЕРЕВАЛКА від порту призначення.
+    Раніше для цього використовувалось «останнє вивантаження = призначення», і
+    воно ламається у звичайнісінькому випадку: Maersk публікує вивантаження в
+    порту призначення лише коли воно станеться. До того моменту останнім
+    вивантаженням є перевалка — і саме вона помилково вважалась кінцем шляху.
+    Перевірено на угоді 238 (11.08.2026): події — вивантаження в Танджунг
+    Пелепас 29.06, вивантаження у Вільгельмсгафені 07.08, далі ПЛАНОВІ відхід
+    20.08 і прибуття в Гданськ 23.08. Вивантаження в Гданську серед подій немає
+    взагалі, тому Вільгельмсгафен ставав «портом прибуття».
+    """
+    for e in events:
+        c = (e.get("transportEventTypeCode") or e.get("equipmentEventTypeCode") or "")
+        m = (e.get("transportCall") or {}).get("modeOfTransport") or ""
+        if c in ("LOAD", "DEPA") and m == "VESSEL" and _dt(e) > ts:
+            return True
+    return False
+
+
 def bl_from_events(events):
     """Коносамент, який Maersk віддає в самих подіях. Потрібен, коли ми знайшли
     відправку по номеру контейнера, а поля BL в угоді не було (прохання
@@ -381,11 +409,18 @@ def parse_events(events, row, today_iso, statuses=frozenset()):
         code = e.get("transportEventTypeCode") or e.get("equipmentEventTypeCode") or ""
         if code not in ("LOAD", "DISC"):
             continue
-        sea_legs.append((code, _dt(e)[:10], (tc.get("location") or {}).get("locationName") or ""))
-    disc_idx = [i for i, l in enumerate(sea_legs) if l[0] == "DISC"]
-    if len(disc_idx) > 1:
+        sea_legs.append((code, _dt(e)[:10],
+                         (tc.get("location") or {}).get("locationName") or "", _dt(e)))
+    # Перевалка — це вивантаження, ПІСЛЯ якого судно ще кудись іде. Раніше тут
+    # стояло «усі вивантаження, крім останнього», і на угоді 238 це дало лише
+    # Танджунг Пелепас: вивантаження в Гданську ще не сталося, тому останнім у
+    # списку був Вільгельмсгафен — і саме та перевалка, на якій вантаж стоїть
+    # ЗАРАЗ, у колонку не потрапляла.
+    disc_idx = [i for i, l in enumerate(sea_legs)
+                if l[0] == "DISC" and vessel_move_after(events, l[3])]
+    if disc_idx:
         ports, arr, dep = [], "", ""
-        for i in disc_idx[:-1]:                      # усі, крім порту призначення
+        for i in disc_idx:
             if sea_legs[i][2] and sea_legs[i][2] not in ports:
                 ports.append(sea_legs[i][2])
             if not arr:
@@ -499,16 +534,7 @@ def parse_events(events, row, today_iso, statuses=frozenset()):
     #   • вивантаження на ПЕРЕВАЛЦІ — не «доставлено» і не кінець морського плеча.
     last_dt = _dt(last) if last else ""
 
-    def _vessel_load_after(ts):
-        """Чи є (хоч планове) завантаження на судно ПІСЛЯ моменту ts."""
-        for e in events:
-            c = (e.get("transportEventTypeCode") or e.get("equipmentEventTypeCode") or "")
-            m = (e.get("transportCall") or {}).get("modeOfTransport") or ""
-            if c in ("LOAD", "DEPA") and m == "VESSEL" and _dt(e) > ts:
-                return True
-        return False
-
-    sea_ahead = _vessel_load_after(last_dt) if last else False
+    sea_ahead = vessel_move_after(events, last_dt) if last else False
 
     # ── УМОВИ ПОСТАВКИ ──────────────────────────────────────────────────────
     # Порожньо — це НЕ «звичайні умови», це «невідомо». Тому поводимось обережно:
@@ -528,13 +554,13 @@ def parse_events(events, row, today_iso, statuses=frozenset()):
     elif code == "ARRI":
         # Судно ПРИБУЛО в порт — це вже не «в морі». Окремий статус з 05.08.2026.
         # Якщо попереду ще одне морське плече, то це перевалка, а не призначення.
-        st = (DISCHARGED if sea_ahead else ARRIVED) if mode == "VESSEL" else load_st
+        st = (TRANSSHIP if sea_ahead else ARRIVED) if mode == "VESSEL" else load_st
     elif code == "DISC":
         if not is_vessel:
             st = load_st
         elif sea_ahead:
-            # вивантаження на перевалці — вантаж попливе далі
-            st = DISCHARGED
+            # вивантаження на ПЕРЕВАЛЦІ — вантаж чекає наступного судна
+            st = TRANSSHIP
         else:
             # вивантаження в порту ПРИЗНАЧЕННЯ
             st = DELIVERED if ends_at_pod else DISCHARGED
