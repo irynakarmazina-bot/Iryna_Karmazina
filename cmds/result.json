@@ -1,7 +1,7 @@
 {
-  "stdout": "Копія попереднього CSV: cash_moves.csv.bak-20260811-1655\nCSV оновлено: /root/unitex-finrep/normalized/cash_moves.csv (1328 рухів)\n32:def _dt_str(iso):\n33-    \"\"\"'2025-10-09T14:01:16' -> '09.10.2025 14:01:16' (як у deal-рядку файлу).\"\"\"\n34-    if not iso or iso[:10] == \"0001-01-01\":\n35-        return \"\"\n36-    d, _, t = iso.partition(\"T\")\n37-    y, m, day = d.split(\"-\")\n38-    return f\"{day}.{m}.{y} {t}\" if t else f\"{day}.{m}.{y}\"\n\nугод у рухах: 250   угод у довідкових файлах: 251\nНЕ знайшлись у довідкових файлах: 0\nзбіглись: 250\n    Угода 00000001 від 29.09.2025 13:31:10\n    Угода 00000002 від 09.10.2025 14:01:16\n    Угода 00000003 від 01.10.2025 00:00:00\n",
+  "stdout": "НЕ підключено — /root/unitex-finrep/engine/update_all_api.py\n   крок «Рухи грошей з API»: немає\n   журнал дій у run():      немає\nКопія попереднього файлу: /root/unitex-finrep/engine/update_all_api.py.bak-20260811-1656\nПідключено: /root/unitex-finrep/engine/update_all_api.py\n=== КОНВЕЄР ЦІЛКОМ ===\n→ Розбір пропущено (--skip-parse): каси взято як є з normalized/cash_balances.csv\n→ Інгест з API (рахунки/витрати/угоди) (odata_ingest.py) ...\n   Готово (без cash_moves — чекає на касу).\n   дата даних = 2026-08-11 (сьогодні)\n→ Рухи грошей з API (cash_moves_from_odata.py) ...\n   CSV оновлено: /root/unitex-finrep/normalized/cash_moves.csv (1328 рухів)\n→ Реєстри AR/AP/WIP (registers.py) ...\n   }\n→ P&L + Cash Flow (pnl_cf.py) ...\n   }\n→ Входи календаря (calendar_inputs.py) ...\n   }\n→ Ретро-NWC + каси + капітал (retro_nwc.py) ...\n   }\n→ Збірка оперативного дашборда (build_dashboard_data.py) ...\n     Каси у списку: 13 (порядок задано)\n→ Збірка звіту за період (build_period_report.py) ...\n   РАЗОМ       48,328   25,256   23,072\n→ Заливка у НОВУ таблицю (config.api.json) ...\n   ✓ у 1SK0AXKt0BpEaLpax49lWy3ucjpLKrD_4Yi7Stdw9qMo: W1 17240 б · W2 33552 б.\n\n✅ ГОТОВО (API-гібрид). Каси — з файлу, решта — з 1С.\n",
   "stderr": "",
   "returncode": 0,
-  "id": "um-q45",
-  "ts": "2026-08-11T13:55:46Z"
+  "id": "um-q46",
+  "ts": "2026-08-11T13:57:15Z"
 }
