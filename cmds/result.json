@@ -1,7 +1,7 @@
 {
-  "stdout": "",
-  "stderr": "'utf-8' codec can't decode byte 0xd1 in position 900: unexpected end of data",
-  "returncode": -1,
-  "id": "um-q58",
-  "ts": "2026-08-11T14:53:52Z"
+  "stdout": "pipeline: HTTP 403\ndashboard: HTTP 403\nnosuchthing: HTTP 400\n",
+  "stderr": "  File \"<string>\", line 1\n    import json;d=json.load(open(*[computed/pipeline.json]));print(keys:,list(d));print(events:,d[podiy] if podiy in d else len(d.get(list(d)[-1],[])));print(problems:,[v for k,v in d.items() if isinstance(v,int)])\n                                                                       ^\nSyntaxError: invalid syntax\n",
+  "returncode": 1,
+  "id": "um-q59",
+  "ts": "2026-08-11T14:54:15Z"
 }
