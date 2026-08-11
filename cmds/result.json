@@ -1,7 +1,7 @@
 {
-  "stdout": "угода 251 | напрямок=Експорт | статус='В порту відправлення' | ETD факт=2026-07-29 план=2026-07-27 | ETA=2026-10-02\nподій: 0\nтрекінг поставив би: {}\n",
+  "stdout": "угода 259 | напрямок Експорт | статус В порту відправлення\nу базі: ETD план=2026-08-18 факт=2026-08-11 | ETA=2026-09-24 | ETA порт план=2026-09-24 факт=None | судно=MAERSK VIRGINIA\nподій: 12\n  2026-07-30T17:30 GTOT ACT  TRUCK  Transservice-M Rail Termin\n  2026-08-05T13:59      ACT         \n  2026-08-05T14:00      ACT         \n  2026-08-05T15:25      ACT         \n  2026-08-10T04:46      ACT         \n  2026-08-10T07:25 GTIN ACT  TRUCK  Gdansk Baltic HUB Terminal\n  2026-08-13T11:00 DEPA EST  TRUCK  Ternopil\n  2026-08-16T10:00 ARRI EST  TRUCK  Gdansk Baltic HUB Terminal\n  2026-08-18T15:00 DEPA EST  VESSEL Gdansk Baltic HUB Terminal\n  2026-08-25T14:00 ARRI EST  VESSEL Wilhelmshaven Eurogate CT\n  2026-08-31T14:00 DEPA EST  VESSEL Wilhelmshaven Eurogate CT\n  2026-09-24T09:00 ARRI EST  VESSEL South Florida Container Te\n",
   "stderr": "",
   "returncode": 0,
-  "id": "bl274-0811",
-  "ts": "2026-08-11T05:29:20Z"
+  "id": "bl2747-0811",
+  "ts": "2026-08-11T05:30:48Z"
 }
