@@ -146,7 +146,8 @@ def invoice_refs(c):
     out = collections.defaultdict(list)
     for ent in ("Document_СписаниеДенСредств_Счета", "Document_Приход_Счета"):
         try:
-            rows = fetch(c, "%s?$format=json&$select=Ref_Key,Счет" % urllib.parse.quote(ent))
+            rows = fetch(c, "%s?$format=json&$select=%s"
+                         % (urllib.parse.quote(ent), urllib.parse.quote("Ref_Key,Счет")))
         except Exception as e:  # noqa: BLE001
             log("УВАГА: %s недоступний (%s)" % (ent, str(e)[:70]))
             continue
@@ -348,6 +349,41 @@ def compare(new_rows):
     log("\nКас із розбіжністю: %d з %d" % (bad, len(set(ao) | set(an))))
 
 
+def verify_against_balances(rows):
+    """ГОЛОВНА ПЕРЕВІРКА: сальдо, зібране з рухів, має збігтись із normalized/cash_balances.csv.
+
+    Той файл будує cash_from_odata.py і він звірений з рідним звітом Експедитора
+    «Аналіз грошових коштів → Залишки коштів». Якщо рухи дають те саме сальдо —
+    рухи повні. Якщо ні — у збирачі дірка, і чіпати cash_moves.csv НЕ можна.
+    """
+    path = os.path.join(BASE, "normalized", "cash_balances.csv")
+    if not os.path.exists(path):
+        log("\ncash_balances.csv немає — головну перевірку пропущено")
+        return False
+    want = {r["cash_name"]: (num(r.get("amount")), num(r.get("amount_uo")))
+            for r in csv.DictReader(open(path, encoding="utf-8"))}
+    got = collections.defaultdict(lambda: [0.0, 0.0])
+    for r in rows:
+        g = got[r["payment_method"]]
+        g[0] += num(r.get("income")) - num(r.get("expense"))
+        g[1] += num(r.get("income_uo")) - num(r.get("expense_uo"))
+    log("\nПЕРЕВІРКА: сальдо з рухів проти cash_balances.csv (звіреного з 1С)")
+    log("%-28s %13s %13s %10s" % ("каса", "з рухів", "з залишків", "різниця"))
+    bad = 0
+    for k in sorted(set(want) | set(got)):
+        w = want.get(k, (0.0, 0.0))[0]
+        g = got.get(k, [0.0, 0.0])[0]
+        d = round(g - w, 2)
+        if abs(d) >= 0.01:
+            bad += 1
+        log("%-28s %13.2f %13.2f %10.2f%s" % (k, g, w, d, "  ← НЕ СХОДИТЬСЯ" if abs(d) >= 0.01 else ""))
+    if bad:
+        log("НЕ ЗІЙШЛОСЬ по %d касах — рухи неповні, писати CSV НЕ можна" % bad)
+    else:
+        log("Зійшлося по всіх %d касах — рухи повні" % len(set(want) | set(got)))
+    return bad == 0
+
+
 def write(rows, dry):
     if dry:
         log("DRY: CSV не пишу (%s)" % CSV_PATH)
@@ -384,11 +420,13 @@ def main():
     tot_out = sum(num(r["expense_uo"]) for r in rows)
     log("РАЗОМ У.О.: прихід %.2f  витрати %.2f  сальдо %.2f" % (tot_in, tot_out, tot_in - tot_out))
 
+    ok = verify_against_balances(rows)
+    compare(rows)
     if a.compare:
-        compare(rows)
         log("\n--compare: нічого не записано")
         return
-    compare(rows)
+    if not ok:
+        raise SystemExit("ЗУПИНКА: сальдо з рухів не збігається із залишками — CSV не змінено")
     write(rows, a.dry_run)
 
 
