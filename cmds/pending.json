@@ -1,1 +1,1 @@
-{"id": "um-q16", "cmd": "sed -n '312,352p' /root/unitex-finrep/engine/parse.py | base64 -w0"}
+{"id": "um-q17", "cmd": "sed -n '308,318p' /root/unitex-finrep/engine/parse.py | base64 -w0; echo; grep -n \"def extract_doc_group_key\" -A14 /root/unitex-finrep/engine/parse.py | base64 -w0"}
