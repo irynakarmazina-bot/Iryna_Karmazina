@@ -1,7 +1,7 @@
 {
-  "stdout": "сутність                           еталон c.list × 3\nCatalog_Контрагенты                  3618 [3618, 3618, 3618]        ok\nCatalog_Валюты                          3 [3, 3, 3]                 ok\nCatalog_ВидОплаты                      13 [13, 13, 13]              ok\nCatalog_ВидыРасходов                   70 [70, 70, 70]              ok\nCatalog_ОперацииДокументов             53 [53, 53, 53]              ok\nDocument_РасходнаяНакладная          1110 [1110, 1110, 1110]        ok\nDocument_СписаниеДенСредств           885 [885, 885, 885]           ok\nDocument_Приход                       293 [293, 293, 293]           ok\n\nЧи віддає 1С @odata.nextLink (тоді треба ходити по ньому):\n   ключі відповіді: ['odata.metadata']\n",
+  "stdout": "Копію з виправленням записано в /tmp/odata_patched/odata_client.py\n\nМетоди клієнта: ['def _load_env():', 'def __init__(self):', 'def _verify_pin(self):', 'def _get(self, path):', 'def entity_sets(self):', 'def list(self, entity, select=None, filter=None, expand=None, order=None, top=None, page=1000):', 'def first(self, entity, **kw):']\n",
   "stderr": "",
   "returncode": 0,
-  "id": "um-q34",
-  "ts": "2026-08-11T11:04:15Z"
+  "id": "um-q35",
+  "ts": "2026-08-11T11:05:45Z"
 }
