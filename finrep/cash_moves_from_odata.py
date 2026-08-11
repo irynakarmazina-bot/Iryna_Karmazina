@@ -141,9 +141,54 @@ def documents(c):
     return out
 
 
-def invoice_refs(c):
-    """Ref_Key документа → «Рахунок постачальника» з табличної частини «Счета»."""
-    out = collections.defaultdict(list)
+def _doc_date(v):
+    """1С-дата → «д.м.РРРР г:хв:сек», як у представленні документа."""
+    s = str(v or "")[:19]
+    if len(s) < 19:
+        return ""
+    y, m, d = s[0:4], s[5:7], s[8:10]
+    return "%d.%02d.%s %d:%s:%s" % (int(d), int(m), y, int(s[11:13]), s[14:16], s[17:19])
+
+
+def invoices(c):
+    """Ref_Key рахунку → («Рахунок NNN від дата», «Угода NNN від дата»).
+
+    Два види рахунків:
+      * `Document_РасходнаяНакладная` — рахунок ПОСТАЧАЛЬНИКА (на нього посилається
+        табличка «Счета» у списанні грошей);
+      * `Document_Счет` — рахунок КЛІЄНТУ (на нього посилається табличка в приході).
+    Угода береться з реквізиту `Сделка_Key` самого рахунку — так само, як це робить
+    `odata_ingest.py` (`deal_string`), щоб рядок угоди був точно того самого вигляду.
+    """
+    deals = {}
+    for d in c.list("Document_Сделка", select=["Ref_Key", "Number", "Date"]):
+        deals[str(d.get("Ref_Key"))] = "Угода %s від %s" % (
+            str(d.get("Number") or "").strip(), _doc_date(d.get("Date")))
+    out = {}
+    for ent in ("Document_РасходнаяНакладная", "Document_Счет"):
+        try:
+            rows = c.list(ent, select=["Ref_Key", "Number", "Date", "Сделка_Key"])
+        except Exception as e:  # noqa: BLE001
+            log("УВАГА: %s недоступний (%s)" % (ent, str(e)[:70]))
+            continue
+        n = 0
+        for r in rows:
+            n += 1
+            out[str(r.get("Ref_Key"))] = (
+                "Рахунок %s від %s" % (str(r.get("Number") or "").strip(), _doc_date(r.get("Date"))),
+                deals.get(str(r.get("Сделка_Key")), ""))
+        log("%-34s рахунків: %d" % (ent, n))
+    return out
+
+
+def invoice_refs(c, inv):
+    """Ref_Key платіжного документа → (рядок рахунку, рядок угоди).
+
+    Зв'язок платіж → рахунок беремо з табличної частини «Счета» самого документа.
+    Це прямий зв'язок із 1С, а не здогад: `parse.py` мусив зіставляти платежі з
+    рахунками за сумою й датою лише тому, що у вивантаженні Excel такої колонки не було.
+    """
+    refs = collections.defaultdict(list)
     for ent in ("Document_СписаниеДенСредств_Счета", "Document_Приход_Счета"):
         try:
             rows = fetch(c, "%s?$format=json&$select=%s"
@@ -153,9 +198,19 @@ def invoice_refs(c):
             continue
         for r in rows:
             v = str(r.get("Счет") or "").strip()
-            if v:
-                out[str(r.get("Ref_Key"))].append(v)
-    return {k: "; ".join(dict.fromkeys(v)) for k, v in out.items()}
+            if v and not v.startswith("00000000-0000"):
+                refs[str(r.get("Ref_Key"))].append(v)
+    out = {}
+    for doc_ref, inv_refs in refs.items():
+        names, deal_names = [], []
+        for k in dict.fromkeys(inv_refs):
+            nm, dl = inv.get(k, ("", ""))
+            if nm:
+                names.append(nm)
+            if dl:
+                deal_names.append(dl)
+        out[doc_ref] = ("; ".join(names), "; ".join(dict.fromkeys(deal_names)))
+    return out
 
 
 def collect(c):
@@ -169,7 +224,7 @@ def collect(c):
     contr = catalog(c, "Catalog_Контрагенты")
 
     docs = documents(c)
-    refs = invoice_refs(c)
+    refs = invoice_refs(c, invoices(c))
     recs = register(c)
     log("Проводок із субконто: %d" % len(recs))
 
@@ -279,6 +334,7 @@ def rows_for_csv(moves, docs, refs):
             if (vid or "").strip() == "" or vid == "Фінансова допомога" or "займ" in operation.lower():
                 category = "excluded_forlain_loan"
 
+        inv_ref, deal = refs.get(m["ref"], ("", ""))
         income = m["amt"] if m["side"] == "Dr" else ""
         expense = m["amt"] if m["side"] == "Cr" else ""
         income_uo = m["uo"] if m["side"] == "Dr" else ""
@@ -288,8 +344,8 @@ def rows_for_csv(moves, docs, refs):
             "date": m["date"],
             "payment_method": method,
             "counterparty": counterparty,
-            "supplier_invoice_ref": refs.get(m["ref"], ""),
-            "deal": "",
+            "supplier_invoice_ref": inv_ref,
+            "deal": deal,
             "vid": vid,
             "operation": operation,
             "currency": d.get("currency", ""),
@@ -306,7 +362,54 @@ def rows_for_csv(moves, docs, refs):
             "fx_bug_flag": "",
         })
     out.sort(key=lambda r: (r["date"], r["payment_method"], r["document"]))
+    mark_transit_and_fx(out)
     return out
+
+
+def mark_transit_and_fx(rows):
+    """Мітки transit_flag (правило 8) і fx_bug_flag (правило 11).
+
+    Правила й межі дат беремо з parse.py — не переписуємо їх тут, щоб не розійтись.
+
+    Одна відмінність від parse.py, і вона на краще: «непривʼязаний платіж
+    постачальнику» parse.py визначав зіставленням за сумою й датою, бо у
+    вивантаженні Excel не було колонки з рахунком. Тут рахунок приходить прямим
+    посиланням із самої 1С (таблична частина «Счета» платіжного документа), тому
+    непривʼязаний = у документі просто немає рахунку. Це факт, а не здогад.
+    """
+    sys.path.insert(0, os.path.join(BASE, "engine"))
+    import parse  # noqa: PLC0415
+
+    start = str(getattr(parse, "TRANSIT_START", ""))[:10]
+    end = str(getattr(parse, "TRANSIT_END", ""))[:10]
+    no_invoice_vid = set(getattr(parse, "NO_INVOICE_EXPECTED_VID", ()) or ())
+    if not start or not end:
+        log("УВАГА: у parse.py не знайдено меж транзитного періоду — transit_flag не проставлено")
+        return
+
+    n_transit = n_err = n_fx = 0
+    for m in rows:
+        unlinked = False
+        if m["category"] == "client_payment":
+            unlinked = not (m["deal"] or "").strip()
+        elif m["category"] == "supplier_payment":
+            unlinked = m["vid"] not in no_invoice_vid and not (m["supplier_invoice_ref"] or "").strip()
+
+        if unlinked and m["date"]:
+            if start <= m["date"] <= end:
+                m["transit_flag"] = "transit"
+                n_transit += 1
+            elif m["date"] > end:
+                m["transit_flag"] = "error_unlinked"
+                n_err += 1
+
+        if m["category"] == "transfer" and "восток" in (m["payment_method"] or "").lower():
+            uah = num(m["income"]) or num(m["expense"])
+            uo = num(m["income_uo"]) or num(m["expense_uo"])
+            if uah and uo and abs(uah - uo) < 0.01:
+                m["fx_bug_flag"] = "fx_bug_rate1"
+                n_fx += 1
+    log("Мітки: transit=%d, error_unlinked=%d, fx_bug_rate1=%d" % (n_transit, n_err, n_fx))
 
 
 def num(v):
@@ -409,31 +512,65 @@ def write(rows, dry):
     log("CSV оновлено: %s (%d рухів)" % (CSV_PATH, len(rows)))
 
 
+def journal():
+    sys.path.insert(0, os.path.join(BASE, "engine"))
+    try:
+        import journal as j  # noqa: PLC0415
+        return j
+    except Exception:  # noqa: BLE001
+        class _Null:
+            @staticmethod
+            def record(*_a, **_kw):
+                pass
+        return _Null()
+
+
+STEP = "Рухи грошей з API"
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--dry-run", action="store_true", help="показати підсумки, нічого не писати")
     ap.add_argument("--compare", action="store_true", help="порівняти з чинним CSV, нічого не писати")
     a = ap.parse_args()
+    j = journal()
+    mode = "compare" if a.compare else ("dry-run" if a.dry_run else "write")
+    j.record(STEP, "start", mode=mode)
 
-    c = client()
-    raw, docs, refs = collect(c)
-    moves = net(raw)
-    log("Рухів після згортання подвійних ніг: %d (сирих проводок по касах: %d)"
-        % (len(moves), len(raw)))
-    rows = rows_for_csv(moves, docs, refs)
+    try:
+        c = client()
+        raw, docs, refs = collect(c)
+        moves = net(raw)
+        log("Рухів після згортання подвійних ніг: %d (сирих проводок по касах: %d)"
+            % (len(moves), len(raw)))
+        rows = rows_for_csv(moves, docs, refs)
 
-    tot_in = sum(num(r["income_uo"]) for r in rows)
-    tot_out = sum(num(r["expense_uo"]) for r in rows)
-    log("РАЗОМ У.О.: прихід %.2f  витрати %.2f  сальдо %.2f" % (tot_in, tot_out, tot_in - tot_out))
+        tot_in = sum(num(r["income_uo"]) for r in rows)
+        tot_out = sum(num(r["expense_uo"]) for r in rows)
+        log("РАЗОМ У.О.: прихід %.2f  витрати %.2f  сальдо %.2f" % (tot_in, tot_out, tot_in - tot_out))
 
-    ok = verify_against_balances(c, rows)
-    compare(rows)
-    if a.compare:
-        log("\n--compare: нічого не записано")
-        return
-    if not ok:
-        raise SystemExit("ЗУПИНКА: сальдо з рухів не збігається із залишками — CSV не змінено")
-    write(rows, a.dry_run)
+        ok = verify_against_balances(c, rows)
+        compare(rows)
+        stats = {"рухів": len(rows), "прихід_уо": round(tot_in, 2),
+                 "витрати_уо": round(tot_out, 2), "сальдо_уо": round(tot_in - tot_out, 2),
+                 "з_угодою": sum(1 for r in rows if r["deal"]),
+                 "з_рахунком": sum(1 for r in rows if r["supplier_invoice_ref"]),
+                 "transit": sum(1 for r in rows if r["transit_flag"])}
+        if a.compare:
+            log("\n--compare: нічого не записано")
+            j.record(STEP, "ok", mode=mode, звірка="зійшлась" if ok else "не зійшлась", **stats)
+            return
+        if not ok:
+            j.record(STEP, "fail", mode=mode,
+                     помилка="сальдо з рухів не збіглося із залишками — CSV не змінено", **stats)
+            raise SystemExit("ЗУПИНКА: сальдо з рухів не збігається із залишками — CSV не змінено")
+        write(rows, a.dry_run)
+        j.record(STEP, "ok", mode=mode, файл=CSV_PATH if not a.dry_run else "", **stats)
+    except SystemExit:
+        raise
+    except Exception as e:  # noqa: BLE001
+        j.record(STEP, "fail", mode=mode, помилка=str(e)[:300])
+        raise
 
 
 if __name__ == "__main__":
