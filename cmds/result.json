@@ -1,7 +1,7 @@
 {
-  "stdout": "  cashtrigger.service                            loaded active running Unitex cash balances trigger (port 8791)\n  findata.service                                loaded active running Protected finance data API for Unitex OS facade (8789)\n  unitex-gateway.service                         loaded active running Unitex ERP gateway (права на сервері, перед NocoDB)\n--- findata.py ---\n9:COMPUTED = \"/root/unitex-finrep/computed\"\n16:    \"localcosts\": \"local_costs.json\",\n111:        path = os.path.join(COMPUTED, FILES[name])\n",
+  "stdout": "зведення для платформи: /root/unitex-finrep/computed/pipeline.json\nкопія: /root/findata.py.bak-20260811-1751\nдодано: pipeline → pipeline.json\nactive\n--- білий список ---\n17:    \"pipeline\": \"pipeline.json\",\n--- файл зведення ---\n-rw-r--r-- 1 root root 8805 Aug 11 17:51 /root/unitex-finrep/computed/pipeline.json\n",
   "stderr": "",
   "returncode": 0,
-  "id": "um-q54",
-  "ts": "2026-08-11T14:51:30Z"
+  "id": "um-q55",
+  "ts": "2026-08-11T14:51:55Z"
 }
