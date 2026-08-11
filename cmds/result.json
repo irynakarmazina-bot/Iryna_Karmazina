@@ -1,7 +1,7 @@
 {
-  "stdout": "подій: 18\nОСТАННІ ФАКТИЧНІ:\n   2026-06-28T22:48  ARRI ACT    VESSEL Pelabuhan Tanjung Pelepas Termin\n   2026-06-29T16:52  DISC ACT    VESSEL Pelabuhan Tanjung Pelepas Termin\n   2026-07-02T18:09  LOAD ACT    VESSEL Pelabuhan Tanjung Pelepas Termin\n   2026-07-03T22:50  DEPA ACT    VESSEL Pelabuhan Tanjung Pelepas Termin\n   2026-08-05T06:56  ARRI ACT    VESSEL Wilhelmshaven Eurogate CT\n   2026-08-07T11:13  DISC ACT    VESSEL Wilhelmshaven Eurogate CT\nПЛАНОВІ:\n   2026-08-20T06:00  DEPA EST    VESSEL Wilhelmshaven Eurogate CT\n   2026-08-23T18:00  ARRI EST    VESSEL Gdansk Baltic HUB Terminal\nтрекінг поставив би: {'Судно': 'MAERSK GIRONDE', 'Порт перевалки': 'Pelabuhan Tanjung Pelepas Terminal', 'ETA': '2026-08-23'}\n",
-  "stderr": "",
-  "returncode": 0,
-  "id": "deal238b-0811",
-  "ts": "2026-08-11T04:31:22Z"
+  "stdout": "",
+  "stderr": "Timeout (120s)",
+  "returncode": -1,
+  "id": "transship-0811",
+  "ts": "2026-08-11T04:38:27Z"
 }
