@@ -1,7 +1,7 @@
 {
-  "stdout": "Копію з виправленням записано в /tmp/odata_patched/odata_client.py\n\nМетоди клієнта: ['def _load_env():', 'def __init__(self):', 'def _verify_pin(self):', 'def _get(self, path):', 'def entity_sets(self):', 'def list(self, entity, select=None, filter=None, expand=None, order=None, top=None, page=1000):', 'def first(self, entity, **kw):']\n",
+  "stdout": "Патч застосовано до копії: /tmp/odata_patched/odata_client.py\nЗавантажено з: /tmp/odata_patched/odata_client.py\nTraceback (most recent call last):\n  File \"/tmp/um_q36.py\", line 70, in <module>\n    c = odata_client.ODataClient()\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/tmp/odata_patched/odata_client.py\", line 44, in __init__\n    env = _load_env()\n          ^^^^^^^^^^^\n  File \"/tmp/odata_patched/odata_client.py\", line 33, in _load_env\n    with open(ENV_PATH, encoding=\"utf-8\") as f:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nFileNotFoundError: [Errno 2] No such file or directory: '/tmp/secure/odata.env'\n",
   "stderr": "",
-  "returncode": 0,
-  "id": "um-q35",
-  "ts": "2026-08-11T11:05:45Z"
+  "returncode": 1,
+  "id": "um-q36",
+  "ts": "2026-08-11T11:06:33Z"
 }
