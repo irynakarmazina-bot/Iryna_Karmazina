@@ -13,8 +13,8 @@
 за кордон стосунку не мають.
 
 Формули (усі суми в УО = USD-еквівалент, як в Експедиторі):
-    надходження = Σ доходних рахунків угоди, які СПЛАЧЕНІ на «Банк Юнітекс Ейч-Ді»
-    витрати     = Σ витратних рахунків угоди, СПЛАЧЕНИХ з «Банк Юнітекс Ейч-Ді»
+    надходження = Σ доходних рахунків угоди, СПЛАЧЕНИХ на рахунки Юнітекса (грн і EUR)
+    витрати     = Σ витратних рахунків угоди, СПЛАЧЕНИХ із цих самих рахунків
     профіт      = надходження − витрати
     винагорода  = рядки тих самих доходних рахунків зі статтею «Винагорода експедитора»
     інфо+комісії= витратні рахунки з того ж рахунку зі статтями INFO_ARTICLES;
@@ -38,8 +38,12 @@ import urllib.parse
 BASE = "/root/unitex-finrep"
 OUT = os.path.join(BASE, "computed", "local_costs.json")
 
-# --- рахунок, по якому все рахується (вимога користувачки: тільки гривневі розрахунки) ---
-ACCOUNT = "Банк Юнітекс Ейч-Ді"
+# --- рахунки, по яких усе рахується ---
+# Гривневий — основний. Євровий доданий 08.08.2026 за зауваженням користувачки
+# («в звіті немає оплат на рахунок в євро»): це той самий рахунок Юнітекса, просто у євро,
+# і оплати клієнтів на нього теж мають потрапляти в розрахунок.
+ACCOUNTS = ["Банк Юнітекс Ейч-Ді", "Банк Юнітекс Ейч-Ді EUR"]
+ACCOUNT = " / ".join(ACCOUNTS)          # для підписів на сторінці
 
 # --- статті (довідник Catalog_СтатьиСчета опублікований Софт Про 02.08.2026) ---
 FEE_NAME = "Винагорода експедитора"
@@ -128,7 +132,7 @@ def collect(c):
             continue
         d = deals[dk]
         d["revenue_all"] += f(r.get("сумма_УЕ"))          # довідково: весь дохід угоди
-        if acc.get(r.get("видОплаты_Key")) != ACCOUNT or str(r.get("СтатусСчета") or "") != PAID:
+        if acc.get(r.get("видОплаты_Key")) not in ACCOUNTS or str(r.get("СтатусСчета") or "") != PAID:
             continue
         inv_deal[r["Ref_Key"]] = dk
         d["n_inv"] += 1
@@ -157,7 +161,7 @@ def collect(c):
             continue
         d = deals[dk]
         d["cost_all"] += f(r.get("Сумма_УЕ"))             # довідково: всі витрати угоди
-        if acc.get(r.get("ВидОплаты_Key")) != ACCOUNT or str(r.get("СтатусСчета") or "") != PAID:
+        if acc.get(r.get("ВидОплаты_Key")) not in ACCOUNTS or str(r.get("СтатусСчета") or "") != PAID:
             continue
         d["cost"] += f(r.get("Сумма_УЕ"))
         if art.get(r.get("Услуга_Key"), "") in INFO_ARTICLES:
@@ -170,7 +174,7 @@ def build(deals):
     rows, skipped = [], collections.Counter()
     for d in deals.values():
         if not d["n_inv"]:
-            skipped["немає сплаченого рахунку клієнта на «%s»" % ACCOUNT] += 1
+            skipped["немає сплаченого рахунку клієнта на рахунки Юнітекса"] += 1
             continue
         profit = round(d["revenue"] - d["cost"], 2)
         add = round(d["info_bank"], 2) if d["info_bank"] > INFO_MIN else 0.0
@@ -200,7 +204,7 @@ def main():
     rows, skipped = build(deals)
     pos = [r for r in rows if r["diff"] > 0]
     print("угод у статусі %s: %d" % ("/".join(STATUS_UK.get(s, s) for s in STATUSES), len(deals)))
-    print("з них із оплатою на «%s»: %d" % (ACCOUNT, len(rows)))
+    print("з них із оплатою на %s: %d" % (" або ".join(ACCOUNTS), len(rows)))
     for k, n in skipped.most_common():
         print("   відсіяно — %s: %d" % (k, n))
     print("профіт > винагороди: %d угод, сума до переказу: %.2f УО" %
@@ -218,7 +222,7 @@ def main():
                    r["info_added"], r["diff"]))
 
     if not a.dry_run:
-        data = {"rows": rows, "account": ACCOUNT, "info_articles": sorted(INFO_ARTICLES),
+        data = {"rows": rows, "account": ACCOUNT, "accounts": ACCOUNTS, "info_articles": sorted(INFO_ARTICLES),
                 "info_min": INFO_MIN, "statuses": [STATUS_UK.get(s, s) for s in STATUSES],
                 "skipped": dict(skipped), "screened": len(deals),
                 "total_diff": round(sum(r["diff"] for r in pos), 2), "count": len(pos)}

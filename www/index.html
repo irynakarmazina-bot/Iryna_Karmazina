@@ -3065,7 +3065,8 @@ PAGES.accounting = async () => {
   <div class="card">
     <h3>🌍 Локальні витрати за кордоном</h3>
     <p class="sub">угоди зі статусами ${esc((d.statuses||[]).join(", "))}, де рахунок клієнту
-      сплачений на <b>${esc(d.account||"—")}</b> · дані з Експедитора станом на ${stamp}</p>
+      сплачений на <b>${esc((d.accounts||[d.account||"—"]).join(" або "))}</b> ·
+      дані з Експедитора станом на ${stamp}</p>
     <div class="tiles" style="margin-top:12px">
       <div class="tile tready"><div class="tbody"><div class="lbl">Угод із різницею</div>
         <div class="val">${pos.length}</div><div class="hint">з ${rows.length} переглянутих</div></div></div>
@@ -3080,8 +3081,9 @@ PAGES.accounting = async () => {
         <div class="hint">стаття «Локальні витрати за кордоном»</div></div></div>
     </div>
     <div class="note" style="margin-top:12px">
-      <b>Як рахується:</b> профіт = надходження від клієнта на рахунок
-      «${esc(d.account||"—")}» мінус витрати, оплачені з цього ж рахунку (в УО).
+      <b>Як рахується:</b> профіт = надходження від клієнта на рахунки
+      ${esc((d.accounts||[d.account||"—"]).join(" / "))} мінус витрати, оплачені з тих самих
+      рахунків (в УО).
       Винагорода = рядки тих самих доходних рахунків зі статтею «Винагорода експедитора».
       ${(d.info_articles||[]).length
         ? `До профіту додано статті ${d.info_articles.map(esc).join(", ")}, якщо по угоді
