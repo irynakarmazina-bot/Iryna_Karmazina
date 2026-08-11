@@ -1,7 +1,7 @@
 {
-  "stdout": "угода 250 | transportDocum(272050345)=0 | equipmentRefer(MRSU5393627)=0 | carrierBooking(272050345)=0\nугода 251 | transportDocum(274014640)=0 | equipmentRefer(MRSU9195960)=0 | carrierBooking(274014640)=0\nугода 245 | transportDocum(272050345)=0 | equipmentRefer(MRSU5393627)=0 | carrierBooking(272050345)=0\nугода 272 | transportDocum(274706047)=0 | equipmentRefer(CAAU6787398)=0 | carrierBooking(274706047)=0\nугода 273 | transportDocum(274706113)=0 | equipmentRefer(MRKU4228570)=0 | carrierBooking(274706113)=0\n",
+  "stdout": "ПУБЛІЧНА адреса: https://api.maersk.com/track-and-trace/events\n  угода 251 transportDocum(274014640) -> 0\n  угода 251 equipmentRefer(MRSU9195960) -> 0\n  угода 272 transportDocum(274706047) -> 0\n  угода 272 equipmentRefer(CAAU6787398) -> 0\nконтроль: угода 259 приватною -> 12 подій\n",
   "stderr": "",
   "returncode": 0,
-  "id": "bycont-0811",
-  "ts": "2026-08-11T06:33:13Z"
+  "id": "pub-0811",
+  "ts": "2026-08-11T06:33:48Z"
 }
