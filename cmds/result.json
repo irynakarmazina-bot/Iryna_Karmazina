@@ -1,7 +1,7 @@
 {
-  "stdout": "було в платформі: статус='Вивантажений в порту прибуття', порт перевалки='Pelabuhan Tanjung Pelepas Terminal'\nтрекінг тепер поставить: {'Порт перевалки': 'Pelabuhan Tanjung Pelepas Terminal → Wilhelmshaven Eurogate CT', 'Перевалка (прибуття)': '2026-06-29', 'Перевалка (відправлення)': '2026-07-02', 'ETA': '2026-08-23', 'Статус': 'На перевалці'}\n",
+  "stdout": "### ЗАПУСК ПОВНОГО ПРОГОНУ У ФОНІ\n  запущено, лог: /root/direct-sync/run_238.out\n### ПЕРШІ РЯДКИ\nALREADY_RUNNING maersk\nВЖЕ ВИКОНУЄТЬСЯ: інший запуск «maersk» ще працює (/var/lock/unitex-maersk.lock). Цей запуск пропускаю — це не помилка.\n",
   "stderr": "",
   "returncode": 0,
-  "id": "d238c-0811",
-  "ts": "2026-08-11T04:39:21Z"
+  "id": "runsync-0811",
+  "ts": "2026-08-11T04:44:15Z"
 }
