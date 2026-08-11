@@ -1,7 +1,7 @@
 {
-  "stdout": "### ЗАМОК ТРЕКІНГУ\n623679 python3 /root/direct-sync/maersk_track_sync.py --dry-run --all\n624131 /bin/sh -c set -u; cd /root/Iryna_Karmazina && git pull -q origin main; cp direct_sync/rename_status_option.py /root/direct-sync/; echo '### ЗАМОК ТРЕКІНГУ'; pgrep -af 'maersk_track_syn[c]' || echo '  процесу немає'; echo '### ПЕРЕЙМЕНУВАННЯ (вхолосту)'; python3 /root/direct-sync/rename_status_option.py 'На перевалці' 'В порту перевалки' --dry-run; echo '### ПЕРЕЙМЕНУВАННЯ'; python3 /root/direct-sync/rename_status_option.py 'На перевалці' 'В порту перевалки'; echo '### ТРЕКІНГ'; cp direct_sync/maersk_track_sync.py /root/direct-sync/ && python3 -m py_compile /root/direct-sync/maersk_track_sync.py && echo '  OK'; echo '### ФАСАД'; bash server/deploy_ui.sh main 2>&1 | tail -2\n### ПЕРЕЙМЕНУВАННЯ (вхолосту)\nваріантів зараз: 15\nугод на варіанті «На перевалці»: 0\nкопія опису колонки: /root/direct-sync/status_options.bak-20260811-074650.json\n--dry-run: записувати не буду. Було б: ['Букінг', 'Стафіровка', 'В порту відправлення', 'Завантажений на судно', 'В морі', 'Вивантажений в порту прибуття', 'Вантаж доставлено', 'Завантажений на авто', 'Завантажений на потяг', 'Вивантажений в сухому порту', 'На кордоні', 'Виконується', 'Скасована', 'В порту призначення', 'В порту перевалки']\n### ПЕРЕЙМЕНУВАННЯ\nваріантів зараз: 15\nугод на варіанті «На перевалці»: 0\nкопія опису колонки: /root/direct-sync/status_options.bak-20260811-074650.json\nваріантів після зміни: 15\nГОТОВО: «На перевалці» → «В порту перевалки», кількість варіантів не змінилась\n### ТРЕКІНГ\n  OK\n### ФАСАД\n   UI/FINDASH/CHART: 200 200 200\nDEPLOY_OK · гілка main · коміт 3564be161 · позначка «в. 11.08 07:45»\n",
+  "stdout": "угода 251 | напрямок=Експорт | статус='В порту відправлення' | ETD факт=2026-07-29 план=2026-07-27 | ETA=2026-10-02\nподій: 0\nтрекінг поставив би: {}\n",
   "stderr": "",
   "returncode": 0,
-  "id": "rn2-0811",
-  "ts": "2026-08-11T04:46:54Z"
+  "id": "bl274-0811",
+  "ts": "2026-08-11T05:29:20Z"
 }
