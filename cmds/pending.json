@@ -1,1 +1,1 @@
-{"id": "um-q40", "cmd": "sed -n '697,742p' /root/unitex-finrep/engine/parse.py | base64 -w0"}
+{"id": "um-q41", "cmd": "sed -n '26,50p' /root/unitex-finrep/engine/update_all_api.py | base64 -w0"}
