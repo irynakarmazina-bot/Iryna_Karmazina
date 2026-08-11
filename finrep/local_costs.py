@@ -34,9 +34,11 @@ import json
 import os
 import sys
 import urllib.parse
+import urllib.request
 
 BASE = "/root/unitex-finrep"
 OUT = os.path.join(BASE, "computed", "local_costs.json")
+RATES = os.path.join(BASE, "computed", "nbu_rates.json")   # кеш курсів НБУ (валюта+дата → курс)
 
 # --- рахунки, по яких усе рахується ---
 # Гривневий — основний. Євровий доданий 08.08.2026 за зауваженням користувачки
@@ -95,6 +97,40 @@ def d10(x):
     return "" if (not x or x.startswith("0001-01-01")) else x[:10]
 
 
+def nbu_rate(code, date, cache):
+    """Курс НБУ на дату (РРРР-ММ-ДД). Гривня = 1. Значення кешуються у файл:
+    курс на минулу дату не змінюється, тому смикати НБУ щоразу не треба."""
+    if not code or code == "UAH" or not date:
+        return 1.0
+    key = "%s:%s" % (code, date)
+    if key in cache:
+        return cache[key]
+    url = ("https://bank.gov.ua/NBUStatService/v1/statdirectory/exchange"
+           "?valcode=%s&date=%s&json" % (code, date.replace("-", "")))
+    try:
+        with urllib.request.urlopen(url, timeout=30) as r:
+            js = json.loads(r.read().decode("utf-8"))
+        rate = float(js[0]["rate"]) if js else 0.0
+    except Exception as e:                                    # noqa: BLE001
+        print("   ⚠ курс НБУ %s на %s не отримано (%s)" % (code, date, type(e).__name__))
+        rate = 0.0
+    cache[key] = rate
+    return rate
+
+
+def load_rates():
+    try:
+        with open(RATES, encoding="utf-8") as fh:
+            return json.load(fh)
+    except Exception:                                         # noqa: BLE001
+        return {}
+
+
+def save_rates(cache):
+    with open(RATES, "w", encoding="utf-8") as fh:
+        json.dump(cache, fh, ensure_ascii=False, indent=1)
+
+
 def names(c, entity):
     return {r["Ref_Key"]: (r.get("Description") or "").strip()
             for r in page(c, entity, ["Ref_Key", "Description"])}
@@ -103,6 +139,7 @@ def names(c, entity):
 def collect(c):
     art = names(c, "Catalog_СтатьиСчета")
     acc = names(c, "Catalog_ВидОплаты")
+    cur = names(c, "Catalog_Валюты")
 
     deals = {}
     for r in page(c, "Document_Сделка",
@@ -122,13 +159,15 @@ def collect(c):
             "completed": d10(r.get("ДатаЗавершения")),
             "revenue": 0.0, "cost": 0.0, "fee": 0.0, "local_abroad": 0.0, "info_bank": 0.0,
             "paid": "", "n_inv": 0, "revenue_all": 0.0, "cost_all": 0.0,
+            # винагорода у валюті рахунку: {валюта: сума}, і дата оплати по кожній валюті
+            "fee_val": collections.Counter(), "fee_paid": {},
         }
 
     # доходні рахунки, сплачені на потрібний рахунок
     inv_deal = {}
     for r in page(c, "Document_Счет",
                   ["Ref_Key", "Сделка_Key", "сумма_УЕ", "ДатаОплаты", "СтатусСчета",
-                   "Posted", "Информативный", "видОплаты_Key"]):
+                   "Posted", "Информативный", "видОплаты_Key", "Валюта_Key"]):
         dk = r.get("Сделка_Key")
         if dk not in deals or not r.get("Posted") or r.get("Информативный"):
             continue
@@ -136,7 +175,7 @@ def collect(c):
         d["revenue_all"] += f(r.get("сумма_УЕ"))          # довідково: весь дохід угоди
         if acc.get(r.get("видОплаты_Key")) not in ACCOUNTS or str(r.get("СтатусСчета") or "") != PAID:
             continue
-        inv_deal[r["Ref_Key"]] = dk
+        inv_deal[r["Ref_Key"]] = (dk, cur.get(r.get("Валюта_Key"), ""), d10(r.get("ДатаОплаты")))
         d["n_inv"] += 1
         d["revenue"] += f(r.get("сумма_УЕ"))
         pd = d10(r.get("ДатаОплаты"))
@@ -144,13 +183,18 @@ def collect(c):
             d["paid"] = pd
 
     # рядки цих рахунків: винагорода експедитора і вже виділені локальні витрати
-    for r in page(c, "Document_Счет_ТЧ", ["Ref_Key", "Статья_Key", "Сумма_УЕ"]):
-        dk = inv_deal.get(r.get("Ref_Key"))
-        if not dk:
+    for r in page(c, "Document_Счет_ТЧ", ["Ref_Key", "Статья_Key", "Сумма_УЕ", "Сумма_вал"]):
+        v = inv_deal.get(r.get("Ref_Key"))
+        if not v:
             continue
+        dk, ccy, pdate = v
         nm = art.get(r.get("Статья_Key"), "")
         if nm == FEE_NAME:
             deals[dk]["fee"] += f(r.get("Сумма_УЕ"))
+            deals[dk]["fee_val"][ccy] += f(r.get("Сумма_вал"))
+            # дата оплати рахунку, у якому стоїть винагорода — за нею беремо курс НБУ
+            if pdate and pdate > deals[dk]["fee_paid"].get(ccy, ""):
+                deals[dk]["fee_paid"][ccy] = pdate
         elif nm == LOCAL_ABROAD_NAME:
             deals[dk]["local_abroad"] += f(r.get("Сумма_УЕ"))
 
@@ -171,8 +215,13 @@ def collect(c):
     return deals
 
 
-def build(deals):
-    """Рядки таблиці + причини, чому угоди відсіялись."""
+def build(deals, rates=None):
+    """Рядки таблиці + причини, чому угоди відсіялись.
+
+    Винагорода додатково перераховується в ГРИВНЮ: для гривневих рахунків це сама сума,
+    для валютних — сума × курс НБУ на день оплати рахунку (вимога користувачки 11.08.2026).
+    """
+    rates = {} if rates is None else rates
     rows, skipped = [], collections.Counter()
     for d in deals.values():
         if not d["n_inv"]:
@@ -180,6 +229,14 @@ def build(deals):
             continue
         profit = round(d["revenue"] - d["cost"], 2)
         add = round(d["info_bank"], 2) if d["info_bank"] > INFO_MIN else 0.0
+        fee_uah, rate_shown, fee_ccy = 0.0, None, ""
+        for ccy, val in d["fee_val"].items():
+            rate = nbu_rate(ccy, d["fee_paid"].get(ccy, ""), rates)
+            fee_uah += val * rate
+            if ccy and ccy != "UAH":
+                rate_shown, fee_ccy = round(rate, 4), ccy
+            elif not fee_ccy:
+                fee_ccy = ccy
         rows.append({
             "num": d["num"], "status": d["status"], "bl": d["bl"], "cont": d["cont"],
             "route": d["route"], "paid": d["paid"], "completed": d["completed"],
@@ -188,6 +245,8 @@ def build(deals):
             "revenue_all": round(d["revenue_all"], 2), "cost_all": round(d["cost_all"], 2),
             "profit": profit, "fee": round(d["fee"], 2),
             "info_bank": round(d["info_bank"], 2), "info_added": add,
+            "fee_val": round(sum(d["fee_val"].values()), 2), "fee_ccy": fee_ccy,
+            "rate": rate_shown, "fee_uah": round(fee_uah, 2),
             "local_abroad": round(d["local_abroad"], 2),
             "diff": round(profit + add - d["fee"], 2),
         })
@@ -203,7 +262,9 @@ def main():
 
     c = client()
     deals = collect(c)
-    rows, skipped = build(deals)
+    rates = load_rates()
+    rows, skipped = build(deals, rates)
+    save_rates(rates)
     pos = [r for r in rows if r["diff"] > 0]
     print("угод переглянуто (статус не фільтрує): %d" % len(deals))
     print("з них із оплатою на %s: %d" % (" або ".join(ACCOUNTS), len(rows)))
