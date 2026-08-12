@@ -1,7 +1,7 @@
 {
-  "stdout": "== гілка: main ==\n   коміт: f33195f6f · 2026-08-12 09:42:43 +0000\n   опис:  relay: tsk-06 — викладення фасаду з main\n       і звернення до змінних. Вигляд сторінки там не перевіряє ніхто.\n       (сюди ж не потрапляє tasks.js — перевірка розділу «Задачі»)\nCHECK_OK — фасад можна викладати\n   бекап: index-20260812-124250.html (346371 б)\n   бекап: findash-20260812-124250.html (29444 б)\n   бекап: finperiod-20260812-124250.html (17527 б)\n   бекап: cabinet-20260812-124250.html (330772 б)\n   бекап: chart.min.js-20260812-124250.bak (205399 б)\n   прибрано копій, старших за 14 днів: 1\n   усього копій у архіві: 179\n   журнал: 2026-08-12T12:42:50\tmain\tf33195f6f\tв. 12.08 09:41\tindex.html:381235 findash.html:29444 finperiod.html:17527\trelay: tsk-06 — викладення фасаду з main\n   UI/FINDASH/CHART: 200 200 200\nDEPLOY_OK · гілка main · коміт f33195f6f · позначка «в. 12.08 09:41»\n",
+  "stdout": "column found: True\nid: c6jzoi920hg1v2i uidt: SingleSelect column_name: Кому\noptions: ['Ірина', 'Віталій']\nrecords total: 0\nrecords with Komy filled: 0\nrecords with Vykonavtsi filled: 0\n",
   "stderr": "",
   "returncode": 0,
-  "id": "tsk-06",
-  "ts": "2026-08-12T09:42:50Z"
+  "id": "tsk-07",
+  "ts": "2026-08-12T16:02:39Z"
 }
