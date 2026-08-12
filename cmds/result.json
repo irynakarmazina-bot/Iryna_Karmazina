@@ -1,7 +1,7 @@
 {
-  "stdout": "pipeline: HTTP 403\ndashboard: HTTP 403\nnosuchthing: HTTP 400\n",
-  "stderr": "  File \"<string>\", line 1\n    import json;d=json.load(open(*[computed/pipeline.json]));print(keys:,list(d));print(events:,d[podiy] if podiy in d else len(d.get(list(d)[-1],[])));print(problems:,[v for k,v in d.items() if isinstance(v,int)])\n                                                                       ^\nSyntaxError: invalid syntax\n",
-  "returncode": 1,
-  "id": "um-q59",
-  "ts": "2026-08-11T14:54:15Z"
+  "stdout": "TABLES:\n   m58xsjo6at01ohl Диспетчеризація\n   mgik03ijqyyct6v Клієнти\n   mfo372vhs3fbbw7 Задачі\n   meqpi0r197bz14n Користувачі\n   mvm5xu2mcidt1j3 Інструкції\n   mxtg3fvrmtflaid Калькуляції\n   m429u2crlavfmxc Журнал дій\n\nЗАДАЧІ columns:\n   Id                     ID            \n   CreatedAt              CreatedTime   \n   UpdatedAt              LastModifiedTime\n   nc_created_by          CreatedBy     \n   nc_updated_by          LastModifiedBy\n   nc_order               Order         \n   __nc_deleted           Deleted       \n   Задача                 SingleLineText\n   Кому                   SingleSelect   [Ірина, Віталій]\n   Термін                 Date          \n   Статус                 SingleSelect   [Нова, В роботі, Виконано]\n   Угода                  SingleLineText\n   Коментар               LongText      \n\nrecords: 0\n",
+  "stderr": "",
+  "returncode": 0,
+  "id": "tsk-01",
+  "ts": "2026-08-12T08:20:46Z"
 }
