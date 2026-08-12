@@ -1,7 +1,7 @@
 {
-  "stdout": "ГЕО-ДОВІДНИКИ: ['Catalog_Организации_СтатьиСчетовПорта', 'Catalog_Города', 'Catalog_Страны', 'Catalog_Маршруты', 'Catalog_Маршруты_Этапы', 'Catalog_Маршруты_ЧастиЭтапа', 'Catalog_ПоручениеПунктыОбОплате', 'Catalog_Порты', 'Catalog_Порты_Договора']\nВСЬОГО Catalog_: 305\n  ЕТА -> Type=\"Edm.DateTime\"\n\t\t\t\t\t\tNullable=\"true\"/\n  ЕТА_ПОД -> Type=\"Edm.DateTime\"\n\t\t\t\t\t\tNullable=\"true\"/\n  Машина_Key -> Type=\"Edm.Guid\"\n\t\t\t\t\t\tNullable=\"true\"/\n  Водитель_Key -> Type=\"Edm.Guid\"\n\t\t\t\t\t\tNullable=\"true\"/\n  НомерCMR -> Type=\"Edm.String\"\n\t\t\t\t\t\tNullable=\"true\"/\n  СписокМашин -> Type=\"Edm.String\"\n\t\t\t\t\t\tNullable=\"true\"/\n  ПунктПересеченияГраницы_Key -> Type=\"Edm.Guid\"\n\t\t\t\t\t\tNullable=\"true\"/\n  Номер -> НЕМАЄ\n  Дата -> НЕМАЄ\n  Posted -> Type=\"Edm.Boolean\"\n\t\t\t\t\t\tNullable=\"true\"/\n",
+  "stdout": "колонок у таблиці зараз: 13\n   DRY: створив би «Тип» (SingleSelect · Угода / Клієнт / Співробітник / Дія)\n   DRY: створив би «Клієнт» (SingleLineText)\n   DRY: створив би «Співробітник» (SingleLineText)\n   DRY: створив би «Виконавці» (SingleLineText)\n   DRY: створив би «Постановник» (SingleLineText)\n   DRY: створив би «Пріоритет» (SingleSelect · Терміново / Звичайно / Низько)\n   DRY: створив би «Нагадати за» (Number)\n   DRY: створив би «Виконано» (Date)\nDRY: додав би «Скасовано» до статусів (зараз: Нова, В роботі, Виконано)\nDRY_DONE нічого не записано\n",
   "stderr": "",
   "returncode": 0,
-  "id": "erp-exp-probe5",
-  "ts": "2026-08-12T09:11:25Z"
+  "id": "tsk-03",
+  "ts": "2026-08-12T09:23:05Z"
 }
