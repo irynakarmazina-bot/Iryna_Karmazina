@@ -784,7 +784,7 @@
       <div class="spacer"></div>
       <!-- Позначка версії: по ній видно, чи браузер підтягнув свіжу сторінку.
            Оновлюється автоматично при кожному викладенні (scripts/stamp.sh). -->
-      <div class="buildstamp" id="buildstamp" title="версія сторінки — якщо не збігається з тим, що я назвала, натисни Ctrl+F5">в. 12.08 09:41</div>
+      <div class="buildstamp" id="buildstamp" title="версія сторінки — якщо не збігається з тим, що я назвала, натисни Ctrl+F5">в. 12.08 16:07</div>
     </nav>
     <div class="main">
       <div class="topbar">
@@ -4468,8 +4468,16 @@ const TASK_OBJ_FIELD = {"Угода":"Угода", "Клієнт":"Клієнт"
    бухгалтер угод не правлять, але свої задачі закривати мають. */
 const canTask = () => ROLE !== "Перегляд" && cfg().nav.includes("tasks");
 
+/* Чиї задачі видно. Рішення користувачки 12.08.2026: «адмін бачить всі задачі,
+   інші ролі — тільки свої», і «адмін може обрати які ролі бачити».
+   «Свої» = я виконавець АБО я поставила задачу.
+   ⚠️ Це НЕ захист сам по собі: сторінка лише вирішує, що намалювати, а дані їй
+   віддає база. Справжнє обмеження — у прошарку (server/gateway.py, TASK_SEE_ALL),
+   і воно ввімкнеться разом із ним. Правила в обох місцях однакові навмисно. */
+const canSeeAllTasks = () => ROLE === "Адміністратор";
+
 let TASKS_CACHE = null, TUSERS_CACHE = null;
-let TASK_FILTER = {who:"mine", kind:"", closed:false};
+let TASK_FILTER = {who:"mine", kind:"", closed:false, roles:[]};
 
 async function taskRows(force){
   if (force) TASKS_CACHE = null;
@@ -4573,9 +4581,31 @@ PAGES.tasks = async () => {
             "). Виконавці показані поштою, а не іменами, і призначити нового не вийде.");
   }
 
+  /* Не адміністратор бачить ТІЛЬКИ свої — незалежно від того, що лежить у
+     фільтрі. Скидаємо тут, а не лише ховаємо кнопку: інакше значення могло б
+     лишитись з попереднього входу під іншою роллю. */
+  const seeAll = canSeeAllTasks();
+  if (!seeAll){ TASK_FILTER.who = "mine"; TASK_FILTER.roles = []; }
+
+  /* Роль задачі — це роль її ВИКОНАВЦІВ; якщо виконавців немає, беремо роль
+     постановника (інакше така задача випадала б з будь-якого відбору по ролях). */
+  const roleOf = {};
+  users.forEach(u=>{ const em = String(u["Email"]||"").toLowerCase();
+                     if (em) roleOf[em] = u["Роль"] || "—"; });
+  const taskRoles = t => {
+    const rs = doerList(t).map(e=>roleOf[e]).filter(Boolean);
+    if (rs.length) return [...new Set(rs)];
+    const a = roleOf[String(t["Постановник"]||"").toLowerCase()];
+    return a ? [a] : [];
+  };
+  const roleNames = seeAll
+    ? [...new Set(rows.flatMap(taskRoles))].sort((a,b)=>a.localeCompare(b,"uk"))
+    : [];
+
   const mine = rows.filter(isMyTask);
   const view = (TASK_FILTER.who === "mine" ? mine : rows)
-    .filter(t=>!TASK_FILTER.kind || String(t["Тип"]||"") === TASK_FILTER.kind);
+    .filter(t=>!TASK_FILTER.kind || String(t["Тип"]||"") === TASK_FILTER.kind)
+    .filter(t=>!TASK_FILTER.roles.length || taskRoles(t).some(r=>TASK_FILTER.roles.includes(r)));
   const open = view.filter(taskIsOpen);
   const closed = view.filter(t=>!taskIsOpen(t));
 
@@ -4613,16 +4643,27 @@ PAGES.tasks = async () => {
   $("content").innerHTML = `
     <div class="card">
       <p class="sub">задачі по угодах, клієнтах, співробітниках і просто дії ·
-        нагадування показуються тут і лічильником у меню</p>
+        нагадування показуються тут і лічильником у меню${
+        seeAll ? " · ти бачиш задачі всіх" : " · ти бачиш свої задачі — ті, де ти виконавець або які ти поставила"}</p>
       <div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:10px">
         ${chip(TASK_FILTER.who==="mine","who","mine","👤 Мої (" + mine.filter(taskIsOpen).length + ")")}
-        ${chip(TASK_FILTER.who==="all","who","all","Усі (" + rows.filter(taskIsOpen).length + ")")}
+        ${seeAll ? chip(TASK_FILTER.who==="all","who","all","Усі (" + rows.filter(taskIsOpen).length + ")") : ""}
         <span style="width:10px"></span>
         ${chip(!TASK_FILTER.kind,"kind","","Будь-який тип")}
         ${TASK_KINDS.map(k=>chip(TASK_FILTER.kind===k,"kind",k,k)).join("")}
         <span style="width:10px"></span>
         ${chip(TASK_FILTER.closed,"closed","1","✅ Показати закриті (" + closed.length + ")")}
       </div>
+      ${seeAll && roleNames.length ? `
+      <div style="margin-top:12px">
+        <div style="font-size:11.5px;color:var(--muted);font-weight:600;margin-bottom:6px">
+          Чиї задачі показувати — за роллю виконавця</div>
+        <div style="display:flex;gap:7px;flex-wrap:wrap">
+          ${chip(!TASK_FILTER.roles.length,"role","","Усі ролі")}
+          ${roleNames.map(r=>chip(TASK_FILTER.roles.includes(r),"role",r,
+              r + " (" + rows.filter(t=>taskIsOpen(t) && taskRoles(t).includes(r)).length + ")")).join("")}
+        </div>
+      </div>` : ""}
     </div>
     ${block("🔴 Прострочені","термін минув, задача не закрита",G.over)}
     ${block("🔔 На сьогодні","термін — сьогодні",G.today)}
@@ -4634,9 +4675,17 @@ PAGES.tasks = async () => {
       (canTask() ? " Натисни «Нова задача», щоб поставити першу." : "") + '</p></div>'}`;
 
   $("content").querySelectorAll(".doerchip[data-f]").forEach(b=>b.addEventListener("click", ()=>{
-    const f = b.dataset.f;
+    const f = b.dataset.f, v = b.dataset.v;
     if (f === "closed") TASK_FILTER.closed = !TASK_FILTER.closed;
-    else TASK_FILTER[f] = b.dataset.v;
+    else if (f === "role"){
+      // ролі вибираються КІЛЬКА (можна дивитись і сейлзів, і операційних разом);
+      // порожній вибір = усі ролі
+      if (!v) TASK_FILTER.roles = [];
+      else TASK_FILTER.roles = TASK_FILTER.roles.includes(v)
+        ? TASK_FILTER.roles.filter(x=>x !== v)
+        : TASK_FILTER.roles.concat(v);
+    }
+    else TASK_FILTER[f] = v;
     PAGES.tasks();
   }));
   $("content").querySelectorAll(".taskrow[data-task]").forEach(el=>el.addEventListener("click", e=>{

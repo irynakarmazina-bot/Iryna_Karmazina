@@ -45,6 +45,10 @@ const TASKS = [
   { Id: 5, "Задача": "без терміну", "Тип": "Дія", "Виконавці": "me@x.ua", "Статус": "Нова", "Постановник": "me@x.ua" },
   { Id: 6, "Задача": "вже закрита", "Тип": "Дія", "Виконавці": "me@x.ua", "Термін": day(-9),
     "Статус": "Виконано", "Виконано": day(-8), "Постановник": "me@x.ua" },
+  // виконавець — фінансистка: на ній перевіряється відбір за роллю і те,
+  // що не-адмін чужого не бачить
+  { Id: 7, "Задача": "задача фінансистки", "Тип": "Дія", "Виконавці": "g@x.ua",
+    "Термін": day(1), "Статус": "Нова", "Постановник": "v@x.ua" },
 ];
 const DEALS = [{ Id: 1, "Угода": "259", "Клієнт": "Тест ТОВ", "Статус": "В морі", "ETA": day(20),
                  "Менеджер": "Ірина", "Напрямок": "Імпорт", "Лінія": "Maersk", "Вид перевезення": "фрахт" }];
@@ -135,6 +139,23 @@ const check = (ok, what) => { console.log((ok ? "  ✓ " : "  ✗ ") + what); if
   await page.click('.doerchip[data-f="kind"][data-v=""]');
   await page.waitForTimeout(400);
 
+  /* «Адмін бачить всі задачі, інші ролі — тільки свої; адмін може обрати які
+     ролі бачити» — рішення користувачки 12.08.2026. */
+  console.log("\n— відбір за роллю (тільки адміністратор) —");
+  check(await page.isVisible('.doerchip[data-f="role"][data-v=""]'), "адміністратору видно відбір за роллю");
+  check(/задача фінансистки/.test(await page.textContent("#content")), "у фільтрі «Усі» адмін бачить чужу задачу фінансистки");
+  await page.click('.doerchip[data-f="role"][data-v="Фінансист"]');
+  await page.waitForTimeout(400);
+  const byRole = await page.textContent("#content");
+  check(/задача фінансистки/.test(byRole), "відбір «Фінансист» лишає задачу фінансистки");
+  check(!/прострочена моя/.test(byRole), "відбір «Фінансист» ховає задачі адміністраторів");
+  await page.click('.doerchip[data-f="role"][data-v="Фінансист"]');   // зняти
+  await page.waitForTimeout(400);
+  await page.click('.doerchip[data-f="who"][data-v="mine"]');
+  await page.waitForTimeout(400);
+  await page.click('.doerchip[data-f="closed"]');                     // сховати закриті назад
+  await page.waitForTimeout(400);
+
   console.log("\n— картка задачі: створення —");
   await page.click("#task-new");
   await page.waitForSelector("#task-overlay.open", { timeout: 5000 });
@@ -196,6 +217,21 @@ const check = (ok, what) => { console.log((ok ? "  ✓ " : "  ✗ ") + what); if
   await page.click('.nav-item[data-page="clients"]');
   await page.waitForSelector("#content table", { timeout: 8000 });
   check(/Задач/.test(await page.textContent("#content")), "у клієнтах є колонка «Задач»");
+
+  /* Другий вхід — уже НЕ адміністратором. Перевіряємо саме те, що просила
+     користувачка: не-адмін чужих задач не бачить і вибирати ролі не може. */
+  console.log("\n— не-адміністратор бачить тільки свої —");
+  USERS[0]["Роль"] = "Фінансист";
+  await page.evaluate(() => { if (typeof enter === "function") return enter(); });
+  await page.waitForTimeout(1200);
+  await page.evaluate(() => { if (typeof go === "function") return go("tasks"); });
+  await page.waitForSelector(".taskrow", { timeout: 8000 });
+  const asFin = await page.textContent("#content");
+  check(!(await page.isVisible('.doerchip[data-f="who"][data-v="all"]')), "кнопки «Усі» немає");
+  check(!(await page.isVisible('.doerchip[data-f="role"][data-v=""]')), "відбору за роллю немає");
+  check(/прострочена моя/.test(asFin), "свої задачі видно");
+  check(!/задача фінансистки/.test(asFin), "чужа задача (іншої людини) не показується");
+  check(!/чужа задача/.test(asFin), "і друга чужа теж не показується");
 
   console.log("");
   if (errors.length) { console.log("ПОМИЛКИ В БРАУЗЕРІ:"); errors.forEach(e => console.log("   " + e)); }
