@@ -114,6 +114,16 @@ MARK_FIELDS = {"Id", "Переказ за кордон", "Дата перека�
 # були б чутливі самі по собі (там текст, дата, статус і виконавці).
 TASK_DENY = {"Перегляд", "Логіст"}
 
+# ── чиї задачі видно ──────────────────────────────────────────────────────
+# Рішення користувачки 12.08.2026: «адмін бачить всі задачі, інші ролі — тільки
+# свої». «Свої» = я виконавець АБО я поставила задачу (інакше керівник підрозділу
+# не бачив би того, що сам доручив).
+# Зіставляємо по EMAIL, а не по імені: у довіднику двоє людей з ім'ям «Ірина»,
+# і зіставлення по імені показало б одній чужі задачі. Саме тому тут окремий
+# фільтр, а не звичайний SCOPE_FIELD — той порівнює одне поле з іменем.
+TASK_SEE_ALL = {"Адміністратор"}
+TASK_SCOPE = "Виконавці/Постановник"      # позначка для журналу і для _pass()
+
 # ── чиї рядки видно (функція scoped у фасаді) ─────────────────────────────
 # mgr → бачить угоди, де він «Менеджер»; ops → де він «Оп. менеджер».
 # Калькуляції менеджер теж бачить тільки свої (рядок 3877 фасада).
@@ -126,7 +136,8 @@ SCOPE_FIELD = {
 
 # Довідники, які видно цілком навіть тим, хто обмежений своїми рядками:
 # без них сторінка просто не збереться (списки клієнтів, інструкції, колеги).
-SCOPE_FREE = {"Клієнти", "Інструкції", "Користувачі", "Задачі"}
+# «Задачі» ЗВІДСИ ПРИБРАНІ 12.08.2026 — у них тепер власне правило (TASK_SEE_ALL).
+SCOPE_FREE = {"Клієнти", "Інструкції", "Користувачі"}
 
 CACHE_SEC = 60
 _who = {}          # ключ сесії -> (email, ім'я, роль, коли)
@@ -212,7 +223,7 @@ def payload_fields(payload):
     return out
 
 
-def decide(method, path, role, name, fields=None):
+def decide(method, path, role, name, fields=None, email=None):
     """Чи можна. Повертає (дозволено, причина, поле_обмеження або None).
 
     Свідомо fail-closed: невідома роль, невідома таблиця, невідомий метод —
@@ -251,6 +262,12 @@ def decide(method, path, role, name, fields=None):
                                    % (role, ", ".join(sorted(extra))[:80])), None
         if tname == "Журнал дій" and method == "DELETE":
             return False, "журнал дій не видаляється", None
+    # Задачі: адміністратор бачить усі, решта — лише свої (12.08.2026).
+    if tname == "Задачі" and method in ("GET", "HEAD") and role not in TASK_SEE_ALL:
+        if not email:
+            # обмеження є, а зіставляти нема з чим — це «ні», а не «пропустити»
+            return False, "не вдалося визначити пошту, обмежити нема по чому", None
+        return True, "дозволено, лише свої задачі", TASK_SCOPE
     scope = ROLE_SCOPE.get(role)
     if not scope or tname in SCOPE_FREE:
         return True, "дозволено", None
@@ -276,6 +293,30 @@ def scope_rows(body, field, name):
     return json.dumps(js, ensure_ascii=False).encode("utf-8"), was, len(js["list"])
 
 
+def my_task(row, email):
+    """Чи ця задача моя: я серед виконавців або я її поставила.
+
+    «Виконавці» — пошти через кому (так вирішено у фасаді: у довіднику двоє
+    людей з ім'ям «Ірина», тому ключем може бути тільки пошта).
+    """
+    doers = [x.strip().lower() for x in str(row.get("Виконавці") or "").split(",")]
+    return email in doers or str(row.get("Постановник") or "").strip().lower() == email
+
+
+def scope_tasks(body, email):
+    """Лишити лише свої задачі. Окремо від scope_rows: там одне поле = ім'я,
+    а тут два поля і список пошт усередині одного з них."""
+    try:
+        js = json.loads(body.decode("utf-8"))
+    except Exception:  # noqa: BLE001
+        return body, 0, 0
+    if not isinstance(js, dict) or not isinstance(js.get("list"), list):
+        return body, 0, 0
+    was = len(js["list"])
+    js["list"] = [r for r in js["list"] if my_task(r, (email or "").lower())]
+    return json.dumps(js, ensure_ascii=False).encode("utf-8"), was, len(js["list"])
+
+
 class Handler(BaseHTTPRequestHandler):
     protocol_version = "HTTP/1.1"
 
@@ -292,7 +333,7 @@ class Handler(BaseHTTPRequestHandler):
         payload = self.rfile.read(length) if length else None
 
         ok, why, field = decide(method, self.path, role, name,
-                                payload_fields(payload))
+                                payload_fields(payload), email)
 
         who = email or "невідомий"
         if not ok:
@@ -321,7 +362,8 @@ class Handler(BaseHTTPRequestHandler):
             # ВАЖЛИВО: рахуємо на копії. У режимі «тільки дивлюсь» віддати треба
             # ВИХІДНЕ тіло, а не обрізане, інакше це вже блокування, просто без
             # напису про нього — і сторінка мовчки показала б менше угод.
-            trimmed, was, now = scope_rows(body, field, name)
+            trimmed, was, now = (scope_tasks(body, email) if field == TASK_SCOPE
+                                 else scope_rows(body, field, name))
             if was != now:
                 log("%s %s · %s · показано %d з %d (лише свої, поле «%s»)%s"
                     % (method, self.path[:80], who, now, was, field,
