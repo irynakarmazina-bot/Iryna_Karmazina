@@ -319,6 +319,46 @@
   .issrow .nm small{display:block;color:var(--muted);font-size:10.5px}
   .issrow .cnt{font-weight:700;font-size:14px;font-variant-numeric:tabular-nums}
   .issrow .go{color:var(--muted);font-size:13px}
+  /* ===== задачі =====
+     Нагадування живуть у самій платформі (рішення користувачки 12.08.2026):
+     червоний лічильник біля пункту меню + блоки «Прострочені / На сьогодні». */
+  .navbadge{margin-left:auto;min-width:19px;height:19px;padding:0 6px;border-radius:999px;
+    background:var(--crit,#d1453b);color:#fff;font-size:11px;font-weight:700;
+    display:inline-flex;align-items:center;justify-content:center;font-variant-numeric:tabular-nums}
+  .tasklist{display:flex;flex-direction:column}
+  /* Рядок ПЕРЕНОСИТЬСЯ: та сама розмітка стоїть і на широкій сторінці «Задачі»,
+     і у вузькій картці дашборда (~370px). Без flex-wrap назва задачі стискалась
+     до нуля і налазила на терміни — видно на першому ж знімку 12.08.2026. */
+  .taskrow{display:flex;align-items:flex-start;gap:10px;padding:9px 5px;border-radius:8px;
+    border-bottom:1px solid var(--line-soft);cursor:pointer;flex-wrap:wrap}
+  .taskrow:last-child{border-bottom:0}
+  .taskrow:hover{background:var(--hover-bg,#f7f8fa)}
+  .taskrow .tk{flex:1 1 190px;min-width:0}
+  .taskrow .tk b{display:block;font-size:13.5px;font-weight:600;line-height:1.35;overflow-wrap:anywhere}
+  .taskrow .tk small{display:block;color:var(--muted);font-size:11px;margin-top:3px;line-height:1.4;overflow-wrap:anywhere}
+  .taskrow .side{display:flex;align-items:center;gap:8px;flex:0 1 auto;flex-wrap:wrap;
+    justify-content:flex-end;margin-left:auto}
+  .taskrow .due{font-size:11.5px;font-variant-numeric:tabular-nums;color:var(--ink-2);white-space:nowrap}
+  .taskrow .due.over{color:var(--crit-text);font-weight:700}
+  .taskrow .due.soon{color:var(--warn-text);font-weight:600}
+  .taskrow.taskdone .tk b{text-decoration:line-through;color:var(--muted);font-weight:500}
+  .tk-mark{border:1px solid var(--line);background:var(--surface);border-radius:6px;
+    width:23px;height:23px;flex:none;cursor:pointer;color:var(--muted);font-size:12px;line-height:1;
+    display:inline-flex;align-items:center;justify-content:center;margin-top:1px}
+  .tk-mark:hover{border-color:var(--good-text);color:var(--good-text)}
+  .doerchip{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;padding:6px 11px;
+    border-radius:999px;border:1px solid var(--line);background:var(--surface);
+    color:var(--ink-2);cursor:pointer;font-family:inherit}
+  .doerchip.sel{border-color:var(--accent);background:var(--accent-soft);
+    color:var(--accent-ink);font-weight:600}
+  .fld{display:flex;flex-direction:column;gap:5px;margin-bottom:11px}
+  .fld>label{font-size:11.5px;color:var(--muted);font-weight:600}
+  .fld input,.fld select,.fld textarea{width:100%;box-sizing:border-box;border:1px solid var(--line);
+    border-radius:8px;padding:8px 10px;font-family:inherit;font-size:13.5px;
+    background:var(--paper);color:var(--ink)}
+  .fld textarea{min-height:66px;resize:vertical}
+  .fldrow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  @media (max-width:560px){ .fldrow{grid-template-columns:1fr} }
   .delta.up{color:var(--good-text)} .delta.down{color:var(--crit-text)}
   /* згортання таблиць-деталізацій під графіками */
   details.det{margin-top:12px}
@@ -835,6 +875,19 @@
     <button class="btn ghost full" id="set-close" style="margin-top:10px">Закрити</button>
   </div>
 </div>
+<div class="overlay" id="task-overlay">
+  <div class="modal" style="max-width:560px;max-height:88vh;overflow-y:auto">
+    <h3 id="task-title">Нова задача</h3>
+    <p class="sub" id="task-hint">по угоді, по клієнту, по співробітнику або просто дія</p>
+    <div id="task-body"></div>
+    <p class="sub" id="task-msg" style="margin-top:2px"></p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
+      <button class="btn" id="task-save">💾 Зберегти</button>
+      <span style="flex:1"></span>
+      <button class="btn ghost" id="task-close">Закрити</button>
+    </div>
+  </div>
+</div>
 <div class="toast" id="toast"></div>
 
 <script src="/chart.min.js"></script>
@@ -1112,6 +1165,7 @@ async function enter(){
   $("u-role").textContent = ROLE;
   logAction("вхід у платформу", "", "", "", "");
   buildNav();
+  refreshTaskBadge();          // нагадування про задачі — одразу після входу
   go(cfg().nav[0]);
   /* На телефоні після входу показуємо МЕНЮ, а не одразу дашборд
      (прохання користувачки 02.08.2026). На комп'ютері меню й так завжди видно. */
@@ -1127,6 +1181,8 @@ $("set-close").addEventListener("click", ()=>$("set-overlay").classList.remove("
 $("calc-close").addEventListener("click", ()=>$("calc-overlay").classList.remove("open"));
 $("calc-overlay").addEventListener("click", e=>{ if(e.target===$("calc-overlay")) $("calc-overlay").classList.remove("open"); });
 $("set-overlay").addEventListener("click", e=>{ if(e.target===$("set-overlay")) $("set-overlay").classList.remove("open"); });
+$("task-close").addEventListener("click", ()=>$("task-overlay").classList.remove("open"));
+$("task-overlay").addEventListener("click", e=>{ if(e.target===$("task-overlay")) $("task-overlay").classList.remove("open"); });
 
 /* ===== навігація ===== */
 /* меню: лінійні значки в одному стилі з фінзвітом (емодзі прибрано 31.07.2026) */
@@ -1143,7 +1199,10 @@ const MODMAP = {
   users:    {label:"Налаштування",ico:"gear",   c:"slate"},
 };
 function buildNav(){
-  $("nav").innerHTML = cfg().nav.map(id=>`<button class="nav-item" data-page="${id}"><span class="ico nav-ico-${MODMAP[id].c||"slate"}"><svg viewBox="0 0 24 24">${ICONS[MODMAP[id].ico]||""}</svg></span>${MODMAP[id].label}</button>`).join("");
+  /* Лічильник у пункті «Задачі» — це і є нагадування в платформі. Порожній
+     <span> малюється завжди: наповнює його refreshTaskBadge() після того, як
+     задачі завантажаться, і потім після кожної зміни. */
+  $("nav").innerHTML = cfg().nav.map(id=>`<button class="nav-item" data-page="${id}"><span class="ico nav-ico-${MODMAP[id].c||"slate"}"><svg viewBox="0 0 24 24">${ICONS[MODMAP[id].ico]||""}</svg></span>${MODMAP[id].label}${id==="tasks"?'<span class="navbadge" id="nav-tasks-badge" style="display:none"></span>':""}</button>`).join("");
   $("nav").querySelectorAll(".nav-item").forEach(b=>b.addEventListener("click",()=>{ DISP_QUICK=null; go(b.dataset.page); }));
   const bg = $("burger"), mc = $("menu-close");
   if (bg && !bg.dataset.bound){ bg.dataset.bound = "1";
@@ -1212,6 +1271,9 @@ const EMOJI_ICON = {
   "📚":["doc","violet"], "🔐":["shield","slate"], "📄":["doc","slate"], "🛡":["shield","violet"],
   "🚚":["truck","amber"], "📈":["chart","green"], "📉":["chart","red"], "🧾":["doc","blue"],
   "⟳":["chart","slate"], "🔎":["chart","slate"], "🗂":["layers","violet"], "⏳":["calendar","amber"],
+  /* задачі (12.08.2026): без цих трьох рядків емодзі в заголовках просто
+     зникали б — незіставлений значок EMO_RE зрізає, а іконку не ставить */
+  "🔔":["alert","amber"], "🔴":["alert","red"], "🗓":["calendar","slate"],
 };
 const EMO_RE = /^([\u203C-\u3299\u{1F000}-\u{1FAFF}\u2600-\u27BF][\uFE0F\u200D]*)\s*/u;
 function enhanceHeads(root){
@@ -1555,6 +1617,21 @@ PAGES.dashboard = async () => {
     .sort((a,b)=>String(a["ETA"]).localeCompare(String(b["ETA"]))).slice(0,8);
   const scopeNote = cfg().scope!=="all" ? `<div class="note">👤 Показано лише твої угоди (${esc(UNAME)}).</div>` : "";
 
+  /* ── мої задачі: нагадування прямо на дашборді (вимога користувачки 12.08.2026)
+     Задачі не мають права завалити дашборд: якщо їх не вдалося прочитати —
+     кажемо про це в самому блоці, а решта сторінки малюється як звичайно. */
+  let myTasks = [], tUsers = [], tasksErr = "";
+  try {
+    myTasks = (await taskRows()).filter(t=>isMyTask(t) && taskIsOpen(t));
+    try { tUsers = await taskUsers(); } catch(e){ tUsers = []; }
+  } catch(e){ tasksErr = e.message || "збій зв'язку"; }
+  const tOver  = myTasks.filter(t=>{ const n=taskDays(t); return n!==null && n<0; });
+  const tToday = myTasks.filter(t=>taskDays(t) === 0);
+  const tSoon  = myTasks.filter(t=>{ const n=taskDays(t); return n!==null && n>0 && n<=remindOf(t); });
+  const tNear  = [...tOver, ...tToday, ...tSoon]
+    .concat(myTasks.filter(t=>{ const n=taskDays(t); return n!==null && n>remindOf(t) && n<=7; }))
+    .filter((v,i,a)=>a.indexOf(v)===i).slice(0, 8);
+
   // розподіл по лініях — лише там, де лінія взагалі буває:
   // морські + залізничні + мультимодальні на FOB/CIF («ТЕО+авто»). Авіа й авто не рахуємо.
   const lineRows = rows.filter(hasLine);
@@ -1646,9 +1723,21 @@ PAGES.dashboard = async () => {
       <div class="tile clickable" data-jump="active"><div class="lbl">📦 Активні перевезення</div><div class="val">${active.length}</div><div class="delta">з ${rows.length} угод усього</div></div>
       <div class="tile clickable" data-jump="sea"><div class="lbl">🌊 В морі зараз</div><div class="val">${sea}</div><div class="delta">${active.length? Math.round(sea/active.length*100):0}% активних</div></div>
       <div class="tile clickable" data-jump="eta7"><div class="lbl">📅 Прибуття за 7 днів</div><div class="val">${week}</div><div class="delta">потребують уваги</div></div>
+      <div class="tile clickable${tOver.length?" warn":""}" data-jump="tasks"><div class="lbl">🔔 Мої задачі — нагадування</div>
+        <div class="val">${tOver.length + tToday.length}</div>
+        <div class="delta">${tasksErr ? "дані не завантажились"
+          : tOver.length + " " + plural(tOver.length,"прострочена","прострочені","прострочених") +
+            ", " + tToday.length + " на сьогодні"}</div></div>
     </div>
 
     <div class="dashgrid">
+      <div class="card"><h3>🔔 Мої задачі</h3>
+        <p class="sub">${tasksErr ? "не завантажились" : "прострочені, на сьогодні й ті, що скоро нагадають"}</p>
+        <div class="scrollbox">${
+          tasksErr ? `<p class="sub">⚠ ${esc(tasksErr)} — онови сторінку.</p>`
+          : tNear.length ? `<div class="tasklist">${tNear.map(t=>taskRowHtml(t, tUsers)).join("")}</div>`
+          : '<p class="sub" style="margin-top:8px">Відкритих задач на найближчі дні немає.</p>'}</div></div>
+
       <div class="card"><h3>📊 Прибуття по місяцях</h3><p class="sub">кількість угод за датою ETA${monKeys.length? ` · ${MON[months[0][1]]} ${String(months[0][0]).slice(2)} — ${MON[months[months.length-1][1]]} ${String(months[months.length-1][0]).slice(2)}`:""}</p>
         <div class="chartbox"><canvas id="ch-months"></canvas></div></div>
 
@@ -1724,7 +1813,14 @@ PAGES.dashboard = async () => {
   });
   $("content").querySelectorAll("[data-jump]").forEach(t=>t.addEventListener("click",()=>{
     if (t.classList.contains("issrow") && !t.classList.contains("clickable")) return;
+    if (t.dataset.jump === "tasks"){ go("tasks"); return; }   // нагадування ведуть у «Задачі»
     DISP_QUICK = t.dataset.jump; go("dispatch");
+  }));
+  /* Рядок задачі на дашборді відкриває саму задачу, а не диспетчеризацію. */
+  $("content").querySelectorAll(".taskrow[data-task]").forEach(el=>el.addEventListener("click", e=>{
+    if (e.target.closest("[data-done]")) return;
+    const t = myTasks.find(x=>String(x.Id) === el.dataset.task);
+    if (t) openTask(t, {});
   }));
   enhanceTiles();
 };
@@ -2930,7 +3026,55 @@ function openRow(r){
   }).join("");
   if (canEdit) $("row-body").querySelectorAll("td.cardedit").forEach(td=>
     td.addEventListener("click", ()=>editCardField(td, r)));
+  renderDealTasks(r);            // задачі по цій угоді — тут же, в картці
   $("row-overlay").classList.add("open");
+}
+
+/* Задачі по конкретній угоді просто в її картці — щоб «постановка задач по
+   угодам» починалась там, де людина на угоду й дивиться (вимога 12.08.2026).
+   Блок домальовується окремо і асинхронно: картка не повинна чекати на задачі,
+   а якщо їх не вдалося прочитати — це видно, а не виглядає як «задач немає». */
+async function renderDealTasks(r){
+  const num = String(r["Угода"] || "").trim();
+  /* Блок перемальовується після закриття задачі — старий прибираємо, інакше
+     їх ставало б два, три, чотири. */
+  const old = $("row-tasks");
+  if (old) old.remove();
+  const box = document.createElement("div");
+  box.id = "row-tasks";
+  const head = '<h3 style="margin-top:16px">✅ Задачі по угоді</h3>';
+  box.innerHTML = head + '<p class="sub">завантажую…</p>';
+  $("row-body").appendChild(box);
+  let list = [], users = [];
+  try{
+    list = (await taskRows()).filter(t=>num && String(t["Угода"]||"").trim() === num);
+    try{ users = await taskUsers(); }catch(e){ users = []; }
+  }catch(e){
+    box.innerHTML = head + `<p class="sub">⚠ Не вдалося прочитати задачі (${esc(e.message)}).</p>`;
+    return;
+  }
+  const open = list.filter(taskIsOpen).sort((a,b)=>String(a["Термін"]||"9999").localeCompare(String(b["Термін"]||"9999")));
+  const done = list.filter(t=>!taskIsOpen(t));
+  box.innerHTML = head +
+    (open.length ? `<div class="tasklist">${open.map(t=>taskRowHtml(t, users)).join("")}</div>`
+                 : '<p class="sub">Відкритих задач по цій угоді немає.</p>') +
+    (done.length ? `<p class="sub" style="margin-top:6px">закритих: ${done.length}</p>` : "") +
+    (canTask() ? '<button class="btn ghost" id="row-task-add" style="margin-top:10px">➕ Задача по цій угоді</button>' : "");
+  if ($("row-task-add")) $("row-task-add").addEventListener("click", ()=>
+    openTask(null, {"Тип":"Угода", "Угода": num}));
+  box.querySelectorAll(".taskrow[data-task]").forEach(el=>el.addEventListener("click", e=>{
+    if (e.target.closest("[data-done]")) return;
+    const t = list.find(x=>String(x.Id) === el.dataset.task);
+    if (t) openTask(t, {});
+  }));
+  box.querySelectorAll("[data-done]").forEach(b=>b.addEventListener("click", async ()=>{
+    const t = list.find(x=>String(x.Id) === b.dataset.done);
+    if (!t) return;
+    b.disabled = true; b.textContent = "…";
+    try{ await saveTask({Id: t.Id, "Статус":"Виконано", "Виконано": todayISO()}, t, "закрито задачу");
+         toast("✅ Задачу виконано"); renderDealTasks(r); }
+    catch(err){ b.disabled = false; b.textContent = "✓"; toast("⚠ Не збереглось: " + err.message); }
+  }));
 }
 
 function editCardField(td, r){
@@ -2988,11 +3132,31 @@ PAGES.clients = async () => {
   const cnt = {};
   disp.forEach(r=>{ const k=(r["Клієнт"]||"").trim(); if(!k) return; cnt[k]=cnt[k]||{all:0,act:0}; cnt[k].all++; if(r["Статус"]!=="Вантаж доставлено") cnt[k].act++; });
   const names = Object.keys(cnt).sort((a,b)=>cnt[b].act-cnt[a].act || cnt[b].all-cnt[a].all);
+
+  /* Відкриті задачі по клієнту — щоб «постановка задач по клієнтам» була видна
+     там, де на клієнта й дивляться (12.08.2026). Рахуємо і задачі з типом
+     «Клієнт», і ті, що поставлені по його угодах. Якщо задачі не прочитались —
+     колонку не показуємо взагалі, замість того щоб малювати всюди нулі. */
+  let tByClient = null;
+  try{
+    const tasks = (await taskRows()).filter(taskIsOpen);
+    const clientOfDeal = {};
+    disp.forEach(r=>{ const d=String(r["Угода"]||"").trim(); if(d) clientOfDeal[d] = (r["Клієнт"]||"").trim(); });
+    tByClient = {};
+    tasks.forEach(t=>{
+      const c = String(t["Клієнт"]||"").trim() || clientOfDeal[String(t["Угода"]||"").trim()] || "";
+      if (c) tByClient[c] = (tByClient[c]||0) + 1;
+    });
+  }catch(e){ tByClient = null; }
+
   $("content").innerHTML = `
-    <div class="card"><p class="sub">з угод диспетчеризації${cfg().scope!=="all"?" · лише твої":""}</p>
+    <div class="card"><p class="sub">з угод диспетчеризації${cfg().scope!=="all"?" · лише твої":""}${
+        tByClient ? " · задачі — відкриті, по клієнту і по його угодах" : ""}</p>
       <div class="tablewrap"><table>
-        <thead><tr><th>Клієнт</th><th class="num">Угод всього</th><th class="num">Активних</th></tr></thead>
-        <tbody>${names.map(n=>`<tr><td><b>${esc(n)}</b></td><td class="num">${cnt[n].all}</td><td class="num">${cnt[n].act}</td></tr>`).join("")}</tbody>
+        <thead><tr><th>Клієнт</th><th class="num">Угод всього</th><th class="num">Активних</th>${
+          tByClient ? '<th class="num">Задач</th>' : ""}</tr></thead>
+        <tbody>${names.map(n=>`<tr><td><b>${esc(n)}</b></td><td class="num">${cnt[n].all}</td><td class="num">${cnt[n].act}</td>${
+          tByClient ? `<td class="num">${tByClient[n] || "—"}</td>` : ""}</tr>`).join("")}</tbody>
       </table></div></div>`;
 };
 
@@ -4270,17 +4434,375 @@ function openCalc(r){
   $("calc-overlay").classList.add("open");
 }
 
+/* ═══════════════════ ЗАДАЧІ ═══════════════════════════════════════════════
+   Вимога користувачки 12.08.2026: «постановка задач по угодам, по клієнтам,
+   співпрацівникам та просто по діям з нагадуваннями та з можливістю додавати
+   виконавців». Нагадування — В ПЛАТФОРМІ (не Telegram і не пошта, її рішення):
+   лічильник біля пункту меню + блоки «Прострочені / На сьогодні» тут і на
+   дашборді.
+
+   Було до цього: сторінка ЛИШЕ читала таблицю (створити чи змінити статус з
+   платформи було неможливо, статуси міняла я через API), поле «Кому» — один
+   вибір із двох вписаних імен, прив'язки до клієнта і до співробітника не було
+   зовсім. Колонки додає direct_sync/add_task_columns.py.
+
+   ВИКОНАВЦІ ЛЕЖАТЬ У БАЗІ ЯК EMAIL-И ЧЕРЕЗ КОМУ, а показуються іменами. Причина
+   не стильова: у довіднику `Користувачі` двоє людей з ім'ям «Ірина» (Кармазіна і
+   Голобородько), тож ім'я не може бути ключем. Стара колонка «Кому» лишається
+   недоторканою — нічого не видаляємо без прямого дозволу.
+
+   «Співробітник» — це задача ПРО людину (оформити відпустку, провести навчання),
+   а «Виконавці» — хто її РОБИТЬ. Це різні поля, і користувачка підтвердила, що
+   потрібні обидва. */
+const TASK_KINDS  = ["Угода", "Клієнт", "Співробітник", "Дія"];
+const TASK_PRIO   = ["Терміново", "Звичайно", "Низько"];
+const TASK_STATES = ["Нова", "В роботі", "Виконано", "Скасовано"];
+const TASK_OPEN   = ["Нова", "В роботі"];
+const TASK_PILL   = {"Нова":"t-info", "В роботі":"t-warn", "Виконано":"t-good", "Скасовано":"t-del"};
+const PRIO_PILL   = {"Терміново":"t-crit", "Звичайно":"t-neutral", "Низько":"t-del"};
+/* тип задачі → в яку колонку записаний її об'єкт */
+const TASK_OBJ_FIELD = {"Угода":"Угода", "Клієнт":"Клієнт", "Співробітник":"Співробітник"};
+
+/* Задачі веде кожен, хто взагалі бачить розділ, окрім ролі «Перегляд».
+   Свідомо НЕ беремо cfg().edit — воно про право правити УГОДИ. Фінансист і
+   бухгалтер угод не правлять, але свої задачі закривати мають. */
+const canTask = () => ROLE !== "Перегляд" && cfg().nav.includes("tasks");
+
+let TASKS_CACHE = null, TUSERS_CACHE = null;
+let TASK_FILTER = {who:"mine", kind:"", closed:false};
+
+async function taskRows(force){
+  if (force) TASKS_CACHE = null;
+  return TASKS_CACHE || (TASKS_CACHE = await loadAll(T["Задачі"]));
+}
+/* Довідник людей для вибору виконавців. Помилку не ковтаємо мовчки: без списку
+   призначити нікого не можна, і про це треба сказати, а не показати порожньо. */
+async function taskUsers(){
+  if (TUSERS_CACHE) return TUSERS_CACHE;
+  TUSERS_CACHE = (await loadAll(T["Користувачі"])).filter(u=>u["Активний"] !== false);
+  return TUSERS_CACHE;
+}
+const userLabel = u => [u["Ім'я"], u["Прізвище"]].filter(Boolean).join(" ").trim() || u["Email"] || "—";
+const myEmail   = () => String(sessionStorage.getItem("email") || "").toLowerCase();
+const doerList  = t => String(t["Виконавці"] || "").split(",").map(s=>s.trim().toLowerCase()).filter(Boolean);
+function doerNames(t, users){
+  return doerList(t).map(em=>{
+    const u = (users||[]).find(x=>String(x["Email"]||"").toLowerCase() === em);
+    return u ? userLabel(u) : em;
+  });
+}
+const taskIsOpen = t => TASK_OPEN.includes(String(t["Статус"] || "Нова"));
+const isMyTask   = t => { const me = myEmail(); return !!me &&
+  (doerList(t).includes(me) || String(t["Постановник"]||"").toLowerCase() === me); };
+/* скільки днів лишилось до терміну; null — терміну немає */
+function taskDays(t){
+  const d = dOf(t["Термін"]);
+  if (!d) return null;
+  const now = new Date(); now.setHours(0,0,0,0);
+  return Math.round((d - now) / 86400000);
+}
+/* За скільки днів до терміну задача починає нагадувати. 0 — у сам день. */
+function remindOf(t){
+  const n = Number(t["Нагадати за"]);
+  return Number.isFinite(n) && n >= 0 ? n : 0;
+}
+/* Задача «дзвонить»: термін настав, минув або настане в межах нагадування. */
+const taskRings = t => { const d = taskDays(t); return taskIsOpen(t) && d !== null && d <= remindOf(t); };
+
+/* Лічильник у меню — нагадування, яке видно з будь-якої сторінки.
+   Рахуємо МОЇ задачі: і ті, де я виконавець, і ті, які я поставила (інакше
+   керівник не бачив би, що доручене ним прострочено). */
+function refreshTaskBadge(){
+  const el = $("nav-tasks-badge");
+  if (!el || !T["Задачі"]) return;
+  taskRows(true).then(rows=>{
+    const box = $("nav-tasks-badge");
+    if (!box) return;
+    const n = rows.filter(t=>isMyTask(t) && taskRings(t)).length;
+    box.textContent = n;
+    box.style.display = n ? "inline-flex" : "none";
+    box.title = n + " " + plural(n, "задача потребує уваги", "задачі потребують уваги",
+                                    "задач потребують уваги");
+  }).catch(()=>{ /* лічильник не має ламати роботу платформи */ });
+}
+
+function taskObjHtml(t){
+  const k = String(t["Тип"] || (t["Угода"] ? "Угода" : "Дія"));
+  const f = TASK_OBJ_FIELD[k];
+  const v = f ? String(t[f] || "").trim() : "";
+  if (!v) return k === "Дія" ? "дія" : esc(k) + " (не вказано)";
+  if (k === "Угода") return "угода №" + esc(v);
+  return esc(k) + ": " + esc(v);
+}
+/* Підпис терміну людською мовою — «прострочено 3 дні», «сьогодні», «через 2 дні» */
+function dueHtml(t){
+  const d = taskDays(t);
+  if (d === null) return '<span class="due">без терміну</span>';
+  const when = fmtD(t["Термін"]);
+  if (!taskIsOpen(t)) return `<span class="due">${esc(when)}</span>`;
+  if (d < 0) return `<span class="due over" title="${esc(when)}">прострочено ${-d} ${plural(-d,"день","дні","днів")}</span>`;
+  if (d === 0) return `<span class="due over" title="${esc(when)}">сьогодні</span>`;
+  const cls = d <= remindOf(t) ? "due soon" : "due";
+  return `<span class="${cls}" title="${esc(when)}">через ${d} ${plural(d,"день","дні","днів")} · ${esc(when)}</span>`;
+}
+function taskRowHtml(t, users){
+  const names = doerNames(t, users);
+  const prio = String(t["Пріоритет"] || "");
+  const done = !taskIsOpen(t);
+  return `<div class="taskrow${done?" taskdone":""}" data-task="${t.Id}">
+    ${canTask() && !done ? `<button class="tk-mark" data-done="${t.Id}" title="Позначити виконаною">✓</button>` : ""}
+    <span class="tk"><b>${esc(t["Задача"] || "(без назви)")}</b>
+      <small>${taskObjHtml(t)}${names.length ? " · " + esc(names.join(", ")) : " · виконавця немає"}${
+        t["Коментар"] ? " · " + esc(String(t["Коментар"]).slice(0,70)) : ""}</small></span>
+    <span class="side">${dueHtml(t)}
+      ${prio && prio !== "Звичайно" ? `<span class="pill ${PRIO_PILL[prio]||"t-neutral"}">${esc(prio)}</span>` : ""}
+      <span class="pill ${TASK_PILL[t["Статус"]]||"t-neutral"}">${esc(t["Статус"] || "Нова")}</span></span>
+  </div>`;
+}
+
 PAGES.tasks = async () => {
-  const rows = await loadAll(T["Задачі"]);
+  let rows, users = [];
+  try { rows = await taskRows(true); }
+  catch(e){
+    $("content").innerHTML = `<div class="note">⚠ Не вдалося завантажити задачі (${esc(e.message)}). Онови сторінку.</div>`;
+    return;
+  }
+  try { users = await taskUsers(); }
+  catch(e){
+    sysWarn("Довідник співробітників не завантажився (" + (e.message || "збій зв'язку") +
+            "). Виконавці показані поштою, а не іменами, і призначити нового не вийде.");
+  }
+
+  const mine = rows.filter(isMyTask);
+  const view = (TASK_FILTER.who === "mine" ? mine : rows)
+    .filter(t=>!TASK_FILTER.kind || String(t["Тип"]||"") === TASK_FILTER.kind);
+  const open = view.filter(taskIsOpen);
+  const closed = view.filter(t=>!taskIsOpen(t));
+
+  const days = t => taskDays(t);
+  const G = {
+    over:  open.filter(t=>days(t) !== null && days(t) < 0),
+    today: open.filter(t=>days(t) === 0),
+    week:  open.filter(t=>{ const d=days(t); return d !== null && d > 0 && d <= 7; }),
+    later: open.filter(t=>{ const d=days(t); return d !== null && d > 7; }),
+    none:  open.filter(t=>days(t) === null),
+  };
+  const byPrio = (a,b)=> TASK_PRIO.indexOf(a["Пріоритет"]||"Звичайно") - TASK_PRIO.indexOf(b["Пріоритет"]||"Звичайно");
+  const byDue  = (a,b)=> String(a["Термін"]||"9999").localeCompare(String(b["Термін"]||"9999")) || byPrio(a,b);
+  Object.values(G).forEach(g=>g.sort(byDue));
+  closed.sort((a,b)=>String(b["Виконано"]||b["UpdatedAt"]||"").localeCompare(String(a["Виконано"]||a["UpdatedAt"]||"")));
+
+  const block = (title, sub, list, cls) => list.length ? `
+    <div class="card" style="margin-top:12px">
+      <h3>${title} <span style="color:var(--muted);font-weight:500">${list.length}</span></h3>
+      <p class="sub">${sub}</p>
+      <div class="tasklist ${cls||""}">${list.map(t=>taskRowHtml(t, users)).join("")}</div>
+    </div>` : "";
+
+  $("page-actions").innerHTML = `
+    ${canTask() ? '<button class="btn" id="task-new">➕ Нова задача</button>' : ""}
+    <span class="alertbar">
+      <span class="abadge ${G.over.length?"a-red":""}">прострочені <b>${G.over.length}</b></span>
+      <span class="abadge ${G.today.length?"a-amber":""}">на сьогодні <b>${G.today.length}</b></span>
+      <span class="abadge">на тиждень <b>${G.week.length}</b></span>
+    </span>`;
+  if ($("task-new")) $("task-new").addEventListener("click", ()=>openTask(null, {}));
+
+  const chip = (on, key, val, label) =>
+    `<button class="doerchip${on?" sel":""}" data-f="${key}" data-v="${esc(val)}">${esc(label)}</button>`;
   $("content").innerHTML = `
-    <div class="card"><p class="sub">ведуться в базі · створення звідси — наступна ітерація</p>
-      <div class="tablewrap"><table>
-        <thead><tr><th>Задача</th><th>Кому</th><th>Термін</th><th>Статус</th><th>Угода</th></tr></thead>
-        <tbody>${rows.length ? rows.map(t=>`<tr><td>${esc(t["Задача"]||"")}</td><td>${esc(t["Кому"]||"—")}</td>
-          <td class="mono">${esc(t["Термін"]||"—")}</td><td>${esc(t["Статус"]||"—")}</td><td class="mono">${esc(t["Угода"]||"—")}</td></tr>`).join("")
-          : '<tr><td colspan="5" class="cell-muted">Задач поки немає.</td></tr>'}</tbody>
-      </table></div></div>`;
+    <div class="card">
+      <p class="sub">задачі по угодах, клієнтах, співробітниках і просто дії ·
+        нагадування показуються тут і лічильником у меню</p>
+      <div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:10px">
+        ${chip(TASK_FILTER.who==="mine","who","mine","👤 Мої (" + mine.filter(taskIsOpen).length + ")")}
+        ${chip(TASK_FILTER.who==="all","who","all","Усі (" + rows.filter(taskIsOpen).length + ")")}
+        <span style="width:10px"></span>
+        ${chip(!TASK_FILTER.kind,"kind","","Будь-який тип")}
+        ${TASK_KINDS.map(k=>chip(TASK_FILTER.kind===k,"kind",k,k)).join("")}
+        <span style="width:10px"></span>
+        ${chip(TASK_FILTER.closed,"closed","1","✅ Показати закриті (" + closed.length + ")")}
+      </div>
+    </div>
+    ${block("🔴 Прострочені","термін минув, задача не закрита",G.over)}
+    ${block("🔔 На сьогодні","термін — сьогодні",G.today)}
+    ${block("📅 Найближчі 7 днів","",G.week)}
+    ${block("🗓 Пізніше","",G.later)}
+    ${block("Без терміну","термін не поставлений — нагадування по них не працює",G.none)}
+    ${TASK_FILTER.closed ? block("✅ Закриті","виконані та скасовані",closed) : ""}
+    ${open.length ? "" : '<div class="card" style="margin-top:12px"><p class="sub">Відкритих задач немає.' +
+      (canTask() ? " Натисни «Нова задача», щоб поставити першу." : "") + '</p></div>'}`;
+
+  $("content").querySelectorAll(".doerchip[data-f]").forEach(b=>b.addEventListener("click", ()=>{
+    const f = b.dataset.f;
+    if (f === "closed") TASK_FILTER.closed = !TASK_FILTER.closed;
+    else TASK_FILTER[f] = b.dataset.v;
+    PAGES.tasks();
+  }));
+  $("content").querySelectorAll(".taskrow[data-task]").forEach(el=>el.addEventListener("click", e=>{
+    if (e.target.closest("[data-done]")) return;          // галочку обробляє свій обробник
+    const t = rows.find(x=>String(x.Id) === el.dataset.task);
+    if (t) openTask(t, {});
+  }));
+  $("content").querySelectorAll("[data-done]").forEach(b=>b.addEventListener("click", async ()=>{
+    const t = rows.find(x=>String(x.Id) === b.dataset.done);
+    if (!t) return;
+    b.disabled = true; b.textContent = "…";
+    try{ await saveTask({Id: t.Id, "Статус": "Виконано", "Виконано": todayISO()}, t, "закрито задачу");
+         toast("✅ Задачу виконано"); PAGES.tasks(); }
+    catch(err){ b.disabled = false; b.textContent = "✓"; toast("⚠ Не збереглось: " + err.message); }
+  }));
 };
+
+/* Запис задачі. Один шлях для створення і для зміни, щоб позначка «Виконано»
+   і журнал дій не розповзалися по трьох місцях. */
+async function saveTask(body, before, what){
+  const isNew = !body.Id;
+  await api(`/api/v2/tables/${T["Задачі"]}/records`, {
+    method: isNew ? "POST" : "PATCH", body: JSON.stringify([body])});
+  TASKS_CACHE = null;
+  logAction(what || (isNew ? "створено задачу" : "зміна задачі"),
+            body["Задача"] || (before && before["Задача"]) || ("№" + body.Id),
+            "Статус", before ? before["Статус"] : "", body["Статус"] || "");
+  refreshTaskBadge();
+}
+
+/* Картка задачі: створення і редагування. preset — коли ставимо задачу з картки
+   угоди («по цій угоді»): тоді тип і об'єкт уже заповнені. */
+async function openTask(t, preset){
+  const isNew = !t;
+  t = t || {};
+  preset = preset || {};
+  let users = [];
+  try { users = await taskUsers(); } catch(e){ users = []; }
+
+  const kind0 = String(preset["Тип"] || t["Тип"] || (t["Угода"] ? "Угода" : "Дія"));
+  const sel = new Set(isNew ? (myEmail() ? [myEmail()] : []) : doerList(t));
+
+  $("task-title").textContent = isNew ? "Нова задача" : "Задача";
+  $("task-hint").textContent  = isNew
+    ? "по угоді, по клієнту, по співробітнику або просто дія"
+    : "постановник: " + (t["Постановник"] || "—") +
+      (t["CreatedAt"] ? " · створена " + fmtD(t["CreatedAt"]) : "");
+  $("task-msg").textContent = "";
+  $("task-body").innerHTML = `
+    <div class="fld"><label for="tk-name">Що зробити</label>
+      <input id="tk-name" type="text" maxlength="255" value="${esc(t["Задача"]||"")}" placeholder="напр. надіслати драфт коносамента"></div>
+    <div class="fldrow">
+      <div class="fld"><label for="tk-kind">Тип задачі</label>
+        <select id="tk-kind">${TASK_KINDS.map(k=>`<option${k===kind0?" selected":""}>${esc(k)}</option>`).join("")}</select></div>
+      <div class="fld" id="tk-obj-wrap"></div>
+    </div>
+    <div class="fld"><label>Виконавці</label>
+      <div id="tk-doers" style="display:flex;gap:7px;flex-wrap:wrap">${
+        users.length ? users.map(u=>{ const em = String(u["Email"]||"").toLowerCase();
+          return `<button type="button" class="doerchip${sel.has(em)?" sel":""}" data-em="${esc(em)}">${esc(userLabel(u))}</button>`;
+        }).join("") : '<span class="sub">Довідник співробітників не завантажився — призначити нікого не вийде.</span>'}</div></div>
+    <div class="fldrow">
+      <div class="fld"><label for="tk-due">Термін</label>
+        <input id="tk-due" type="date" value="${esc(String(t["Термін"]||"").slice(0,10))}"></div>
+      <div class="fld"><label for="tk-remind">Нагадати за (днів до терміну)</label>
+        <input id="tk-remind" type="number" min="0" max="60" value="${isNew?1:remindOf(t)}"></div>
+    </div>
+    <div class="fldrow">
+      <div class="fld"><label for="tk-prio">Пріоритет</label>
+        <select id="tk-prio">${TASK_PRIO.map(p=>`<option${p===(t["Пріоритет"]||"Звичайно")?" selected":""}>${esc(p)}</option>`).join("")}</select></div>
+      <div class="fld"><label for="tk-state">Статус</label>
+        <select id="tk-state">${TASK_STATES.map(s=>`<option${s===(t["Статус"]||"Нова")?" selected":""}>${esc(s)}</option>`).join("")}</select></div>
+    </div>
+    <div class="fld"><label for="tk-note">Коментар</label>
+      <textarea id="tk-note" maxlength="2000">${esc(t["Коментар"]||"")}</textarea></div>`;
+
+  /* Поле об'єкта залежить від типу: угода — номер зі списку наявних, клієнт —
+     назва з довідника, співробітник — вибір людини, «Дія» — поля немає. */
+  const drawObj = async () => {
+    const kind = $("tk-kind").value;
+    const wrap = $("tk-obj-wrap");
+    const cur = String(preset[TASK_OBJ_FIELD[kind]] || t[TASK_OBJ_FIELD[kind]] || "");
+    if (kind === "Дія"){
+      wrap.innerHTML = '<label>&nbsp;</label><span class="sub">задача ні до чого не прив’язана</span>';
+      return;
+    }
+    if (kind === "Співробітник"){
+      wrap.innerHTML = `<label for="tk-obj">Про кого задача</label>
+        <select id="tk-obj"><option value=""></option>${users.map(u=>{
+          const n = userLabel(u);
+          return `<option${n===cur?" selected":""}>${esc(n)}</option>`;
+        }).join("")}</select>`;
+      return;
+    }
+    wrap.innerHTML = `<label for="tk-obj">${kind === "Угода" ? "Номер угоди" : "Клієнт"}</label>
+      <input id="tk-obj" type="text" list="tk-obj-list" value="${esc(cur)}" placeholder="${
+        kind === "Угода" ? "напр. 259" : "назва з довідника"}">
+      <datalist id="tk-obj-list"></datalist>`;
+    /* Підказки тягнемо ліниво: списку угод і клієнтів на сторінці задач ще немає,
+       а вантажити їх «про всяк випадок» при кожному відкритті — марно. */
+    try{
+      const dl = $("tk-obj-list");
+      if (!dl) return;
+      const vals = kind === "Угода"
+        ? [...new Set((await dispRows()).map(r=>String(r["Угода"]||"").trim()).filter(Boolean))]
+            .sort((a,b)=>Number(b) - Number(a) || a.localeCompare(b))
+        : [...new Set((await loadAll(T["Клієнти"])).map(c=>String(c["Назва"]||"").trim()).filter(Boolean))].sort();
+      dl.innerHTML = vals.map(v=>`<option value="${esc(v)}"></option>`).join("");
+    }catch(e){ /* підказки не критичні — поле лишається вільним для вводу */ }
+  };
+  await drawObj();
+  $("tk-kind").addEventListener("change", drawObj);
+  $("tk-doers").querySelectorAll("[data-em]").forEach(b=>b.addEventListener("click", ()=>{
+    const em = b.dataset.em;
+    if (sel.has(em)) sel.delete(em); else sel.add(em);
+    b.classList.toggle("sel", sel.has(em));
+  }));
+
+  const save = $("task-save");
+  save.disabled = !canTask();
+  save.onclick = async () => {
+    const name = $("tk-name").value.trim();
+    if (!name){ $("task-msg").textContent = "⚠ Напиши, що саме зробити."; return; }
+    const kind = $("tk-kind").value;
+    const objEl = $("tk-obj");
+    const obj = objEl ? String(objEl.value || "").trim() : "";
+    if (kind !== "Дія" && !obj){
+      $("task-msg").textContent = "⚠ Вкажи, до чого задача (" +
+        (kind === "Угода" ? "номер угоди" : kind === "Клієнт" ? "клієнта" : "співробітника") +
+        "), або постав тип «Дія».";
+      return;
+    }
+    const state = $("tk-state").value;
+    const body = {
+      "Задача": name,
+      "Тип": kind,
+      "Угода": kind === "Угода" ? obj : (isNew ? "" : (t["Угода"] || "")),
+      "Клієнт": kind === "Клієнт" ? obj : (isNew ? "" : (t["Клієнт"] || "")),
+      "Співробітник": kind === "Співробітник" ? obj : (isNew ? "" : (t["Співробітник"] || "")),
+      "Виконавці": [...sel].join(", "),
+      "Термін": $("tk-due").value || null,
+      "Нагадати за": Number($("tk-remind").value) || 0,
+      "Пріоритет": $("tk-prio").value,
+      "Статус": state,
+      "Коментар": $("tk-note").value.trim(),
+    };
+    /* Дата закриття ставиться разом зі статусом і знімається, якщо задачу
+       повернули в роботу — інакше в картці лишалась би дата «виконано» у
+       відкритої задачі. */
+    if (TASK_OPEN.includes(state)) body["Виконано"] = null;
+    else if (!t["Виконано"]) body["Виконано"] = todayISO();
+    if (isNew) body["Постановник"] = myEmail();
+    else body.Id = t.Id;
+
+    save.disabled = true; $("task-msg").textContent = "⏳ Зберігаю…";
+    try{
+      await saveTask(body, isNew ? null : t, isNew ? "створено задачу" : "зміна задачі");
+      $("task-overlay").classList.remove("open");
+      toast(isNew ? "✅ Задачу створено" : "✅ Задачу збережено");
+      if (CUR === "tasks") PAGES.tasks();
+      else if (CUR === "dashboard") PAGES.dashboard();
+    }catch(e){ $("task-msg").textContent = "⚠ Не вдалося зберегти: " + e.message; }
+    save.disabled = false;
+  };
+  $("task-overlay").classList.add("open");
+}
 
 let INSTR_CACHE = null;
 PAGES.instr = async () => {
