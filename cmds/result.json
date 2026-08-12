@@ -1,7 +1,7 @@
 {
-  "stdout": "колонок у таблиці зараз: 13\n   DRY: створив би «Тип» (SingleSelect · Угода / Клієнт / Співробітник / Дія)\n   DRY: створив би «Клієнт» (SingleLineText)\n   DRY: створив би «Співробітник» (SingleLineText)\n   DRY: створив би «Виконавці» (SingleLineText)\n   DRY: створив би «Постановник» (SingleLineText)\n   DRY: створив би «Пріоритет» (SingleSelect · Терміново / Звичайно / Низько)\n   DRY: створив би «Нагадати за» (Number)\n   DRY: створив би «Виконано» (Date)\nDRY: додав би «Скасовано» до статусів (зараз: Нова, В роботі, Виконано)\nDRY_DONE нічого не записано\n",
+  "stdout": "колонок у таблиці зараз: 13\n   «Тип» — створено (SingleSelect)\n   «Клієнт» — створено (SingleLineText)\n   «Співробітник» — створено (SingleLineText)\n   «Виконавці» — створено (SingleLineText)\n   «Постановник» — створено (SingleLineText)\n   «Пріоритет» — створено (SingleSelect)\n   «Нагадати за» — створено (Number)\n   «Виконано» — створено (Date)\nСтатуси тепер: Нова, В роботі, Виконано, Скасовано\n\nTASKCOLS_OK колонок стало: 21\n   Задача           SingleLineText \n   Кому             SingleSelect   Ірина, Віталій\n   Термін           Date           \n   Статус           SingleSelect   Нова, В роботі, Виконано, Скасовано\n   Угода            SingleLineText \n   Коментар         LongText       \n   Тип              SingleSelect   Угода, Клієнт, Співробітник, Дія\n   Клієнт           SingleLineText \n   Співробітник     SingleLineText \n   Виконавці        SingleLineText \n   Постановник      SingleLineText \n   Пріоритет        SingleSelect   Терміново, Звичайно, Низько\n   Нагадати за      Number         \n   Виконано         Date           \n",
   "stderr": "",
   "returncode": 0,
-  "id": "tsk-03",
-  "ts": "2026-08-12T09:23:05Z"
+  "id": "tsk-04",
+  "ts": "2026-08-12T09:23:20Z"
 }
