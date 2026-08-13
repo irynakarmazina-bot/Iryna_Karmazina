@@ -1,7 +1,7 @@
 {
-  "stdout": "«Документи»: заповнено у 0 угодах з 281\n«Файли»: заповнено у 0 угодах з 281\n== кабінет через справжній домен ==\nHTTP/2 200 \ncache-control: no-store\ncontent-security-policy: default-src 'none'; img-src 'self' data:; style-src 'unsafe-inline'; script-src 'nonce-9qipdA5S3j73AmNupPs_MQ'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'\nx-frame-options: DENY\n== невірний пароль на неіснуючу пошту (одна спроба) ==\nкод: 401\nПошта або пароль не підходять\n== журнал кабінету ==\n2026-08-13 13:54:53 старт на 127.0.0.1:8793 · база /root/cabinet/cabinet.db\n2026-08-13 13:58:27 акаунт створено · irynakarmazina@gmail.com · з терміналу\n2026-08-13 13:58:28 акаунт створено · v.pontus@unitex.od.ua · з терміналу\n2026-08-13 14:00:27 невдалий вхід · перевірка@example.com · немає такої пошти (спроба 1)  ip=134.209.94.12\n",
+  "stdout": "угод: 281\nзнайдено вкладень: 0\n",
   "stderr": "",
   "returncode": 0,
-  "id": "cab-13",
-  "ts": "2026-08-13T11:00:27Z"
+  "id": "att-scan-1",
+  "ts": "2026-08-13T11:08:33Z"
 }
