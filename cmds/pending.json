@@ -1,1 +1,1 @@
-{"id": "tsk-26", "cmd": "bash /root/Iryna_Karmazina/server/deploy_ui.sh main 2>&1 | tail -14"}
+{"id": "tsk-27", "cmd": "ls -la /root/unitex-os-www/app/ 2>&1 | head -5; echo; echo \"HTTP /app/main.js:\"; curl -sk -o /dev/null -w \"%{http_code} \u00b7 %{size_download} \u0431\n\" https://134.209.94.12/app/main.js; echo \"HTTP /:\"; curl -sk -o /dev/null -w \"%{http_code}\n\" https://134.209.94.12/"}
