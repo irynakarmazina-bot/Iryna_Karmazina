@@ -225,6 +225,11 @@ tbody tr:last-child td{border-bottom:0}
   box-shadow:0 0 0 3px color-mix(in srgb,var(--mc) 22%,transparent)}
 .mini .ml{flex:1;height:2px;background:var(--mc);opacity:.2;min-width:6px}
 .mini .ml.on{opacity:.85}
+/* смужка прогресу під мініатюрою */
+.pg{margin-top:6px;height:5px;border-radius:3px;background:var(--mbg);overflow:hidden}
+.pg span{display:block;height:100%;background:var(--mc);border-radius:3px}
+.pgl{font-size:11px;color:var(--muted);margin-top:3px}
+.pgl b{color:var(--ink-2);font-weight:700}
 .mono{font-variant-numeric:tabular-nums}
 .num{font-weight:700;font-size:15px}
 .chip{display:inline-block;font-size:10.5px;font-weight:700;letter-spacing:.03em;
@@ -857,6 +862,22 @@ function miniRoute(r){
   }</div>`;
 }
 
+/* ── смужка прогресу під мініатюрою ────────────────────────────────────────
+   Частка пройденого шляху В КРОКАХ, а не в кілометрах і не в днях: інших даних
+   у нас немає, і вигадувати «відсоток відстані» не можна. Поточний крок
+   рахуємо за половину — вантаж у ньому вже, але ще не завершив його.
+   Береться з того самого stepState, що й мініатюра з великою схемою. */
+function routeProgress(r){
+  const { st, P, state, delivered } = stepState(r);
+  const pts = st.map((x,i)=>({x, s:state[i]})).filter(p => p.x.i !== "border");
+  if (pts.length < 2) return "";
+  const doneN = pts.filter(p => p.s === "done").length;
+  const nowN  = pts.filter(p => p.s === "now").length;
+  const pct = delivered ? 100 : Math.round(((doneN + nowN * 0.5) / pts.length) * 100);
+  return `<div class="pg" style="--mc:${P.c};--mbg:${P.bg}"><span style="width:${pct}%"></span></div>
+    <div class="pgl">пройдено <b>${pct}%</b> шляху</div>`;
+}
+
 /* ── картка ───────────────────────────────────────────── */
 function panel(r){
   const conts = s(r,"Контейнер").split(",").map(x=>x.trim()).filter(Boolean);
@@ -979,7 +1000,7 @@ function render(){
       <td class="mono num">${esc(s(r,"Угода"))}</td>
       <td><span class="chip ${s(r,"Напрямок")==="Експорт"?"exp":""}">${
           s(r,"Напрямок")==="Імпорт"?"ІМП":(s(r,"Напрямок")==="Експорт"?"ЕКС":"ТРН")}</span></td>
-      <td data-l="Маршрут">${esc(routeArrows(s(r,"Маршрут"))||"—")}${miniRoute(r)}</td>
+      <td data-l="Маршрут">${esc(routeArrows(s(r,"Маршрут"))||"—")}${miniRoute(r)}${routeProgress(r)}</td>
       <td class="mono" data-l="Коносамент / контейнер">${bl?`<b>${esc(bl)}</b>`:'<span class="dim">—</span>'}${
           conts.map(c=>`<br><span class="dim">${esc(c)}</span>`).join("")}</td>
       <td data-l="Судно">${esc(s(r,"Судно")||"—")}</td>
