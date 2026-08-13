@@ -1,0 +1,59 @@
+# n8n на власному сервері (self-hosted, community edition).
+#
+# Ставиться поруч із NocoDB і Caddy на тому самому VPS. Свідомі рішення:
+#
+#  1. Порт слухається ТІЛЬКИ на 127.0.0.1 — назовні n8n не стирчить.
+#     Публічний доступ дає Caddy (див. server/n8n/README.md), він же тримає HTTPS.
+#  2. mem_limit — головний запобіжник. Сервер має 2 ГБ, з них 620 МБ їсть NocoDB.
+#     Без ліміту сплеск у n8n призведе до того, що система вб'є NocoDB, тобто ЕРП.
+#     Ліміт означає: у найгіршому випадку падає n8n, а платформа працює.
+#  3. Дані — у теці /root/n8n-data на диску сервера, а не в томі docker:
+#     так їх бачить щоденна резервна копія (server/backup.py).
+#  4. N8N_ENCRYPTION_KEY задається ЯВНО і зберігається окремо.
+#     Це ключ, яким n8n шифрує паролі до сервісів. Загубити його = втратити
+#     усі credentials разом із можливістю їх прочитати.
+#
+# Запуск: docker compose -f /root/n8n-data/docker-compose.yml up -d
+# Змінні беруться з /root/n8n-data/.env (створює install.sh, права 600).
+
+services:
+  n8n:
+    image: docker.n8n.io/n8nio/n8n:${N8N_VERSION:-latest}
+    container_name: n8n
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:5678:5678"
+    environment:
+      # — адреса, за якою n8n бачать ззовні (потрібно для вебхуків і OAuth)
+      - N8N_HOST=${N8N_HOST}
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=https
+      - WEBHOOK_URL=https://${N8N_HOST}/
+      - N8N_EDITOR_BASE_URL=https://${N8N_HOST}/
+      # — час: розклади мають рахуватись за Києвом, інакше «щодня 07:00» поїде
+      - GENERIC_TIMEZONE=Europe/Kyiv
+      - TZ=Europe/Kyiv
+      # — ключ шифрування credentials. БЕЗ НЬОГО ДАНІ НЕ ВІДНОВИТИ.
+      - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY}
+      # — вхід: n8n сам питає пошту й пароль власника при першому відкритті
+      - N8N_DIAGNOSTICS_ENABLED=false
+      - N8N_VERSION_NOTIFICATIONS_ENABLED=true
+      # — прибирання історії виконань, інакше база росте нескінченно
+      - EXECUTIONS_DATA_PRUNE=true
+      - EXECUTIONS_DATA_MAX_AGE=336          # години = 14 днів
+      - EXECUTIONS_DATA_SAVE_ON_SUCCESS=none
+      - EXECUTIONS_DATA_SAVE_ON_ERROR=all
+      # — обмеження паралельності: на одному ядрі більше нема сенсу
+      - N8N_CONCURRENCY_PRODUCTION_LIMIT=2
+      - N8N_RUNNERS_ENABLED=true
+    volumes:
+      - /root/n8n-data/.n8n:/home/node/.n8n
+      - /root/n8n-data/files:/files          # для читання/запису файлів воркфлоу
+    mem_limit: ${N8N_MEM_LIMIT:-512m}
+    memswap_limit: ${N8N_MEM_LIMIT:-512m}
+    cpus: 0.8
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
