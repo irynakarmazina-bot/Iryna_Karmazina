@@ -1,7 +1,7 @@
 {
-  "stdout": "ТАБЛИЦЯ: Клієнти mgik03ijqyyct6v\nКОЛОНКИ:\n   Id                               ID\n   Назва                            SingleLineText\n   Контактна особа                  SingleLineText\n   Телефон                          SingleLineText\n   Email                            Email\n   Коментар                         LongText\n   Повна назва                      LongText\n   ЄДРПОУ                           SingleLineText\n   Адреса                           LongText\n   Договір                          SingleLineText\n   Директор (род. відмінок)         SingleLineText\n   Директор (ініціали)              SingleLineText\n   Адреса завантаження              LongText\n   Контакт завантаження             SingleLineText\nЗАПИСІВ: 21\n--- ГРАНД МАРИН ---\n   Id = 3\n   CreatedAt = 2026-07-26 15:13:18+00:00\n   Назва = ГРАНД МАРИН ООО\n",
+  "stdout": "CADDY: ДОПИСАНО\nкопія: /root/Caddyfile.bak-cabinet-20260813-135704\n== різниця ==\n55a56,60\n> \n> cabinet.unitex.od.ua {\n> \tencode gzip\n> \treverse_proxy 127.0.0.1:8793\n> }\n== перевірка конфігу в окремому контейнері ==\nVALIDATE_OK\nRELOAD_OK\n== ЕРП на місці? ==\nUI: 200\n== кабінет ззовні ==\nCAB_HEALTH: 200\nCAB_ROOT:   200\n== сертифікат ==\nsubject=CN = cabinet.unitex.od.ua\nissuer=C = US, O = Let's Encrypt, CN = YE1\nnotBefore=Aug 13 09:58:41 2026 GMT\nnotAfter=Nov 11 09:58:40 2026 GMT\n",
   "stderr": "",
   "returncode": 0,
-  "id": "clients-meta-1",
-  "ts": "2026-08-13T10:56:37Z"
+  "id": "cab-07",
+  "ts": "2026-08-13T10:57:18Z"
 }
