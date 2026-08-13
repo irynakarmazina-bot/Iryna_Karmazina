@@ -1,7 +1,7 @@
 {
-  "stdout": "КРЕДИТОРКА: 31.07 = 70 рах. на 11870.77  →  12.08 = 94 рах. на 21861.17  (зміна +9990.40)\n  нові рахунки за постачальниками:\n     Maersk A/S                       11638.70\n     Cool World                        5000.00\n     ГРАНД МАРИН ТОВ                    200.00\n     Cr String Cycle LLC                125.04\n     Податкова                           52.93\n  Maersk: 10 рахунків, усі від 2026-08-11, угоди: 109, 131, 133, 134, 135, 136, 137, 138, 139, 140\n\ndataDate = 12.08.2026 · updated = 12.08.2026\ncards: {\"cash\": 58091.94, \"ar\": 14102.25, \"ap\": 22044.28, \"wip\": 43692.39, \"nwc\": 93842.3, \"nwcDep\": 101842.3, \"frozen\": 35750.36}\ndeposit: 8000.0\nnwcMonthly, останні 3: [[\"30.06\", 58209.71, 66209.71], [\"31.07\", 105983.96, 113983.96], [\"12.08\", 93842.3, 101842.3]]\nequity: [[\"Ірина\", 40822.0, 3650.0, 37172.0], [\"Віталій\", 25178.0, 0.0, 25178.0], [\"Разом\", 65999.0, 3650.0, 62349.0]]\n",
+  "stdout": "active\n--- TPL ---\ntotal 1176\ndrwxr-xr-x  2 root root   4096 Jul 27 12:04 .\ndrwx------ 29 root root  12288 Aug 13 13:21 ..\n-rw-r--r--  1 root root 239390 Jul 27 12:04 akt.docx\n-rw-r--r--  1 root root  23353 Jul 27 12:04 insurance.docx\n-rw-r--r--  1 root root 131597 Jul 27 12:04 kkk_zayavka.docx\n-rw-r--r--  1 root root 225252 Jul 27 12:04 loi.docx\n-rw-r--r--  1 root root  31804 Jul 27 12:04 maersk_loi.docx\n-rw-r--r--  1 root root  28774 Jul 27 12:04 maersk_poa.docx\n-rw-r--r--  1 root root  12513 Jul 27 12:04 t1_zayavka.docx\n-rw-r--r--  1 root root 216441 Jul 27 12:04 zayavka.docx\n-rw-r--r--  1 root root 258684 Jul 27 12:04 zayavka_perevezennya.docx\n--- CADDY ---\n41:\thandle /gen-doc {\n--- UI ---\n5\n",
   "stderr": "",
   "returncode": 0,
-  "id": "tsk-23",
-  "ts": "2026-08-13T10:21:27Z"
+  "id": "docgen-check-1",
+  "ts": "2026-08-13T10:28:01Z"
 }
