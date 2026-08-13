@@ -1,7 +1,7 @@
 {
-  "stdout": "Компанії з активними угодами — 20:\n   129  Мірандор\n    25  ГРАНД МАРИН\n",
+  "stdout": "— ДО видалення —\ntotal 16\ndrwxr-xr-x 2 root root 4096 Aug 13 13:07 .\ndrwxr-xr-x 3 root root 4096 Aug 13 13:07 ..\n-rw-r--r-- 1 root root    5 Aug 13 13:07 t_lqugj.txt\n-rw-r--r-- 1 root root    5 Aug 13 13:07 t_quZSz.txt\n\n— видаляю рівно два файли за повним шляхом —\nremoved '/root/nocodb-data/nc/uploads/2026/08/13/2f3859e5d334b0598fcf97b05ce59131f554ae38/t_lqugj.txt'\nremoved '/root/nocodb-data/nc/uploads/2026/08/13/2f3859e5d334b0598fcf97b05ce59131f554ae38/t_quZSz.txt'\n\n— ПІСЛЯ —\ntotal 8\ndrwxr-xr-x 2 root root 4096 Aug 13 13:58 .\ndrwxr-xr-x 3 root root 4096 Aug 13 13:07 ..\n\nтеку /root/nocodb-data/nc/uploads/2026/08/13/2f3859e5d334b0598fcf97b05ce59131f554ae38 НЕ чіпаю (вона тепер порожня)\n",
   "stderr": "",
   "returncode": 0,
-  "id": "cab-08",
-  "ts": "2026-08-13T10:58:03Z"
+  "id": "tsk-25",
+  "ts": "2026-08-13T10:58:20Z"
 }
