@@ -19,6 +19,12 @@ const fs = require("fs");
 const http = require("http");
 const { chromium } = require(process.env.PW || "playwright");
 
+const SAFE = n => {
+  // дозволяємо лише підтеки всередині www: жодних ".." нагору
+  const rel = path.normalize(n).replace(/^(\.\.[/\\])+/, "");
+  return rel;
+};
+
 const FILE = process.argv[2];
 const WWW = path.dirname(FILE);
 
@@ -60,7 +66,7 @@ const check = (ok, what) => { console.log((ok ? "  ✓ " : "  ✗ ") + what); if
         'document.getElementById("fr").contentWindow.postMessage({type:"findata",data:' +
         JSON.stringify(D) + '},"*");}});<\/script></body>');
     }
-    fs.readFile(path.join(WWW, path.basename(name)), (err, buf) => {
+    fs.readFile(path.join(WWW, SAFE(name)), (err, buf) => {
       if (err) { res.statusCode = 404; return res.end("no"); }
       res.setHeader("Content-Type", name.endsWith(".js") ? "text/javascript" : "text/html");
       res.end(buf);

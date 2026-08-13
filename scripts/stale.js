@@ -16,6 +16,12 @@ const path = require("path");
 const fs = require("fs");
 const { chromium } = require(process.env.PW || "playwright");
 
+const SAFE = n => {
+  // дозволяємо лише підтеки всередині www: жодних ".." нагору
+  const rel = path.normalize(n).replace(/^(\.\.[/\\])+/, "");
+  return rel;
+};
+
 /* Шлях приймається аргументом (як у smoke.js) НАВМИСНО: deploy_ui.sh перевіряє
    не той файл, що лежить у репозиторії, а КАНДИДАТА, витягнутого з гілки у
    тимчасову теку. Без аргументу перевірка дивилась би на репозиторій і сказала б
@@ -58,7 +64,7 @@ const serve = dir => new Promise(res => {
   const srv = http.createServer((rq, rs) => {
     const name = decodeURIComponent(rq.url.split("?")[0]).replace(/^\/+/, "") || "index.html";
     if (SERVICE[name]) { rs.setHeader("Content-Type", "application/json"); return rs.end(JSON.stringify(SERVICE[name])); }
-    fs.readFile(path.join(dir, path.basename(name)), (e, b) => {
+    fs.readFile(path.join(dir, SAFE(name)), (e, b) => {
       if (e) { rs.statusCode = 404; return rs.end("no"); }
       rs.setHeader("Content-Type", name.endsWith(".js") ? "text/javascript" : "text/html");
       rs.end(b);

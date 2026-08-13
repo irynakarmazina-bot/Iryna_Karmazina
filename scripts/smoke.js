@@ -29,6 +29,12 @@ const fs = require("fs");
 const http = require("http");
 const { chromium } = require(process.env.PW || "playwright");
 
+const SAFE = n => {
+  // дозволяємо лише підтеки всередині www: жодних ".." нагору
+  const rel = path.normalize(n).replace(/^(\.\.[/\\])+/, "");
+  return rel;
+};
+
 const FILE = process.argv[2] || path.join(__dirname, "..", "www", "index.html");
 
 // мінімальні заглушки під NocoDB, щоб сторінки мали з чим працювати
@@ -93,7 +99,7 @@ function serve(dir, missing) {
         res.setHeader("Content-Type", "application/json; charset=utf-8");
         return res.end(JSON.stringify(SERVICE[name]));
       }
-      const p = path.join(dir, path.basename(name));
+      const p = path.join(dir, SAFE(name));
       fs.readFile(p, (err, buf) => {
         // Файла немає поруч з index.html. Найчастіше це findash.html /
         // finperiod.html, які «Фінанси» відкривають усередині сторінки.
