@@ -1,7 +1,7 @@
 {
-  "stdout": "== шлях до конфігу ==\n== ВМІСТ (тільки читаю) ==\n== чи згадується cabinet ==\n0\n",
-  "stderr": "ls: cannot access '/etc/caddy/Caddyfile': No such file or directory\ncat: /etc/caddy/Caddyfile: No such file or directory\ngrep: /etc/caddy/Caddyfile: No such file or directory\n",
+  "stdout": "== служба caddy ==\ninactive\nслужби caddy немає\n== контейнери ==\nnocodb | fb359673c42f | 127.0.0.1:8080->8080/tcp\ncaddy | caddy:2-alpine | \n== хто слухає 80/443 ==\nLISTEN 0      4096               *:443             *:*    users:((\"caddy\",pid=52136,fd=14))                        \nLISTEN 0      4096               *:80              *:*    users:((\"caddy\",pid=52136,fd=15))                        \n== пошук Caddyfile ==\n/root/Caddyfile\n/root/Caddyfile.bak-http\n/root/Caddyfile.bak-rmsheet-20260804-073620\n/root/Caddyfile.tpl\n/root/Caddyfile.bak-20260813-130838\n/root/Caddyfile.bak-cash\n/root/Caddyfile.new\n/root/gdrive-restore-test/config/Caddyfile\n/root/Caddyfile.bak-localcosts\n/root/Caddyfile.bak-1785057761\n== пошук caddy.json ==\n/root/caddy_download.py\n",
+  "stderr": "",
   "returncode": 0,
-  "id": "cab-03",
-  "ts": "2026-08-13T10:55:12Z"
+  "id": "cab-04",
+  "ts": "2026-08-13T10:55:30Z"
 }
