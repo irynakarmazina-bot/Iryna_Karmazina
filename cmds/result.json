@@ -1,7 +1,7 @@
 {
-  "stdout": "— файли на диску —\n/root/nocodb-data/nc/uploads/2026/08/13/2f3859e5d334b0598fcf97b05ce59131f554ae38/t_lqugj.txt\n  розмір: 5 б\n  створено: 2026-08-13 13:07\n/root/nocodb-data/nc/uploads/2026/08/13/2f3859e5d334b0598fcf97b05ce59131f554ae38/t_quZSz.txt\n  розмір: 5 б\n  створено: 2026-08-13 13:07\n/root/nocodb-data/nc/uploads/2026/08/13/2f3859e5d334b0598fcf97b05ce59131f554ae38/t_lqugj.txt\n  розмір: 5 б\n  створено: 2026-08-13 13:07\n/root/nocodb-data/nc/uploads/2026/08/13/2f3859e5d334b0598fcf97b05ce59131f554ae38/t_quZSz.txt\n  розмір: 5 б\n  створено: 2026-08-13 13:07\n\n\n— що всередині —\n\n— чи згадуються вони хоч у якомусь записі бази —\n  згадок у записах: 0 (0 = файли ні до чого не прикріплені)\n",
+  "stdout": "--- /root/nocodb-data/nc/uploads/2026/08/13/2f3859e5d334b0598fcf97b05ce59131f554ae38/t_lqugj.txt\nhello\n--- /root/nocodb-data/nc/uploads/2026/08/13/2f3859e5d334b0598fcf97b05ce59131f554ae38/t_quZSz.txt\nhello\n--- що ще лежить у цій теці:\ntotal 16\ndrwxr-xr-x 2 root root 4096 Aug 13 13:07 .\ndrwxr-xr-x 3 root root 4096 Aug 13 13:07 ..\n-rw-r--r-- 1 root root    5 Aug 13 13:07 t_lqugj.txt\n-rw-r--r-- 1 root root    5 Aug 13 13:07 t_quZSz.txt\n",
   "stderr": "",
   "returncode": 0,
-  "id": "tsk-17",
-  "ts": "2026-08-13T10:13:23Z"
+  "id": "tsk-18",
+  "ts": "2026-08-13T10:13:46Z"
 }
