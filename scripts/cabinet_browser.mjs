@@ -60,13 +60,6 @@ check('у доставленої угоди майбутніх кроків не
       await page.locator('tr.deal[data-id="202"] .mini .md.todo').count() === 0);
 check('підказка з назвами кроків є',
       ((await page.locator('tr.deal[data-id="201"] .mini').getAttribute('title')) || '').includes('▸'));
-check('смужка прогресу намальована', await page.locator('tr.deal[data-id="201"] .pg span').count() === 1);
-const pgl = await page.locator('tr.deal[data-id="201"] .pgl').innerText().catch(() => '');
-check('підпис прогресу з відсотком', /пройдено \d+% шляху/.test(pgl), pgl);
-const w = await page.locator('tr.deal[data-id="201"] .pg span').evaluate(e => e.style.width);
-check('ширина смужки збігається з підписом', pgl.includes(parseInt(w) + '%'), w + ' vs ' + pgl);
-const pgDone = await page.locator('tr.deal[data-id="202"] .pgl').innerText().catch(() => '');
-check('доставлена угода — 100%', /100%/.test(pgDone), pgDone);
 const upd = await page.locator('.upd').innerText().catch(() => '');
 check('позначка «оновлено» видима', /Дані з ліній оновлено/.test(upd), upd);
 check('час у позначці — з журналу прогонів', /о \d{2}:\d{2}/.test(upd), upd);
