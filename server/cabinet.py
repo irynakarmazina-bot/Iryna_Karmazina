@@ -62,6 +62,8 @@ COOKIE = "cab_sid"
 IDLE_HOURS = 12            # скільки живе сесія без дій
 CACHE_SEC = 60             # кеш угод, як у gateway.py — інакше кожен клік у NocoDB
 MIN_PWD = 10               # мінімальна довжина пароля
+FAILS_BEFORE_PAUSE = 3     # після скількох невдалих спроб вмикається пауза
+                           # (вимога користувачки 13.08.2026: «після 3х, а не 5ти»)
 
 # Прапорець ТІЛЬКИ для перевірки на машині без HTTPS. У бою не ставити:
 # без нього кука має Secure і по http не піде взагалі.
@@ -219,13 +221,18 @@ def throttle_left(key):
 
 
 def throttle_fail(key):
-    """Порахувати невдачу. З 5-ї — пауза, яка подвоюється до години."""
+    """Порахувати невдачу. З 3-ї — пауза, яка подвоюється до години.
+
+    Тобто 5 хв, 10, 20, 40, далі 60. Перші дві помилки нічого не вмикають:
+    людина, яка просто одруклася, паузи не помітить, а перебір зупиняється
+    майже одразу.
+    """
     con = db()
     row = con.execute("SELECT fails FROM throttle WHERE k=?", (key,)).fetchone()
     fails = (row["fails"] if row else 0) + 1
     until = None
-    if fails >= 5:
-        mins = min(60, 5 * (2 ** (fails - 5)))
+    if fails >= FAILS_BEFORE_PAUSE:
+        mins = min(60, 5 * (2 ** (fails - FAILS_BEFORE_PAUSE)))
         until = (datetime.datetime.now() + datetime.timedelta(minutes=mins)).isoformat(timespec="seconds")
     con.execute("INSERT INTO throttle(k,fails,until) VALUES(?,?,?) "
                 "ON CONFLICT(k) DO UPDATE SET fails=?,until=?", (key, fails, until, fails, until))

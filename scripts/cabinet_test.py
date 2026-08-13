@@ -239,11 +239,22 @@ code, body, _ = get("/")
 check("після виходу знову форма входу", "Пароль" in body and "MRKU1111111" not in body)
 
 print("\n=== 8. Підбір пароля ===")
-for i in range(6):
+# Лічильник чистимо: попередні розділи вже нарахували невдачі на цю ж адресу,
+# а тут перевіряється саме поріг, а не сума з усього тесту.
+con = CAB.db()
+con.execute("DELETE FROM throttle")
+con.commit()
+con.close()
+check("поріг у коді = 3", CAB.FAILS_BEFORE_PAUSE == 3, CAB.FAILS_BEFORE_PAUSE)
+codes = []
+for i in range(4):
     code, body, _ = post("/login", {"email": "olga@mp.ua", "password": "хиба%d" % i}, opener=plain)
-check("після 5 спроб блокує (429)", code == 429, code)
+    codes.append(code)
+check("перші три спроби — звичайна відмова", codes[:3] == [401, 401, 401], codes)
+check("четверта вже під паузою (429)", codes[3] == 429, codes)
 code, body, _ = post("/login", {"email": "olga@mp.ua", "password": "olga-pass-99"}, opener=plain)
 check("правильний пароль теж чекає паузи", code == 429, code)
+check("сказано, скільки чекати", "Спробуйте за" in body)
 
 print("\n=== 9. Журнал ===")
 con = CAB.db()
