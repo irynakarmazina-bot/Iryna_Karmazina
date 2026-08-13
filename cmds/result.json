@@ -1,7 +1,7 @@
 {
-  "stdout": "version: {\"authType\":\"jwt\",\"baseHasAdmin\":true,\"firstUser\":false,\"type\":\"rest\",\"env\":\"production\",\"googleAuthEnabled\":false,\"gith\naudit / журнал змін    HTTP 404  {\"msg\":\"Cannot GET /api/v2/meta/bases/pbhr1qkpvx09z8m/audits\"}\naudit (v1)             HTTP 404  {\"msg\":\"Cannot GET /api/v1/db/meta/projects/pbhr1qkpvx09z8m/audits\"}\nверсії запису          HTTP 404  {\"msg\":\"Cannot GET /api/v2/tables/m58xsjo6at01ohl/records/1/revisions\"}\nправа на таблицю       HTTP 404  {\"msg\":\"Cannot GET /api/v2/meta/tables/m58xsjo6at01ohl/acl\"}\nправа на поле          HTTP 404  {\"msg\":\"Cannot GET /api/v2/meta/tables/m58xsjo6at01ohl/field-permissions\"}\nвласні ролі            HTTP 404  {\"msg\":\"Cannot GET /api/v2/meta/bases/pbhr1qkpvx09z8m/roles\"}\nвебхуки                HTTP 200  {\"list\":[]}\n",
+  "stdout": "ee = False\nisLicenseKeySetByEnv = False\nlicenseServerUrl = https://app.nocodb.com\nversion = 2026.07.0\n--- усі ключі: allowEmailSigninWithSso, allowLocalUrl, auditEnabled, authType, automationLogLevel, baseHasAdmin, connectToExternalDB, dashboardPath, defaultGroupByLimit, defaultLimit, defaultOrgId, defaultWorkspaceId, disableEmailAuth, disableGroupByAggregation, disableOnboardingFlow, disableSupportChat, ee, env, errorReportingEnabled, feedEnabled, firstUser, githubAuthEnabled, googleAuthEnabled, iframeWhitelistDomains, inviteOnlySignup, isAirgapped, isCloud, isLicenseKeySetByEnv, isOnPrem, isPostgres, isTrial, isTrialExpired, licenseServerUrl, mainSubDomain, ncAttachmentFieldSize, ncDataImportFileSize, ncGridMaxSelectionLimit, ncMaxAttachmentsAllowed, ncMaxTextLength, ncMin, ncSiteUrl, oidcAuthEnabled, oidcProviderName, onPremPlan, onPremPlanTitle, oneClick, prodReady, restrictWorkspaceCreation, samlAuthEnabled, samlProviderName, seatLimit, teleEnabled, type, undoRedoEnabled, version\n",
   "stderr": "",
   "returncode": 0,
-  "id": "tsk-09",
-  "ts": "2026-08-13T08:36:23Z"
+  "id": "tsk-10",
+  "ts": "2026-08-13T08:37:38Z"
 }
