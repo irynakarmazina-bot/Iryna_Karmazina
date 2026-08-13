@@ -1,0 +1,840 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""Кабінет клієнта: вхід за паролем і фільтрація ДАНИХ НА СЕРВЕРІ.
+
+ЧИМ ЦЕ ВІДРІЗНЯЄТЬСЯ ВІД ПРОТОТИПУ. `client_cabinet/build_preview.py` збирає
+СТАТИЧНИЙ файл на одного клієнта: хто знає адресу — той бачить сторінку, входу
+немає. Тут навпаки: сторінки на диску немає взагалі, вона збирається на кожен
+запит уже ПІСЛЯ того, як сервер упізнав, хто прийшов, і бере лише угоди його
+компанії. Браузер клієнта не отримує ні токена NocoDB, ні чужих рядків — не
+«не показує», а фізично не отримує.
+
+ЗВІДКИ ВИГЛЯД. Розмітка й стилі — той самий `TPL` з build_preview.py, тобто
+узгоджений з користувачкою макет (схема руху вантажу, плитки-відбори, палітра
+ЕРП). Тут він НЕ дублюється: файл імпортується, і правка вигляду в одному місці
+міняє і прототип, і бойовий кабінет. Розходження двох копій — саме те, через що
+02.08.2026 з платформи зникла денна робота.
+
+ДЕ ЖИВУТЬ АКАУНТИ КЛІЄНТІВ. В окремій базі `/root/cabinet/cabinet.db` (SQLite),
+а НЕ в NocoDB. Причини дві. Перша — вимога користувачки: клієнтські акаунти
+окремі від співробітницьких. Друга — у NocoDB `v.pontus@unitex.od.ua` має роль
+`editor`, тобто читання й запис УСІХ таблиць (перевірено 10.08.2026); хеші
+паролів клієнтів там лежали б у нього перед очима. Заводяться акаунти скриптом
+`server/cabinet_admin.py`.
+
+ПАРОЛІ. У базі лежить лише scrypt-хеш із сіллю. Сам пароль не пишеться ні в
+журнал, ні в репозиторій, ні у відповідь сервера — його видно рівно один раз,
+у терміналі того, хто заводить акаунт.
+
+ЖУРНАЛ. Серверний і непідробний, на відміну від журналу ЕРП, який пише браузер:
+входи, невдалі спроби, перегляди, завантаження документів.
+
+Запуск: python3 /root/Iryna_Karmazina/server/cabinet.py
+Порт:   127.0.0.1:8793 (Caddy проксює cabinet.unitex.od.ua сюди)
+Журнал: /root/cabinet.log
+Розгортання й перевірки: server/CABINET.md
+"""
+import base64
+import datetime
+import hashlib
+import hmac
+import html
+import importlib.util
+import json
+import os
+import re
+import secrets
+import sqlite3
+import time
+import urllib.error
+import urllib.parse
+import urllib.request
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+
+NC = "http://127.0.0.1:8080"
+TOKEN_FILE = "/root/nocodb-token.txt"
+PORT = int(os.environ.get("CABINET_PORT", "8793"))
+DB_PATH = os.environ.get("CABINET_DB", "/root/cabinet/cabinet.db")
+SECRET_FILE = os.environ.get("CABINET_SECRET", "/root/cabinet/secret")
+LOG_FILE = os.environ.get("CABINET_LOG", "/root/cabinet.log")
+
+COOKIE = "cab_sid"
+IDLE_HOURS = 12            # скільки живе сесія без дій
+CACHE_SEC = 60             # кеш угод, як у gateway.py — інакше кожен клік у NocoDB
+MIN_PWD = 10               # мінімальна довжина пароля
+FAILS_BEFORE_PAUSE = 3     # після скількох невдалих спроб вмикається пауза
+                           # (вимога користувачки 13.08.2026: «після 3х, а не 5ти»)
+
+# Прапорець ТІЛЬКИ для перевірки на машині без HTTPS. У бою не ставити:
+# без нього кука має Secure і по http не піде взагалі.
+INSECURE = os.environ.get("CABINET_INSECURE") == "1"
+
+
+# ── шаблон сторінки беремо з прототипу, а не копіюємо ─────────────────────
+def _load_builder():
+    here = os.path.dirname(os.path.abspath(__file__))
+    for p in (os.path.join(here, os.pardir, "client_cabinet", "build_preview.py"),
+              "/root/Iryna_Karmazina/client_cabinet/build_preview.py"):
+        p = os.path.abspath(p)
+        if os.path.exists(p):
+            spec = importlib.util.spec_from_file_location("build_preview", p)
+            mod = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(mod)
+            return mod
+    raise SystemExit("НЕ ЗНАЙДЕНО client_cabinet/build_preview.py — без нього "
+                     "немає ні шаблону сторінки, ні списку дозволених колонок.")
+
+
+BP = _load_builder()
+
+
+def log(line):
+    stamp = time.strftime("%Y-%m-%d %H:%M:%S")
+    try:
+        with open(LOG_FILE, "a", encoding="utf-8") as f:
+            f.write("%s %s\n" % (stamp, line))
+    except Exception:  # noqa: BLE001
+        pass
+    print("CABINET %s" % line, flush=True)
+
+
+def now():
+    return datetime.datetime.now().isoformat(timespec="seconds")
+
+
+# ── база акаунтів ─────────────────────────────────────────────────────────
+def db():
+    os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
+    con = sqlite3.connect(DB_PATH, timeout=20)
+    con.row_factory = sqlite3.Row
+    con.execute("PRAGMA journal_mode=WAL")
+    return con
+
+
+SCHEMA = """
+CREATE TABLE IF NOT EXISTS accounts(
+  email       TEXT PRIMARY KEY,
+  client      TEXT NOT NULL,
+  name        TEXT NOT NULL DEFAULT '',
+  pwd         TEXT NOT NULL,
+  active      INTEGER NOT NULL DEFAULT 1,
+  must_change INTEGER NOT NULL DEFAULT 1,
+  created     TEXT NOT NULL,
+  last_login  TEXT
+);
+CREATE TABLE IF NOT EXISTS sessions(
+  sid     TEXT PRIMARY KEY,
+  email   TEXT NOT NULL,
+  created TEXT NOT NULL,
+  seen    TEXT NOT NULL,
+  ip      TEXT,
+  ua      TEXT
+);
+CREATE TABLE IF NOT EXISTS audit(
+  id     INTEGER PRIMARY KEY AUTOINCREMENT,
+  ts     TEXT NOT NULL,
+  email  TEXT,
+  client TEXT,
+  action TEXT NOT NULL,
+  detail TEXT,
+  ip     TEXT
+);
+CREATE TABLE IF NOT EXISTS throttle(
+  k     TEXT PRIMARY KEY,
+  fails INTEGER NOT NULL DEFAULT 0,
+  until TEXT
+);
+"""
+
+
+def init_db():
+    con = db()
+    con.executescript(SCHEMA)
+    con.commit()
+    con.close()
+
+
+def audit(email, client, action, detail="", ip=""):
+    """Журнал пише СЕРВЕР. Підробити його з браузера неможливо."""
+    try:
+        con = db()
+        con.execute("INSERT INTO audit(ts,email,client,action,detail,ip) VALUES(?,?,?,?,?,?)",
+                    (now(), email or "", client or "", action, detail[:500], ip or ""))
+        con.commit()
+        con.close()
+    except Exception as e:  # noqa: BLE001
+        log("ЖУРНАЛ НЕ ЗАПИСАВСЯ: %s" % str(e)[:120])
+    log("%s · %s · %s%s" % (action, email or "—", detail[:160], "  ip=%s" % ip if ip else ""))
+
+
+# ── паролі ────────────────────────────────────────────────────────────────
+# scrypt зі стандартної бібліотеки: сіль на кожен пароль, порівняння —
+# compare_digest (без нього час відповіді підказує, наскільки хеш збігся).
+SCRYPT_N, SCRYPT_R, SCRYPT_P = 16384, 8, 1
+
+
+def hash_pwd(plain):
+    salt = secrets.token_bytes(16)
+    h = hashlib.scrypt(plain.encode("utf-8"), salt=salt,
+                       n=SCRYPT_N, r=SCRYPT_R, p=SCRYPT_P, dklen=32)
+    return "scrypt$%d$%d$%d$%s$%s" % (
+        SCRYPT_N, SCRYPT_R, SCRYPT_P,
+        base64.b64encode(salt).decode(), base64.b64encode(h).decode())
+
+
+def check_pwd(plain, stored):
+    try:
+        alg, n, r, p, salt_b, hash_b = str(stored).split("$")
+        if alg != "scrypt":
+            return False
+        h = hashlib.scrypt(plain.encode("utf-8"), salt=base64.b64decode(salt_b),
+                           n=int(n), r=int(r), p=int(p), dklen=32)
+        return hmac.compare_digest(h, base64.b64decode(hash_b))
+    except Exception:  # noqa: BLE001
+        return False
+
+
+def pwd_problem(p):
+    """Чому такий пароль не годиться. None — годиться."""
+    if len(p or "") < MIN_PWD:
+        return "Пароль має бути щонайменше %d символів." % MIN_PWD
+    if p.strip() != p:
+        return "Пароль не має починатись або закінчуватись пробілом."
+    if p.lower() in ("password", "parol", "1234567890", "qwertyuiop", "unitex1234"):
+        return "Такий пароль підбирається за секунди — виберіть інший."
+    return None
+
+
+# ── обмеження на підбір пароля ────────────────────────────────────────────
+def throttle_left(key):
+    """Скільки секунд ще заблоковано. 0 — можна пробувати."""
+    con = db()
+    row = con.execute("SELECT fails,until FROM throttle WHERE k=?", (key,)).fetchone()
+    con.close()
+    if not row or not row["until"]:
+        return 0
+    try:
+        left = (datetime.datetime.fromisoformat(row["until"]) - datetime.datetime.now()).total_seconds()
+    except Exception:  # noqa: BLE001
+        return 0
+    return int(max(0, left))
+
+
+def throttle_fail(key):
+    """Порахувати невдачу. З 3-ї — пауза, яка подвоюється до години.
+
+    Тобто 5 хв, 10, 20, 40, далі 60. Перші дві помилки нічого не вмикають:
+    людина, яка просто одруклася, паузи не помітить, а перебір зупиняється
+    майже одразу.
+    """
+    con = db()
+    row = con.execute("SELECT fails FROM throttle WHERE k=?", (key,)).fetchone()
+    fails = (row["fails"] if row else 0) + 1
+    until = None
+    if fails >= FAILS_BEFORE_PAUSE:
+        mins = min(60, 5 * (2 ** (fails - FAILS_BEFORE_PAUSE)))
+        until = (datetime.datetime.now() + datetime.timedelta(minutes=mins)).isoformat(timespec="seconds")
+    con.execute("INSERT INTO throttle(k,fails,until) VALUES(?,?,?) "
+                "ON CONFLICT(k) DO UPDATE SET fails=?,until=?", (key, fails, until, fails, until))
+    con.commit()
+    con.close()
+    return fails, until
+
+
+def throttle_ok(key):
+    con = db()
+    con.execute("DELETE FROM throttle WHERE k=?", (key,))
+    con.commit()
+    con.close()
+
+
+# ── сесії ─────────────────────────────────────────────────────────────────
+def secret():
+    """Ключ для міток CSRF. Файл 0600, переживає перезапуск."""
+    os.makedirs(os.path.dirname(SECRET_FILE), exist_ok=True)
+    if not os.path.exists(SECRET_FILE):
+        fd = os.open(SECRET_FILE, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+        with os.fdopen(fd, "wb") as f:
+            f.write(secrets.token_bytes(32))
+    with open(SECRET_FILE, "rb") as f:
+        return f.read()
+
+
+def csrf_for(sid):
+    return hmac.new(secret(), sid.encode(), hashlib.sha256).hexdigest()[:32]
+
+
+def same_str(a, b):
+    """Порівняння без підказки за часом. Обов'язково через байти:
+    `hmac.compare_digest` на рядку з кирилицею кидає TypeError, і підроблена
+    мітка «підроблено» роняла б обробник замість звичайної відмови
+    (знайдено власним тестом 13.08.2026, до викладення)."""
+    return hmac.compare_digest(str(a or "").encode("utf-8"), str(b or "").encode("utf-8"))
+
+
+def session_new(email, ip, ua):
+    sid = secrets.token_urlsafe(32)
+    con = db()
+    con.execute("INSERT INTO sessions(sid,email,created,seen,ip,ua) VALUES(?,?,?,?,?,?)",
+                (sid, email, now(), now(), ip, (ua or "")[:200]))
+    con.commit()
+    con.close()
+    return sid
+
+
+def session_get(sid):
+    """Акаунт за ключем сесії або None. Заразом продовжує сесію."""
+    if not sid:
+        return None
+    con = db()
+    row = con.execute(
+        "SELECT s.sid,s.seen,a.* FROM sessions s JOIN accounts a ON a.email=s.email "
+        "WHERE s.sid=?", (sid,)).fetchone()
+    if not row:
+        con.close()
+        return None
+    if not row["active"]:
+        con.execute("DELETE FROM sessions WHERE sid=?", (sid,))   # заблокували — вхід обриваємо
+        con.commit()
+        con.close()
+        return None
+    try:
+        idle = (datetime.datetime.now() - datetime.datetime.fromisoformat(row["seen"])).total_seconds()
+    except Exception:  # noqa: BLE001
+        idle = 0
+    if idle > IDLE_HOURS * 3600:
+        con.execute("DELETE FROM sessions WHERE sid=?", (sid,))
+        con.commit()
+        con.close()
+        return None
+    con.execute("UPDATE sessions SET seen=? WHERE sid=?", (now(), sid))
+    con.commit()
+    acc = dict(row)
+    con.close()
+    return acc
+
+
+def session_drop(sid):
+    con = db()
+    con.execute("DELETE FROM sessions WHERE sid=?", (sid,))
+    con.commit()
+    con.close()
+
+
+def sessions_drop_email(email, keep=None):
+    con = db()
+    if keep:
+        con.execute("DELETE FROM sessions WHERE email=? AND sid<>?", (email, keep))
+    else:
+        con.execute("DELETE FROM sessions WHERE email=?", (email,))
+    con.commit()
+    con.close()
+
+
+# ── дані з NocoDB ─────────────────────────────────────────────────────────
+_cache = {"ts": 0.0, "rows": []}
+
+
+def all_rows():
+    if time.time() - _cache["ts"] < CACHE_SEC and _cache["rows"]:
+        return _cache["rows"]
+    rows = BP.nc_all()                       # той самий читач, що й у прототипі
+    _cache["rows"] = rows
+    _cache["ts"] = time.time()
+    return rows
+
+
+def deals_for(client):
+    """Угоди ОДНІЄЇ компанії. Збіг лише ТОЧНИЙ.
+
+    Підрядковий збіг тут був би дірою: «Мірандор» підтягнув би «Мірандор Плюс»
+    (знайдено аудитом 07.08.2026 у прототипі). Назву компанії звіряють один раз,
+    коли заводять акаунт (cabinet_admin.py), і далі порівнюють дослівно.
+    """
+    want = BP.nz(client).lower()
+    if not want:
+        return []
+    return [r for r in all_rows()
+            if BP.nz(r.get("Клієнт")).lower() == want
+            and BP.nz(r.get("Статус")) != BP.CANCELLED]
+
+
+DOC_RE = re.compile(r"^\s*\[([^\]]+)\]\s*(.*)$")
+
+
+def docs_of(row):
+    """Документи угоди, які МОЖНА показати клієнту, разом зі шляхом у сховищі.
+
+    Відрізняється від BP.files_of лише тим, що лишає `path` — він потрібен
+    серверу, щоб віддати файл, і НЕ потрапляє в сторінку: браузер бачить тільки
+    номер по порядку. Правило відбору те саме — білий список BP.CLIENT_DOCS,
+    усе з чужим або відсутнім префіксом [Тип] лишається всередині фірми.
+    """
+    raw = row.get("Файли")
+    if isinstance(raw, str):
+        try:
+            raw = json.loads(raw)
+        except Exception:  # noqa: BLE001
+            raw = []
+    out = []
+    for f in raw or []:
+        title = BP.nz(f.get("title") or f.get("fileName"))
+        m = DOC_RE.match(title)
+        kind = m.group(1).strip() if m else ""
+        if kind and kind not in BP.CLIENT_DOCS:
+            continue
+        path = f.get("signedPath") or f.get("path") or ""
+        if not path:
+            continue
+        out.append({"kind": kind or "Документ",
+                    "name": (m.group(2) if m else title) or title,
+                    "path": path,
+                    "mime": f.get("mimetype") or "application/octet-stream"})
+    return out
+
+
+def page_data(rows):
+    """Те, що поїде в браузер. Колонки — рівно BP.CLIENT_COLS, нічого понад."""
+    data = []
+    for r in rows:
+        d = {k: r.get(k) for k in BP.CLIENT_COLS if k != "Файли"}
+        deal = BP.nz(r.get("Угода"))
+        d["_docs"] = [{"kind": x["kind"], "name": x["name"],
+                       "url": "/doc/%s/%d" % (urllib.parse.quote(deal, safe=""), i)}
+                      for i, x in enumerate(docs_of(r))]
+        data.append(d)
+    data.sort(key=lambda d: (BP.nz(d.get("Статус")) == "Вантаж доставлено",
+                             BP.nz(d.get("ETA")) or "9999"))
+    return data
+
+
+# ── сторінки ──────────────────────────────────────────────────────────────
+LOGIN_CSS = """
+/* Палітра взята ДОСЛІВНО з кабінету (client_cabinet/build_preview.py),
+   а той — з ЕРП. Своїх кольорів тут не вигадуємо. */
+:root{--paper:#f9f9f7;--surface:#ffffff;--ink:#0b0b0b;--ink-2:#52514e;--muted:#898781;
+  --line:#e1e0d9;--accent:#2a78d6;--accent-soft:#e7f0fb;--accent-ink:#1c5cab;
+  --err:#b42318;--err-bg:#fdeceb;--pos:#1a8f5c;--pos-bg:#e6f5ec;
+  --shadow:0 1px 2px rgba(11,11,11,.05),0 1px 3px rgba(11,11,11,.04);--r:14px}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);min-height:100vh;
+  display:flex;align-items:center;justify-content:center;padding:24px;
+  font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased}
+.box{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);
+  box-shadow:var(--shadow);padding:30px 32px;width:100%;max-width:404px}
+.box img{height:54px;display:block;margin:0 auto 18px}
+h1{font-size:19px;margin:0 0 4px;text-align:center;letter-spacing:-.3px}
+.sub{color:var(--muted);font-size:13px;text-align:center;margin-bottom:22px}
+label{display:block;font-size:12.5px;color:var(--ink-2);margin:0 0 6px;font-weight:600}
+input{width:100%;padding:11px 14px;border:1px solid var(--line);border-radius:11px;
+  background:var(--surface);font:inherit;font-size:14.5px;color:var(--ink);margin-bottom:15px}
+input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+button{width:100%;padding:12px;border:1px solid var(--accent);background:var(--accent);
+  color:#fff;border-radius:11px;font:inherit;font-size:14.5px;font-weight:600;cursor:pointer}
+button:hover{filter:brightness(1.06)}
+.msg{border-radius:11px;padding:11px 13px;font-size:13.5px;margin-bottom:16px}
+.msg.err{background:var(--err-bg);color:var(--err)}
+.msg.ok{background:var(--pos-bg);color:var(--pos)}
+.hint{color:var(--muted);font-size:12px;margin-top:16px;text-align:center;line-height:1.45}
+"""
+
+LOGIN_TPL = """<!doctype html>
+<meta charset="utf-8">
+<title>__TITLE__</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style nonce="__NONCE__">__CSS__</style>
+<form class="box" method="post" action="__ACTION__" autocomplete="on">
+  __LOGO__
+  <h1>__H1__</h1>
+  <div class="sub">__SUB__</div>
+  __MSG__
+  __FIELDS__
+  <button type="submit">__BTN__</button>
+  <div class="hint">__HINT__</div>
+</form>
+"""
+
+
+def esc(s):
+    return html.escape(str(s or ""), quote=True)
+
+
+def render_login(msg="", kind="err", email=""):
+    logo = BP.logo()
+    fields = (
+        '<label for="email">Електронна пошта</label>'
+        '<input id="email" name="email" type="email" required autocomplete="username" value="%s">'
+        '<label for="password">Пароль</label>'
+        '<input id="password" name="password" type="password" required autocomplete="current-password">'
+        % esc(email))
+    return _fill_login(
+        title="UNITEX — вхід в особистий кабінет", h1="Особистий кабінет",
+        sub="Відстеження ваших вантажів", action="/login", fields=fields,
+        btn="Увійти", msg=msg, kind=kind, logo=logo,
+        hint="Доступ надає ваш менеджер UNITEX. Якщо не пам'ятаєте пароль — "
+             "зверніться до нього, ми надішлемо новий.")
+
+
+def render_change(msg="", kind="err", first=False):
+    fields = ('<label for="old">Поточний пароль</label>'
+              '<input id="old" name="old" type="password" required autocomplete="current-password">'
+              '<label for="new1">Новий пароль</label>'
+              '<input id="new1" name="new1" type="password" required autocomplete="new-password">'
+              '<label for="new2">Новий пароль ще раз</label>'
+              '<input id="new2" name="new2" type="password" required autocomplete="new-password">')
+    return _fill_login(
+        title="UNITEX — зміна пароля",
+        h1="Придумайте свій пароль" if first else "Зміна пароля",
+        sub=("Це перший вхід — тимчасовий пароль треба замінити"
+             if first else "Після зміни інші пристрої вийдуть із кабінету"),
+        action="/password", fields=fields, btn="Зберегти", msg=msg, kind=kind,
+        logo=BP.logo(), hint="Щонайменше %d символів." % MIN_PWD)
+
+
+def _fill_login(title, h1, sub, action, fields, btn, msg, kind, logo, hint):
+    nonce = secrets.token_urlsafe(16)
+    body = (LOGIN_TPL
+            .replace("__CSS__", LOGIN_CSS)
+            .replace("__TITLE__", esc(title))
+            .replace("__H1__", esc(h1))
+            .replace("__SUB__", esc(sub))
+            .replace("__ACTION__", action)
+            .replace("__FIELDS__", fields)
+            .replace("__BTN__", esc(btn))
+            .replace("__HINT__", esc(hint))
+            .replace("__LOGO__", '<img src="%s" alt="UNITEX">' % logo if logo else "")
+            .replace("__MSG__", '<div class="msg %s">%s</div>' % (kind, esc(msg)) if msg else "")
+            .replace("__NONCE__", nonce))
+    return body, nonce
+
+
+def render_cabinet(acc):
+    """Сторінка кабінету. Збирається на кожен запит із угод ЦІЄЇ компанії."""
+    rows = deals_for(acc["client"])
+    data = page_data(rows)
+    nonce = secrets.token_urlsafe(16)
+    payload = json.dumps(data, ensure_ascii=False).replace("</", "<\\/")
+    who = esc(acc["name"] or acc["email"])
+    head = ('<form method="post" action="/logout" style="margin-left:18px">'
+            '<input type="hidden" name="_csrf" value="%s">'
+            '<button class="btn" type="submit" title="%s">Вийти</button></form>'
+            % (csrf_for(acc["sid"]), who))
+    html_out = (BP.TPL
+                .replace("__LOGO__", BP.logo())
+                .replace("__TITLE__", "UNITEX — особистий кабінет")
+                .replace("__HEADEXTRA__", head)
+                .replace("__FOOT__", "Дані оновлюються автоматично з систем ліній. "
+                                     "Питання — до вашого менеджера UNITEX.")
+                .replace("__DEMO__", "false")
+                .replace("__CLIENTFULL__", esc(BP.client_title(acc["client"])))
+                .replace("__CLIENT__", esc(acc["client"]))
+                .replace("__TODAY__", datetime.date.today().isoformat())
+                .replace("__DATA__", payload))
+    # Скрипт і стилі в шаблоні вбудовані, тому CSP пускає їх за міткою nonce:
+    # будь-який ЧУЖИЙ скрипт, який колись потрапить у дані, мітки не матиме
+    # і не виконається. Це другий шар поверх екранування «</» у даних.
+    html_out = html_out.replace("<script>", '<script nonce="%s">' % nonce, 1)
+    html_out = html_out.replace("<style>", '<style nonce="%s">' % nonce, 1)
+    return html_out, nonce, len(data)
+
+
+# ── HTTP ──────────────────────────────────────────────────────────────────
+class Handler(BaseHTTPRequestHandler):
+    protocol_version = "HTTP/1.1"
+    server_version = "unitex-cabinet"
+    sys_version = ""
+
+    def log_message(self, fmt, *args):        # свій журнал, стандартний не потрібен
+        pass
+
+    # ── дрібні помічники ──
+    def ip(self):
+        fwd = self.headers.get("X-Forwarded-For") or ""
+        return (fwd.split(",")[0].strip() or self.client_address[0])[:45]
+
+    def cookie(self, name):
+        raw = self.headers.get("Cookie") or ""
+        for part in raw.split(";"):
+            k, _, v = part.strip().partition("=")
+            if k == name:
+                return urllib.parse.unquote(v)
+        return ""
+
+    def form(self):
+        length = int(self.headers.get("Content-Length") or 0)
+        if length <= 0 or length > 64 * 1024:
+            return {}
+        raw = self.rfile.read(length).decode("utf-8", "replace")
+        return {k: v[0] for k, v in urllib.parse.parse_qs(raw, keep_blank_values=True).items()}
+
+    def send_html(self, code, body, nonce, extra=None):
+        data = body.encode("utf-8")
+        self.send_response(code)
+        self.send_header("Content-Type", "text/html; charset=utf-8")
+        self.send_header("Content-Length", str(len(data)))
+        # default-src 'none' — сторінка не має права звертатись НІКУДИ назовні.
+        # style-src з 'unsafe-inline': у розмітці є атрибути style=…, а мітка
+        # nonce на атрибути не поширюється — це обмеження самого CSP, не недогляд.
+        self.send_header("Content-Security-Policy",
+                         "default-src 'none'; img-src 'self' data:; "
+                         "style-src 'unsafe-inline'; script-src 'nonce-%s'; "
+                         "form-action 'self'; base-uri 'none'; frame-ancestors 'none'" % nonce)
+        self.send_header("X-Frame-Options", "DENY")          # кабінет не вбудовується в чужу сторінку
+        self.send_header("X-Content-Type-Options", "nosniff")
+        self.send_header("Referrer-Policy", "same-origin")
+        self.send_header("Cache-Control", "no-store")
+        for k, v in (extra or []):
+            self.send_header(k, v)
+        self.end_headers()
+        if self.command != "HEAD":
+            self.wfile.write(data)
+
+    def send_plain(self, code, text, ctype="text/plain; charset=utf-8", extra=None):
+        data = text.encode("utf-8") if isinstance(text, str) else text
+        self.send_response(code)
+        self.send_header("Content-Type", ctype)
+        self.send_header("Content-Length", str(len(data)))
+        self.send_header("Cache-Control", "no-store")
+        for k, v in (extra or []):
+            self.send_header(k, v)
+        self.end_headers()
+        if self.command != "HEAD":
+            self.wfile.write(data)
+
+    def redirect(self, where, cookie=None):
+        extra = [("Location", where)]
+        if cookie:
+            extra.append(("Set-Cookie", cookie))
+        self.send_response(303)
+        self.send_header("Content-Length", "0")
+        for k, v in extra:
+            self.send_header(k, v)
+        self.end_headers()
+
+    def cookie_set(self, sid):
+        bits = ["%s=%s" % (COOKIE, sid), "Path=/", "HttpOnly", "SameSite=Lax",
+                "Max-Age=%d" % (IDLE_HOURS * 3600)]
+        if not INSECURE:
+            bits.insert(2, "Secure")
+        return "; ".join(bits)
+
+    def cookie_clear(self):
+        bits = ["%s=" % COOKIE, "Path=/", "HttpOnly", "SameSite=Lax", "Max-Age=0"]
+        if not INSECURE:
+            bits.insert(2, "Secure")
+        return "; ".join(bits)
+
+    def same_origin(self):
+        """Захист від чужої сторінки, яка надсилає форму від імені клієнта.
+
+        Браузер сам проставляє Origin у POST. Якщо він є і не наш — це не наша
+        форма. Якщо його немає (старий браузер) — покладаємось на SameSite=Lax.
+        """
+        origin = self.headers.get("Origin")
+        if not origin:
+            return True
+        host = self.headers.get("Host") or ""
+        return urllib.parse.urlparse(origin).netloc == host
+
+    # ── маршрути ──
+    def do_GET(self):
+        self._guard(self._get)
+
+    def do_HEAD(self):
+        self._guard(self._get)
+
+    def do_POST(self):
+        self._guard(self._post)
+
+    def _guard(self, fn):
+        """Неочікувана помилка має стати відповіддю, а не обривом з'єднання.
+
+        Без цього будь-який недогляд у коді виглядає для клієнта як «сайт не
+        працює», а в журналі не лишається нічого. Текст помилки назовні НЕ
+        віддаємо — тільки в журнал.
+        """
+        try:
+            fn()
+        except (BrokenPipeError, ConnectionResetError):
+            pass                                   # клієнт закрив вкладку
+        except Exception as e:  # noqa: BLE001
+            log("ЗБІЙ %s %s: %s" % (self.command, self.path[:80], repr(e)[:200]))
+            try:
+                self.send_plain(500, "Технічна помилка. Спробуйте, будь ласка, ще раз.")
+            except Exception:  # noqa: BLE001
+                pass
+
+    def _get(self):
+        path = urllib.parse.urlparse(self.path).path
+        if path == "/health":
+            return self.send_plain(200, "ok")
+        if path == "/robots.txt":
+            return self.send_plain(200, "User-agent: *\nDisallow: /\n")
+        acc = session_get(self.cookie(COOKIE))
+        if path == "/":
+            if not acc:
+                body, nonce = render_login()
+                return self.send_html(200, body, nonce)
+            if acc["must_change"]:
+                body, nonce = render_change(first=True)
+                return self.send_html(200, body, nonce)
+            try:
+                body, nonce, n = render_cabinet(acc)
+            except Exception as e:  # noqa: BLE001
+                log("СТОРІНКА НЕ ЗІБРАЛАСЬ для %s: %s" % (acc["email"], str(e)[:200]))
+                return self.send_plain(503, "Дані тимчасово недоступні. "
+                                            "Спробуйте, будь ласка, за хвилину.")
+            audit(acc["email"], acc["client"], "перегляд", "угод %d" % n, self.ip())
+            return self.send_html(200, body, nonce)
+        if path == "/password":
+            if not acc:
+                return self.redirect("/")
+            body, nonce = render_change(first=bool(acc["must_change"]))
+            return self.send_html(200, body, nonce)
+        if path.startswith("/doc/"):
+            return self.serve_doc(path, acc)
+        return self.send_plain(404, "Сторінки немає.")
+
+    def _post(self):
+        path = urllib.parse.urlparse(self.path).path
+        if not self.same_origin():
+            return self.send_plain(403, "Запит прийшов не з кабінету.")
+        if path == "/login":
+            return self.do_login()
+        if path == "/logout":
+            return self.do_logout()
+        if path == "/password":
+            return self.do_password()
+        return self.send_plain(404, "Сторінки немає.")
+
+    def do_login(self):
+        f = self.form()
+        email = (f.get("email") or "").strip().lower()[:120]
+        password = f.get("password") or ""
+        ip = self.ip()
+        # Рахуємо і пошту, і адресу: інакше або один клієнт блокує іншого з тієї
+        # самої контори, або перебір з різних адрес не помічається зовсім.
+        keys = ["e:" + email, "i:" + ip]
+        left = max(throttle_left(k) for k in keys)
+        if left:
+            audit(email, "", "вхід заблоковано", "ще %d с" % left, ip)
+            body, nonce = render_login(
+                "Забагато спроб. Спробуйте за %d хв." % max(1, left // 60), email=email)
+            return self.send_html(429, body, nonce)
+
+        con = db()
+        row = con.execute("SELECT * FROM accounts WHERE email=?", (email,)).fetchone()
+        con.close()
+        # Пароль перевіряємо навіть коли акаунта немає — по фіктивному хешу.
+        # Без цього час відповіді видає, які пошти в нас заведені.
+        ok = check_pwd(password, row["pwd"]) if row else check_pwd(password, hash_pwd("-"))
+        if not row or not ok or not row["active"]:
+            why = ("немає такої пошти" if not row
+                   else "заблокований" if not row["active"] else "невірний пароль")
+            fails = max(throttle_fail(k)[0] for k in keys)
+            audit(email, row["client"] if row else "", "невдалий вхід",
+                  "%s (спроба %d)" % (why, fails), ip)
+            body, nonce = render_login("Пошта або пароль не підходять.", email=email)
+            return self.send_html(401, body, nonce)
+
+        for k in keys:
+            throttle_ok(k)
+        sid = session_new(email, ip, self.headers.get("User-Agent"))
+        con = db()
+        con.execute("UPDATE accounts SET last_login=? WHERE email=?", (now(), email))
+        con.commit()
+        con.close()
+        audit(email, row["client"], "вхід", "", ip)
+        return self.redirect("/", self.cookie_set(sid))
+
+    def do_logout(self):
+        sid = self.cookie(COOKIE)
+        acc = session_get(sid)
+        if acc and not same_str(self.form().get("_csrf", ""), csrf_for(sid)):
+            return self.send_plain(403, "Позначка форми не збіглася. Оновіть сторінку.")
+        if acc:
+            audit(acc["email"], acc["client"], "вихід", "", self.ip())
+        session_drop(sid)
+        return self.redirect("/", self.cookie_clear())
+
+    def do_password(self):
+        sid = self.cookie(COOKIE)
+        acc = session_get(sid)
+        if not acc:
+            return self.redirect("/")
+        first = bool(acc["must_change"])
+        f = self.form()
+        old, new1, new2 = f.get("old") or "", f.get("new1") or "", f.get("new2") or ""
+        if not check_pwd(old, acc["pwd"]):
+            audit(acc["email"], acc["client"], "зміна пароля відхилена",
+                  "поточний пароль невірний", self.ip())
+            body, nonce = render_change("Поточний пароль невірний.", first=first)
+            return self.send_html(401, body, nonce)
+        if new1 != new2:
+            body, nonce = render_change("Паролі не збіглися.", first=first)
+            return self.send_html(400, body, nonce)
+        problem = pwd_problem(new1)
+        if problem:
+            body, nonce = render_change(problem, first=first)
+            return self.send_html(400, body, nonce)
+        if check_pwd(new1, acc["pwd"]):
+            body, nonce = render_change("Новий пароль такий самий, як старий.", first=first)
+            return self.send_html(400, body, nonce)
+        con = db()
+        con.execute("UPDATE accounts SET pwd=?,must_change=0 WHERE email=?",
+                    (hash_pwd(new1), acc["email"]))
+        con.commit()
+        con.close()
+        sessions_drop_email(acc["email"], keep=sid)   # інші пристрої виходять
+        audit(acc["email"], acc["client"], "пароль змінено", "", self.ip())
+        return self.redirect("/")
+
+    def serve_doc(self, path, acc):
+        """Файл віддається лише після перевірки, чия це угода.
+
+        Браузер називає угоду і номер документа в ній; шлях у сховищі
+        обчислюється тут заново з тих самих правил, що й для сторінки. Підмінити
+        адресу і забрати чужий файл не вийде: чужої угоди немає в deals_for().
+        """
+        if not acc:
+            return self.redirect("/")
+        parts = [p for p in path.split("/") if p]           # ['doc', '<угода>', '<i>']
+        if len(parts) != 3:
+            return self.send_plain(404, "Документа немає.")
+        deal = urllib.parse.unquote(parts[1])
+        try:
+            idx = int(parts[2])
+        except ValueError:
+            return self.send_plain(404, "Документа немає.")
+        row = next((r for r in deals_for(acc["client"]) if BP.nz(r.get("Угода")) == BP.nz(deal)), None)
+        if row is None:
+            audit(acc["email"], acc["client"], "відмова у файлі",
+                  "угода %s не належить компанії" % deal[:40], self.ip())
+            return self.send_plain(404, "Документа немає.")
+        docs = docs_of(row)
+        if not (0 <= idx < len(docs)):
+            return self.send_plain(404, "Документа немає.")
+        doc = docs[idx]
+        try:
+            req = urllib.request.Request(NC + "/" + doc["path"].lstrip("/"),
+                                         headers={"xc-token": open(TOKEN_FILE).read().strip()})
+            with urllib.request.urlopen(req, timeout=60) as resp:
+                blob = resp.read()
+                ctype = resp.headers.get("Content-Type") or doc["mime"]
+        except Exception as e:  # noqa: BLE001
+            log("ФАЙЛ НЕ ВІДДАВСЯ (%s, угода %s): %s" % (acc["email"], deal, str(e)[:160]))
+            return self.send_plain(502, "Файл тимчасово недоступний.")
+        name = re.sub(r'[^\w .()\-Ѐ-ӿ]', "_", "%s — %s" % (doc["kind"], doc["name"]))[:120]
+        audit(acc["email"], acc["client"], "завантажив документ",
+              "угода %s · %s" % (deal, doc["kind"]), self.ip())
+        return self.send_plain(200, blob, ctype, extra=[
+            ("Content-Disposition", "attachment; filename*=UTF-8''%s" % urllib.parse.quote(name)),
+            ("X-Content-Type-Options", "nosniff")])
+
+
+if __name__ == "__main__":
+    init_db()
+    secret()
+    log("старт на 127.0.0.1:%d · база %s%s"
+        % (PORT, DB_PATH, "  [БЕЗ Secure — тільки для перевірки!]" if INSECURE else ""))
+    ThreadingHTTPServer(("127.0.0.1", PORT), Handler).serve_forever()

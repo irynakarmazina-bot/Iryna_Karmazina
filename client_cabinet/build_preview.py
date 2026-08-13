@@ -128,7 +128,7 @@ def files_of(row):
 
 TPL = r"""<!doctype html>
 <meta charset="utf-8">
-<title>UNITEX — особистий кабінет (прототип)</title>
+<title>__TITLE__</title>
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <style>
 /* ===== Візуальна система — та сама, що в ЕРП: світлий фон, білі картки з
@@ -321,6 +321,9 @@ tr.exp>td{padding:0;background:var(--surface-2)}
 .btn{border:1px solid var(--line);background:var(--surface);border-radius:9px;
   padding:7px 14px;font:inherit;font-size:13px;cursor:pointer;color:var(--accent-ink);font-weight:600}
 .btn:hover{background:var(--accent-soft);border-color:var(--accent-soft)}
+/* У справжньому кабінеті «Завантажити» — це посилання <a>, а не <button>:
+   файл віддає сервер після перевірки, чия це угода. Вигляд має лишитись той самий. */
+a.btn{text-decoration:none;display:inline-block;line-height:1.5}
 .btn.prim{background:var(--accent);border-color:var(--accent);color:#fff}
 .btn.prim:hover{filter:brightness(1.06)}
 .empty{color:var(--muted);font-size:13.5px;padding:8px 0}
@@ -413,6 +416,7 @@ tr.exp>td{padding:0;background:var(--surface-2)}
   <img src="__LOGO__" alt="UNITEX">
   <div class="spacer"></div>
   <div class="who"><b>__CLIENTFULL__</b><span>Особистий кабінет</span></div>
+  __HEADEXTRA__
 </header>
 
 <main>
@@ -438,12 +442,17 @@ tr.exp>td{padding:0;background:var(--surface-2)}
     </table>
   </div>
 
-  <div class="foot">Дані оновлюються автоматично з систем ліній. Питання — через форму в картці вантажу.</div>
+  <div class="foot">__FOOT__</div>
 </main>
 
 <script>
 const DEALS = __DATA__;
 const TODAY = "__TODAY__";
+/* DEMO=true — це прототип для показу: у картці лишаються НЕробочі поле «Питання
+   по вантажу» і підказка про перетягування файлів. У справжньому кабінеті
+   (server/cabinet.py) DEMO=false, і ці два блоки не малюються взагалі:
+   показувати клієнтові кнопку, яка нічого не робить, не можна. */
+const DEMO = __DEMO__;
 
 const s = (r,k) => String(r[k]||"").trim();
 const fmt = v => { const m=/(\d{4})-(\d{2})-(\d{2})/.exec(String(v||"")); return m?`${m[3]}.${m[2]}.${m[1].slice(2)}`:""; };
@@ -862,15 +871,16 @@ function panel(r){
           ${docs.length ? docs.map(d=>`<div class="doc">
               <span style="color:var(--accent-ink)">${svg("doc")}</span>
               <span class="nm"><b>${esc(d.kind)}</b><span>${esc(d.name)}</span></span>
-              <button class="btn">Завантажити</button></div>`).join("")
+              ${d.url ? `<a class="btn" href="${esc(d.url)}">Завантажити</a>`
+                      : `<button class="btn">Завантажити</button>`}</div>`).join("")
             : `<div class="empty">Документів поки немає. Щойно вони з'являться, ви отримаєте сповіщення.</div>`}
-          <div class="up">Перетягніть сюди файл, щоб додати документ до вантажу</div>
+          ${DEMO ? `<div class="up">Перетягніть сюди файл, щоб додати документ до вантажу</div>` : ``}
         </div>
-        <div class="card msg" style="margin-top:14px"><h4>Питання по вантажу</h4>
+        ${DEMO ? `<div class="card msg" style="margin-top:14px"><h4>Питання по вантажу</h4>
           <textarea placeholder="Напишіть менеджеру…"></textarea>
           <div class="row"><span class="dim" style="font-size:12px">Відповідь надійде на вашу пошту</span>
             <button class="btn prim">Надіслати</button></div>
-        </div>
+        </div>` : ``}
       </div>
     </div>
   </div>`;
@@ -1038,6 +1048,11 @@ def main():
     # Для JavaScript «<\/» і «</» — те саме, тому дані не змінюються, а сторінка ціла.
     payload = json.dumps(data, ensure_ascii=False).replace("</", "<\\/")
     html = (TPL.replace("__LOGO__", logo())
+               .replace("__TITLE__", "UNITEX — особистий кабінет (прототип)")
+               .replace("__HEADEXTRA__", "")
+               .replace("__FOOT__", "Дані оновлюються автоматично з систем ліній. "
+                                    "Питання — через форму в картці вантажу.")
+               .replace("__DEMO__", "true")
                .replace("__CLIENTFULL__", client_title(a.client))
                .replace("__CLIENT__", a.client)
                .replace("__TODAY__", datetime.date.today().isoformat())
