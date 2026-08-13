@@ -24,6 +24,11 @@ body{font-family:Arial,Helvetica,sans-serif;font-size:12.5px;color:#1f2933;margi
 .cols{display:flex;gap:14px;align-items:flex-start}
 .colL{flex:2.3;min-width:0;display:flex;flex-direction:column;gap:12px}
 .colR{flex:1;min-width:0;display:flex;flex-direction:column;gap:12px}
+/* Платіжний календар посунуто вліво, праворуч від нього — плитка «Усього в обороті»
+   (вказівка користувачки 13.08.2026). На вузькому екрані стають одне під одним. */
+.pkrow{display:grid;grid-template-columns:1.9fr 1fr;gap:12px;align-items:stretch}
+.pkrow>#pk{min-width:0}
+.pkrow>#capital{min-width:0}
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .rowAD{display:grid;grid-template-columns:1fr 1.7fr;gap:12px}
 .panel{background:#fff;border:1px solid #e7e9ee;border-radius:12px;padding:12px 16px}
@@ -102,6 +107,7 @@ td.n,th.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
   .cols{flex-direction:column;gap:12px}
   .colL,.colR{flex:none;width:100%}
   .row2,.rowAD{grid-template-columns:1fr}
+  .pkrow{grid-template-columns:1fr}
   .panel{padding:12px 13px}
   .cashscroll,.detscroll,.scroll{max-height:none}
 
@@ -135,7 +141,10 @@ td.n,th.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
         <div class="panel"><h3>Сигнали та алерти</h3><div id="sig"></div></div>
       </div>
       <div class="colL">
-        <div class="panel" id="pk"><h3>Платіжний календар</h3><div id="cal"></div></div>
+        <div class="pkrow">
+          <div class="panel" id="pk"><h3>Платіжний календар</h3><div id="cal"></div></div>
+          <div id="capital"></div>
+        </div>
         <div class="panel" id="fcp"><h3>Прогноз грошового залишку</h3><div class="chartbox"><canvas id="fc"></canvas></div></div>
       </div>
     </div>
@@ -160,7 +169,7 @@ function f(v){return Number(v).toLocaleString("uk-UA",{minimumFractionDigits:0,m
 function boot(data){
   D=data;
   document.getElementById("upd").textContent="Оновлено: "+D.updated+" · дані на "+D.dataDate;
-  renderCards();renderCal();renderCash();renderArDonut();renderAP();renderArDetail();renderApDetail();renderWip();renderSig();renderEquity();
+  renderCards();renderCapital();renderCal();renderCash();renderArDonut();renderAP();renderArDetail();renderApDetail();renderWip();renderSig();renderEquity();
   chartForecast();chartNwc();bindLinks();renderDep();
 }
 function renderDep(){
@@ -188,11 +197,52 @@ var CARD_META=[
 {k:"wip",lbl:"Незавершені (WIP)",unit:"заморожено",ico:"truck",tint:"#eef4ff",col:"#3b6fd4"},
 {k:"frozen",lbl:"Заморожений капітал",sub:"дебіторка + WIP − кредиторка",unit:"USD",ico:"shield",tint:"#f0eefb",col:"#7f5bd6"},
 {k:"nwc",lbl:"Робочий капітал (NWC)",sub:"без депозитів",unit:"USD",ico:"layers",tint:"#eafaf3",col:"#1a8f5c"}];
+/* Контрольна сума «Усього в обороті» — окремо від верхнього ряду, ПОРУЧ ІЗ
+   ПЛАТІЖНИМ КАЛЕНДАРЕМ (вказівка користувачки 13.08.2026: «не малюй зверху»).
+   Тому вона НЕ входить у CARD_META і малюється своєю функцією нижче. */
+var CAP_META={k:"nwcDep",lbl:"Усього в обороті",sub:"гроші + депозит + дебіторка + WIP − кредиторка",unit:"USD",ico:"dollar",tint:"#eaf3ff",col:"#3b6fd4"};
 function spark(series,color){
   if(!series||series.length<2)return"";
   var w=90,h=26,mn=Math.min.apply(0,series),mx=Math.max.apply(0,series),rg=(mx-mn)||1;
   var pts=series.map(function(v,i){var x=(i/(series.length-1))*w;var y=h-2-((v-mn)/rg)*(h-4);return x.toFixed(1)+","+y.toFixed(1)}).join(" ");
   return '<svg class="spark" width="'+w+'" height="'+h+'" viewBox="0 0 '+w+' '+h+'"><polyline points="'+pts+'" fill="none" stroke="'+color+'" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/></svg>';
+}
+/* Тренд для «Усього в обороті». Сервер його не рахує (у cardTrends такого ключа
+   немає), але весь потрібний ряд уже лежить у nwcMonthly: [підпис, NWC, NWC+депозит].
+   Тому беремо третій стовпчик — і НЕ чіпаємо серверні скрипти заради однієї плитки.
+   Якщо ряду немає або в ньому менше двох точок — чесно повертаємо «даних немає»
+   (dir:"none"), а не 0%: нуль читався б як «не змінилось». */
+function depTrend(){
+  var m=D.nwcMonthly;
+  if(!m||m.length<2)return{spark:[],pct:0,dir:"none"};
+  var ser=m.map(function(r){return r[2]});
+  var base=null,baseLbl=D.cardTrendBase||"";
+  for(var i=0;i<m.length;i++){if(m[i][0]===baseLbl)base=m[i][2];}
+  if(base===null)base=ser[ser.length-2];
+  var last=ser[ser.length-1];
+  if(!base)return{spark:ser,pct:0,dir:"none"};
+  var pct=(last/base-1)*100;
+  return{spark:ser,pct:Math.abs(pct).toFixed(1),dir:(Math.abs(pct)<0.05?"flat":(pct>0?"up":"down"))};
+}
+/* Плитка «Усього в обороті» біля платіжного календаря. Розмітка та сама, що й у
+   верхніх плиток, — щоб вона не виглядала чужою. */
+function renderCapital(){
+  var box=document.getElementById("capital");
+  if(!box)return;
+  var c=CAP_META,v=(D.cards||{}).nwcDep,tr=depTrend();
+  if(v===undefined||v===null){ box.innerHTML=""; return; }
+  var col=(tr.dir==="up")?"#1a8f5c":((tr.dir==="down")?"#d1453b":"#9aa0a8");
+  var arrow=(tr.dir==="up")?"↗":((tr.dir==="down")?"↘":"•");
+  var cls=(tr.dir==="up")?"g":((tr.dir==="down")?"r":"");
+  box.innerHTML='<div class="card" style="height:100%"><div class="cardhd"><div class="cico" style="background:'+c.tint+';color:'+c.col+'">'+(ICONS[c.ico]||"")+'</div>'
+    +'<div style="flex:1;min-width:0"><div class="lbl">'+c.lbl+'</div><div class="val">'+f(v)+' <span class="u">'+c.unit+'</span></div>'
+    +'<div class="csub">'+c.sub+'</div></div></div>'
+    +'<div class="ctrend">'+(tr.dir==="none"
+        ? '<span class="muted">немає з чим порівняти</span>'
+        : '<span class="chg '+cls+'">'+arrow+' '+tr.pct+'% <span class="muted" style="font-weight:normal">до '+(D.cardTrendBase||"")+'</span></span>'+spark(tr.spark,col))
+    +'</div>'
+    +'<div class="muted" style="margin-top:8px;line-height:1.45">Це контрольна сума: усе, що маємо, мінус усе, що винні — разом із внесками власників. '
+    +'Змінитись може лише якщо заробили, внесли або вивели гроші. Просіла без цього — шукати помилку в розрахунках.</div></div>';
 }
 function renderCards(){
   var t=D.cardTrends||{};
