@@ -1,7 +1,7 @@
 {
-  "stdout": "\nCABINET_OK\nзаголовок колонки: True\nфункція carrier: True\nПеревізник у даних: True\n",
+  "stdout": "=== ПАМ'ЯТЬ ===\n               total        used        free      shared  buff/cache   available\nMem:            1967        1202         167           4         794         765\nSwap:              0           0           0\n=== ДИСК ===\n/dev/vda1        24G  8.2G   16G  36% /\n=== CPU ===\n1\n 18:22:01 up 19 days,  9:49,  0 user,  load average: 0.00, 0.00, 0.00\n=== DOCKER ===\nDocker version 29.6.2, build dfc4efb\nDocker Compose version v5.3.1\n=== СПОЖИВАННЯ КОНТЕЙНЕРІВ ===\nnocodb 619.5MiB / 1.922GiB 0.02%\ncaddy 17.82MiB / 1.922GiB 0.00%\n=== SWAP ===\n",
   "stderr": "",
   "returncode": 0,
-  "id": "cab-28",
-  "ts": "2026-08-13T15:21:54Z"
+  "id": "res-1",
+  "ts": "2026-08-13T15:22:03Z"
 }
