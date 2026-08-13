@@ -11,6 +11,12 @@ Wants=network-online.target
 Type=simple
 ExecStart=/usr/bin/python3 /root/Iryna_Karmazina/server/cabinet.py
 Environment=CABINET_PORT=8793
+# ⚠️⚠️ ТИМЧАСОВО: ВХІД БЕЗ ПАРОЛЯ (рішення користувачки 13.08.2026, «поки що»).
+# Досить знати пошту заведеного акаунта — і людина бачить усі угоди тієї
+# компанії. Пошта співробітника є на сайті, тобто кабінет фактично відкритий.
+# ВИМКНУТИ: прибрати рядок нижче, systemctl daemon-reload && systemctl restart
+# unitex-cabinet. Паролі в базі нікуди не діваються і одразу знову працюють.
+Environment=CABINET_NO_PASSWORD=1
 # CABINET_INSECURE тут НЕ виставляти ніколи: без нього кука сесії має Secure
 # і по звичайному http не передається. Цей прапорець існує лише для перевірки
 # на машині розробки, де немає сертифіката.

@@ -267,6 +267,51 @@ logtext = open(os.path.join(TMP, "t.log")).read()
 for bad in ("temp-pass-1", "мій-новий-пароль", "olga-pass-99", "faketoken"):
     check("у журнал не потрапив секрет «%s»" % bad[:12], bad not in logtext)
 
+print("\n=== 10. Тимчасовий режим «вхід без пароля» ===")
+# Вмикаємо так само, як це робить змінна середовища в службі.
+CAB.NO_PASSWORD = True
+con = CAB.db()
+con.execute("DELETE FROM throttle")          # у попередньому розділі ми його навмисне забили
+con.execute("DELETE FROM sessions")
+con.commit()
+con.close()
+jar.clear()
+code, body, _ = get("/")
+check("поля пароля на сторінці немає", 'name="password"' not in body)
+check("написано, що режим тимчасовий", "вхід без пароля" in body.lower())
+code, body, _ = post("/login", {"email": "olga@mp.ua"})
+check("вхід лише за поштою пускає", code == 303, code)
+code, page2, _ = get("/")
+check("одразу кабінет, без вимоги міняти пароль", "DEALS" in page2 and "Придумайте" not in page2)
+data2 = json.loads(re.search(r"const DEALS = (\[.*?\]);\nconst TODAY", page2, re.S).group(1)
+                   .replace("<\\/", "</"))
+check("угоди все одно тільки своєї компанії",
+      sorted(str(d.get("Угода")) for d in data2) == ["103"],
+      sorted(str(d.get("Угода")) for d in data2))
+check("чужі угоди Мірандора не видно", "MRKU1111111" not in page2)
+jar.clear()
+code, body, _ = post("/login", {"email": "немає@ніде.ua"})
+check("невідома пошта все одно не пускає", code == 401, code)
+code, body, _ = post("/login", {"email": "stop@m.ua"})
+check("заблокований акаунт все одно не пускає", code == 401, code)
+con = CAB.db()
+acts = [r["action"] for r in con.execute("SELECT action FROM audit ORDER BY id DESC LIMIT 20")]
+con.close()
+check("у журналі помітно, що вхід був БЕЗ ПАРОЛЯ", "вхід БЕЗ ПАРОЛЯ" in acts)
+
+CAB.NO_PASSWORD = False
+con = CAB.db()
+con.execute("DELETE FROM throttle")
+con.commit()
+con.close()
+jar.clear()
+code, body, _ = get("/")
+check("після вимкнення поле пароля повернулось", 'name="password"' in body)
+code, body, _ = post("/login", {"email": "olga@mp.ua"})
+check("без пароля вже не пускає", code == 401, code)
+code, body, _ = post("/login", {"email": "olga@mp.ua", "password": "olga-pass-99"})
+check("старий пароль знову працює", code == 303, code)
+
 print("\n%s  ok=%d  FAIL=%d" % ("ПЕРЕВІРКА ПРОЙДЕНА" if not FAIL else "Є ПОМИЛКИ", OK, FAIL))
 srv.shutdown()
 sys.exit(1 if FAIL else 0)
