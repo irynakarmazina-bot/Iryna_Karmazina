@@ -1,1 +1,1 @@
-{"id": "cab-24", "cmd": "cd /root/direct-sync\nrm -f fill_vessel.log\nsetsid nohup python3 -u fill_vessel_maersk.py > fill_vessel.log 2>&1 < /dev/null &\nsleep 20\necho \"== перші 20 секунд ==\"\ncat fill_vessel.log"}
+{"id": "cab-25", "cmd": "sleep 60\necho \"== стан журналу ==\"\ncat /root/direct-sync/fill_vessel.log"}
