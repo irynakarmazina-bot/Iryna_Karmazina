@@ -340,6 +340,12 @@ code, p11d, _ = get("/")
 check("журналу немає — позначки теж немає, час НЕ вигадується",
       ">Оновлено <b>" not in p11d and "__UPDATED__" not in p11d)
 
+print("\n=== 11б. Авіа: замість судна — авіалінія ===")
+check("є функція carrier", "const carrier = r =>" in p11)
+check("колонка перейменована", "Судно / авіалінія" in p11)
+check("«Перевізник» доїжджає з бази", "Перевізник" in str(CAB.BP.CLIENT_COLS))
+check("в картці підпис міняється на «Авіалінія / рейс»", "Авіалінія / рейс" in p11)
+
 print("\n=== 12. Прототип (build_preview.py) не зламався ===")
 import subprocess
 proto = os.path.join(TMP, "proto.html")

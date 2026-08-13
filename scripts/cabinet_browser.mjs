@@ -64,6 +64,12 @@ const upd = await page.locator('.upd').innerText().catch(() => '');
 check('позначка «оновлено» видима', /^Оновлено/.test(upd.trim()), upd);
 check('у позначці є година і дата', /\d{2}:\d{2}, \d{2}\.\d{2}\.\d{2}/.test(upd), upd);
 
+console.log('\n=== авіа: авіалінія замість судна ===');
+const airCell = await page.locator('tr.deal[data-id="202"] td[data-l="Судно / авіалінія"]').innerText();
+check('в авіа-угоді показана авіалінія', airCell.includes('Turkish Cargo'), airCell);
+const seaCell = await page.locator('tr.deal[data-id="201"] td[data-l="Судно / авіалінія"]').innerText();
+check('у морській лишилось судно', seaCell.includes('MAERSK'), seaCell);
+
 console.log('\n=== картка угоди ===');
 // саме 201: у неї є документи. Перший рядок — 203 (найближча ETA), а в неї їх немає.
 await page.locator('tr.deal[data-id="201"]').click();
