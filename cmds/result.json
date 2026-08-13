@@ -1,7 +1,7 @@
 {
-  "stdout": "   бекап: finperiod-20260813-135224.html (17527 б)\n   бекап: cabinet-20260813-135224.html (330772 б)\n   бекап: chart.min.js-20260813-135224.bak (205399 б)\n   копій, старших за 14 днів, немає — нічого не прибираю\n   усього копій у архіві: 187\n   журнал: 2026-08-13T13:52:24\tmain\te566f0e2d\tв. 13.08 10:49\tindex.html:384656 findash.html:33514 finperiod.html:17527\trelay: tsk-24 — викладення фінзвіту з новою плиткою\n   UI/FINDASH/CHART: 200 200 200\nDEPLOY_OK · гілка main · коміт e566f0e2d · позначка «в. 13.08 10:49»\n",
+  "stdout": "== файли на сервері ==\n  є   server/cabinet.py (40395 б)\n  є   server/cabinet_admin.py (11094 б)\n  є   server/unitex-cabinet.service (1185 б)\n  є   scripts/check_cabinet.sh (2535 б)\n== порт 8793 вільний? ==\n0\n== чи є node/chromium для браузерної частини ==\nnode немає\n== ШЛЮЗ ==\n\nПЕРЕВІРКА ПРОЙДЕНА  ok=65  FAIL=0\n\nУВАГА: Chromium або node не знайдено — браузерну перевірку пропущено.\n\nCABINET_OK\n",
   "stderr": "",
   "returncode": 0,
-  "id": "tsk-24",
-  "ts": "2026-08-13T10:52:24Z"
+  "id": "cab-01",
+  "ts": "2026-08-13T10:54:29Z"
 }
