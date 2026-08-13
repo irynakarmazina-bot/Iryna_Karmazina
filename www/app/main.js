@@ -507,6 +507,16 @@ const isDone  = r => r["Статус"] === "Вантаж доставлено";
 const fmtD = v => { const m=/(\d{4})-(\d{2})-(\d{2})/.exec(String(v||""));
   return m ? `${m[3]}.${m[2]}.${m[1].slice(2)}` : ""; };
 const dateB = v => { const d=fmtD(v); return d ? `<b>${d}</b>` : '<span class="cell-muted">—</span>'; };
+/* Дата З ЧАСОМ — «13.08 17:44». Потрібна тільки для позначки «оновлено» вгорі
+   диспетчеризації, тому рік не показуємо, а час показуємо обов'язково.
+   База віддає час у UTC («2026-08-13 17:44:12+00:00») — переводимо в місцевий
+   час браузера, інакше цифра розходилась би з годинником на екрані. */
+const fmtDT = v => {
+  const t = Date.parse(String(v || "").replace(" ", "T"));
+  if (isNaN(t)) return "";
+  const d = new Date(t), p = n => String(n).padStart(2, "0");
+  return `${p(d.getDate())}.${p(d.getMonth()+1)} ${p(d.getHours())}:${p(d.getMinutes())}`;
+};
 const dOf = v => { const m=/(\d{4})-(\d{2})-(\d{2})/.exec(String(v||"")); return m? new Date(+m[1],+m[2]-1,+m[3]) : null; };
 /* Зміна дати прибуття. Трекер Maersk пише в «Зміни ETA (історія)» рядки виду
    «2026-07-15: ETA порт: 2026-05-19 → 2026-06-01 (Maersk)». Беремо ОСТАННІЙ
@@ -616,8 +626,19 @@ const _days = iso => {
 const LAND_LEG = {"Завантажений на потяг":1,"Завантажений на авто":1,
   "Вивантажений в сухому порту":1,"На кордоні":1,"В порту призначення":1,
   "Вивантажений в порту прибуття":1};
+/* Людина щойно підтвердила статус руками — це і є свіжі дані, «застаріло» тут
+   немає чого показувати. Скарга користувачки 13.08.2026: «прибрати статуси
+   застаріло, так як оновлення вже було зроблено руками».
+   Правило дивиться на ті самі позначки, які фасад ставить при ручній правці
+   (`Статус (джерело)` = «людина», `Статус (оновлено)` = дата) — тобто нічого
+   нового вигадувати не треба, ці дві колонки ведуться з 05.08.2026.
+   Вікно те саме, що й поріг застарілості: оновила два дні тому — ще свіжо,
+   давніше — позначка повертається, бо вантаж і справді десь стоїть. */
+const humanFresh = r => _s(r,"Статус (джерело)") === "людина"
+  && !!_s(r,"Статус (оновлено)") && _days(_s(r,"Статус (оновлено)")) <= STALE_DAYS;
 const staleStatus = r => {
   if (isDone(r) || _s(r,"Статус") === "Скасована") return 0;
+  if (humanFresh(r)) return 0;
   if (!STATUS_ONWAY[_s(r,"Статус")]) return 0;
   const eta = (LAND_LEG[_s(r,"Статус")] && _s(r,"ETA сухий порт"))
               || _s(r,"ETA") || _s(r,"ETA порт (план)");
@@ -639,6 +660,43 @@ const trackSilent = r => {
   return m ? Math.max(0, _days(m[0])) : 0;
 };
 const plural3 = (n,a,b,c) => (n%10===1&&n%100!==11) ? a : ((n%10>=2&&n%10<=4&&(n%100<10||n%100>=20)) ? b : c);
+
+/* ===== КОМЕНТАР У КУТОЧКУ КЛІТИНКИ (як в Excel) =====
+   Прохання користувачки 13.08.2026: «ці статуси ховати в коментарі, які
+   відкриваються, якщо натиснути на куточок (як в екселі). Куточок можна зробити
+   помаранчевий».
+   Було: підписи «застаріло», «трекінг не відповідає», «було 02.08.26» друкувались
+   прямо в клітинці другим рядком — вони робили рядок вищим і сперечалися за увагу
+   з самими датами й статусами.
+   Стало: у кутку клітинки маленький помаранчевий трикутник; клік — спливає текст.
+   Класи `stalemark` і `wasdt` НАВМИСНО збережені: на них дивиться перевірка
+   scripts/stale.js, і мовчки перейменувати їх означало б осліпити її. */
+const noteMark = (cls, text) => text
+  ? `<span class="cnote ${cls}" data-note="${esc(text)}" title="${esc(text)}"></span>` : "";
+
+/* Одне спливаюче віконце на всю сторінку. Слухач вішається В РЕЖИМІ ЗАХОПЛЕННЯ
+   і зупиняє подію: інакше клік по куточку дійшов би до самої клітинки й відкрив
+   би редагування значення. */
+function bindNotes(){
+  if (window.__notesBound) return;
+  window.__notesBound = true;
+  const hide = () => { const p = $("notepop"); if (p) p.style.display = "none"; };
+  document.addEventListener("click", e => {
+    const c = e.target.closest && e.target.closest(".cnote");
+    if (!c) { hide(); return; }
+    e.preventDefault(); e.stopPropagation();
+    const p = $("notepop");
+    if (!p) return;
+    p.textContent = c.dataset.note || "";
+    p.style.display = "block";
+    // ставимо під куточком, але не даємо вилізти за край екрана
+    const b = c.getBoundingClientRect(), w = p.offsetWidth || 240;
+    p.style.left = Math.max(8, Math.min(b.left - w + 24, window.innerWidth - w - 8)) + "px";
+    p.style.top  = (b.bottom + 6) + "px";
+  }, true);
+  document.addEventListener("keydown", e => { if (e.key === "Escape") hide(); });
+  window.addEventListener("resize", hide);
+}
 /* Текст підказки — одним реченням, щоб було зрозуміло без пояснень. */
 const staleWhy = r => {
   const st = staleStatus(r), sl = trackSilent(r), out = [];
@@ -1070,6 +1128,19 @@ PAGES.dispatch = async () => {
       + '<button class="btn" id="sync-btn">⟳ Оновити</button>'
       + '<span id="disp-note"></span></span>'
     : "";
+  /* КОЛИ ДАНІ ОНОВЛЮВАЛИСЬ — угорі, поруч із кнопкою (прохання користувачки
+     13.08.2026: «немає дати та часу оновлення зверху»). Позначка внизу меню —
+     це версія САМОЇ СТОРІНКИ, а не свіжість даних, і плутати їх не можна.
+     Беремо найсвіжіший `UpdatedAt` серед угод: його веде сама база при кожному
+     записі, тож він показує реальний час останньої зміни в таблиці — і від
+     синхронізації, і від ручної правки. Колонка «Останнє оновлення» для цього
+     не годиться: у ній лише дата без часу, а подекуди й текст
+     («2026-07-03 (статус з Експедитора: закрито)»). */
+  const upd = all.map(r => String(r["UpdatedAt"] || r["CreatedAt"] || "")).filter(Boolean).sort().pop();
+  const updHtml = upd
+    ? `<span class="updstamp" title="найсвіжіша зміна в таблиці угод — від синхронізації або від руки">`
+      + `оновлено ${esc(fmtDT(upd))}</span>`
+    : `<span class="updstamp cell-muted">час оновлення невідомий</span>`;
   const head = logist
     ? "<th>Угода</th><th>Клієнт</th><th>Контейнер</th><th>Статус</th><th>Номер авто</th><th>Водій</th><th>Телефон</th><th>Перетин кордону</th><th></th>"
     : "<th class=\"c-num\">Угода</th><th></th><th>Клієнт</th><th>Маршрут</th><th>Вид / лінія</th><th class=\"c-bl\">Коносамент /<br>контейнер</th><th class=\"c-ves\">Судно</th><th class=\"dt\">Stuffing</th><th class=\"dt\">Gate in /<br>здача</th><th class=\"dt\">ETD POL</th><th class=\"dt\">ETA POD</th><th class=\"dt\">ETA<br>dry port</th><th class=\"dt\">Gate out<br>delivery</th><th>Статус</th><th>Авто</th><th>Коментар</th><th></th>";
@@ -1151,7 +1222,8 @@ PAGES.dispatch = async () => {
         <thead><tr>${head}</tr></thead>
         <tbody id="drows"></tbody></table></div>
     </div>`;
-  $("page-actions").innerHTML = alertHtml + (cfg().sync ? syncBtn : "");
+  $("page-actions").innerHTML = alertHtml + updHtml + (cfg().sync ? syncBtn : "");
+  bindNotes();                       // коментарі в куточках клітинок
   // ── редагування клітинки на місці: Enter/клік поза межами — зберегти, Esc — скасувати
   /* Галочка прямо в таблиці одним кліком. Зараз у таблиці таких клітинок НЕМАЄ:
      «Реліз» прибрано з екрана на прохання користувачки (01.08.2026) і він живе
@@ -1459,7 +1531,7 @@ PAGES.dispatch = async () => {
             : '<span class="cell-muted">—</span>'}</td>
         <td class="mono dt${ED}${_s(r,"Напрямок")==="Імпорт"?" keydt":""}" data-l="ETA POD" data-ed="ETA">${dateB(r["ETA"])}${(()=>{
             const c = etaChanged(r) ? etaChange(r) : null;
-            return c ? `<br><span class="wasdt" title="дата прибуття змінилася ${fmtD(c.when)}">було ${fmtD(c.from)}</span>` : "";
+            return c ? noteMark("wasdt", `було ${fmtD(c.from)} · дата прибуття змінилася ${fmtD(c.when)}`) : "";
           })()}</td>
         <td class="mono dt${ED} sec" data-l="ETA dry port" data-ed="ETA сухий порт" title="${
             isRail(r) ? "ETA сухий порт" : "сухий порт буває лише на залізничних перевезеннях"}">${
@@ -1476,9 +1548,9 @@ PAGES.dispatch = async () => {
                перевірено 11.08.2026 на угодах 250, 251, 245, 272, 273).
                Раніше обидва писались як «застаріло», і збій зв'язку виглядав як
                застій вантажу. Для кабінету клієнта це неприпустимо поготів. */
-            (staleStatus(r) || trackSilent(r))
-              ? `<span class="stalemark" title="${esc(staleWhy(r))}">${
-                  staleStatus(r) ? "застаріло" : "трекінг не відповідає"}</span>` : ""}</td>
+            noteMark("stalemark", (staleStatus(r) || trackSilent(r))
+              ? (staleStatus(r) ? "застаріло" : "трекінг не відповідає") + ": " + staleWhy(r)
+              : "")}</td>
         <td class="mono${ED}" data-l="Авто" data-ed="Подача авто (факт)" title="дата подачі авто">${truckDate(r)
             ? `${dateB(truckDate(r))}${_s(r,"Подача авто (факт)")?"":'<span class="cell-muted"> план</span>'}`
             : (truckLate(r) ? '<span style="color:#d1453b;font-weight:700">немає</span>' : '<span class="cell-muted">—</span>')}${

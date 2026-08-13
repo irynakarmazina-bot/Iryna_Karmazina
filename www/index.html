@@ -565,6 +565,23 @@
   .abadge b{font-size:13px;color:var(--ink);font-variant-numeric:tabular-nums}
   .abadge.clickable{cursor:pointer}
   .abadge.clickable:hover{border-color:#b9c2d0;background:var(--surface-2)}
+  /* ===== коментар у куточку клітинки (як в Excel) =====
+     Прохання користувачки 13.08.2026. Замість підписів «застаріло» / «було 02.08»
+     другим рядком у клітинці — маленький помаранчевий трикутник у кутку; клік
+     відкриває текст. Рядок не росте, а увага лишається на самих датах. */
+  .dispscroll td{position:relative}
+  .cnote{position:absolute;top:0;right:0;width:0;height:0;cursor:pointer;
+    border-style:solid;border-width:0 9px 9px 0;
+    border-color:transparent #e6a817 transparent transparent}
+  .cnote:hover{border-right-color:#b45309}
+  /* клікати трикутник пальцем незручно, тому область натискання більша за нього */
+  .cnote::after{content:"";position:absolute;top:-3px;right:-3px;width:18px;height:18px}
+  #notepop{position:fixed;display:none;z-index:80;max-width:260px;
+    background:var(--surface);color:var(--ink);border:1px solid var(--line);
+    border-left:3px solid #e6a817;border-radius:8px;padding:8px 11px;
+    font-size:12.5px;line-height:1.45;box-shadow:0 6px 22px rgba(16,24,40,.16)}
+  /* позначка «оновлено» біля кнопки «Оновити» */
+  .updstamp{font-size:12px;color:var(--muted);white-space:nowrap}
   .abadge.a-red::before{background:#d1453b}    .abadge.a-red b{color:#d1453b}
   .abadge.a-amber::before{background:#e6a817}  .abadge.a-amber b{color:#b45309}
   .dispscroll thead th{position:sticky;top:0;z-index:3;background:var(--surface);
@@ -784,7 +801,7 @@
       <div class="spacer"></div>
       <!-- Позначка версії: по ній видно, чи браузер підтягнув свіжу сторінку.
            Оновлюється автоматично при кожному викладенні (scripts/stamp.sh). -->
-      <div class="buildstamp" id="buildstamp" title="версія сторінки — якщо не збігається з тим, що я назвала, натисни Ctrl+F5">в. 13.08 14:35</div>
+      <div class="buildstamp" id="buildstamp" title="версія сторінки — якщо не збігається з тим, що я назвала, натисни Ctrl+F5">в. 13.08 15:36</div>
     </nav>
     <div class="main">
       <div class="topbar">
@@ -888,6 +905,7 @@
     </div>
   </div>
 </div>
+<div id="notepop"></div>
 <div class="toast" id="toast"></div>
 
 <script src="/chart.min.js"></script>
