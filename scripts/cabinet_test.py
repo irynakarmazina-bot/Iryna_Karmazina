@@ -9,6 +9,7 @@
 Запуск: python3 scripts/cabinet_test.py     (нічого не чіпає, все у тимчасовій теці)
 Разом із браузерною перевіркою: bash scripts/check_cabinet.sh
 """
+import datetime
 import http.cookiejar
 import importlib.util
 import json
@@ -311,6 +312,52 @@ code, body, _ = post("/login", {"email": "olga@mp.ua"})
 check("без пароля вже не пускає", code == 401, code)
 code, body, _ = post("/login", {"email": "olga@mp.ua", "password": "olga-pass-99"})
 check("старий пароль знову працює", code == 303, code)
+
+print("\n=== 11. Мініатюра маршруту і позначка «оновлено» ===")
+code, p11, _ = get("/")                       # olga увійшла в розділі 10
+# Рядки таблиці малює браузер, тому в сирому HTML лежить лише шаблон — самі
+# крапки рахує браузерна перевірка (scripts/cabinet_browser.mjs).
+check("мініатюра є в шаблоні рядка", 'class="mini"' in p11 and "miniRoute(r)" in p11)
+check("стан кроків рахується в одному місці", p11.count("function stepState(") == 1)
+check("велика схема бере стан звідти ж", "stepState(r)" in p11)
+
+logf = os.path.join(TMP, "track.log")
+stamp = datetime.datetime.now().replace(hour=7, minute=22, second=46)
+open(logf, "w").write(stamp.strftime("%Y-%m-%d %H:%M:%S")
+                      + " Оновити угод: 25; без даних: 2; помилки: 0\n")
+CAB.TRACK_LOG = logf
+code, p11b, _ = get("/")
+check("позначка «оновлено» показана", "Дані з ліній оновлено" in p11b)
+check("час узятий із журналу, а не «щойно»", "сьогодні о 07:22" in p11b)
+open(logf, "w").write((stamp - datetime.timedelta(days=1)).strftime("%Y-%m-%d %H:%M:%S")
+                      + " Оновити угод: 3; без даних: 0; помилки: 0\n")
+code, p11c, _ = get("/")
+check("вчорашній прогін підписаний «вчора»", "вчора о 07:22" in p11c)
+CAB.TRACK_LOG = os.path.join(TMP, "немає-такого.log")
+code, p11d, _ = get("/")
+check("журналу немає — позначки теж немає, час НЕ вигадується",
+      "Дані з ліній оновлено" not in p11d and "__UPDATED__" not in p11d)
+
+print("\n=== 12. Прототип (build_preview.py) не зламався ===")
+import subprocess
+proto = os.path.join(TMP, "proto.html")
+code_p = subprocess.run(
+    [sys.executable, "-c",
+     "import importlib.util,sys;"
+     "s=importlib.util.spec_from_file_location('bp',%r);"
+     "m=importlib.util.module_from_spec(s);s.loader.exec_module(m);"
+     "m.nc_all=lambda:[{'Угода':'1','Клієнт':'Т','Статус':'В морі','Маршрут':'A - B',"
+     "'ETA':'2026-09-01','Файли':[]}];m.logo=lambda:'';"
+     "sys.argv=['x','--client','Т','--out',%r];m.main()"
+     % (os.path.join(HERE, os.pardir, "client_cabinet", "build_preview.py"), proto)],
+    capture_output=True, text=True)
+check("прототип збирається", code_p.returncode == 0, code_p.stderr[-200:])
+if os.path.exists(proto):
+    ph = open(proto, encoding="utf-8").read()
+    left = re.findall(r"__[A-Z]+__", ph)
+    check("у прототипі не лишилось незамінених міток", not left, left)
+    check("у прототипі позначки «оновлено» немає (часу він не знає)",
+          "Дані з ліній оновлено" not in ph)
 
 print("\n%s  ok=%d  FAIL=%d" % ("ПЕРЕВІРКА ПРОЙДЕНА" if not FAIL else "Є ПОМИЛКИ", OK, FAIL))
 srv.shutdown()
