@@ -1,0 +1,23 @@
+[Unit]
+# Кабінет клієнта: cabinet.unitex.od.ua → Caddy → 127.0.0.1:8793 → ця служба.
+# Слухає ТІЛЬКИ петлю, тобто ззовні без Caddy до неї не достукатись.
+# Дані бере з NocoDB своїм токеном і фільтрує за компанією клієнта до того,
+# як щось піде в браузер.
+Description=Unitex client cabinet (вхід за паролем, фільтрація на сервері)
+After=network-online.target docker.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 /root/Iryna_Karmazina/server/cabinet.py
+Environment=CABINET_PORT=8793
+# CABINET_INSECURE тут НЕ виставляти ніколи: без нього кука сесії має Secure
+# і по звичайному http не передається. Цей прапорець існує лише для перевірки
+# на машині розробки, де немає сертифіката.
+Restart=on-failure
+RestartSec=5
+StandardOutput=append:/root/cabinet.out
+StandardError=append:/root/cabinet.out
+
+[Install]
+WantedBy=multi-user.target
