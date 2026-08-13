@@ -1,7 +1,7 @@
 {
-  "stdout": "ls: cannot access '/root/unitex-os-www/app/': No such file or directory\n\nHTTP /app/main.js:\n200 · 62820 б\nHTTP /:\n200\n",
+  "stdout": "MODDIR у скрипті: 13\n--- деплой ---\n   опис:  relay: tsk-28 — терміново: доставити модуль на сервер\n   модулів у гілці: 1 (main.js )\n   викладено модулів: 1\n   журнал: 2026-08-13T17:41:54\tmain\t91d04406f\tв. 13.08 14:35\tindex.html:62820 findash.html:33514 finperiod.html:17527\trelay: tsk-28 — терміново: доставити модуль на сервер\n   UI/FINDASH/CHART: 200 200 200\nDEPLOY_OK · гілка main · коміт 91d04406f · позначка «в. 13.08 14:35»\n--- на сервері ---\ntotal 328\ndrwxr-xr-x 2 root root   4096 Aug 13 17:41 .\ndrwxr-xr-x 4 root root   4096 Aug 13 17:41 ..\n-rw-r--r-- 1 root root 324334 Aug 13 17:41 main.js\n--- як віддається ---\nHTTP/2 200 \ncontent-type: text/javascript; charset=utf-8\nперші 60 байтів файла:\n/* ═══════════════════\nрозмір: 324334 б\nсайт: 200\n",
   "stderr": "",
   "returncode": 0,
-  "id": "tsk-27",
-  "ts": "2026-08-13T14:40:28Z"
+  "id": "tsk-28",
+  "ts": "2026-08-13T14:41:54Z"
 }
