@@ -69,6 +69,18 @@ FAILS_BEFORE_PAUSE = 3     # після скількох невдалих спр
 # без нього кука має Secure і по http не піде взагалі.
 INSECURE = os.environ.get("CABINET_INSECURE") == "1"
 
+# ⚠️ ТИМЧАСОВИЙ РЕЖИМ: ВХІД БЕЗ ПАРОЛЯ (рішення користувачки 13.08.2026,
+# «поки що», щоб не тягати тимчасові паролі через веб-консоль під час перевірки).
+# Що це означає НАСПРАВДІ: досить знати пошту заведеного акаунта — і людина
+# бачить усі угоди тієї компанії. Пошта співробітника є на сайті й у листах,
+# тобто це рівнозначно тому, що кабінет відкритий. Компанії одна від одної
+# лишаються відділені (пошта визначає, чиї угоди показати), але від сторонніх
+# кабінет не захищений НІЧИМ.
+# Вмикається лише змінною середовища в unitex-cabinet.service. Вимкнути —
+# прибрати рядок Environment=CABINET_NO_PASSWORD=1 і перезапустити службу;
+# паролі в базі лишаються на місці й одразу знову працюють.
+NO_PASSWORD = os.environ.get("CABINET_NO_PASSWORD") == "1"
+
 
 # ── шаблон сторінки беремо з прототипу, а не копіюємо ─────────────────────
 def _load_builder():
@@ -435,6 +447,7 @@ button:hover{filter:brightness(1.06)}
 .msg{border-radius:11px;padding:11px 13px;font-size:13.5px;margin-bottom:16px}
 .msg.err{background:var(--err-bg);color:var(--err)}
 .msg.ok{background:var(--pos-bg);color:var(--pos)}
+.msg.warn{background:#fdf3e3;color:#b45309}
 .hint{color:var(--muted);font-size:12px;margin-top:16px;text-align:center;line-height:1.45}
 """
 
@@ -464,15 +477,22 @@ def render_login(msg="", kind="err", email=""):
     fields = (
         '<label for="email">Електронна пошта</label>'
         '<input id="email" name="email" type="email" required autocomplete="username" value="%s">'
-        '<label for="password">Пароль</label>'
-        '<input id="password" name="password" type="password" required autocomplete="current-password">'
         % esc(email))
+    if not NO_PASSWORD:
+        fields += ('<label for="password">Пароль</label>'
+                   '<input id="password" name="password" type="password" required '
+                   'autocomplete="current-password">')
+    # У режимі без пароля це видно на самій сторінці входу — щоб ніхто (і я
+    # в тому числі) не забув, що кабінет зараз відкритий.
+    hint = ("Доступ надає ваш менеджер UNITEX. Якщо не пам'ятаєте пароль — "
+            "зверніться до нього, ми надішлемо новий.")
+    if NO_PASSWORD and not msg:
+        msg, kind = ("Тимчасовий режим перевірки: вхід без пароля. "
+                     "Кабінет зараз відкритий для всіх, хто знає пошту."), "warn"
     return _fill_login(
         title="UNITEX — вхід в особистий кабінет", h1="Особистий кабінет",
         sub="Відстеження ваших вантажів", action="/login", fields=fields,
-        btn="Увійти", msg=msg, kind=kind, logo=logo,
-        hint="Доступ надає ваш менеджер UNITEX. Якщо не пам'ятаєте пароль — "
-             "зверніться до нього, ми надішлемо новий.")
+        btn="Увійти", msg=msg, kind=kind, logo=logo, hint=hint)
 
 
 def render_change(msg="", kind="err", first=False):
@@ -675,7 +695,11 @@ class Handler(BaseHTTPRequestHandler):
             if not acc:
                 body, nonce = render_login()
                 return self.send_html(200, body, nonce)
-            if acc["must_change"]:
+            # Вимога змінити тимчасовий пароль у режимі без пароля не має сенсу:
+            # форма питала б поточний пароль, якого людина не вводила, і в
+            # кабінет не потрапив би ніхто. Позначка «новий» у базі лишається —
+            # щойно режим вимкнуть, вимога знову спрацює.
+            if acc["must_change"] and not NO_PASSWORD:
                 body, nonce = render_change(first=True)
                 return self.send_html(200, body, nonce)
             try:
@@ -725,9 +749,12 @@ class Handler(BaseHTTPRequestHandler):
         con = db()
         row = con.execute("SELECT * FROM accounts WHERE email=?", (email,)).fetchone()
         con.close()
-        # Пароль перевіряємо навіть коли акаунта немає — по фіктивному хешу.
-        # Без цього час відповіді видає, які пошти в нас заведені.
-        ok = check_pwd(password, row["pwd"]) if row else check_pwd(password, hash_pwd("-"))
+        if NO_PASSWORD:
+            ok = bool(row)                 # пароля не питаємо взагалі — див. шапку файла
+        else:
+            # Пароль перевіряємо навіть коли акаунта немає — по фіктивному хешу.
+            # Без цього час відповіді видає, які пошти в нас заведені.
+            ok = check_pwd(password, row["pwd"]) if row else check_pwd(password, hash_pwd("-"))
         if not row or not ok or not row["active"]:
             why = ("немає такої пошти" if not row
                    else "заблокований" if not row["active"] else "невірний пароль")
@@ -744,7 +771,7 @@ class Handler(BaseHTTPRequestHandler):
         con.execute("UPDATE accounts SET last_login=? WHERE email=?", (now(), email))
         con.commit()
         con.close()
-        audit(email, row["client"], "вхід", "", ip)
+        audit(email, row["client"], "вхід БЕЗ ПАРОЛЯ" if NO_PASSWORD else "вхід", "", ip)
         return self.redirect("/", self.cookie_set(sid))
 
     def do_logout(self):
@@ -835,6 +862,8 @@ class Handler(BaseHTTPRequestHandler):
 if __name__ == "__main__":
     init_db()
     secret()
-    log("старт на 127.0.0.1:%d · база %s%s"
-        % (PORT, DB_PATH, "  [БЕЗ Secure — тільки для перевірки!]" if INSECURE else ""))
+    log("старт на 127.0.0.1:%d · база %s%s%s"
+        % (PORT, DB_PATH, "  [БЕЗ Secure — тільки для перевірки!]" if INSECURE else "",
+           "  [⚠️ ВХІД БЕЗ ПАРОЛЯ — кабінет відкритий усім, хто знає пошту]"
+           if NO_PASSWORD else ""))
     ThreadingHTTPServer(("127.0.0.1", PORT), Handler).serve_forever()
