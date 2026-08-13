@@ -1,7 +1,7 @@
 {
-  "stdout": "Created symlink /etc/systemd/system/multi-user.target.wants/unitex-cabinet.service → /etc/systemd/system/unitex-cabinet.service.\n== стан ==\nactive\n== health ==\nok\n== сторінка входу (перші рядки) ==\n<!doctype html>\n<meta charset=\"utf-8\">\n<title>UNITEX — вхід в особистий кабінет</title>\n<meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">\n<style nonce=\"xY6eyF3\n== чи слухає ТІЛЬКИ петлю ==\nLISTEN 0      5          127.0.0.1:8793      0.0.0.0:*          \n== журнал служби ==\n2026-08-13 13:54:53 старт на 127.0.0.1:8793 · база /root/cabinet/cabinet.db\n",
-  "stderr": "",
+  "stdout": "== шлях до конфігу ==\n== ВМІСТ (тільки читаю) ==\n== чи згадується cabinet ==\n0\n",
+  "stderr": "ls: cannot access '/etc/caddy/Caddyfile': No such file or directory\ncat: /etc/caddy/Caddyfile: No such file or directory\ngrep: /etc/caddy/Caddyfile: No such file or directory\n",
   "returncode": 0,
-  "id": "cab-02",
-  "ts": "2026-08-13T10:54:56Z"
+  "id": "cab-03",
+  "ts": "2026-08-13T10:55:12Z"
 }
