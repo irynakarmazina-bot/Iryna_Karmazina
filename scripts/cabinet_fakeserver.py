@@ -77,6 +77,13 @@ CAB.urllib.request.urlopen = lambda req, timeout=0: FakeResp(req.full_url)
 CAB.TOKEN_FILE = os.path.join(TMP, "b.token")
 open(CAB.TOKEN_FILE, "w").write("faketoken")
 
+# Журнал трекінгу теж підроблений — щоб позначку «оновлено» було видно в макеті.
+import datetime as _dt
+_lg = os.path.join(TMP, "maersk.log")
+open(_lg, "w").write(_dt.datetime.now().replace(hour=7, minute=22, second=46)
+                     .strftime("%Y-%m-%d %H:%M:%S") + " Оновити угод: 25; без даних: 2; помилки: 0\n")
+CAB.TRACK_LOG = _lg
+
 CAB.init_db()
 con = CAB.db()
 con.execute("DELETE FROM accounts")

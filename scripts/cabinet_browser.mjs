@@ -51,6 +51,19 @@ const ids = await page.$$eval('tr.deal', ns => ns.map(n => n.dataset.id));
 check('чужої угоди немає', !ids.includes('999') && !body.includes('ЧУЖИЙ ВАНТАЖ'), ids.join(','));
 check('кнопка «Вийти» видима', await page.locator('header button:has-text("Вийти")').isVisible());
 
+console.log('\n=== мініатюра маршруту і позначка «оновлено» ===');
+const dots = await page.locator('tr.deal[data-id="201"] .mini .md').count();
+check('крапки маршруту в рядку намальовані', dots >= 4, 'було ' + dots);
+check('поточний крок підсвічений', await page.locator('tr.deal[data-id="201"] .mini .md.now').count() === 1);
+check('пройдені кроки залиті', await page.locator('tr.deal[data-id="201"] .mini .md.done').count() >= 1);
+check('у доставленої угоди майбутніх кроків немає',
+      await page.locator('tr.deal[data-id="202"] .mini .md.todo').count() === 0);
+check('підказка з назвами кроків є',
+      ((await page.locator('tr.deal[data-id="201"] .mini').getAttribute('title')) || '').includes('▸'));
+const upd = await page.locator('.upd').innerText().catch(() => '');
+check('позначка «оновлено» видима', /Дані з ліній оновлено/.test(upd), upd);
+check('час у позначці — з журналу прогонів', /о \d{2}:\d{2}/.test(upd), upd);
+
 console.log('\n=== картка угоди ===');
 // саме 201: у неї є документи. Перший рядок — 203 (найближча ETA), а в неї їх немає.
 await page.locator('tr.deal[data-id="201"]').click();

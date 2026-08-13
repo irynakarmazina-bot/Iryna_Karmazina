@@ -405,6 +405,53 @@ def docs_of(row):
     return out
 
 
+TRACK_LOG = os.environ.get("CABINET_TRACK_LOG", "/root/direct-sync/maersk.log")
+RE_RUN = re.compile(r"^(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}) Оновити угод:")
+
+
+def last_sync():
+    """Коли автоматика ОСТАННІЙ РАЗ звірила дані з лініями. None — невідомо.
+
+    Джерело — рядок завершення прогону в журналі трекінгу. Свідомо НЕ час
+    складання сторінки: він оновлювався б на кожне натискання F5 і показував би
+    клієнту «щойно», коли дані насправді вчорашні.
+    І свідомо НЕ `automation.json`: перевірено 13.08.2026 — там лежав прогін від
+    11.08, бо `automation_log.py` після кожного прогону ще не викликається.
+    Не вдалося прочитати — повертаємо None, і позначки просто не буде.
+    Вигадувати час не можна.
+    """
+    try:
+        with open(TRACK_LOG, encoding="utf-8", errors="replace") as f:
+            lines = f.readlines()[-4000:]
+    except Exception:  # noqa: BLE001
+        return None
+    for ln in reversed(lines):
+        m = RE_RUN.match(ln)
+        if m:
+            try:
+                return datetime.datetime.strptime(m.group(1), "%Y-%m-%d %H:%M:%S")
+            except ValueError:
+                return None
+    return None
+
+
+def updated_badge():
+    """Готова позначка «дані оновлено …» або порожньо, якщо часу не знаємо."""
+    ts = last_sync()
+    if not ts:
+        return ""
+    today = datetime.date.today()
+    if ts.date() == today:
+        when = "сьогодні о %s" % ts.strftime("%H:%M")
+    elif (today - ts.date()).days == 1:
+        when = "вчора о %s" % ts.strftime("%H:%M")
+    else:
+        when = ts.strftime("%d.%m о %H:%M")
+    return ('<div class="upd" title="Коли автоматика востаннє звіряла статуси '
+            'з системами ліній">'
+            '<i></i>Дані з ліній оновлено <b>%s</b></div>' % esc(when))
+
+
 def page_data(rows):
     """Те, що поїде в браузер. Колонки — рівно BP.CLIENT_COLS, нічого понад."""
     data = []
@@ -546,6 +593,7 @@ def render_cabinet(acc):
                 .replace("__FOOT__", "Дані оновлюються автоматично з систем ліній. "
                                      "Питання — до вашого менеджера UNITEX.")
                 .replace("__DEMO__", "false")
+                .replace("__UPDATED__", updated_badge())
                 .replace("__CLIENTFULL__", esc(BP.client_title(acc["client"])))
                 .replace("__CLIENT__", esc(acc["client"]))
                 .replace("__TODAY__", datetime.date.today().isoformat())

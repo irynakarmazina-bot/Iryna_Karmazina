@@ -33,6 +33,25 @@ PORT="${CABINET_DEMO_PORT:-8899}"
 if [ -x /opt/node22/bin/node ] && [ -d /opt/pw-browsers ]; then
   echo
   echo "── перевірка в браузері ──"
+  # Порт має бути ВІЛЬНИЙ. Якщо на ньому вже щось висить (забутий стенд із
+  # попереднього прогону), наш сервер не підніметься, а браузер мовчки
+  # перевірить ЧУЖИЙ процес — і шлюз збреше. Саме так 13.08.2026 з'явився
+  # «CABINET_FAIL» на коді, у якому нічого не було зламано.
+  # Кілька спроб із паузою: щойно вбитий стенд звільняє порт не миттєво, і
+  # одна проба давала «зайнято» там, де через секунду вже все гаразд.
+  if ! python3 -c "
+import socket,sys,time
+for i in range(4):
+    s=socket.socket()
+    try:
+        s.bind(('127.0.0.1',$PORT)); s.close(); sys.exit(0)
+    except OSError:
+        s.close(); time.sleep(1)
+sys.exit(1)" 2>/dev/null; then
+    echo "  FAIL порт $PORT зайнятий — зупиніть старий стенд"
+    echo "       (pgrep -f cabinet_fakeserver), інакше перевірка бреше"
+    echo; echo "CABINET_FAIL"; exit 1
+  fi
   CABINET_DEMO_PORT="$PORT" python3 scripts/cabinet_fakeserver.py >/tmp/cabfake.$$ 2>&1 &
   SRV=$!
   for _ in $(seq 20); do grep -q READY /tmp/cabfake.$$ 2>/dev/null && break; sleep 0.5; done

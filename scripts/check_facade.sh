@@ -29,9 +29,29 @@ process.exit(bad?1:0);
 ' "$FILE" "$WORK/facade.js" || fail=1
 
 # 2. звернення до неіснуючих змінних — те, що впустило «Фінанси»
+#    Від 13.08.2026 код живе не лише в <script> усередині HTML, а й у модулях
+#    www/app/*.js. Їх треба перевіряти ОБОВ'ЯЗКОВО: у модулі кожен файл бачить
+#    лише те, що сам імпортував, тому забутий import — це саме той випадок, який
+#    ця перевірка й ловить. Якщо модулі сюди не додати, шлюз мовчки осліпне на
+#    4/5 коду (у самому index.html лишиться майже нічого).
 cp "$ROOT/scripts/eslint.config.mjs" "$WORK/eslint.config.mjs"
+APPDIR="$(dirname "$FILE")/app"
+if [ -d "$APPDIR" ]; then
+  mkdir -p "$WORK/app" && cp "$APPDIR"/*.js "$WORK/app/" 2>/dev/null
+  echo "модулів у app/: $(ls -1 "$APPDIR"/*.js 2>/dev/null | wc -l)"
+  # Синтаксис модулів. Крок 1 (new Function) їх перевірити НЕ може: import/export
+  # там не вираз, і він би сам упав. Питаємо node у режимі модуля.
+  for m in "$APPDIR"/*.js; do
+    if ! out=$(node --input-type=module --check < "$m" 2>&1); then
+      echo "СИНТАКСИС $(basename "$m"): $(echo "$out" | head -2 | tr '\n' ' ')"
+      fail=1
+    fi
+  done
+else
+  echo "теки app/ немає — перевіряю лише вбудований код"
+fi
 if command -v eslint >/dev/null 2>&1; then
-  ( cd "$WORK" && eslint facade.js ) || fail=1
+  ( cd "$WORK" && eslint facade.js $( [ -d "$WORK/app" ] && echo "app" ) ) || fail=1
 else
   echo "УВАГА: eslint не знайдено — перевірку на неіснуючі змінні ПРОПУЩЕНО"
   fail=1
