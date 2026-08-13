@@ -18,6 +18,7 @@ DISP = "/api/v2/tables/m58xsjo6at01ohl/records?limit=1000"
 CALC = "/api/v2/tables/mxtg3fvrmtflaid/records?limit=1000"
 JOURNAL = "/api/v2/tables/m429u2crlavfmxc/records"
 USERS = "/api/v2/tables/meqpi0r197bz14n/records"
+TASKS = "/api/v2/tables/mfo372vhs3fbbw7/records?limit=1000"
 LOGIN = "/api/v1/auth/user/signin"
 UNKNOWN = "/api/v2/tables/mZZZZZZZZZZZZZZ/records"
 
@@ -104,6 +105,35 @@ def run():
         if not good:
             print("      ОЧІКУВАЛОСЬ: %s   (причина: %s)" % ("можна" if want_ok else "НІ", why))
 
+    # ── задачі: «адмін бачить всі, інші ролі — тільки свої» (12.08.2026) ──
+    # Тут потрібна ПОШТА, а не ім'я: у довіднику двоє людей з ім'ям «Ірина».
+    tasks = [
+        ("адміністратор бачить УСІ задачі", "GET", TASKS, "Адміністратор",
+         "a@x.ua", True, None),
+        ("фінансист бачить лише свої задачі", "GET", TASKS, "Фінансист",
+         "f@x.ua", True, G.TASK_SCOPE),
+        ("менеджер бачить лише свої задачі", "GET", TASKS, "Сейлз-менеджер",
+         "s@x.ua", True, G.TASK_SCOPE),
+        ("«Перегляд» теж лише свої, а не всі", "GET", TASKS, "Перегляд",
+         "p@x.ua", True, G.TASK_SCOPE),
+        ("пошту визначити не вдалося → ні", "GET", TASKS, "Фінансист", "", False, None),
+        ("логіст у задачі не лізе взагалі", "GET", TASKS, "Логіст", "l@x.ua", False, None),
+        ("фінансист створює задачу → можна", "POST", TASKS, "Фінансист", "f@x.ua", True, None),
+        ("фінансист закриває задачу → можна", "PATCH", TASKS, "Фінансист", "f@x.ua", True, None),
+        ("фінансист ВИДАЛЯЄ задачу → ні", "DELETE", TASKS, "Фінансист", "f@x.ua", False, None),
+        ("«Перегляд» створює задачу → ні", "POST", TASKS, "Перегляд", "p@x.ua", False, None),
+    ]
+    for name, method, path, role, em, want_ok, want_field in tasks:
+        ok, why, field = G.decide(method, path, role, "Хтось", None, em)
+        good = (ok == want_ok) and (field == want_field)
+        bad += 0 if good else 1
+        print("  %s %-58s → %s%s" % ("✓" if good else "✗", name[:58],
+              "можна" if ok else "НІ", (" · лише свої за «%s»" % field) if field else ""))
+        if not good:
+            print("      ОЧІКУВАЛОСЬ: %s%s   (причина: %s)"
+                  % ("можна" if want_ok else "НІ",
+                     (" · поле «%s»" % want_field) if want_field else "", why))
+
     # окремо: сама обрізка рядків
     body = ('{"list":[{"Id":1,"Менеджер":"Іван"},{"Id":2,"Менеджер":"Оксана"},'
             '{"Id":3,"Менеджер":"Іван"}],"pageInfo":{"isLastPage":true}}').encode()
@@ -113,7 +143,19 @@ def run():
     print("  %s обрізка відповіді: з %d рядків лишилось %d, чужого немає"
           % ("✓" if okc else "✗", was, now))
 
-    total = len(CASES) + len(extra) + 1
+    # обрізка ЗАДАЧ: свої = я виконавець АБО я поставила; пошта без урахування регістру
+    tbody = ('{"list":['
+             '{"Id":1,"Виконавці":"f@x.ua, a@x.ua","Постановник":"a@x.ua"},'
+             '{"Id":2,"Виконавці":"a@x.ua","Постановник":"a@x.ua"},'
+             '{"Id":3,"Виконавці":"","Постановник":"f@x.ua"},'
+             '{"Id":4,"Виконавці":"s@x.ua","Постановник":"s@x.ua"}]}').encode()
+    tout, twas, tnow = G.scope_tasks(tbody, "F@X.UA")
+    okt = (twas == 4 and tnow == 2 and b'"Id": 4' not in tout and b'"Id":4' not in tout)
+    bad += 0 if okt else 1
+    print("  %s обрізка задач: з %d лишилось %d (я виконавець або я поставила)"
+          % ("✓" if okt else "✗", twas, tnow))
+
+    total = len(CASES) + len(extra) + len(tasks) + 2
     print()
     if bad:
         print("GATEWAY_RULES_FAIL — не виконано: %d з %d" % (bad, total))
