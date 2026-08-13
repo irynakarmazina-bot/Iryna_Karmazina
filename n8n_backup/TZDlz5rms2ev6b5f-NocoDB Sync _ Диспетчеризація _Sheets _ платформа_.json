@@ -1,0 +1,362 @@
+{
+  "active": false,
+  "activeVersion": null,
+  "activeVersionId": null,
+  "connections": {
+    "Мапінг": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "Це вставка?",
+            "type": "main"
+          },
+          {
+            "index": 0,
+            "node": "Це оновлення?",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "Наявні в NocoDB": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "Мапінг",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "Ручний запуск (вебхук)": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "Читаємо Відправлення",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "Це вставка?": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "Вставка порції",
+            "type": "main"
+          }
+        ],
+        []
+      ]
+    },
+    "Це оновлення?": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "Оновлення порції",
+            "type": "main"
+          }
+        ],
+        []
+      ]
+    },
+    "Читаємо Відправлення": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "Наявні в NocoDB",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "Щодня 07:30": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "Читаємо Відправлення",
+            "type": "main"
+          }
+        ]
+      ]
+    }
+  },
+  "description": null,
+  "id": "TZDlz5rms2ev6b5f",
+  "isArchived": false,
+  "meta": null,
+  "name": "NocoDB Sync — Диспетчеризація (Sheets → платформа)",
+  "nodeGroups": [],
+  "nodes": [
+    {
+      "id": "e5da0907-7741-4fd9-811a-fa64f7ff9cf0",
+      "name": "Щодня 07:30",
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "expression": "30 7 * * *",
+              "field": "cronExpression"
+            }
+          ]
+        }
+      },
+      "position": [
+        0,
+        -100
+      ],
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2
+    },
+    {
+      "id": "2d627b5b-f309-434c-ab45-a8d1e2eb2f6a",
+      "name": "Ручний запуск (вебхук)",
+      "parameters": {
+        "options": {},
+        "path": "unitex-nocodb-sync-x7k2m9"
+      },
+      "position": [
+        0,
+        120
+      ],
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "webhookId": "68334a63-7100-4291-8794-0b9af971fcab"
+    },
+    {
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "S6pSxt1O96LflGWp",
+          "name": "Google Sheets account"
+        }
+      },
+      "id": "a9a9759d-a0c2-4d4e-81fa-4f3ec9528255",
+      "name": "Читаємо Відправлення",
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "1FkvCfEZv7Ni5SYJCuaEB7BubmwPs5D0laM0A9g4byF8"
+        },
+        "operation": "read",
+        "options": {},
+        "sheetName": {
+          "__rl": true,
+          "mode": "url",
+          "value": "https://docs.google.com/spreadsheets/d/1FkvCfEZv7Ni5SYJCuaEB7BubmwPs5D0laM0A9g4byF8/edit#gid=11111"
+        }
+      },
+      "position": [
+        220,
+        0
+      ],
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5
+    },
+    {
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "wrIjmSE5YG7jStH5",
+          "name": "NocoDB xc-token"
+        }
+      },
+      "executeOnce": true,
+      "id": "81d2ad08-53e0-4a6d-b474-5d5d847a870d",
+      "name": "Наявні в NocoDB",
+      "parameters": {
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {},
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "limit",
+              "value": "1000"
+            },
+            {
+              "name": "fields",
+              "value": "Id,Угода"
+            }
+          ]
+        },
+        "sendQuery": true,
+        "url": "https://134.209.94.12/api/v2/tables/m58xsjo6at01ohl/records"
+      },
+      "position": [
+        440,
+        0
+      ],
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2
+    },
+    {
+      "id": "b0ecdd63-02b9-4afc-b57b-f8dc0ae4b84c",
+      "name": "Мапінг",
+      "parameters": {
+        "jsCode": "const rows = $('Читаємо Відправлення').all().map(i=>i.json).filter(r=>String(r['Угода']||'').trim());\nconst existing = $('Наявні в NocoDB').all().flatMap(i=>i.json.list||[]);\nconst byDeal = {}; existing.forEach(r=>{ byDeal[String(r['Угода']||'').trim()] = r.Id; });\nconst dm = v => { const m = String(v==null?'':v).match(/(\\d{4})-(\\d{2})-(\\d{2})/); return m ? m[0] : null; };\nconst yn = v => /так/i.test(String(v||''));\nconst STAT = new Set(['Букінг','Стафіровка','В порту відправлення','Завантажений на судно','В морі','Вивантажений в порту прибуття','Завантажений на авто/потяг','Вантаж доставлено']);\nconst DATES = ['Подача авто (план)','Подача авто (факт)','Port Cut Off','Гейт ін','ETD (план)','ETD (факт)','ETA порт (план)','ETA порт (факт)','Вивантаження в порту (факт)','Постановка/завантаження (план)','Постановка/завантаження (факт)','Перетин кордону (факт)','Планова до клієнта (план)','Планова до клієнта (факт)','Вивантаження у отримувача (факт)'];\nconst TEXTS = ['Тип','Перевізник','Агент','Маршрут','Вояж','Контейнер (лінія)','Звірка','Сухий порт','Адреса розмитнення','Тип обладнання','Кількість','Вивіз (Carrier/Merchant)','Номер авто','Номер ЦМР','Водій (ПІБ)','Водій (телефон)','Остання зміна','Останнє оновлення','Лист (джерело)'];\nconst LONGS = ['Зміни ETA (історія)','Коментар клієнту'];\nconst toInsert=[], toUpdate=[];\nrows.forEach(r=>{\n  const o = {\n    'Угода': String(r['Угода']).trim(),\n    'Клієнт': r['Клієнт']||null,\n    'BL': r['BL/Booking']||null,\n    'Контейнер': r['Контейнер']||null,\n    'Судно': r['Судно']||null,\n    'ETA': dm(r['ETA порт (факт)']) || dm(r['ETA порт (план)']),\n    'Коментар': r['Коментар внутрішній']||null,\n    'Телекс': yn(r['Телекс-реліз']),\n    'Т1': yn(r['T1']!==undefined?r['T1']:r['Т1']),\n    'Реліз': yn(r['Реліз'])\n  };\n  DATES.forEach(k=>{ o[k] = dm(r[k]); });\n  TEXTS.forEach(k=>{ o[k] = (r[k]===undefined||r[k]===null||String(r[k]).trim()==='') ? null : String(r[k]); });\n  LONGS.forEach(k=>{ o[k] = (r[k]===undefined||r[k]===null||String(r[k]).trim()==='') ? null : String(r[k]); });\n  const dir=String(r['Напрямок']||'').trim(); if(['Імпорт','Експорт','Транзит'].includes(dir)) o['Напрямок']=dir;\n  const line=String(r['Лінія']||'').trim(); if(['Maersk','MSC','CMA CGM','Інша'].includes(line)) o['Лінія']=line;\n  const st=String(r['Статус']||'').trim(); if(STAT.has(st)) o['Статус']=st;\n  const id=byDeal[o['Угода']];\n  if(id) toUpdate.push(Object.assign({Id:id}, o)); else toInsert.push(o);\n});\nconst CH=25, out=[];\nfor(let i=0;i<toInsert.length;i+=CH) out.push({json:{method:'POST', records: toInsert.slice(i,i+CH)}});\nfor(let i=0;i<toUpdate.length;i+=CH) out.push({json:{method:'PATCH', records: toUpdate.slice(i,i+CH)}});\nreturn out.length ? out : [{json:{method:'NONE', records:[]}}];",
+        "mode": "runOnceForAllItems"
+      },
+      "position": [
+        660,
+        0
+      ],
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2
+    },
+    {
+      "id": "f426ca57-76e4-42ba-b8b0-ead54490c31a",
+      "name": "Це вставка?",
+      "parameters": {
+        "conditions": {
+          "combinator": "and",
+          "conditions": [
+            {
+              "leftValue": "={{ $json.method }}",
+              "operator": {
+                "operation": "equals",
+                "type": "string"
+              },
+              "rightValue": "POST"
+            }
+          ],
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "loose",
+            "version": 2
+          }
+        },
+        "options": {}
+      },
+      "position": [
+        880,
+        -60
+      ],
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2
+    },
+    {
+      "id": "d96c558e-82db-4831-8ee5-1dcafa35e4b6",
+      "name": "Це оновлення?",
+      "parameters": {
+        "conditions": {
+          "combinator": "and",
+          "conditions": [
+            {
+              "leftValue": "={{ $json.method }}",
+              "operator": {
+                "operation": "equals",
+                "type": "string"
+              },
+              "rightValue": "PATCH"
+            }
+          ],
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "loose",
+            "version": 2
+          }
+        },
+        "options": {}
+      },
+      "position": [
+        880,
+        160
+      ],
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2
+    },
+    {
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "wrIjmSE5YG7jStH5",
+          "name": "NocoDB xc-token"
+        }
+      },
+      "id": "ad4095ad-a3f6-49f4-a53b-bfc3be510db0",
+      "name": "Вставка порції",
+      "parameters": {
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "jsonBody": "={{ JSON.stringify($json.records) }}",
+        "method": "POST",
+        "options": {},
+        "sendBody": true,
+        "specifyBody": "json",
+        "url": "https://134.209.94.12/api/v2/tables/m58xsjo6at01ohl/records"
+      },
+      "position": [
+        1100,
+        -60
+      ],
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2
+    },
+    {
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "wrIjmSE5YG7jStH5",
+          "name": "NocoDB xc-token"
+        }
+      },
+      "id": "03ac4477-c2fa-4589-ab95-9c4679d82e30",
+      "name": "Оновлення порції",
+      "parameters": {
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "jsonBody": "={{ JSON.stringify($json.records) }}",
+        "method": "PATCH",
+        "options": {},
+        "sendBody": true,
+        "specifyBody": "json",
+        "url": "https://134.209.94.12/api/v2/tables/m58xsjo6at01ohl/records"
+      },
+      "position": [
+        1100,
+        160
+      ],
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2
+    }
+  ],
+  "pinData": null,
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Europe/Kiev"
+  },
+  "shared": [
+    {
+      "project": {
+        "creatorId": "4045d201-6483-44b7-b7d6-07364d42fa70",
+        "customTelemetryTags": [],
+        "description": null,
+        "icon": null,
+        "id": "tM3V0WFDaLiytIxs",
+        "name": "Iryna Karmazina <irynakarmazina@gmail.com>",
+        "type": "personal"
+      },
+      "projectId": "tM3V0WFDaLiytIxs",
+      "role": "workflow:owner",
+      "workflowId": "TZDlz5rms2ev6b5f"
+    }
+  ],
+  "sourceWorkflowId": null,
+  "staticData": {
+    "node:Щодня 07:30": {
+      "recurrenceRuleSignatures": [
+        null
+      ],
+      "recurrenceRules": [
+        null
+      ]
+    }
+  },
+  "tags": [],
+  "versionCounter": 4
+}

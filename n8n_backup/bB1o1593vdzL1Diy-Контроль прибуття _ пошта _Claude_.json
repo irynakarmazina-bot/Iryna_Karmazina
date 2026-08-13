@@ -1,0 +1,437 @@
+{
+  "active": false,
+  "activeVersion": null,
+  "activeVersionId": null,
+  "connections": {
+    "Claude API": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "Розбір Claude",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "Lookup у CRM": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "Порівняння + рядок",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "Є в CRM?": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "Запис у CRM",
+            "type": "main"
+          }
+        ],
+        [
+          {
+            "index": 0,
+            "node": "Лог невідомих BL",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "Запит до Claude": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "Claude API",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "Зі змінами": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "Сповіщення (email)",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "Нові листи (IMAP)": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "Фільтр: номер + дедуп",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "Порівняння + рядок": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "Є в CRM?",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "Розбір Claude": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "Lookup у CRM",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "Фільтр: номер + дедуп": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "Запит до Claude",
+            "type": "main"
+          }
+        ]
+      ]
+    }
+  },
+  "description": null,
+  "id": "bB1o1593vdzL1Diy",
+  "isArchived": false,
+  "meta": null,
+  "name": "Контроль прибуття — пошта (Claude)",
+  "nodeGroups": [],
+  "nodes": [
+    {
+      "credentials": {
+        "imap": {
+          "id": "kW24ZrmT1XnVuRpA",
+          "name": "IMAP account"
+        }
+      },
+      "id": "928b300b-2702-4ba5-9f85-b114e5fe5a9c",
+      "name": "Нові листи (IMAP)",
+      "parameters": {
+        "format": "simple",
+        "mailbox": "INBOX",
+        "options": {
+          "allowUnauthorizedCerts": false
+        },
+        "postProcessAction": "nothing"
+      },
+      "position": [
+        0,
+        0
+      ],
+      "type": "n8n-nodes-base.emailReadImap",
+      "typeVersion": 2
+    },
+    {
+      "id": "636f3e4b-1d0a-40d9-b96d-1b580704c096",
+      "name": "Фільтр: номер + дедуп",
+      "parameters": {
+        "jsCode": "\nconst sd=$getWorkflowStaticData('global'); sd.seen=sd.seen||{};\nif(Object.keys(sd.seen).length>8000) sd.seen={};\nconst j=$json;\nconst id=String(j.messageId||j.uid||(String(j.subject||'')+'|'+String(j.date||'')));\nif(sd.seen[id]) return [];\nconst subj=String(j.subject||''); const body=String(j.textPlain||j.text||j.textHtml||'');\nconst hay=subj+' '+body;\nconst hasId=/[A-Z]{4}\\d{6,7}/.test(hay)||/\\b\\d{9}\\b/.test(hay)||/MEDU\\w{6,}/i.test(hay)||/NBXT\\w+/i.test(hay);\nif(!hasId) return [];\nsd.seen[id]=1;\nreturn [{json:{subject:subj, from:String(j.from||''), date:String(j.date||''), text:body}}];\n"
+      },
+      "position": [
+        240,
+        0
+      ],
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2
+    },
+    {
+      "id": "bec3629f-a9f0-4fd5-97c9-a66d0e76b520",
+      "name": "Запит до Claude",
+      "parameters": {
+        "jsCode": "const s=$json; const payload={model:'claude-sonnet-4-6',max_tokens:900,system:\"Ти витягуєш дані про статус/прибуття відправлення з листа (рейл-перевізники N'Unit/TrakIT/Левада, агенти-букери, лінії). Поверни СТРОГО валідний JSON без markdown. Поля: bl_booking (номер коносамента/букінга, який фігурує — для рейлів це часто MSC-букінг MEDU..., для агентів NBXT.../інший), container, order_no, eta (YYYY-MM-DD, рік 2026 якщо не вказано, інакше null), status (рівно один з: Стафіровка|У порту відправлення|Завантажений на судно|У морі|Прибув у порт перевалки|Перевалка / завантаження на потяг|У дорозі|На кордоні|Відправлений з кордону|Прибув у сухий порт / ICD|Митне оформлення / розмитнення|Готовий до видачі|Доставка отримувачу|Вивантажений у отримувача|null), vessel, has_data (true якщо є номер І (статус або дата)). Мапінг фраз (часто в темі TrakIT/N'Unit): 'Прибув у Сухий Порт'/'Gate In'/'ICD'→'Прибув у сухий порт / ICD'; 'відправлено з кордону'→'Відправлений з кордону'; 'на кордоні'/'п/п'→'На кордоні'; 'документи'/'митниц'→'Митне оформлення / розмитнення'; 'догляд в POD'/'вивантажений в порту'→'Вивантажений в порту прибуття'; 'видано'/'у отримувача'→'Вивантажений у отримувача'. НЕ вигадуй.\",messages:[{role:'user',content:'ТЕМА: '+s.subject+'\\n\\nТІЛО:\\n'+s.text}]};return [{json:{body:JSON.stringify(payload),_subject:s.subject,_from:s.from,_date:s.date}}];"
+      },
+      "position": [
+        480,
+        0
+      ],
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2
+    },
+    {
+      "credentials": {
+        "anthropicApi": {
+          "id": "S4WsLWJw1fpDwXqf",
+          "name": "Anthropic account"
+        }
+      },
+      "id": "c76815d9-922f-4504-a4cd-f68f3c74d57f",
+      "name": "Claude API",
+      "parameters": {
+        "authentication": "predefinedCredentialType",
+        "body": "={{ $json.body }}",
+        "contentType": "raw",
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            }
+          ]
+        },
+        "method": "POST",
+        "nodeCredentialType": "<ПРИБРАНО>",
+        "options": {},
+        "rawContentType": "application/json",
+        "sendBody": true,
+        "sendHeaders": true,
+        "url": "https://api.anthropic.com/v1/messages"
+      },
+      "position": [
+        720,
+        0
+      ],
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2
+    },
+    {
+      "id": "103e260d-48e0-49d9-8ae8-0ee556cf5914",
+      "name": "Розбір Claude",
+      "parameters": {
+        "jsCode": "\nconst raw=($json.content&&$json.content[0]&&$json.content[0].text)||'{}';\nlet d; try{ d=JSON.parse(raw);}catch(e){return [];}\nif(!d||d.has_data===false) return [];\nconst m=$('Запит до Claude').item.json;\nconst bl=(d.bl_booking||'').trim();\nif(!bl) return [];\nreturn [{json:{bl_booking:bl, container:(d.container||'').trim(), order_no:(d.order_no||'').trim(),\n  eta:(d.eta||'').trim(), status:(d.status||'').trim(), vessel:(d.vessel||'').trim(),\n  email_ref:(m._subject||'')+' | '+(m._from||'')+' | '+(m._date||'')}}];\n"
+      },
+      "position": [
+        960,
+        0
+      ],
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2
+    },
+    {
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "S6pSxt1O96LflGWp",
+          "name": "Google Sheets account"
+        }
+      },
+      "id": "45b5ed1a-dd9f-400f-9ec7-307caae95243",
+      "name": "Lookup у CRM",
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "1FkvCfEZv7Ni5SYJCuaEB7BubmwPs5D0laM0A9g4byF8"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "BL/Booking",
+              "lookupValue": "={{ $json.bl_booking }}"
+            }
+          ]
+        },
+        "operation": "read",
+        "options": {},
+        "sheetName": {
+          "__rl": true,
+          "mode": "url",
+          "value": "https://docs.google.com/spreadsheets/d/1FkvCfEZv7Ni5SYJCuaEB7BubmwPs5D0laM0A9g4byF8/edit#gid=11111"
+        }
+      },
+      "position": [
+        1200,
+        0
+      ],
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5
+    },
+    {
+      "id": "8ceec5aa-ff73-404e-a53a-bf64a58dccd0",
+      "name": "Порівняння + рядок",
+      "parameters": {
+        "jsCode": "\nconst n=$('Розбір Claude').item.json;\nconst old=($json && $json['BL/Booking'])?$json:null;\nconst T=new Date().toISOString().slice(0,10);\nif(!old){ return [{json:{_matched:false,'Дата':T,'BL/Booking':n.bl_booking,'Контейнер':n.container,'Статус (з листа)':n.status,'ETA (з листа)':n.eta,'Лист (джерело)':n.email_ref}}]; }\nconst out={_matched:true,'BL/Booking':n.bl_booking,'Останнє оновлення':T,'Лист (джерело)':n.email_ref};\nif(n.status) out['Статус']=n.status;\nif(n.container && !(old['Контейнер']||'').trim()) out['Контейнер']=n.container;\nif(n.vessel) out['Судно']=n.vessel;\nif(n.eta){ out['ETA порт (план)']=n.eta; const o=(old['ETA порт (план)']||'').trim();\n  if(o && o!==n.eta){ const h=(old['Зміни ETA (історія)']||''); out['Зміни ETA (історія)']=(h?h+'\\n':'')+T+': ETA порт: '+o+' → '+n.eta+' (пошта)'; out['Остання зміна']=T; } }\nreturn [{json:out}];\n"
+      },
+      "position": [
+        1440,
+        0
+      ],
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2
+    },
+    {
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "S6pSxt1O96LflGWp",
+          "name": "Google Sheets account"
+        }
+      },
+      "id": "15d46058-104a-466a-b82c-9ddfa773246c",
+      "name": "Запис у CRM",
+      "parameters": {
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "matchingColumns": [
+            "BL/Booking"
+          ],
+          "schema": []
+        },
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "1FkvCfEZv7Ni5SYJCuaEB7BubmwPs5D0laM0A9g4byF8"
+        },
+        "operation": "appendOrUpdate",
+        "options": {},
+        "sheetName": {
+          "__rl": true,
+          "mode": "url",
+          "value": "https://docs.google.com/spreadsheets/d/1FkvCfEZv7Ni5SYJCuaEB7BubmwPs5D0laM0A9g4byF8/edit#gid=11111"
+        }
+      },
+      "position": [
+        1680,
+        0
+      ],
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5
+    },
+    {
+      "disabled": true,
+      "id": "efec1d4c-0ad8-41b8-89f3-cececca65e02",
+      "name": "Зі змінами",
+      "parameters": {
+        "jsCode": "const c = $('Порівняння + рядок').item.json;\nreturn c._changed ? [{ json: c }] : [];"
+      },
+      "position": [
+        1920,
+        0
+      ],
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2
+    },
+    {
+      "credentials": {
+        "smtp": {
+          "id": "IRHmy9RLt9AtxQFS",
+          "name": "SMTP account"
+        }
+      },
+      "disabled": true,
+      "id": "e3b6a19a-9764-4517-a62b-1ef07b915af6",
+      "name": "Сповіщення (email)",
+      "parameters": {
+        "emailFormat": "html",
+        "fromEmail": "i.karmazina@unitex.od.ua",
+        "html": "=<div style=\"font-family:Arial,sans-serif;max-width:600px\"><h2 style=\"color:#b06000;border-bottom:2px solid #b06000;padding-bottom:8px\">⚠️ Зміна дати прибуття</h2><table style=\"width:100%;border-collapse:collapse;margin-top:16px\"><tr style=\"background:#f8f9fa\"><td style=\"padding:10px;border:1px solid #dee2e6;font-weight:bold;width:38%\">Угода</td><td style=\"padding:10px;border:1px solid #dee2e6\">{{ $json['Угода'] }}</td></tr><tr><td style=\"padding:10px;border:1px solid #dee2e6;font-weight:bold\">Лінія</td><td style=\"padding:10px;border:1px solid #dee2e6\">{{ $json['Лінія'] }}</td></tr><tr style=\"background:#f8f9fa\"><td style=\"padding:10px;border:1px solid #dee2e6;font-weight:bold\">Маршрут</td><td style=\"padding:10px;border:1px solid #dee2e6\">{{ $json['Маршрут'] }}</td></tr><tr><td style=\"padding:10px;border:1px solid #dee2e6;font-weight:bold\">Контейнер / BL</td><td style=\"padding:10px;border:1px solid #dee2e6\">{{ $json['Контейнер'] }} / {{ $json['BL/Booking'] }}</td></tr><tr style=\"background:#fff3cd\"><td style=\"padding:10px;border:1px solid #dee2e6;font-weight:bold\">Зміни</td><td style=\"padding:10px;border:1px solid #dee2e6;font-weight:bold;color:#b06000\">{{ $json._changeText }}</td></tr><tr><td style=\"padding:10px;border:1px solid #dee2e6;font-weight:bold\">Статус</td><td style=\"padding:10px;border:1px solid #dee2e6\">{{ $json['Статус'] }}</td></tr></table><p style=\"color:#888;font-size:12px;margin-top:14px\">Джерело: {{ $json['Лист (джерело)'] }}</p></div>",
+        "options": {},
+        "subject": "=⚠️ Зміна дати: {{ $json['Маршрут'] }} ({{ $json['BL/Booking'] }})",
+        "toEmail": "i.karmazina@unitex.od.ua"
+      },
+      "position": [
+        2160,
+        0
+      ],
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "webhookId": "4932c25e-4c01-4ace-8156-7b207624c19b"
+    },
+    {
+      "id": "f662e9c9-55c8-45b1-8d9a-baf6d0d020c4",
+      "name": "Є в CRM?",
+      "parameters": {
+        "conditions": {
+          "combinator": "and",
+          "conditions": [
+            {
+              "leftValue": "={{ $json._matched }}",
+              "operator": {
+                "operation": "true",
+                "singleValue": true,
+                "type": "boolean"
+              },
+              "rightValue": true
+            }
+          ],
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "loose"
+          }
+        }
+      },
+      "position": [
+        1500,
+        0
+      ],
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2
+    },
+    {
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "S6pSxt1O96LflGWp",
+          "name": "Google Sheets account"
+        }
+      },
+      "id": "a555a8f8-0f20-4157-8957-9a817dea8e22",
+      "name": "Лог невідомих BL",
+      "parameters": {
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "schema": []
+        },
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "1FkvCfEZv7Ni5SYJCuaEB7BubmwPs5D0laM0A9g4byF8"
+        },
+        "operation": "append",
+        "options": {},
+        "sheetName": {
+          "__rl": true,
+          "mode": "url",
+          "value": "https://docs.google.com/spreadsheets/d/1FkvCfEZv7Ni5SYJCuaEB7BubmwPs5D0laM0A9g4byF8/edit#gid=44444"
+        }
+      },
+      "position": [
+        1740,
+        160
+      ],
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5
+    }
+  ],
+  "pinData": null,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "shared": [
+    {
+      "project": {
+        "creatorId": "4045d201-6483-44b7-b7d6-07364d42fa70",
+        "customTelemetryTags": [],
+        "description": null,
+        "icon": null,
+        "id": "tM3V0WFDaLiytIxs",
+        "name": "Iryna Karmazina <irynakarmazina@gmail.com>",
+        "type": "personal"
+      },
+      "projectId": "tM3V0WFDaLiytIxs",
+      "role": "workflow:owner",
+      "workflowId": "bB1o1593vdzL1Diy"
+    }
+  ],
+  "sourceWorkflowId": null,
+  "staticData": null,
+  "tags": [],
+  "versionCounter": 6
+}

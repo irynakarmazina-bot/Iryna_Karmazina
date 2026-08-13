@@ -1,0 +1,534 @@
+{
+  "active": true,
+  "activeVersion": {
+    "authors": "Iryna Karmazina",
+    "autosaved": false,
+    "connections": {
+      "BuildRequest": {
+        "main": [
+          [
+            {
+              "index": 0,
+              "node": "HTTP",
+              "type": "main"
+            }
+          ]
+        ]
+      },
+      "Guard": {
+        "main": [
+          [
+            {
+              "index": 0,
+              "node": "IfBlocked",
+              "type": "main"
+            }
+          ]
+        ]
+      },
+      "HTTP": {
+        "main": [
+          [
+            {
+              "index": 0,
+              "node": "MapStatus",
+              "type": "main"
+            }
+          ]
+        ]
+      },
+      "IfBlocked": {
+        "main": [
+          [
+            {
+              "index": 0,
+              "node": "RespondBlocked",
+              "type": "main"
+            }
+          ],
+          [
+            {
+              "index": 0,
+              "node": "BuildRequest",
+              "type": "main"
+            }
+          ]
+        ]
+      },
+      "MapStatus": {
+        "main": [
+          [
+            {
+              "index": 0,
+              "node": "RespondOk",
+              "type": "main"
+            }
+          ]
+        ]
+      },
+      "Webhook": {
+        "main": [
+          [
+            {
+              "index": 0,
+              "node": "Guard",
+              "type": "main"
+            }
+          ]
+        ]
+      }
+    },
+    "description": null,
+    "name": null,
+    "nodeGroups": [],
+    "nodes": [
+      {
+        "id": "c1111111-0000-0000-0000-000000000001",
+        "name": "Webhook",
+        "parameters": {
+          "httpMethod": "POST",
+          "options": {},
+          "path": "finrep-sheets-proxy",
+          "responseMode": "responseNode"
+        },
+        "position": [
+          0,
+          0
+        ],
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2,
+        "webhookId": "finrep-sheets-proxy-hook"
+      },
+      {
+        "id": "c1111111-0000-0000-0000-000000000002",
+        "name": "Guard",
+        "parameters": {
+          "jsCode": "// Guard: валідація запиту + захист ручних колонок 'План оплат'\n// (Пріоритет = H = 8, Мій коментар = I = 9, 1-based). Google Sheets protection\n// не блокує власника файлу, тому цей guard — РЕАЛЬНИЙ шар захисту.\n// Блокується БУДЬ-ЯКИЙ режим запису (update/append/clear), чий діапазон\n// ПЕРЕТИНАЄ колонки H:I (не лише явно їх називає). Читання (read) дозволене.\nconst body = $input.first().json.body || {};\nconst { sheetId, range, values, mode } = body;\n\nconst ALLOWED_MODES = ['update', 'append', 'clear', 'read', 'meta'];\n\nif (!sheetId || !mode) {\n  return [{ json: { error: true, code: 400, message: 'Missing required fields: sheetId, mode' } }];\n}\nif (!ALLOWED_MODES.includes(mode)) {\n  return [{ json: { error: true, code: 400, message: `Unknown mode: ${mode}. Allowed: ${ALLOWED_MODES.join(', ')}` } }];\n}\nif (mode !== 'meta' && !range) {\n  return [{ json: { error: true, code: 400, message: 'Missing required field: range' } }];\n}\n\nconst PROTECTED_SHEET = 'План оплат';\nconst PROT_START = 8; // H (1-based)\nconst PROT_END = 9;   // I\n\nfunction colToNum(letters) {\n  let n = 0;\n  for (const ch of letters) n = n * 26 + (ch.charCodeAt(0) - 64);\n  return n;\n}\n\n// Повертає true, якщо діапазон (A1-нотація) перетинає колонки H:I 'Плану оплат'\nfunction intersectsProtected(rangeStr) {\n  const bang = rangeStr.indexOf('!');\n  let sheetPart, cellPart;\n  if (bang === -1) {\n    // лише ім'я аркуша, без клітинок => весь аркуш\n    sheetPart = rangeStr;\n    cellPart = '';\n  } else {\n    sheetPart = rangeStr.slice(0, bang);\n    cellPart = rangeStr.slice(bang + 1);\n  }\n  sheetPart = sheetPart.replace(/^'|'$/g, '');\n  if (sheetPart !== PROTECTED_SHEET) return false;\n  if (!cellPart) return true; // весь аркуш містить H:I\n\n  // span колонок по обох кінцях діапазону\n  const ends = cellPart.split(':');\n  let minCol = Infinity, maxCol = -Infinity, anyLetters = false;\n  for (const end of ends) {\n    const m = end.match(/^\\$?([A-Z]+)/);\n    if (m) {\n      anyLetters = true;\n      const c = colToNum(m[1]);\n      if (c < minCol) minCol = c;\n      if (c > maxCol) maxCol = c;\n    } else {\n      // кінець без колонки (рядкова нотація, напр. \"5\" у \"5:10\") => всі колонки\n      return true;\n    }\n  }\n  if (!anyLetters) return true; // рядкова нотація => всі колонки\n  if (ends.length === 1) maxCol = minCol; // одна клітинка/колонка\n  // перетин інтервалів [minCol,maxCol] і [PROT_START,PROT_END]\n  return minCol <= PROT_END && maxCol >= PROT_START;\n}\n\nconst WRITE_MODES = ['update', 'append', 'clear'];\nif (WRITE_MODES.includes(mode) && intersectsProtected(range)) {\n  return [{ json: { error: true, code: 403, blocked: true, message: `Guard: діапазон '${range}' перетинає захищені колонки H:I (Пріоритет/Мій коментар) аркуша 'План оплат'. Будь-який запис/очищення (update/append/clear), що зачіпає ці колонки, заборонено на рівні коду проксі; читання дозволене. Ці колонки редагує лише користувачка вручну.` } }];\n}\n\nreturn [{ json: { error: false, sheetId, range, values, mode } }];\n"
+        },
+        "position": [
+          220,
+          0
+        ],
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2
+      },
+      {
+        "id": "c1111111-0000-0000-0000-000000000003",
+        "name": "IfBlocked",
+        "parameters": {
+          "conditions": {
+            "combinator": "and",
+            "conditions": [
+              {
+                "leftValue": "={{ $json.error }}",
+                "operator": {
+                  "operation": "true",
+                  "singleValue": true,
+                  "type": "boolean"
+                },
+                "rightValue": true
+              }
+            ],
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict"
+            }
+          },
+          "options": {}
+        },
+        "position": [
+          440,
+          0
+        ],
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2
+      },
+      {
+        "id": "c1111111-0000-0000-0000-000000000004",
+        "name": "RespondBlocked",
+        "parameters": {
+          "options": {
+            "responseCode": "={{ $json.code || 403 }}"
+          },
+          "respondWith": "json",
+          "responseBody": "={{ JSON.stringify($json) }}"
+        },
+        "position": [
+          660,
+          -100
+        ],
+        "type": "n8n-nodes-base.respondToWebhook",
+        "typeVersion": 1.1
+      },
+      {
+        "id": "c1111111-0000-0000-0000-000000000005",
+        "name": "BuildRequest",
+        "parameters": {
+          "jsCode": "const { sheetId, range, values, mode } = $input.first().json;\nconst SPREADSHEET_ID = sheetId;\nconst encRange = range ? encodeURIComponent(range) : '';\nlet method, url, payload;\n\nif (mode === 'update') {\n  method = 'PUT';\n  url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encRange}?valueInputOption=RAW`;\n  payload = { range, values };\n} else if (mode === 'append') {\n  method = 'POST';\n  url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encRange}:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS`;\n  payload = { range, values };\n} else if (mode === 'clear') {\n  method = 'POST';\n  url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encRange}:clear`;\n  payload = {};\n} else if (mode === 'read') {\n  method = 'GET';\n  url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encRange}`;\n  payload = {};\n} else if (mode === 'meta') {\n  method = 'GET';\n  url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}?fields=properties.locale,properties.timeZone,sheets.properties`;\n  payload = {};\n}\n\nreturn [{ json: { method, url, payload } }];\n"
+        },
+        "position": [
+          660,
+          100
+        ],
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2
+      },
+      {
+        "credentials": {
+          "googleSheetsOAuth2Api": {
+            "id": "S6pSxt1O96LflGWp",
+            "name": "Google Sheets account"
+          }
+        },
+        "id": "c1111111-0000-0000-0000-000000000006",
+        "name": "HTTP",
+        "parameters": {
+          "authentication": "predefinedCredentialType",
+          "body": "={{ $json.method === 'GET' ? '' : JSON.stringify($json.payload || {}) }}",
+          "contentType": "raw",
+          "method": "={{ $json.method }}",
+          "nodeCredentialType": "<ПРИБРАНО>",
+          "options": {
+            "response": {
+              "response": {
+                "fullResponse": true,
+                "neverError": true
+              }
+            }
+          },
+          "rawContentType": "application/json",
+          "sendBody": true,
+          "url": "={{ $json.url }}"
+        },
+        "position": [
+          880,
+          100
+        ],
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2
+      },
+      {
+        "id": "c1111111-0000-0000-0000-000000000008",
+        "name": "MapStatus",
+        "parameters": {
+          "jsCode": "// Прокидаємо статус Google назовні: помилка Google -> не-200 відповідь вебхука\nconst r = $input.first().json;\nconst status = r.statusCode || 200;\nlet body = r.body;\nif (typeof body === 'string') {\n  try { body = JSON.parse(body); } catch (e) { body = { raw: body }; }\n}\nif (body === undefined || body === null) body = {};\nif (status >= 400) {\n  if (typeof body === 'object' && !Array.isArray(body)) {\n    body = { error: true, google_status: status, ...body };\n  } else {\n    body = { error: true, google_status: status, body };\n  }\n}\nreturn [{ json: { _status: status, _body: body } }];\n"
+        },
+        "position": [
+          1100,
+          100
+        ],
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2
+      },
+      {
+        "id": "c1111111-0000-0000-0000-000000000007",
+        "name": "RespondOk",
+        "parameters": {
+          "options": {
+            "responseCode": "={{ $json._status }}"
+          },
+          "respondWith": "json",
+          "responseBody": "={{ JSON.stringify($json._body) }}"
+        },
+        "position": [
+          1320,
+          100
+        ],
+        "type": "n8n-nodes-base.respondToWebhook",
+        "typeVersion": 1.1
+      }
+    ],
+    "workflowId": "zVlHFJCe0Afy0kMU",
+    "workflowPublishHistory": [
+      {
+        "event": "activated",
+        "id": 187,
+        "userId": "4045d201-6483-44b7-b7d6-07364d42fa70",
+        "workflowId": "zVlHFJCe0Afy0kMU"
+      },
+      {
+        "event": "activated",
+        "id": 189,
+        "userId": "4045d201-6483-44b7-b7d6-07364d42fa70",
+        "workflowId": "zVlHFJCe0Afy0kMU"
+      },
+      {
+        "event": "deactivated",
+        "id": 186,
+        "userId": "4045d201-6483-44b7-b7d6-07364d42fa70",
+        "workflowId": "zVlHFJCe0Afy0kMU"
+      },
+      {
+        "event": "deactivated",
+        "id": 188,
+        "userId": "4045d201-6483-44b7-b7d6-07364d42fa70",
+        "workflowId": "zVlHFJCe0Afy0kMU"
+      }
+    ]
+  },
+  "activeVersionId": "aa680e76-6065-4498-bc96-172e53fa74cc",
+  "connections": {
+    "BuildRequest": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "HTTP",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "Guard": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "IfBlocked",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "HTTP": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "MapStatus",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "IfBlocked": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "RespondBlocked",
+            "type": "main"
+          }
+        ],
+        [
+          {
+            "index": 0,
+            "node": "BuildRequest",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "MapStatus": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "RespondOk",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "Guard",
+            "type": "main"
+          }
+        ]
+      ]
+    }
+  },
+  "description": null,
+  "id": "zVlHFJCe0Afy0kMU",
+  "isArchived": false,
+  "meta": null,
+  "name": "finrep-sheets-proxy",
+  "nodeGroups": [],
+  "nodes": [
+    {
+      "id": "c1111111-0000-0000-0000-000000000001",
+      "name": "Webhook",
+      "parameters": {
+        "httpMethod": "POST",
+        "options": {},
+        "path": "finrep-sheets-proxy",
+        "responseMode": "responseNode"
+      },
+      "position": [
+        0,
+        0
+      ],
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "webhookId": "finrep-sheets-proxy-hook"
+    },
+    {
+      "id": "c1111111-0000-0000-0000-000000000002",
+      "name": "Guard",
+      "parameters": {
+        "jsCode": "// Guard: валідація запиту + захист ручних колонок 'План оплат'\n// (Пріоритет = H = 8, Мій коментар = I = 9, 1-based). Google Sheets protection\n// не блокує власника файлу, тому цей guard — РЕАЛЬНИЙ шар захисту.\n// Блокується БУДЬ-ЯКИЙ режим запису (update/append/clear), чий діапазон\n// ПЕРЕТИНАЄ колонки H:I (не лише явно їх називає). Читання (read) дозволене.\nconst body = $input.first().json.body || {};\nconst { sheetId, range, values, mode } = body;\n\nconst ALLOWED_MODES = ['update', 'append', 'clear', 'read', 'meta'];\n\nif (!sheetId || !mode) {\n  return [{ json: { error: true, code: 400, message: 'Missing required fields: sheetId, mode' } }];\n}\nif (!ALLOWED_MODES.includes(mode)) {\n  return [{ json: { error: true, code: 400, message: `Unknown mode: ${mode}. Allowed: ${ALLOWED_MODES.join(', ')}` } }];\n}\nif (mode !== 'meta' && !range) {\n  return [{ json: { error: true, code: 400, message: 'Missing required field: range' } }];\n}\n\nconst PROTECTED_SHEET = 'План оплат';\nconst PROT_START = 8; // H (1-based)\nconst PROT_END = 9;   // I\n\nfunction colToNum(letters) {\n  let n = 0;\n  for (const ch of letters) n = n * 26 + (ch.charCodeAt(0) - 64);\n  return n;\n}\n\n// Повертає true, якщо діапазон (A1-нотація) перетинає колонки H:I 'Плану оплат'\nfunction intersectsProtected(rangeStr) {\n  const bang = rangeStr.indexOf('!');\n  let sheetPart, cellPart;\n  if (bang === -1) {\n    // лише ім'я аркуша, без клітинок => весь аркуш\n    sheetPart = rangeStr;\n    cellPart = '';\n  } else {\n    sheetPart = rangeStr.slice(0, bang);\n    cellPart = rangeStr.slice(bang + 1);\n  }\n  sheetPart = sheetPart.replace(/^'|'$/g, '');\n  if (sheetPart !== PROTECTED_SHEET) return false;\n  if (!cellPart) return true; // весь аркуш містить H:I\n\n  // span колонок по обох кінцях діапазону\n  const ends = cellPart.split(':');\n  let minCol = Infinity, maxCol = -Infinity, anyLetters = false;\n  for (const end of ends) {\n    const m = end.match(/^\\$?([A-Z]+)/);\n    if (m) {\n      anyLetters = true;\n      const c = colToNum(m[1]);\n      if (c < minCol) minCol = c;\n      if (c > maxCol) maxCol = c;\n    } else {\n      // кінець без колонки (рядкова нотація, напр. \"5\" у \"5:10\") => всі колонки\n      return true;\n    }\n  }\n  if (!anyLetters) return true; // рядкова нотація => всі колонки\n  if (ends.length === 1) maxCol = minCol; // одна клітинка/колонка\n  // перетин інтервалів [minCol,maxCol] і [PROT_START,PROT_END]\n  return minCol <= PROT_END && maxCol >= PROT_START;\n}\n\nconst WRITE_MODES = ['update', 'append', 'clear'];\nif (WRITE_MODES.includes(mode) && intersectsProtected(range)) {\n  return [{ json: { error: true, code: 403, blocked: true, message: `Guard: діапазон '${range}' перетинає захищені колонки H:I (Пріоритет/Мій коментар) аркуша 'План оплат'. Будь-який запис/очищення (update/append/clear), що зачіпає ці колонки, заборонено на рівні коду проксі; читання дозволене. Ці колонки редагує лише користувачка вручну.` } }];\n}\n\nreturn [{ json: { error: false, sheetId, range, values, mode } }];\n"
+      },
+      "position": [
+        220,
+        0
+      ],
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2
+    },
+    {
+      "id": "c1111111-0000-0000-0000-000000000003",
+      "name": "IfBlocked",
+      "parameters": {
+        "conditions": {
+          "combinator": "and",
+          "conditions": [
+            {
+              "leftValue": "={{ $json.error }}",
+              "operator": {
+                "operation": "true",
+                "singleValue": true,
+                "type": "boolean"
+              },
+              "rightValue": true
+            }
+          ],
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          }
+        },
+        "options": {}
+      },
+      "position": [
+        440,
+        0
+      ],
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2
+    },
+    {
+      "id": "c1111111-0000-0000-0000-000000000004",
+      "name": "RespondBlocked",
+      "parameters": {
+        "options": {
+          "responseCode": "={{ $json.code || 403 }}"
+        },
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}"
+      },
+      "position": [
+        660,
+        -100
+      ],
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1
+    },
+    {
+      "id": "c1111111-0000-0000-0000-000000000005",
+      "name": "BuildRequest",
+      "parameters": {
+        "jsCode": "const { sheetId, range, values, mode } = $input.first().json;\nconst SPREADSHEET_ID = sheetId;\nconst encRange = range ? encodeURIComponent(range) : '';\nlet method, url, payload;\n\nif (mode === 'update') {\n  method = 'PUT';\n  url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encRange}?valueInputOption=RAW`;\n  payload = { range, values };\n} else if (mode === 'append') {\n  method = 'POST';\n  url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encRange}:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS`;\n  payload = { range, values };\n} else if (mode === 'clear') {\n  method = 'POST';\n  url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encRange}:clear`;\n  payload = {};\n} else if (mode === 'read') {\n  method = 'GET';\n  url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encRange}`;\n  payload = {};\n} else if (mode === 'meta') {\n  method = 'GET';\n  url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}?fields=properties.locale,properties.timeZone,sheets.properties`;\n  payload = {};\n}\n\nreturn [{ json: { method, url, payload } }];\n"
+      },
+      "position": [
+        660,
+        100
+      ],
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2
+    },
+    {
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "S6pSxt1O96LflGWp",
+          "name": "Google Sheets account"
+        }
+      },
+      "id": "c1111111-0000-0000-0000-000000000006",
+      "name": "HTTP",
+      "parameters": {
+        "authentication": "predefinedCredentialType",
+        "body": "={{ $json.method === 'GET' ? '' : JSON.stringify($json.payload || {}) }}",
+        "contentType": "raw",
+        "method": "={{ $json.method }}",
+        "nodeCredentialType": "<ПРИБРАНО>",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true
+            }
+          }
+        },
+        "rawContentType": "application/json",
+        "sendBody": true,
+        "url": "={{ $json.url }}"
+      },
+      "position": [
+        880,
+        100
+      ],
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2
+    },
+    {
+      "id": "c1111111-0000-0000-0000-000000000008",
+      "name": "MapStatus",
+      "parameters": {
+        "jsCode": "// Прокидаємо статус Google назовні: помилка Google -> не-200 відповідь вебхука\nconst r = $input.first().json;\nconst status = r.statusCode || 200;\nlet body = r.body;\nif (typeof body === 'string') {\n  try { body = JSON.parse(body); } catch (e) { body = { raw: body }; }\n}\nif (body === undefined || body === null) body = {};\nif (status >= 400) {\n  if (typeof body === 'object' && !Array.isArray(body)) {\n    body = { error: true, google_status: status, ...body };\n  } else {\n    body = { error: true, google_status: status, body };\n  }\n}\nreturn [{ json: { _status: status, _body: body } }];\n"
+      },
+      "position": [
+        1100,
+        100
+      ],
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2
+    },
+    {
+      "id": "c1111111-0000-0000-0000-000000000007",
+      "name": "RespondOk",
+      "parameters": {
+        "options": {
+          "responseCode": "={{ $json._status }}"
+        },
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json._body) }}"
+      },
+      "position": [
+        1320,
+        100
+      ],
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1
+    }
+  ],
+  "pinData": null,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "shared": [
+    {
+      "project": {
+        "creatorId": "4045d201-6483-44b7-b7d6-07364d42fa70",
+        "customTelemetryTags": [],
+        "description": null,
+        "icon": null,
+        "id": "tM3V0WFDaLiytIxs",
+        "name": "Iryna Karmazina <irynakarmazina@gmail.com>",
+        "type": "personal"
+      },
+      "projectId": "tM3V0WFDaLiytIxs",
+      "role": "workflow:owner",
+      "workflowId": "zVlHFJCe0Afy0kMU"
+    }
+  ],
+  "sourceWorkflowId": null,
+  "staticData": null,
+  "tags": [],
+  "versionCounter": 4
+}

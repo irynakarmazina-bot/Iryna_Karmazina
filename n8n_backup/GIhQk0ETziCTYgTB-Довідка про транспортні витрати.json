@@ -1,0 +1,1115 @@
+{
+  "active": true,
+  "activeVersion": {
+    "authors": "Iryna Karmazina",
+    "autosaved": false,
+    "connections": {
+      "Build Prompt": {
+        "main": [
+          [
+            {
+              "index": 0,
+              "node": "Call Claude API",
+              "type": "main"
+            }
+          ]
+        ]
+      },
+      "Build Request Body": {
+        "main": [
+          [
+            {
+              "index": 0,
+              "node": "HTTP Request",
+              "type": "main"
+            }
+          ]
+        ]
+      },
+      "Call Claude API": {
+        "main": [
+          [
+            {
+              "index": 0,
+              "node": "Parse Claude Response",
+              "type": "main"
+            }
+          ]
+        ]
+      },
+      "Copy Template": {
+        "main": [
+          [
+            {
+              "index": 0,
+              "node": "Build Request Body",
+              "type": "main"
+            }
+          ]
+        ]
+      },
+      "Edit Fields": {
+        "main": [
+          [
+            {
+              "index": 0,
+              "node": "Extract clean email text",
+              "type": "main"
+            }
+          ]
+        ]
+      },
+      "Email Trigger (IMAP)": {
+        "main": [
+          [
+            {
+              "index": 0,
+              "node": "If",
+              "type": "main"
+            }
+          ]
+        ]
+      },
+      "Export DOCX": {
+        "main": [
+          [
+            {
+              "index": 0,
+              "node": "Rename File",
+              "type": "main"
+            }
+          ]
+        ]
+      },
+      "Extract clean email text": {
+        "main": [
+          [
+            {
+              "index": 0,
+              "node": "Find PDF attachment",
+              "type": "main"
+            }
+          ]
+        ]
+      },
+      "Extract invoice text": {
+        "main": [
+          [
+            {
+              "index": 0,
+              "node": "Build Prompt",
+              "type": "main"
+            }
+          ]
+        ]
+      },
+      "Find PDF attachment": {
+        "main": [
+          [
+            {
+              "index": 0,
+              "node": "Extract invoice text",
+              "type": "main"
+            }
+          ]
+        ]
+      },
+      "HTTP Request": {
+        "main": [
+          [
+            {
+              "index": 0,
+              "node": "Export DOCX",
+              "type": "main"
+            }
+          ]
+        ]
+      },
+      "If": {
+        "main": [
+          [
+            {
+              "index": 0,
+              "node": "Edit Fields",
+              "type": "main"
+            }
+          ]
+        ]
+      },
+      "Parse Claude Response": {
+        "main": [
+          [
+            {
+              "index": 0,
+              "node": "Prepare document data",
+              "type": "main"
+            }
+          ]
+        ]
+      },
+      "Prepare document data": {
+        "main": [
+          [
+            {
+              "index": 0,
+              "node": "Copy Template",
+              "type": "main"
+            }
+          ]
+        ]
+      },
+      "Rename File": {
+        "main": [
+          [
+            {
+              "index": 0,
+              "node": "Send Email Reply",
+              "type": "main"
+            }
+          ]
+        ]
+      },
+      "Send Email Reply": {
+        "main": [
+          []
+        ]
+      }
+    },
+    "description": null,
+    "name": null,
+    "nodeGroups": [],
+    "nodes": [
+      {
+        "credentials": {
+          "imap": {
+            "id": "kW24ZrmT1XnVuRpA",
+            "name": "IMAP account"
+          }
+        },
+        "id": "7e92d498-992a-44e2-9e01-5791c0fb69e4",
+        "name": "Email Trigger (IMAP)",
+        "parameters": {
+          "format": "resolved",
+          "options": {}
+        },
+        "position": [
+          64,
+          200
+        ],
+        "type": "n8n-nodes-base.emailReadImap",
+        "typeVersion": 2.1
+      },
+      {
+        "id": "e353a095-60e9-425d-888b-50d04b57da67",
+        "name": "If",
+        "parameters": {
+          "conditions": {
+            "combinator": "and",
+            "conditions": [
+              {
+                "id": "3cb9c636-6670-4642-a8ce-59c3b068c8a1",
+                "leftValue": "={{($json.subject || '').toLowerCase()}}",
+                "operator": {
+                  "operation": "contains",
+                  "type": "string"
+                },
+                "rightValue": "довідка"
+              }
+            ],
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 3
+            }
+          },
+          "options": {}
+        },
+        "position": [
+          240,
+          200
+        ],
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.3
+      },
+      {
+        "id": "c5b42eb8-cc6a-45a3-b660-0db6a5b88630",
+        "name": "Edit Fields",
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "f0326e45-4b02-4ee8-bbf6-db092d24570a",
+                "name": "job_number",
+                "type": "string",
+                "value": "={{(() => {\n  const subject = $json.subject || '';\n  const match = subject.match(/^(.+?)\\s*\\/\\s*довідка/i);\n  return match ? match[1].trim() : '';\n})()}}"
+              },
+              {
+                "id": "25907686-7a7b-40f8-a1c4-d9463de88665",
+                "name": "email_subject",
+                "type": "string",
+                "value": "={{$json.subject}}"
+              },
+              {
+                "id": "cf5ac7cb-8986-4b49-b649-a351b07970f1",
+                "name": "email_from",
+                "type": "string",
+                "value": "={{(() => {\n  const from = $json.from;\n  if (!from) return '';\n  if (typeof from === 'string') return from;\n  if (from.value && Array.isArray(from.value) && from.value[0]?.address) {\n    return from.value[0].address;\n  }\n  return '';\n})()}}"
+              },
+              {
+                "id": "a1b2c3d4-0000-0000-0000-000000000001",
+                "name": "message_id",
+                "type": "string",
+                "value": "={{$json.messageId || $json.headers?.['message-id'] || ''}}"
+              }
+            ]
+          },
+          "includeOtherFields": true,
+          "options": {}
+        },
+        "position": [
+          420,
+          200
+        ],
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4
+      },
+      {
+        "id": "22aa248e-2bf7-4bee-9f6f-546cb6e021f4",
+        "name": "Extract clean email text",
+        "parameters": {
+          "jsCode": "const item = $input.item;\nconst data = item.json;\n\nconst possibleFields = [\n  data.text, data.textPlain, data.body,\n  data.message, data.content, data.html, data.textHtml,\n];\n\nlet rawText = possibleFields.find(v => typeof v === 'string' && v.trim()) || '';\n\nif (!rawText) {\n  const jsonText = JSON.stringify(data, null, 2);\n  const bodyMatch =\n    jsonText.match(/\"text\"\\s*:\\s*\"([\\s\\S]*?)\"/i) ||\n    jsonText.match(/\"textPlain\"\\s*:\\s*\"([\\s\\S]*?)\"/i) ||\n    jsonText.match(/\"body\"\\s*:\\s*\"([\\s\\S]*?)\"/i) ||\n    jsonText.match(/\"html\"\\s*:\\s*\"([\\s\\S]*?)\"/i);\n  rawText = bodyMatch ? bodyMatch[1] : '';\n}\n\nrawText = rawText\n  .replace(/\\\\r\\\\n/g, '\\n').replace(/\\\\n/g, '\\n')\n  .replace(/\\\\t/g, ' ').replace(/\\\\\"/g, '\"');\n\nrawText = rawText\n  .replace(/<style[\\s\\S]*?<\\/style>/gi, ' ')\n  .replace(/<script[\\s\\S]*?<\\/script>/gi, ' ')\n  .replace(/<br\\s*\\/?>/gi, '\\n').replace(/<\\/p>/gi, '\\n')\n  .replace(/<\\/div>/gi, '\\n').replace(/<[^>]*>/g, ' ')\n  .replace(/&nbsp;/gi, ' ').replace(/&amp;/gi, '&')\n  .replace(/\\r/g, '').replace(/[ \\t]+/g, ' ')\n  .replace(/\\n{3,}/g, '\\n\\n').trim();\n\n// Стандартні маркери підпису — без назви конкретної компанії\nconst signatureMarkers = [\n  'З повагою,', 'З повагою ', 'С уважением',\n  'Best regards', 'Kind regards', 'Regards,',\n  'Тел.:', 'Телефон:', 'Phone:', 'Mobile:',\n];\n\nlet cleanText = rawText;\nfor (const marker of signatureMarkers) {\n  const index = cleanText.indexOf(marker);\n  if (index !== -1) {\n    cleanText = cleanText.slice(0, index).trim();\n    break;\n  }\n}\n\nreturn [{\n  json: { ...data, email_text_raw: rawText, email_text: cleanText },\n  binary: item.binary,\n}];"
+        },
+        "position": [
+          600,
+          200
+        ],
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2
+      },
+      {
+        "id": "a31eeddc-6d31-4efa-bac7-948097af31c6",
+        "name": "Extract invoice text",
+        "parameters": {
+          "binaryPropertyName": "invoice_pdf",
+          "operation": "pdf",
+          "options": {}
+        },
+        "position": [
+          980,
+          200
+        ],
+        "type": "n8n-nodes-base.extractFromFile",
+        "typeVersion": 1.1
+      },
+      {
+        "id": "19e3c8d5-798b-43d2-b213-46ab567991d3",
+        "name": "Prepare document data",
+        "parameters": {
+          "jsCode": "const job_number    = $('Edit Fields').first().json.job_number    || '';\nconst email_subject = $('Edit Fields').first().json.email_subject || '';\nconst email_from    = $('Edit Fields').first().json.email_from    || '';\nconst email_text    = $('Extract clean email text').first().json.email_text || '';\n\n// AI extracted fields\nconst ai = $('Parse Claude Response').first().json;\nconst client_name      = (ai.client_name      || '').trim();\nconst invoice_date     = (ai.invoice_date      || '').trim();\nconst container_number = (ai.container_number  || '').trim();\nconst bl_number        = (ai.bl_number         || '').trim();\nconst awb_number       = (ai.awb_number        || '').trim();\nconst cmr_number       = (ai.cmr_number        || '').trim();\nconst cmr_date         = (ai.cmr_date          || '').trim();\nconst route            = (ai.route             || '').trim();\nconst border_total_raw = Number(ai.border_total    || 0);\nconst insurance_amount = Number(ai.insurance_amount|| 0);\n\n// Страхування ЗАВЖДИ включається до загальної суми до кордону\nconst border_total = border_total_raw + insurance_amount;\n\n// Clean service name — safety net\nfunction cleanServiceName(name) {\n  return name\n    .trim()\n    .replace(/^відшкодування\\s+(витрат\\s+)?за\\s+/i, '')\n    .replace(/^відшкодування\\s+вартості\\s+/i, '')\n    .replace(/^компенсація\\s+вартості\\s+/i, '')\n    .replace(/^компенсація\\s+/i, '')\n    .replace(/\\s+(по|за)\\s+маршрут\\w*\\s+.*/i, '')\n    // [\\/\\.] без \"?\" — тільки \"м.\" або \"м/\", не \"м\" у середині слова\n    .replace(/\\s+м[\\/\\.]\\s*[\\wа-яіїєґ\\-]+(?:[\\s,].*)?$/i, '')\n    .trim();\n}\n\nconst rawServices = (ai.border_services_names || '').trim();\nlet border_services_names = rawServices\n  .split(',')\n  .map(s => cleanServiceName(s))\n  .filter(s => s.length > 0)\n  .join(', ');\n\n// Додати страхування до переліку послуг якщо є\nif (insurance_amount > 0) {\n  border_services_names = border_services_names\n    ? border_services_names + ', страхування вантажу'\n    : 'страхування вантажу';\n}\n\n// Date helpers\nconst MONTHS = ['','січня','лютого','березня','квітня','травня','червня',\n                'липня','серпня','вересня','жовтня','листопада','грудня'];\nconst MONTHS_NUM = ['','01','02','03','04','05','06','07','08','09','10','11','12'];\n\nfunction todayUa() {\n  const now = new Date();\n  return `${now.getDate()} ${MONTHS[now.getMonth()+1]} ${now.getFullYear()} р.`;\n}\nfunction dateToFilename(dateStr='') {\n  const m = dateStr.match(/(\\d{1,2})\\s+([\\wа-яіїєґ]+)\\s+(\\d{4})/i);\n  if (!m) return dateStr.replace(/\\s*р\\.$/, '').trim();\n  const d  = String(m[1]).padStart(2,'0');\n  const mo = MONTHS.findIndex(x => x.toLowerCase() === m[2].toLowerCase());\n  const moStr = mo > 0 ? MONTHS_NUM[mo] : '??';\n  return `${d}.${moStr}.${m[3]}`;\n}\n\nconst date = invoice_date || todayUa();\n\n// Документи в дужках після \"вантажу\"\nconst docParts = [];\nif (container_number) docParts.push(`контейнер ${container_number}`);\nif (bl_number)        docParts.push(`коносамент ${bl_number}`);\nif (awb_number)       docParts.push(`авіанакладна ${awb_number}`);\nif (cmr_number && cmr_date) docParts.push(`CMR ${cmr_number} від ${cmr_date}`);\nelse if (cmr_number)        docParts.push(`CMR ${cmr_number}`);\n\nconst docsInParens = docParts.length > 0 ? ` (${docParts.join(', ')})` : '';\nconst transport_documents_phrase = docParts.join(', ');\n\n// Форматування суми (вже з страхуванням)\nconst border_amount = Number(border_total || 0)\n  .toLocaleString('uk-UA', {minimumFractionDigits:2, maximumFractionDigits:2});\n\n// Страхування включено в суму — окремий рядок показуємо тільки якщо НЕ було страхування\nconst insurance_phrase = insurance_amount > 0\n  ? ''\n  : 'Страхування вантажу не проводилось.';\n\n// Основний текст\nconst routeText  = route                 || '[МАРШРУТ ПОТРІБНО ПЕРЕВІРИТИ]';\nconst svcText    = border_services_names || '[ПЕРЕЛІК ПОСЛУГ ПОТРІБНО ПЕРЕВІРИТИ]';\nconst amountText = border_total > 0      ? border_amount : '[СУМУ ПОТРІБНО ПЕРЕВІРИТИ]';\n\nconst main_text =\n  `Повідомляємо, що вартість міжнародного перевезення вантажу${docsInParens} ` +\n  `по маршруту ${routeText}, яка включає ${svcText}, складає ${amountText} гривень.`;\n\n// Ім'я файлу\nconst safeName = (s) => s.replace(/[\\/\\\\:*?\"<>|]/g, '').replace(/\\s+/g, ' ').trim();\nconst dovidka_filename = `Довідка_${safeName(client_name)}_${safeName(route)}_${dateToFilename(date)}.docx`;\n\nconst warnings = [];\nif (!route)                  warnings.push('Маршрут не визначено AI.');\nif (!border_services_names)  warnings.push('Перелік послуг не визначено AI.');\nif (!border_total)           warnings.push('Сума до кордону = 0.');\n\nreturn [{\n  json: {\n    job_number, email_subject, email_from, email_text,\n    date, client_name, container_number,\n    bl_number, awb_number, cmr_number, cmr_date,\n    transport_documents_phrase, route,\n    border_services_names, border_total, border_amount,\n    insurance_amount, insurance_phrase,\n    main_text, dovidka_filename, warnings,\n  }\n}];"
+        },
+        "position": [
+          1880,
+          200
+        ],
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2
+      },
+      {
+        "id": "dc7f96a4-1066-40db-8a0e-2a50c1918dce",
+        "name": "Build Request Body",
+        "parameters": {
+          "jsCode": "const docId = $input.item.json.id;\nconst date = $('Prepare document data').item.json.date;\nconst main_text = $('Prepare document data').item.json.main_text;\nconst insurance_phrase = $('Prepare document data').item.json.insurance_phrase || '';\n\nconst requestBody = JSON.stringify({\n  requests: [\n    { replaceAllText: { containsText: { text: '{{date}}', matchCase: true }, replaceText: date } },\n    { replaceAllText: { containsText: { text: '{{main_text}}', matchCase: true }, replaceText: main_text } },\n    { replaceAllText: { containsText: { text: '{{insurance_phrase}}', matchCase: true }, replaceText: insurance_phrase } }\n  ]\n});\n\nreturn [{ json: { id: docId, body_json_string: requestBody } }];"
+        },
+        "position": [
+          2240,
+          200
+        ],
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2
+      },
+      {
+        "credentials": {
+          "googleDriveOAuth2Api": {
+            "id": "2GWpYd58b4gHSUPi",
+            "name": "Google Drive account"
+          }
+        },
+        "id": "cf0bb36d-a6bc-4fe1-b903-e969fc605f2c",
+        "name": "HTTP Request",
+        "parameters": {
+          "authentication": "predefinedCredentialType",
+          "body": "={{ $json.body_json_string }}",
+          "contentType": "raw",
+          "headerParameters": {
+            "parameters": [
+              {}
+            ]
+          },
+          "method": "POST",
+          "nodeCredentialType": "<ПРИБРАНО>",
+          "options": {},
+          "rawContentType": "=application/json",
+          "sendBody": true,
+          "sendHeaders": true,
+          "url": "=https://docs.googleapis.com/v1/documents/{{$json.id}}:batchUpdate"
+        },
+        "position": [
+          2420,
+          200
+        ],
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.4
+      },
+      {
+        "credentials": {
+          "googleDriveOAuth2Api": {
+            "id": "2GWpYd58b4gHSUPi",
+            "name": "Google Drive account"
+          }
+        },
+        "id": "556b53ac-f521-4b0f-b2e9-9623cd5f759a",
+        "name": "Export DOCX",
+        "parameters": {
+          "authentication": "predefinedCredentialType",
+          "nodeCredentialType": "<ПРИБРАНО>",
+          "options": {
+            "response": {
+              "response": {
+                "outputPropertyName": "dovidka_docx",
+                "responseFormat": "file"
+              }
+            }
+          },
+          "url": "=https://www.googleapis.com/drive/v3/files/{{$('Copy Template').item.json.id}}/export?mimeType=application%2Fvnd.openxmlformats-officedocument.wordprocessingml.document"
+        },
+        "position": [
+          2600,
+          200
+        ],
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.4
+      },
+      {
+        "credentials": {
+          "smtp": {
+            "id": "IRHmy9RLt9AtxQFS",
+            "name": "SMTP account"
+          }
+        },
+        "id": "8f8100d7-3877-4eba-8af8-e07b02310f8b",
+        "name": "Send Email Reply",
+        "parameters": {
+          "emailFormat": "text",
+          "fromEmail": "docs@unitex.od.ua",
+          "options": {
+            "attachments": "dovidka_docx"
+          },
+          "subject": "=Re: {{$('Edit Fields').item.json.email_subject}}",
+          "text": "Вітаємо!\n\nУ відповідь на Ваш запит надсилаємо довідку про вартість транспортних послуг.\n\nЗ повагою,\nТОВ «Юнітекс Ейч-Ді»",
+          "toEmail": "={{$('Edit Fields').item.json.email_from}}"
+        },
+        "position": [
+          2960,
+          200
+        ],
+        "type": "n8n-nodes-base.emailSend",
+        "typeVersion": 2.1,
+        "webhookId": "fd966000-7885-4759-83a0-3f5853f064db"
+      },
+      {
+        "credentials": {
+          "googleDriveOAuth2Api": {
+            "id": "2GWpYd58b4gHSUPi",
+            "name": "Google Drive account"
+          }
+        },
+        "id": "93db6b8b-cd41-4e3d-8c86-076fd1a45f7e",
+        "name": "Copy Template",
+        "parameters": {
+          "authentication": "predefinedCredentialType",
+          "jsonBody": "{\"mimeType\": \"application/vnd.google-apps.document\", \"name\": \"Довідка draft\"}",
+          "method": "POST",
+          "nodeCredentialType": "<ПРИБРАНО>",
+          "options": {},
+          "sendBody": true,
+          "specifyBody": "json",
+          "url": "https://www.googleapis.com/drive/v3/files/13wuJ2EfL_Rrt8fCiWFNXQX2gDRs38-guH_csPkVqiis/copy"
+        },
+        "position": [
+          2060,
+          200
+        ],
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.4
+      },
+      {
+        "id": "f65fc2b9-f6b7-4ae6-84b4-eb6ee7578ed9",
+        "name": "Rename File",
+        "parameters": {
+          "jsCode": "\nconst binary = $input.item.binary.dovidka_docx;\nconst filename = $('Prepare document data').item.json.dovidka_filename || 'Довідка.docx';\nreturn [{\n  json: $input.item.json,\n  binary: {\n    dovidka_docx: {\n      ...binary,\n      fileName: filename\n    }\n  }\n}];\n"
+        },
+        "position": [
+          2780,
+          200
+        ],
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2
+      },
+      {
+        "credentials": {
+          "anthropicApi": {
+            "id": "S4WsLWJw1fpDwXqf",
+            "name": "Anthropic account"
+          }
+        },
+        "id": "call-claude-api-01",
+        "name": "Call Claude API",
+        "parameters": {
+          "authentication": "predefinedCredentialType",
+          "body": "={{ $json.body }}",
+          "contentType": "raw",
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "anthropic-version",
+                "value": "2023-06-01"
+              }
+            ]
+          },
+          "method": "POST",
+          "nodeCredentialType": "<ПРИБРАНО>",
+          "options": {},
+          "rawContentType": "application/json",
+          "sendBody": true,
+          "sendHeaders": true,
+          "url": "https://api.anthropic.com/v1/messages"
+        },
+        "position": [
+          1520,
+          200
+        ],
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2
+      },
+      {
+        "id": "parse-claude-response-01",
+        "name": "Parse Claude Response",
+        "parameters": {
+          "jsCode": "\nconst response = $input.item.json;\nconst text = response.content?.[0]?.text || '';\n\n// Знайти JSON у відповіді\nconst jsonMatch = text.match(/\\{[\\s\\S]*\\}/);\nif (!jsonMatch) {\n  throw new Error('Claude не повернув JSON. Відповідь: ' + text.substring(0, 200));\n}\n\nlet extracted;\ntry {\n  extracted = JSON.parse(jsonMatch[0]);\n} catch(e) {\n  throw new Error('Помилка парсингу JSON: ' + e.message + '\\n' + jsonMatch[0].substring(0, 200));\n}\n\n// Передати binary (PDF) далі\nreturn [{\n  json: extracted,\n  binary: $('Extract invoice text').first().binary\n}];\n"
+        },
+        "position": [
+          1700,
+          200
+        ],
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2
+      },
+      {
+        "id": "build-prompt-01",
+        "name": "Build Prompt",
+        "parameters": {
+          "jsCode": "const invoiceText = $('Extract invoice text').first().json.text || '';\nconst emailText   = $('Extract clean email text').first().json.email_text || '';\n\nconst MODEL = 'claude-opus-4-7';\n\nconst prompt = `Ти — експерт з логістичних документів та української мови. Витягни дані та поверни ТІЛЬКИ валідний JSON без жодного тексту навколо нього.\n\nРАХУНОК (текст PDF):\n${invoiceText}\n\nТІЛО ЛИСТА:\n${emailText}\n\n## ПРАВИЛА відбору послуг до кордону\n\n### ВКЛЮЧАТИ якщо виконується ХОЧА Б ОДНА умова:\n1. Є явний маркер: \"за межами державного кордону України\" або \"до державного кордону України\"\n2. Є явний маркер: \"за межами митної території України\" або \"за межами митного кордону\"\n3. Це авіафрахт, морський фрахт — навіть без явного маркера\n4. Є \"міжнародне перевезення/авіаперевезення/автоперевезення\" І маршрут закінчується за кордоном або в пункті ПЕРЕТИНУ кордону (м/п, або відомі прикордонні пункти: Мостиська, Угрінів, Устилуг, Рава-Руська, Ягодин, Краківець)\n5. Маршрут містить ТІЛЬКИ іноземні міста (обидві точки за кордоном)\n\n### ВИКЛЮЧАТИ:\n- Маршрут закінчується в INLAND (внутрішньому) місті України — навіть якщо починається з іноземного міста.\n  Приклад: \"Варшава → м. Солоницівка\" → ВИКЛЮЧАТИ (кінцева точка — внутрішня Україна)\n  Приклад: \"Варшава → м/п Угрінів\" → ВКЛЮЧАТИ (кінцева точка — кордон)\n  Приклад: \"Гдиня → Мостиська ІІ\" → ВКЛЮЧАТИ (Мостиська ІІ — залізнична прикордонна станція)\n- \"на території України\" без маршруту за кордон\n- Агентська / експедиторська винагорода без маршруту\n- Страхування (окремо в insurance_amount)\n- Місцеві збори / документи без маршруту\n\n## МАРШРУТ довідки\nФормуй маршрут ТІЛЬКИ з включених послуг. Не додавай внутрішньоукраїнські міста.\nОб'єднай сегменти без дублювання точок.\nФормат: \"м. Місто1 (Країна) – м. Місто2 (Країна) – м/п Назва (Країна)\"\nПрибирай: \"екс.пкп\", \"ІІ\", \"I\", номери авто, номери документів.\n\n## НАЗВИ ПОСЛУГ\nПовертай у ЗНАХІДНОМУ ВІДМІНКУ (після \"яка включає ...\").\nПрибирай: \"по маршруту ...\", \"за маршрутом ...\", назви міст.\nПрибирай префікси: \"Відшкодування за/витрат за/вартості\", \"Компенсація вартості/Компенсація\".\nПриклади: авіа фрахт, автоперевезення, перевалку вантажів, залізничне перевезення,\nорганізацію авіаперевезення, організацію залізничного перевезення, митне оформлення.\n\nПоверни JSON:\n{\n  \"client_name\": \"назва компанії покупця БЕЗ слів ТОВАРИСТВО З ОБМЕЖЕНОЮ ВІДПОВІДАЛЬНІСТЮ/ТОВ/лапок\",\n  \"invoice_date\": \"дата рахунку формат 'D місяць YYYY р.' українською\",\n  \"container_number\": \"номер контейнера формат XXXX1234567 або порожній рядок\",\n  \"bl_number\": \"номер коносаменту або порожній рядок\",\n  \"awb_number\": \"номер AWB/MAWB або порожній рядок\",\n  \"cmr_number\": \"номер CMR лише з тіла листа або порожній рядок\",\n  \"cmr_date\": \"дата CMR DD.MM.YYYY або порожній рядок\",\n  \"route\": \"маршрут лише з включених послуг, без внутрішніх міст України\",\n  \"border_services_names\": \"назви послуг у знахідному відмінку через кому\",\n  \"border_total\": числова сума тільки включених послуг,\n  \"insurance_amount\": сума страхування або 0\n}`;\n\nconst body = JSON.stringify({\n  model: MODEL,\n  max_tokens: 2500,\n  messages: [{ role: \"user\", content: prompt }]\n});\n\nreturn [{\n  json: { body, model_used: MODEL },\n  binary: $('Extract invoice text').first().binary\n}];"
+        },
+        "position": [
+          1340,
+          200
+        ],
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2
+      },
+      {
+        "id": "find-pdf-attachment-01",
+        "name": "Find PDF attachment",
+        "parameters": {
+          "jsCode": "const item = $input.item;\nconst binary = item.binary || {};\n\n// Знайти перше PDF вкладення серед усіх attachment_*\nlet pdfKey = null;\nfor (const [key, val] of Object.entries(binary)) {\n  if (\n    val.mimeType === 'application/pdf' ||\n    (val.fileName && val.fileName.toLowerCase().endsWith('.pdf'))\n  ) {\n    pdfKey = key;\n    break;\n  }\n}\n\nif (!pdfKey) {\n  throw new Error(\n    'PDF вкладення не знайдено. Прикріпіть рахунок у форматі PDF до листа.'\n  );\n}\n\n// Копіюємо знайдений PDF під стандартний ключ 'invoice_pdf'\nreturn [{\n  json: item.json,\n  binary: {\n    ...binary,\n    invoice_pdf: binary[pdfKey]\n  }\n}];"
+        },
+        "position": [
+          800,
+          200
+        ],
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2
+      }
+    ],
+    "workflowId": "GIhQk0ETziCTYgTB",
+    "workflowPublishHistory": [
+      {
+        "event": "activated",
+        "id": 56,
+        "userId": "4045d201-6483-44b7-b7d6-07364d42fa70",
+        "workflowId": "GIhQk0ETziCTYgTB"
+      },
+      {
+        "event": "deactivated",
+        "id": 55,
+        "userId": "4045d201-6483-44b7-b7d6-07364d42fa70",
+        "workflowId": "GIhQk0ETziCTYgTB"
+      }
+    ]
+  },
+  "activeVersionId": "f0749a90-13a8-4194-b047-bc02a7e4c976",
+  "connections": {
+    "Build Prompt": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "Call Claude API",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "Build Request Body": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "HTTP Request",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "Call Claude API": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "Parse Claude Response",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "Copy Template": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "Build Request Body",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "Extract clean email text",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "Email Trigger (IMAP)": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "If",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "Export DOCX": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "Rename File",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "Extract clean email text": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "Find PDF attachment",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "Extract invoice text": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "Build Prompt",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "Find PDF attachment": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "Extract invoice text",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "Export DOCX",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "Edit Fields",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "Parse Claude Response": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "Prepare document data",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "Prepare document data": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "Copy Template",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "Rename File": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "Send Email Reply",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "Send Email Reply": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "description": null,
+  "id": "GIhQk0ETziCTYgTB",
+  "isArchived": false,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "name": "Довідка про транспортні витрати",
+  "nodeGroups": [],
+  "nodes": [
+    {
+      "credentials": {
+        "imap": {
+          "id": "kW24ZrmT1XnVuRpA",
+          "name": "IMAP account"
+        }
+      },
+      "id": "7e92d498-992a-44e2-9e01-5791c0fb69e4",
+      "name": "Email Trigger (IMAP)",
+      "parameters": {
+        "format": "resolved",
+        "options": {}
+      },
+      "position": [
+        64,
+        200
+      ],
+      "type": "n8n-nodes-base.emailReadImap",
+      "typeVersion": 2.1
+    },
+    {
+      "id": "e353a095-60e9-425d-888b-50d04b57da67",
+      "name": "If",
+      "parameters": {
+        "conditions": {
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "3cb9c636-6670-4642-a8ce-59c3b068c8a1",
+              "leftValue": "={{($json.subject || '').toLowerCase()}}",
+              "operator": {
+                "operation": "contains",
+                "type": "string"
+              },
+              "rightValue": "довідка"
+            }
+          ],
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          }
+        },
+        "options": {}
+      },
+      "position": [
+        240,
+        200
+      ],
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3
+    },
+    {
+      "id": "c5b42eb8-cc6a-45a3-b660-0db6a5b88630",
+      "name": "Edit Fields",
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f0326e45-4b02-4ee8-bbf6-db092d24570a",
+              "name": "job_number",
+              "type": "string",
+              "value": "={{(() => {\n  const subject = $json.subject || '';\n  const match = subject.match(/^(.+?)\\s*\\/\\s*довідка/i);\n  return match ? match[1].trim() : '';\n})()}}"
+            },
+            {
+              "id": "25907686-7a7b-40f8-a1c4-d9463de88665",
+              "name": "email_subject",
+              "type": "string",
+              "value": "={{$json.subject}}"
+            },
+            {
+              "id": "cf5ac7cb-8986-4b49-b649-a351b07970f1",
+              "name": "email_from",
+              "type": "string",
+              "value": "={{(() => {\n  const from = $json.from;\n  if (!from) return '';\n  if (typeof from === 'string') return from;\n  if (from.value && Array.isArray(from.value) && from.value[0]?.address) {\n    return from.value[0].address;\n  }\n  return '';\n})()}}"
+            },
+            {
+              "id": "a1b2c3d4-0000-0000-0000-000000000001",
+              "name": "message_id",
+              "type": "string",
+              "value": "={{$json.messageId || $json.headers?.['message-id'] || ''}}"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "position": [
+        420,
+        200
+      ],
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4
+    },
+    {
+      "id": "22aa248e-2bf7-4bee-9f6f-546cb6e021f4",
+      "name": "Extract clean email text",
+      "parameters": {
+        "jsCode": "const item = $input.item;\nconst data = item.json;\n\nconst possibleFields = [\n  data.text, data.textPlain, data.body,\n  data.message, data.content, data.html, data.textHtml,\n];\n\nlet rawText = possibleFields.find(v => typeof v === 'string' && v.trim()) || '';\n\nif (!rawText) {\n  const jsonText = JSON.stringify(data, null, 2);\n  const bodyMatch =\n    jsonText.match(/\"text\"\\s*:\\s*\"([\\s\\S]*?)\"/i) ||\n    jsonText.match(/\"textPlain\"\\s*:\\s*\"([\\s\\S]*?)\"/i) ||\n    jsonText.match(/\"body\"\\s*:\\s*\"([\\s\\S]*?)\"/i) ||\n    jsonText.match(/\"html\"\\s*:\\s*\"([\\s\\S]*?)\"/i);\n  rawText = bodyMatch ? bodyMatch[1] : '';\n}\n\nrawText = rawText\n  .replace(/\\\\r\\\\n/g, '\\n').replace(/\\\\n/g, '\\n')\n  .replace(/\\\\t/g, ' ').replace(/\\\\\"/g, '\"');\n\nrawText = rawText\n  .replace(/<style[\\s\\S]*?<\\/style>/gi, ' ')\n  .replace(/<script[\\s\\S]*?<\\/script>/gi, ' ')\n  .replace(/<br\\s*\\/?>/gi, '\\n').replace(/<\\/p>/gi, '\\n')\n  .replace(/<\\/div>/gi, '\\n').replace(/<[^>]*>/g, ' ')\n  .replace(/&nbsp;/gi, ' ').replace(/&amp;/gi, '&')\n  .replace(/\\r/g, '').replace(/[ \\t]+/g, ' ')\n  .replace(/\\n{3,}/g, '\\n\\n').trim();\n\n// Стандартні маркери підпису — без назви конкретної компанії\nconst signatureMarkers = [\n  'З повагою,', 'З повагою ', 'С уважением',\n  'Best regards', 'Kind regards', 'Regards,',\n  'Тел.:', 'Телефон:', 'Phone:', 'Mobile:',\n];\n\nlet cleanText = rawText;\nfor (const marker of signatureMarkers) {\n  const index = cleanText.indexOf(marker);\n  if (index !== -1) {\n    cleanText = cleanText.slice(0, index).trim();\n    break;\n  }\n}\n\nreturn [{\n  json: { ...data, email_text_raw: rawText, email_text: cleanText },\n  binary: item.binary,\n}];"
+      },
+      "position": [
+        600,
+        200
+      ],
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2
+    },
+    {
+      "id": "a31eeddc-6d31-4efa-bac7-948097af31c6",
+      "name": "Extract invoice text",
+      "parameters": {
+        "binaryPropertyName": "invoice_pdf",
+        "operation": "pdf",
+        "options": {}
+      },
+      "position": [
+        980,
+        200
+      ],
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1
+    },
+    {
+      "id": "19e3c8d5-798b-43d2-b213-46ab567991d3",
+      "name": "Prepare document data",
+      "parameters": {
+        "jsCode": "const job_number    = $('Edit Fields').first().json.job_number    || '';\nconst email_subject = $('Edit Fields').first().json.email_subject || '';\nconst email_from    = $('Edit Fields').first().json.email_from    || '';\nconst email_text    = $('Extract clean email text').first().json.email_text || '';\n\n// AI extracted fields\nconst ai = $('Parse Claude Response').first().json;\nconst client_name      = (ai.client_name      || '').trim();\nconst invoice_date     = (ai.invoice_date      || '').trim();\nconst container_number = (ai.container_number  || '').trim();\nconst bl_number        = (ai.bl_number         || '').trim();\nconst awb_number       = (ai.awb_number        || '').trim();\nconst cmr_number       = (ai.cmr_number        || '').trim();\nconst cmr_date         = (ai.cmr_date          || '').trim();\nconst route            = (ai.route             || '').trim();\nconst border_total_raw = Number(ai.border_total    || 0);\nconst insurance_amount = Number(ai.insurance_amount|| 0);\n\n// Страхування ЗАВЖДИ включається до загальної суми до кордону\nconst border_total = border_total_raw + insurance_amount;\n\n// Clean service name — safety net\nfunction cleanServiceName(name) {\n  return name\n    .trim()\n    .replace(/^відшкодування\\s+(витрат\\s+)?за\\s+/i, '')\n    .replace(/^відшкодування\\s+вартості\\s+/i, '')\n    .replace(/^компенсація\\s+вартості\\s+/i, '')\n    .replace(/^компенсація\\s+/i, '')\n    .replace(/\\s+(по|за)\\s+маршрут\\w*\\s+.*/i, '')\n    // [\\/\\.] без \"?\" — тільки \"м.\" або \"м/\", не \"м\" у середині слова\n    .replace(/\\s+м[\\/\\.]\\s*[\\wа-яіїєґ\\-]+(?:[\\s,].*)?$/i, '')\n    .trim();\n}\n\nconst rawServices = (ai.border_services_names || '').trim();\nlet border_services_names = rawServices\n  .split(',')\n  .map(s => cleanServiceName(s))\n  .filter(s => s.length > 0)\n  .join(', ');\n\n// Додати страхування до переліку послуг якщо є\nif (insurance_amount > 0) {\n  border_services_names = border_services_names\n    ? border_services_names + ', страхування вантажу'\n    : 'страхування вантажу';\n}\n\n// Date helpers\nconst MONTHS = ['','січня','лютого','березня','квітня','травня','червня',\n                'липня','серпня','вересня','жовтня','листопада','грудня'];\nconst MONTHS_NUM = ['','01','02','03','04','05','06','07','08','09','10','11','12'];\n\nfunction todayUa() {\n  const now = new Date();\n  return `${now.getDate()} ${MONTHS[now.getMonth()+1]} ${now.getFullYear()} р.`;\n}\nfunction dateToFilename(dateStr='') {\n  const m = dateStr.match(/(\\d{1,2})\\s+([\\wа-яіїєґ]+)\\s+(\\d{4})/i);\n  if (!m) return dateStr.replace(/\\s*р\\.$/, '').trim();\n  const d  = String(m[1]).padStart(2,'0');\n  const mo = MONTHS.findIndex(x => x.toLowerCase() === m[2].toLowerCase());\n  const moStr = mo > 0 ? MONTHS_NUM[mo] : '??';\n  return `${d}.${moStr}.${m[3]}`;\n}\n\nconst date = invoice_date || todayUa();\n\n// Документи в дужках після \"вантажу\"\nconst docParts = [];\nif (container_number) docParts.push(`контейнер ${container_number}`);\nif (bl_number)        docParts.push(`коносамент ${bl_number}`);\nif (awb_number)       docParts.push(`авіанакладна ${awb_number}`);\nif (cmr_number && cmr_date) docParts.push(`CMR ${cmr_number} від ${cmr_date}`);\nelse if (cmr_number)        docParts.push(`CMR ${cmr_number}`);\n\nconst docsInParens = docParts.length > 0 ? ` (${docParts.join(', ')})` : '';\nconst transport_documents_phrase = docParts.join(', ');\n\n// Форматування суми (вже з страхуванням)\nconst border_amount = Number(border_total || 0)\n  .toLocaleString('uk-UA', {minimumFractionDigits:2, maximumFractionDigits:2});\n\n// Страхування включено в суму — окремий рядок показуємо тільки якщо НЕ було страхування\nconst insurance_phrase = insurance_amount > 0\n  ? ''\n  : 'Страхування вантажу не проводилось.';\n\n// Основний текст\nconst routeText  = route                 || '[МАРШРУТ ПОТРІБНО ПЕРЕВІРИТИ]';\nconst svcText    = border_services_names || '[ПЕРЕЛІК ПОСЛУГ ПОТРІБНО ПЕРЕВІРИТИ]';\nconst amountText = border_total > 0      ? border_amount : '[СУМУ ПОТРІБНО ПЕРЕВІРИТИ]';\n\nconst main_text =\n  `Повідомляємо, що вартість міжнародного перевезення вантажу${docsInParens} ` +\n  `по маршруту ${routeText}, яка включає ${svcText}, складає ${amountText} гривень.`;\n\n// Ім'я файлу\nconst safeName = (s) => s.replace(/[\\/\\\\:*?\"<>|]/g, '').replace(/\\s+/g, ' ').trim();\nconst dovidka_filename = `Довідка_${safeName(client_name)}_${safeName(route)}_${dateToFilename(date)}.docx`;\n\nconst warnings = [];\nif (!route)                  warnings.push('Маршрут не визначено AI.');\nif (!border_services_names)  warnings.push('Перелік послуг не визначено AI.');\nif (!border_total)           warnings.push('Сума до кордону = 0.');\n\nreturn [{\n  json: {\n    job_number, email_subject, email_from, email_text,\n    date, client_name, container_number,\n    bl_number, awb_number, cmr_number, cmr_date,\n    transport_documents_phrase, route,\n    border_services_names, border_total, border_amount,\n    insurance_amount, insurance_phrase,\n    main_text, dovidka_filename, warnings,\n  }\n}];"
+      },
+      "position": [
+        1880,
+        200
+      ],
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2
+    },
+    {
+      "id": "dc7f96a4-1066-40db-8a0e-2a50c1918dce",
+      "name": "Build Request Body",
+      "parameters": {
+        "jsCode": "const docId = $input.item.json.id;\nconst date = $('Prepare document data').item.json.date;\nconst main_text = $('Prepare document data').item.json.main_text;\nconst insurance_phrase = $('Prepare document data').item.json.insurance_phrase || '';\n\nconst requestBody = JSON.stringify({\n  requests: [\n    { replaceAllText: { containsText: { text: '{{date}}', matchCase: true }, replaceText: date } },\n    { replaceAllText: { containsText: { text: '{{main_text}}', matchCase: true }, replaceText: main_text } },\n    { replaceAllText: { containsText: { text: '{{insurance_phrase}}', matchCase: true }, replaceText: insurance_phrase } }\n  ]\n});\n\nreturn [{ json: { id: docId, body_json_string: requestBody } }];"
+      },
+      "position": [
+        2240,
+        200
+      ],
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2
+    },
+    {
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "2GWpYd58b4gHSUPi",
+          "name": "Google Drive account"
+        }
+      },
+      "id": "cf0bb36d-a6bc-4fe1-b903-e969fc605f2c",
+      "name": "HTTP Request",
+      "parameters": {
+        "authentication": "predefinedCredentialType",
+        "body": "={{ $json.body_json_string }}",
+        "contentType": "raw",
+        "headerParameters": {
+          "parameters": [
+            {}
+          ]
+        },
+        "method": "POST",
+        "nodeCredentialType": "<ПРИБРАНО>",
+        "options": {},
+        "rawContentType": "=application/json",
+        "sendBody": true,
+        "sendHeaders": true,
+        "url": "=https://docs.googleapis.com/v1/documents/{{$json.id}}:batchUpdate"
+      },
+      "position": [
+        2420,
+        200
+      ],
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4
+    },
+    {
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "2GWpYd58b4gHSUPi",
+          "name": "Google Drive account"
+        }
+      },
+      "id": "556b53ac-f521-4b0f-b2e9-9623cd5f759a",
+      "name": "Export DOCX",
+      "parameters": {
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "<ПРИБРАНО>",
+        "options": {
+          "response": {
+            "response": {
+              "outputPropertyName": "dovidka_docx",
+              "responseFormat": "file"
+            }
+          }
+        },
+        "url": "=https://www.googleapis.com/drive/v3/files/{{$('Copy Template').item.json.id}}/export?mimeType=application%2Fvnd.openxmlformats-officedocument.wordprocessingml.document"
+      },
+      "position": [
+        2600,
+        200
+      ],
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4
+    },
+    {
+      "credentials": {
+        "smtp": {
+          "id": "IRHmy9RLt9AtxQFS",
+          "name": "SMTP account"
+        }
+      },
+      "id": "8f8100d7-3877-4eba-8af8-e07b02310f8b",
+      "name": "Send Email Reply",
+      "parameters": {
+        "emailFormat": "text",
+        "fromEmail": "docs@unitex.od.ua",
+        "options": {
+          "attachments": "dovidka_docx"
+        },
+        "subject": "=Re: {{$('Edit Fields').item.json.email_subject}}",
+        "text": "Вітаємо!\n\nУ відповідь на Ваш запит надсилаємо довідку про вартість транспортних послуг.\n\nЗ повагою,\nТОВ «Юнітекс Ейч-Ді»",
+        "toEmail": "={{$('Edit Fields').item.json.email_from}}"
+      },
+      "position": [
+        2960,
+        200
+      ],
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "webhookId": "fd966000-7885-4759-83a0-3f5853f064db"
+    },
+    {
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "2GWpYd58b4gHSUPi",
+          "name": "Google Drive account"
+        }
+      },
+      "id": "93db6b8b-cd41-4e3d-8c86-076fd1a45f7e",
+      "name": "Copy Template",
+      "parameters": {
+        "authentication": "predefinedCredentialType",
+        "jsonBody": "{\"mimeType\": \"application/vnd.google-apps.document\", \"name\": \"Довідка draft\"}",
+        "method": "POST",
+        "nodeCredentialType": "<ПРИБРАНО>",
+        "options": {},
+        "sendBody": true,
+        "specifyBody": "json",
+        "url": "https://www.googleapis.com/drive/v3/files/13wuJ2EfL_Rrt8fCiWFNXQX2gDRs38-guH_csPkVqiis/copy"
+      },
+      "position": [
+        2060,
+        200
+      ],
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4
+    },
+    {
+      "id": "f65fc2b9-f6b7-4ae6-84b4-eb6ee7578ed9",
+      "name": "Rename File",
+      "parameters": {
+        "jsCode": "\nconst binary = $input.item.binary.dovidka_docx;\nconst filename = $('Prepare document data').item.json.dovidka_filename || 'Довідка.docx';\nreturn [{\n  json: $input.item.json,\n  binary: {\n    dovidka_docx: {\n      ...binary,\n      fileName: filename\n    }\n  }\n}];\n"
+      },
+      "position": [
+        2780,
+        200
+      ],
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2
+    },
+    {
+      "credentials": {
+        "anthropicApi": {
+          "id": "S4WsLWJw1fpDwXqf",
+          "name": "Anthropic account"
+        }
+      },
+      "id": "call-claude-api-01",
+      "name": "Call Claude API",
+      "parameters": {
+        "authentication": "predefinedCredentialType",
+        "body": "={{ $json.body }}",
+        "contentType": "raw",
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            }
+          ]
+        },
+        "method": "POST",
+        "nodeCredentialType": "<ПРИБРАНО>",
+        "options": {},
+        "rawContentType": "application/json",
+        "sendBody": true,
+        "sendHeaders": true,
+        "url": "https://api.anthropic.com/v1/messages"
+      },
+      "position": [
+        1520,
+        200
+      ],
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2
+    },
+    {
+      "id": "parse-claude-response-01",
+      "name": "Parse Claude Response",
+      "parameters": {
+        "jsCode": "\nconst response = $input.item.json;\nconst text = response.content?.[0]?.text || '';\n\n// Знайти JSON у відповіді\nconst jsonMatch = text.match(/\\{[\\s\\S]*\\}/);\nif (!jsonMatch) {\n  throw new Error('Claude не повернув JSON. Відповідь: ' + text.substring(0, 200));\n}\n\nlet extracted;\ntry {\n  extracted = JSON.parse(jsonMatch[0]);\n} catch(e) {\n  throw new Error('Помилка парсингу JSON: ' + e.message + '\\n' + jsonMatch[0].substring(0, 200));\n}\n\n// Передати binary (PDF) далі\nreturn [{\n  json: extracted,\n  binary: $('Extract invoice text').first().binary\n}];\n"
+      },
+      "position": [
+        1700,
+        200
+      ],
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2
+    },
+    {
+      "id": "build-prompt-01",
+      "name": "Build Prompt",
+      "parameters": {
+        "jsCode": "const invoiceText = $('Extract invoice text').first().json.text || '';\nconst emailText   = $('Extract clean email text').first().json.email_text || '';\n\nconst MODEL = 'claude-opus-4-7';\n\nconst prompt = `Ти — експерт з логістичних документів та української мови. Витягни дані та поверни ТІЛЬКИ валідний JSON без жодного тексту навколо нього.\n\nРАХУНОК (текст PDF):\n${invoiceText}\n\nТІЛО ЛИСТА:\n${emailText}\n\n## ПРАВИЛА відбору послуг до кордону\n\n### ВКЛЮЧАТИ якщо виконується ХОЧА Б ОДНА умова:\n1. Є явний маркер: \"за межами державного кордону України\" або \"до державного кордону України\"\n2. Є явний маркер: \"за межами митної території України\" або \"за межами митного кордону\"\n3. Це авіафрахт, морський фрахт — навіть без явного маркера\n4. Є \"міжнародне перевезення/авіаперевезення/автоперевезення\" І маршрут закінчується за кордоном або в пункті ПЕРЕТИНУ кордону (м/п, або відомі прикордонні пункти: Мостиська, Угрінів, Устилуг, Рава-Руська, Ягодин, Краківець)\n5. Маршрут містить ТІЛЬКИ іноземні міста (обидві точки за кордоном)\n\n### ВИКЛЮЧАТИ:\n- Маршрут закінчується в INLAND (внутрішньому) місті України — навіть якщо починається з іноземного міста.\n  Приклад: \"Варшава → м. Солоницівка\" → ВИКЛЮЧАТИ (кінцева точка — внутрішня Україна)\n  Приклад: \"Варшава → м/п Угрінів\" → ВКЛЮЧАТИ (кінцева точка — кордон)\n  Приклад: \"Гдиня → Мостиська ІІ\" → ВКЛЮЧАТИ (Мостиська ІІ — залізнична прикордонна станція)\n- \"на території України\" без маршруту за кордон\n- Агентська / експедиторська винагорода без маршруту\n- Страхування (окремо в insurance_amount)\n- Місцеві збори / документи без маршруту\n\n## МАРШРУТ довідки\nФормуй маршрут ТІЛЬКИ з включених послуг. Не додавай внутрішньоукраїнські міста.\nОб'єднай сегменти без дублювання точок.\nФормат: \"м. Місто1 (Країна) – м. Місто2 (Країна) – м/п Назва (Країна)\"\nПрибирай: \"екс.пкп\", \"ІІ\", \"I\", номери авто, номери документів.\n\n## НАЗВИ ПОСЛУГ\nПовертай у ЗНАХІДНОМУ ВІДМІНКУ (після \"яка включає ...\").\nПрибирай: \"по маршруту ...\", \"за маршрутом ...\", назви міст.\nПрибирай префікси: \"Відшкодування за/витрат за/вартості\", \"Компенсація вартості/Компенсація\".\nПриклади: авіа фрахт, автоперевезення, перевалку вантажів, залізничне перевезення,\nорганізацію авіаперевезення, організацію залізничного перевезення, митне оформлення.\n\nПоверни JSON:\n{\n  \"client_name\": \"назва компанії покупця БЕЗ слів ТОВАРИСТВО З ОБМЕЖЕНОЮ ВІДПОВІДАЛЬНІСТЮ/ТОВ/лапок\",\n  \"invoice_date\": \"дата рахунку формат 'D місяць YYYY р.' українською\",\n  \"container_number\": \"номер контейнера формат XXXX1234567 або порожній рядок\",\n  \"bl_number\": \"номер коносаменту або порожній рядок\",\n  \"awb_number\": \"номер AWB/MAWB або порожній рядок\",\n  \"cmr_number\": \"номер CMR лише з тіла листа або порожній рядок\",\n  \"cmr_date\": \"дата CMR DD.MM.YYYY або порожній рядок\",\n  \"route\": \"маршрут лише з включених послуг, без внутрішніх міст України\",\n  \"border_services_names\": \"назви послуг у знахідному відмінку через кому\",\n  \"border_total\": числова сума тільки включених послуг,\n  \"insurance_amount\": сума страхування або 0\n}`;\n\nconst body = JSON.stringify({\n  model: MODEL,\n  max_tokens: 2500,\n  messages: [{ role: \"user\", content: prompt }]\n});\n\nreturn [{\n  json: { body, model_used: MODEL },\n  binary: $('Extract invoice text').first().binary\n}];"
+      },
+      "position": [
+        1340,
+        200
+      ],
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2
+    },
+    {
+      "id": "find-pdf-attachment-01",
+      "name": "Find PDF attachment",
+      "parameters": {
+        "jsCode": "const item = $input.item;\nconst binary = item.binary || {};\n\n// Знайти перше PDF вкладення серед усіх attachment_*\nlet pdfKey = null;\nfor (const [key, val] of Object.entries(binary)) {\n  if (\n    val.mimeType === 'application/pdf' ||\n    (val.fileName && val.fileName.toLowerCase().endsWith('.pdf'))\n  ) {\n    pdfKey = key;\n    break;\n  }\n}\n\nif (!pdfKey) {\n  throw new Error(\n    'PDF вкладення не знайдено. Прикріпіть рахунок у форматі PDF до листа.'\n  );\n}\n\n// Копіюємо знайдений PDF під стандартний ключ 'invoice_pdf'\nreturn [{\n  json: item.json,\n  binary: {\n    ...binary,\n    invoice_pdf: binary[pdfKey]\n  }\n}];"
+      },
+      "position": [
+        800,
+        200
+      ],
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2
+    }
+  ],
+  "pinData": {},
+  "settings": {
+    "binaryMode": "separate",
+    "executionOrder": "v1"
+  },
+  "shared": [
+    {
+      "project": {
+        "creatorId": "4045d201-6483-44b7-b7d6-07364d42fa70",
+        "customTelemetryTags": [],
+        "description": null,
+        "icon": null,
+        "id": "tM3V0WFDaLiytIxs",
+        "name": "Iryna Karmazina <irynakarmazina@gmail.com>",
+        "type": "personal"
+      },
+      "projectId": "tM3V0WFDaLiytIxs",
+      "role": "workflow:owner",
+      "workflowId": "GIhQk0ETziCTYgTB"
+    }
+  ],
+  "sourceWorkflowId": null,
+  "staticData": {
+    "node:Email Trigger (IMAP)": {
+      "lastMessageUid": 80
+    }
+  },
+  "tags": [],
+  "versionCounter": 210
+}

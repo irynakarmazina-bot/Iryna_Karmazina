@@ -1,0 +1,298 @@
+{
+  "active": false,
+  "activeVersion": null,
+  "activeVersionId": null,
+  "connections": {
+    "Claude API": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "Зберегти в буфер",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "Запит до Claude": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "Claude API",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "Зібрати дайджест": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "Лист на sales",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "Лист на sales": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "Очистити буфер",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "Нові листи (IMAP)": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "Фільтр джерел",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "Розклад 9/17": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "Зібрати дайджест",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "Фільтр джерел": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "Запит до Claude",
+            "type": "main"
+          }
+        ]
+      ]
+    }
+  },
+  "description": null,
+  "id": "GGnGKrjyuCU3nrcC",
+  "isArchived": false,
+  "meta": null,
+  "name": "Дайджест новин ліній (Claude)",
+  "nodeGroups": [],
+  "nodes": [
+    {
+      "credentials": {
+        "imap": {
+          "id": "kW24ZrmT1XnVuRpA",
+          "name": "IMAP account"
+        }
+      },
+      "id": "5a58a87c-de75-4082-af6f-f8966b1751f8",
+      "name": "Нові листи (IMAP)",
+      "parameters": {
+        "action": "read",
+        "format": "simple",
+        "mailbox": "INBOX",
+        "options": {
+          "allowUnauthorizedCerts": false,
+          "unseen": true
+        }
+      },
+      "position": [
+        0,
+        0
+      ],
+      "type": "n8n-nodes-base.emailReadImap",
+      "typeVersion": 2
+    },
+    {
+      "id": "d56ff0c1-dfde-4b33-934e-0114204b9f2c",
+      "name": "Фільтр джерел",
+      "parameters": {
+        "jsCode": "const from=String($json.from||'').toLowerCase();\nconst sources=['customernews@hlag.com','cma-cgm.com','maersk.com','iata.org'];\nreturn sources.some(d=>from.includes(d)) ? [{json:$json}] : [];"
+      },
+      "position": [
+        220,
+        0
+      ],
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2
+    },
+    {
+      "id": "6f595e08-d19b-4bb5-8ca2-e961e34be7e6",
+      "name": "Запит до Claude",
+      "parameters": {
+        "jsCode": "const subject=$json.subject||'';const from=$json.from||'';const date=$json.date||'';\nconst body=String($json.textPlain||$json.text||$json.textHtml||'').slice(0,8000);\nconst sys=\"Ти фільтруєш новинні розсилки судноплавних ліній та IATA для експедитора Unitex (Одеса). Спочатку визнач, чи лист — це ЗАГАЛЬНА НОВИНА/інформаційна розсилка лінії (ставки, GRI/GRA, PSS, надбавки, сервіси, розклади, процедури/booking window, свята/затори, авіа-регуляції IATA, глобальні події), а НЕ оперативка по конкретному відправленню (booking confirmation, price overview по букінгу, BL draft, shipping instruction, invoice, номер букінгу/BL/контейнера). Поверни СТРОГО валідний JSON без markdown. Поля: is_news (bool), source (Hapag-Lloyd|CMA CGM|Maersk|IATA|Інша), summary (1-3 речення українською, суть новини), effective_date (YYYY-MM-DD|null), route (str|null), market_relevant (bool: true якщо ВИКОНУЄТЬСЯ ХОЧА Б ОДНЕ з: (1) один з кінців маршруту — Європа (Пн.Європа, Середземномор'я, Балтика, Чорне море, вкл. порти Польщі/Румунії/України) АБО Україна, незалежно від другого кінця (США, Канада, Азія, Далекий Схід, Китай, Індія, Близький Схід, Австралія, Нова Зеландія, Африка тощо — будь-який напрямок НА/З Європи чи України); (2) локальні тарифи/правила/процедури портів Польщі/Румунії/України; (3) ГЛОБАЛЬНА ситуація/подія, що впливає на світове судноплавство — Червоне море/Суец, Панамський канал, геополітика/війни, масштабні затори чи закриття портів, страйки, санкції, форс-мажор, погода глобального масштабу; (4) ГЛОБАЛЬНІ/загальнокомпанійні зміни лінії — нові альянси чи сервісна мережа, глобальна політика надбавок/умов, зміни загальних правил/процедур, цифрові платформи, масштабні програми blank sailings, зміни флоту/розкладів загалом. false ЛИШЕ якщо новина суто про КОНКРЕТНИЙ маршрут, що НЕ торкається Європи/України І НЕ є глобальною подією/зміною (напр. локальна GRI Азія→Пн.Америка, PSS Азія→Австралія, Азія→Африка, всередині Америк, локальне поза Європою)), url (посилання на повну новину з тіла листа — 'Learn more'/стаття/'View in browser'; вибери найрелевантніше саме до цієї новини; якщо немає — null), kb_relevant (bool: true лише якщо зміна правил/процедур АБО локальних тарифів для Польщі/Румунії/України), kb_section (Морський фрахт|Локальні витрати|Наземна доставка|null), kb_text (str|null). Рік за замовчуванням 2026. Не вигадуй посилань і дат.\";\nconst payload={model:'claude-sonnet-4-6',max_tokens:1000,system:sys,messages:[{role:'user',content:'ВІД: '+from+'\\nТЕМА: '+subject+'\\nДАТА: '+date+'\\n\\nТІЛО:\\n'+body}]};\nreturn [{json:{body:JSON.stringify(payload),_subject:subject,_from:from,_date:date}}];"
+      },
+      "position": [
+        440,
+        0
+      ],
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2
+    },
+    {
+      "credentials": {
+        "anthropicApi": {
+          "id": "S4WsLWJw1fpDwXqf",
+          "name": "Anthropic account"
+        }
+      },
+      "id": "5732de42-f2b6-45ed-8055-80071a0c5877",
+      "name": "Claude API",
+      "parameters": {
+        "authentication": "predefinedCredentialType",
+        "body": "={{ $json.body }}",
+        "contentType": "raw",
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            }
+          ]
+        },
+        "method": "POST",
+        "nodeCredentialType": "<ПРИБРАНО>",
+        "options": {},
+        "rawContentType": "application/json",
+        "sendBody": true,
+        "sendHeaders": true,
+        "url": "https://api.anthropic.com/v1/messages"
+      },
+      "position": [
+        660,
+        0
+      ],
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2
+    },
+    {
+      "id": "6d19671d-8283-4a92-82e8-521efa34d130",
+      "name": "Зберегти в буфер",
+      "parameters": {
+        "jsCode": "let raw=($json.content&&$json.content[0]&&$json.content[0].text)||'';\nconst mm=raw.match(/\\{[\\s\\S]*\\}/);\nlet d;try{d=JSON.parse(mm?mm[0]:raw);}catch(e){return [];}\nif(!d||d.is_news!==true||d.market_relevant!==true) return [];\nconst m=$('Запит до Claude').item.json;\nconst sd=$getWorkflowStaticData('global');\nif(!Array.isArray(sd.buffer)) sd.buffer=[];\nsd.buffer.push({source:d.source||'Інша',summary:d.summary||'',effective_date:d.effective_date||'',route:d.route||'',url:d.url||'',kb_relevant:!!d.kb_relevant,kb_section:d.kb_section||'',kb_text:d.kb_text||'',subject:m._subject||'',from:m._from||'',date:m._date||''});\nreturn [{json:{buffered:sd.buffer.length}}];"
+      },
+      "position": [
+        880,
+        0
+      ],
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2
+    },
+    {
+      "id": "1e101bb6-c1ea-4549-828a-1fc6e7e7834c",
+      "name": "Розклад 9/17",
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "expression": "0 9,17 * * *",
+              "field": "cronExpression"
+            }
+          ]
+        }
+      },
+      "position": [
+        0,
+        300
+      ],
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2
+    },
+    {
+      "id": "56580657-ad50-41c3-ae74-60993ab2e10e",
+      "name": "Зібрати дайджест",
+      "parameters": {
+        "jsCode": "const sd=$getWorkflowStaticData('global');\nconst buf=Array.isArray(sd.buffer)?sd.buffer:[];\nif(buf.length===0) return [];\nconst order=['Hapag-Lloyd','CMA CGM','Maersk','IATA','Інша'];\nconst now=new Date().toLocaleString('uk-UA',{timeZone:'Europe/Kyiv',day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});\nlet t='\\u{1F4EC} Дайджест новин ліній — '+now+'\\n';\nconst by={};for(const it of buf){(by[it.source]=by[it.source]||[]).push(it);}\nconst keys=Object.keys(by).sort((a,b)=>{const ia=order.indexOf(a),ib=order.indexOf(b);return (ia<0?99:ia)-(ib<0?99:ib);});\nfor(const k of keys){t+='\\n— '+k+' —\\n';for(const it of by[k]){t+='\\u2022 '+it.summary;if(it.effective_date)t+=' (дата дії: '+it.effective_date+')';if(it.route)t+=' ['+it.route+']';if(it.url)t+='\\n  \\u{1F517} Повна новина: '+it.url;t+='\\n';}}\nconst kb=buf.filter(x=>x.kb_relevant&&x.kb_text);\nif(kb.length){t+='\\n\\u{1F5C2} Запропоновано до Бази знань (Notion) — підтвердь, щоб додати:\\n';for(const it of kb){t+='\\n\\u2022 Розділ: '+(it.kb_section||'')+'\\n'+it.kb_text+'\\nДжерело: '+it.from+' | '+it.subject+' | '+it.date+'\\n';}}\nconst subject='\\u{1F4EC} Дайджест новин ліній — '+now;\nreturn [{json:{subject:subject,text:t,count:buf.length}}];"
+      },
+      "position": [
+        300,
+        300
+      ],
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2
+    },
+    {
+      "credentials": {
+        "smtp": {
+          "id": "IRHmy9RLt9AtxQFS",
+          "name": "SMTP account"
+        }
+      },
+      "id": "62a4438d-0d81-476a-b79a-cb4aa34051cf",
+      "name": "Лист на sales",
+      "parameters": {
+        "emailFormat": "text",
+        "fromEmail": "i.karmazina@unitex.od.ua",
+        "options": {},
+        "subject": "={{ $json.subject }}",
+        "text": "={{ $json.text }}",
+        "toEmail": "sales@unitex.od.ua"
+      },
+      "position": [
+        560,
+        300
+      ],
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "webhookId": "a417eae9-d9a1-454e-810f-4f7f17b923d2"
+    },
+    {
+      "id": "38365eb0-c230-48d0-ba59-6ef0e85f0c3c",
+      "name": "Очистити буфер",
+      "parameters": {
+        "jsCode": "const sd=$getWorkflowStaticData('global'); sd.buffer=[]; return [{json:{cleared:true}}];"
+      },
+      "position": [
+        820,
+        300
+      ],
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2
+    }
+  ],
+  "pinData": null,
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Europe/Kyiv"
+  },
+  "shared": [
+    {
+      "project": {
+        "creatorId": "4045d201-6483-44b7-b7d6-07364d42fa70",
+        "customTelemetryTags": [],
+        "description": null,
+        "icon": null,
+        "id": "tM3V0WFDaLiytIxs",
+        "name": "Iryna Karmazina <irynakarmazina@gmail.com>",
+        "type": "personal"
+      },
+      "projectId": "tM3V0WFDaLiytIxs",
+      "role": "workflow:owner",
+      "workflowId": "GGnGKrjyuCU3nrcC"
+    }
+  ],
+  "sourceWorkflowId": null,
+  "staticData": {
+    "node:Нові листи (IMAP)": {},
+    "node:Розклад 9/17": {
+      "recurrenceRuleSignatures": [
+        null
+      ],
+      "recurrenceRules": [
+        null
+      ]
+    }
+  },
+  "tags": [],
+  "versionCounter": 6
+}

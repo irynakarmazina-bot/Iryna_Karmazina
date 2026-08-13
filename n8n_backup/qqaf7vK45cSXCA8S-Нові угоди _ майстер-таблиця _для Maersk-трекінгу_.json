@@ -1,0 +1,254 @@
+{
+  "active": false,
+  "activeVersion": null,
+  "activeVersionId": null,
+  "connections": {
+    "Нові для таблиці": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "Дописуємо в таблицю",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "Ручний запуск": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "Угоди з платформи",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "Угоди з платформи": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "Читаємо Відправлення",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "Читаємо Відправлення": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "Нові для таблиці",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "Щодня 07:50": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "Угоди з платформи",
+            "type": "main"
+          }
+        ]
+      ]
+    }
+  },
+  "description": null,
+  "id": "qqaf7vK45cSXCA8S",
+  "isArchived": false,
+  "meta": null,
+  "name": "Нові угоди → майстер-таблиця (для Maersk-трекінгу)",
+  "nodeGroups": [],
+  "nodes": [
+    {
+      "id": "f9056e33-f639-4cb8-a646-1cc3122dcfd0",
+      "name": "Щодня 07:50",
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "expression": "50 7 * * *",
+              "field": "cronExpression"
+            }
+          ]
+        }
+      },
+      "position": [
+        0,
+        -100
+      ],
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2
+    },
+    {
+      "id": "18dd038b-736d-4aa3-8fec-1ffb0417f215",
+      "name": "Ручний запуск",
+      "parameters": {
+        "options": {},
+        "path": "unitex-newdeals-sheet-p4q8r"
+      },
+      "position": [
+        0,
+        120
+      ],
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "webhookId": "c19600ac-2af0-497d-9a7a-80a770ad5814"
+    },
+    {
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "wrIjmSE5YG7jStH5",
+          "name": "NocoDB xc-token"
+        }
+      },
+      "executeOnce": true,
+      "id": "3678ad44-67d5-4e9f-a536-80b0d195a225",
+      "name": "Угоди з платформи",
+      "parameters": {
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {},
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "limit",
+              "value": "1000"
+            },
+            {
+              "name": "fields",
+              "value": "Угода,Клієнт,Лінія,BL,Напрямок"
+            }
+          ]
+        },
+        "sendQuery": true,
+        "url": "https://134.209.94.12/api/v2/tables/m58xsjo6at01ohl/records"
+      },
+      "position": [
+        220,
+        0
+      ],
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2
+    },
+    {
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "S6pSxt1O96LflGWp",
+          "name": "Google Sheets account"
+        }
+      },
+      "id": "bcb88590-0473-4328-b7c7-d5068384e867",
+      "name": "Читаємо Відправлення",
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "1FkvCfEZv7Ni5SYJCuaEB7BubmwPs5D0laM0A9g4byF8"
+        },
+        "operation": "read",
+        "options": {},
+        "sheetName": {
+          "__rl": true,
+          "mode": "url",
+          "value": "https://docs.google.com/spreadsheets/d/1FkvCfEZv7Ni5SYJCuaEB7BubmwPs5D0laM0A9g4byF8/edit#gid=11111"
+        }
+      },
+      "position": [
+        440,
+        0
+      ],
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5
+    },
+    {
+      "id": "0426fc0e-9c7b-4f59-9455-a1119839715c",
+      "name": "Нові для таблиці",
+      "parameters": {
+        "jsCode": "const nc = $('Угоди з платформи').all().flatMap(i=>i.json.list||[]);\nconst sheet = $('Читаємо Відправлення').all().map(i=>i.json);\nconst norm = v => { const s=String(v==null?'':v).trim(); return /^\\d+$/.test(s)? String(parseInt(s,10)) : s; };\nconst inSheet = new Set(sheet.map(r=>norm(r['Угода'])).filter(Boolean));\nconst padded = sheet.some(r=>/^0\\d{5,}$/.test(String(r['Угода']||'').trim()));\nconst padLen = padded ? String(sheet.find(r=>/^0\\d{5,}$/.test(String(r['Угода']||'').trim()))['Угода']).trim().length : 0;\nconst out = [];\nnc.forEach(r=>{\n  const n = norm(r['Угода']); if(!n || inSheet.has(n)) return;\n  out.push({json:{\n    'Угода': padded ? String(n).padStart(padLen,'0') : String(n),\n    'Клієнт': r['Клієнт']||'',\n    'Лінія': r['Лінія']||'',\n    'BL/Booking': r['BL']||'',\n    'Напрямок': r['Напрямок']||''\n  }});\n});\nreturn out;",
+        "mode": "runOnceForAllItems"
+      },
+      "position": [
+        660,
+        0
+      ],
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2
+    },
+    {
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "S6pSxt1O96LflGWp",
+          "name": "Google Sheets account"
+        }
+      },
+      "id": "4d2961c8-37af-4e6c-b7d4-7cab82653fd2",
+      "name": "Дописуємо в таблицю",
+      "parameters": {
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "matchingColumns": [],
+          "schema": []
+        },
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "1FkvCfEZv7Ni5SYJCuaEB7BubmwPs5D0laM0A9g4byF8"
+        },
+        "operation": "append",
+        "options": {},
+        "sheetName": {
+          "__rl": true,
+          "mode": "url",
+          "value": "https://docs.google.com/spreadsheets/d/1FkvCfEZv7Ni5SYJCuaEB7BubmwPs5D0laM0A9g4byF8/edit#gid=11111"
+        }
+      },
+      "position": [
+        880,
+        0
+      ],
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5
+    }
+  ],
+  "pinData": null,
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Europe/Kiev"
+  },
+  "shared": [
+    {
+      "project": {
+        "creatorId": "4045d201-6483-44b7-b7d6-07364d42fa70",
+        "customTelemetryTags": [],
+        "description": null,
+        "icon": null,
+        "id": "tM3V0WFDaLiytIxs",
+        "name": "Iryna Karmazina <irynakarmazina@gmail.com>",
+        "type": "personal"
+      },
+      "projectId": "tM3V0WFDaLiytIxs",
+      "role": "workflow:owner",
+      "workflowId": "qqaf7vK45cSXCA8S"
+    }
+  ],
+  "sourceWorkflowId": null,
+  "staticData": {
+    "node:Щодня 07:50": {
+      "recurrenceRuleSignatures": [
+        null
+      ],
+      "recurrenceRules": [
+        null
+      ]
+    }
+  },
+  "tags": [],
+  "versionCounter": 2
+}

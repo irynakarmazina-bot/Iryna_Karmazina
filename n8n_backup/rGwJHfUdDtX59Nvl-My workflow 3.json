@@ -1,0 +1,158 @@
+{
+  "active": false,
+  "activeVersion": null,
+  "activeVersionId": null,
+  "connections": {
+    "Отримати лист": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "Парсинг теми та тіла",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "Парсинг теми та тіла": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "Підготувати дані (Code)",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "Підготувати дані (Code)": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "Прочитати рахунок (Claude)",
+            "type": "main"
+          }
+        ]
+      ]
+    }
+  },
+  "description": null,
+  "id": "rGwJHfUdDtX59Nvl",
+  "isArchived": false,
+  "meta": null,
+  "name": "My workflow 3",
+  "nodeGroups": [],
+  "nodes": [
+    {
+      "id": "b2fc1501-8a97-4012-9e07-2d0fccbbc50b",
+      "name": "Парсинг теми та тіла",
+      "parameters": {
+        "jsCode": "const subject = $input.first().json.subject;\n\n// Витягуємо номер угоди — все до \" / \"\nconst agreementNumber = subject.split(' / ')[0].trim();\n\nreturn [{\n  json: {\n    agreementNumber,\n    subject,\n    messageId: $input.first().json.messageId,\n    fromAddress: $input.first().json.from.value[0].address,\n    emailText: $input.first().json.text || '',\n    emailHtml: $input.first().json.html || '',\n  }\n}];"
+      },
+      "position": [
+        -240,
+        -32
+      ],
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2
+    },
+    {
+      "credentials": {
+        "imap": {
+          "id": "kW24ZrmT1XnVuRpA",
+          "name": "IMAP account"
+        }
+      },
+      "id": "802a092c-3db7-4dd2-bed0-0757c8f32c3a",
+      "name": "Отримати лист",
+      "parameters": {
+        "format": "resolved",
+        "options": {}
+      },
+      "position": [
+        -448,
+        -32
+      ],
+      "type": "n8n-nodes-base.emailReadImap",
+      "typeVersion": 2.1
+    },
+    {
+      "id": "36826164-93eb-48bb-822d-3566dcecc6bc",
+      "name": "Підготувати дані (Code)",
+      "parameters": {
+        "jsCode": "const { agreementNumber, messageId, fromAddress, emailText } = $('Парсинг теми та тіла').first().json;\n\n// Беремо PDF як base64 рядок\nconst binaryData = $('Отримати лист').first().binary.attachment_0.data;\n\nreturn [{\n  json: {\n    agreementNumber,\n    messageId,\n    fromAddress,\n    emailText,\n    pdfBase64: binaryData,\n  }\n}];"
+      },
+      "position": [
+        -32,
+        -32
+      ],
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2
+    },
+    {
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "iPlhM6oB1vvJwdz4",
+          "name": "Header Auth account"
+        }
+      },
+      "id": "18b2cd21-2f18-41ca-8a1d-7b3d9a15f778",
+      "name": "Прочитати рахунок (Claude)",
+      "parameters": {
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "jsonBody": "={\n  \"model\": \"claude-opus-4-5\",\n  \"max_tokens\": 1500,\n  \"messages\": [{\n    \"role\": \"user\",\n    \"content\": [\n      {\n        \"type\": \"document\",\n        \"source\": {\n          \"type\": \"base64\",\n          \"media_type\": \"application/pdf\",\n          \"data\": \"={{ $json.pdfBase64 }}\"\n        }\n      },\n      {\n        \"type\": \"text\",\n        \"text\": \"Проаналізуй цей рахунок і поверни ТІЛЬКИ JSON без жодного тексту навколо: {\\\"client\\\": \\\"назва клієнта\\\", \\\"route\\\": \\\"маршрут до кордону\\\", \\\"container\\\": \\\"номер контейнера або null\\\", \\\"bill_of_lading\\\": \\\"номер коносаменту або null\\\", \\\"services\\\": [{\\\"name\\\": \\\"назва послуги\\\", \\\"amount\\\": 0.00, \\\"currency\\\": \\\"USD\\\"}], \\\"total\\\": 0.00, \\\"currency\\\": \\\"USD\\\"}. Послуги до кордону: морське перевезення, морський фрахт, авіа перевезення, авіа фрахт, всі послуги з фразами до кордону, за кордоном, на території НЕ України, або автоперевезення з маршрутом від закордонного міста до першого міста в Україні або митного переходу. Включай ТІЛЬКИ ці послуги.\"\n      }\n    ]\n  }]\n}",
+        "method": "POST",
+        "options": {},
+        "sendBody": true,
+        "sendHeaders": true,
+        "specifyBody": "json",
+        "url": "https://api.anthropic.com/v1/messages"
+      },
+      "position": [
+        176,
+        -32
+      ],
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4
+    }
+  ],
+  "pinData": {},
+  "settings": {
+    "binaryMode": "separate",
+    "executionOrder": "v1"
+  },
+  "shared": [
+    {
+      "project": {
+        "creatorId": "4045d201-6483-44b7-b7d6-07364d42fa70",
+        "customTelemetryTags": [],
+        "description": null,
+        "icon": null,
+        "id": "tM3V0WFDaLiytIxs",
+        "name": "Iryna Karmazina <irynakarmazina@gmail.com>",
+        "type": "personal"
+      },
+      "projectId": "tM3V0WFDaLiytIxs",
+      "role": "workflow:owner",
+      "workflowId": "rGwJHfUdDtX59Nvl"
+    }
+  ],
+  "sourceWorkflowId": null,
+  "staticData": null,
+  "tags": [],
+  "versionCounter": 77
+}

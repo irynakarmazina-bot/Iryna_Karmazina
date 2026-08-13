@@ -1,0 +1,322 @@
+{
+  "active": false,
+  "activeVersion": null,
+  "activeVersionId": null,
+  "connections": {
+    "Є контейнер і лінія? (IF)": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "Трекається по контейнеру",
+            "type": "main"
+          }
+        ],
+        [
+          {
+            "index": 0,
+            "node": "Не трекається",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "Дані перевезення (Set)": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "Чи є номер BL? (IF)",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "Старт (Manual Trigger)": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "Дані перевезення (Set)",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "Чи є номер BL? (IF)": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "Трекається по BL",
+            "type": "main"
+          }
+        ],
+        [
+          {
+            "index": 0,
+            "node": "Є контейнер і лінія? (IF)",
+            "type": "main"
+          }
+        ]
+      ]
+    }
+  },
+  "description": null,
+  "id": "WuYZdxfzaRp3ezcO",
+  "isArchived": false,
+  "meta": null,
+  "name": "ДЗ — вибір ключа трекінгу (Manual, Set, IF, 3 гілки)",
+  "nodeGroups": [],
+  "nodes": [
+    {
+      "id": "Нотатка:_огляд",
+      "name": "Нотатка: огляд",
+      "parameters": {
+        "color": 5,
+        "content": "Цей воркфлоу вирішує, як відстежувати перевезення — залежно від того, які дані є. Запускається вручну кнопкою Execute Workflow.\n\nВузли: Manual Trigger — ручний старт. Set задає тестові дані (номер BL, контейнер, лінія). IF — умова. Далі дані знов збираються в Set.\n",
+        "height": 150,
+        "width": 1100
+      },
+      "position": [
+        192,
+        32
+      ],
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1
+    },
+    {
+      "id": "manual-trigger",
+      "name": "Старт (Manual Trigger)",
+      "parameters": {},
+      "position": [
+        240,
+        352
+      ],
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1
+    },
+    {
+      "id": "set-data",
+      "name": "Дані перевезення (Set)",
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f1",
+              "name": "dealNumber",
+              "type": "string",
+              "value": "UT-1024"
+            },
+            {
+              "id": "f2",
+              "name": "direction",
+              "type": "string",
+              "value": "Імпорт"
+            },
+            {
+              "id": "f3",
+              "name": "line",
+              "type": "string",
+              "value": "Maersk"
+            },
+            {
+              "id": "f4",
+              "name": "bl",
+              "type": "string",
+              "value": "240001234"
+            },
+            {
+              "id": "f5",
+              "name": "container",
+              "type": "string",
+              "value": "MRKU1234567"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "position": [
+        464,
+        352
+      ],
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4
+    },
+    {
+      "id": "if-bl",
+      "name": "Чи є номер BL? (IF)",
+      "parameters": {
+        "conditions": {
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "c1",
+              "leftValue": "={{ $json.bl }}",
+              "operator": {
+                "operation": "notEmpty",
+                "singleValue": true,
+                "type": "string"
+              },
+              "rightValue": ""
+            }
+          ],
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          }
+        },
+        "options": {}
+      },
+      "position": [
+        688,
+        352
+      ],
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2
+    },
+    {
+      "id": "if-container",
+      "name": "Є контейнер і лінія? (IF)",
+      "parameters": {
+        "conditions": {
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "c2",
+              "leftValue": "={{ $json.container }}",
+              "operator": {
+                "operation": "notEmpty",
+                "singleValue": true,
+                "type": "string"
+              },
+              "rightValue": ""
+            },
+            {
+              "id": "c3",
+              "leftValue": "={{ $json.line }}",
+              "operator": {
+                "operation": "notEmpty",
+                "singleValue": true,
+                "type": "string"
+              },
+              "rightValue": ""
+            }
+          ],
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          }
+        },
+        "options": {}
+      },
+      "position": [
+        912,
+        464
+      ],
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2
+    },
+    {
+      "id": "set-bl",
+      "name": "Трекається по BL",
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "r1",
+              "name": "Результат трекінгу",
+              "type": "string",
+              "value": "Трекається автоматично по BL (Maersk API)"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "position": [
+        1152,
+        224
+      ],
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4
+    },
+    {
+      "id": "set-none",
+      "name": "Не трекається",
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "r3",
+              "name": "Результат трекінгу",
+              "type": "string",
+              "value": "Не трекається — потребує перевірки"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "position": [
+        1152,
+        624
+      ],
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4
+    },
+    {
+      "id": "set-container",
+      "name": "Трекається по контейнеру",
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "r2",
+              "name": "Результат трекінгу",
+              "type": "string",
+              "value": "Тимчасово по контейнеру — позначка «уточнити»"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "position": [
+        1152,
+        400
+      ],
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4
+    }
+  ],
+  "pinData": {},
+  "settings": {
+    "binaryMode": "separate",
+    "executionOrder": "v1"
+  },
+  "shared": [
+    {
+      "project": {
+        "creatorId": "4045d201-6483-44b7-b7d6-07364d42fa70",
+        "customTelemetryTags": [],
+        "description": null,
+        "icon": null,
+        "id": "tM3V0WFDaLiytIxs",
+        "name": "Iryna Karmazina <irynakarmazina@gmail.com>",
+        "type": "personal"
+      },
+      "projectId": "tM3V0WFDaLiytIxs",
+      "role": "workflow:owner",
+      "workflowId": "WuYZdxfzaRp3ezcO"
+    }
+  ],
+  "sourceWorkflowId": null,
+  "staticData": null,
+  "tags": [],
+  "versionCounter": 43
+}

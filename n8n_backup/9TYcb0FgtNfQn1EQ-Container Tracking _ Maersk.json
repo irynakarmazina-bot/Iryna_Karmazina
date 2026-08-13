@@ -1,0 +1,681 @@
+{
+  "active": false,
+  "activeVersion": null,
+  "activeVersionId": null,
+  "connections": {
+    "ETA змінилась?": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "Алерт — ETA змінилась",
+            "type": "main"
+          }
+        ],
+        []
+      ]
+    },
+    "Maersk API": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "Має події?",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "Maersk Token": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "Читаємо таблицю",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "Алерт — ETA змінилась": {
+      "main": [
+        []
+      ]
+    },
+    "Запасний API": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "Парсимо відповідь",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "Збираємо всі результати": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "Формуємо звіт",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "Має події?": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "Парсимо відповідь",
+            "type": "main"
+          }
+        ],
+        [
+          {
+            "index": 0,
+            "node": "Запасний API",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "Оновлюємо таблицю": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "Збираємо всі результати",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "Парсимо відповідь": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "ETA змінилась?",
+            "type": "main"
+          },
+          {
+            "index": 0,
+            "node": "Оновлюємо таблицю",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "Тільки Maersk": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "Maersk API",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "Формуємо звіт": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "Тижневий звіт",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "Читаємо таблицю": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "Тільки Maersk",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "Щоп'ятниці 09:00": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "Maersk Token",
+            "type": "main"
+          }
+        ]
+      ]
+    }
+  },
+  "description": null,
+  "id": "9TYcb0FgtNfQn1EQ",
+  "isArchived": false,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "name": "Container Tracking — Maersk",
+  "nodeGroups": [],
+  "nodes": [
+    {
+      "id": "node-schedule",
+      "name": "Щоп'ятниці 09:00",
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "expression": "0 9 * * 5",
+              "field": "cronExpression"
+            }
+          ]
+        }
+      },
+      "position": [
+        240,
+        304
+      ],
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1
+    },
+    {
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "S6pSxt1O96LflGWp",
+          "name": "Google Sheets account"
+        }
+      },
+      "id": "node-get-sheet",
+      "name": "Читаємо таблицю",
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "1Q8PJhfmMXyuSYNcDb7ArkAkKZzftqvw5Pqx_0ur7YGA"
+        },
+        "options": {},
+        "sheetName": {
+          "__rl": true,
+          "mode": "url",
+          "value": "https://docs.google.com/spreadsheets/d/1Q8PJhfmMXyuSYNcDb7ArkAkKZzftqvw5Pqx_0ur7YGA/edit#gid=0"
+        }
+      },
+      "position": [
+        688,
+        304
+      ],
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5
+    },
+    {
+      "id": "node-filter",
+      "name": "Тільки Maersk",
+      "parameters": {
+        "conditions": {
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "cond-maersk",
+              "leftValue": "={{ $json['Shipping Line'] }}",
+              "operator": {
+                "operation": "equals",
+                "type": "string"
+              },
+              "rightValue": "Maersk"
+            }
+          ],
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          }
+        },
+        "options": {}
+      },
+      "position": [
+        912,
+        304
+      ],
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2
+    },
+    {
+      "id": "node-maersk-api",
+      "name": "Maersk API",
+      "parameters": {
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Consumer-Key",
+              "value": "euoSpwATjMpLeIlp6wcnFRtt9dG4i6Gg"
+            },
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $('Maersk Token').first().json.access_token }}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        },
+        "sendHeaders": true,
+        "url": "=https://api.maersk.com/track-and-trace-private/events?equipmentReference={{ encodeURIComponent($json['Container No']) }}"
+      },
+      "position": [
+        1120,
+        304
+      ],
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2
+    },
+    {
+      "id": "node-parse",
+      "name": "Парсимо відповідь",
+      "parameters": {
+        "jsCode": "const api = $input.item.json;\nconst row = $('Тільки Maersk').item.json;\n\nconst containerNo = row['Container No'] || '';\nconst prevEta = row['ETA Current'] || '';\nconst rowNum = row['row_number'] || 2;\n\nconst events = api.events || [];\n\nif (events.length === 0) {\n  return { json: { containerNo, rowNum, prevEta, pod: 'N/A', vessel: 'N/A', etaPort: 'N/A', eta: 'N/A', status: 'Немає даних', etaChanged: false } };\n}\n\nfunction getLoc(e) {\n  if (!e) return '';\n  return (e.transportCall && e.transportCall.location && e.transportCall.location.locationName)\n    || (e.transportCall && e.transportCall.UNLocationCode)\n    || '';\n}\n\nconst transportEvents = events.filter(e => e.eventType === 'TRANSPORT');\nconst equipEvents     = events.filter(e => e.eventType === 'EQUIPMENT');\n\n// --- ETA PORT: first EST/PLN ARRI, fallback to last DISC ---\nconst transportArriEst = transportEvents\n  .filter(e => e.transportEventTypeCode === 'ARRI' && (e.eventClassifierCode === 'EST' || e.eventClassifierCode === 'PLN'))\n  .sort((a, b) => new Date(a.eventDateTime) - new Date(b.eventDateTime));\n\nconst discEvents = equipEvents\n  .filter(e => e.equipmentEventTypeCode === 'DISC')\n  .sort((a, b) => new Date(a.eventDateTime) - new Date(b.eventDateTime));\n\nconst etaPortEvent = transportArriEst[0] || discEvents[discEvents.length - 1] || null;\nconst etaPort = etaPortEvent ? etaPortEvent.eventDateTime.substring(0, 10) : 'N/A';\n\n// --- ETA TERMINAL: last EST/PLN ARRI, fallback to last GTIN ---\nconst gtinEvents = equipEvents\n  .filter(e => e.equipmentEventTypeCode === 'GTIN')\n  .sort((a, b) => new Date(a.eventDateTime) - new Date(b.eventDateTime));\n\nconst etaTerminalEvent = transportArriEst[transportArriEst.length - 1]\n  || gtinEvents[gtinEvents.length - 1]\n  || etaPortEvent\n  || null;\n\nconst eta = etaTerminalEvent ? etaTerminalEvent.eventDateTime.substring(0, 10) : 'N/A';\n\n// --- POD ---\nconst pod = getLoc(etaTerminalEvent) || 'N/A';\n\n// --- VESSEL: real vessel name (ignore DUMMY BARGE) ---\nconst vesselEvent = [...transportEvents, ...equipEvents].find(e =>\n  e.transportCall && e.transportCall.vessel &&\n  e.transportCall.vessel.vesselName &&\n  e.transportCall.vessel.vesselName !== 'DUMMY BARGE'\n);\nconst vessel = (vesselEvent && vesselEvent.transportCall.vessel.vesselName) || 'N/A';\n\n// --- STATUS: latest event by date, user-friendly labels ---\nconst latestEvent = [...events].sort((a, b) =>\n  new Date(b.eventDateTime) - new Date(a.eventDateTime)\n)[0];\n\nlet status = 'В дорозі';\nif (latestEvent) {\n  const eq = latestEvent.equipmentEventTypeCode;\n  const tr = latestEvent.transportEventTypeCode;\n  const sh = latestEvent.shipmentEventTypeCode;\n  const cls = latestEvent.eventClassifierCode; // ACT, EST, PLN\n\n  if (eq === 'LOAD') {\n    status = 'На судні';\n  } else if (eq === 'DISC') {\n    const loc = getLoc(latestEvent);\n    status = loc ? `Розвантажено: ${loc}` : 'Розвантажено в порту';\n  } else if (eq === 'GTIN') {\n    const loc = getLoc(latestEvent);\n    status = loc ? `На терміналі: ${loc}` : 'На терміналі';\n  } else if (eq === 'GTOT') {\n    status = 'Покинув термінал';\n  } else if (tr === 'ARRI') {\n    const loc = getLoc(latestEvent);\n    if (cls === 'ACT') {\n      status = loc ? `Прибуло: ${loc}` : 'Прибуло';\n    } else {\n      status = loc ? `Очікується: ${loc}` : 'Очікується прибуття';\n    }\n  } else if (tr === 'DEPA') {\n    status = 'Відправлено';\n  } else if (sh === 'PENA') {\n    status = 'Оформлення документів';\n  } else if (sh === 'RELS') {\n    status = 'Підготовлено до відправки';\n  }\n}\n\nconst etaChanged = !!(prevEta && prevEta !== 'N/A' && eta !== 'N/A' && prevEta !== eta);\n\nreturn { json: { containerNo, rowNum, prevEta, pod, vessel, etaPort, eta, status, etaChanged } };",
+        "mode": "runOnceForEachItem"
+      },
+      "position": [
+        1344,
+        304
+      ],
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2
+    },
+    {
+      "id": "node-if-eta",
+      "name": "ETA змінилась?",
+      "parameters": {
+        "conditions": {
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "cond-eta",
+              "leftValue": "={{ $json.etaChanged }}",
+              "operator": {
+                "operation": "true",
+                "type": "boolean"
+              },
+              "rightValue": true
+            }
+          ],
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          }
+        },
+        "options": {}
+      },
+      "position": [
+        1568,
+        304
+      ],
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2
+    },
+    {
+      "credentials": {
+        "smtp": {
+          "id": "IRHmy9RLt9AtxQFS",
+          "name": "SMTP account"
+        }
+      },
+      "id": "node-alert-email",
+      "name": "Алерт — ETA змінилась",
+      "parameters": {
+        "fromEmail": "i.karmazina@unitex.od.ua",
+        "html": "=<div style=\"font-family:Arial,sans-serif;max-width:600px\">\n<h2 style=\"color:#c0392b;border-bottom:2px solid #c0392b;padding-bottom:8px\">⚠️ Зміна дати прибуття</h2>\n<table style=\"width:100%;border-collapse:collapse;margin-top:16px\">\n<tr style=\"background:#f8f9fa\"><td style=\"padding:10px 14px;border:1px solid #dee2e6;font-weight:bold;width:40%\">Контейнер</td><td style=\"padding:10px 14px;border:1px solid #dee2e6\">{{ $json.containerNo }}</td></tr>\n<tr><td style=\"padding:10px 14px;border:1px solid #dee2e6;font-weight:bold\">Лінія</td><td style=\"padding:10px 14px;border:1px solid #dee2e6\">Maersk</td></tr>\n<tr style=\"background:#f8f9fa\"><td style=\"padding:10px 14px;border:1px solid #dee2e6;font-weight:bold\">Стара ETA</td><td style=\"padding:10px 14px;border:1px solid #dee2e6;color:#c0392b;text-decoration:line-through\">{{ $json.prevEta }}</td></tr>\n<tr><td style=\"padding:10px 14px;border:1px solid #dee2e6;font-weight:bold\">Нова ETA</td><td style=\"padding:10px 14px;border:1px solid #dee2e6;color:#27ae60;font-weight:bold;font-size:16px\">{{ $json.eta }}</td></tr>\n<tr style=\"background:#f8f9fa\"><td style=\"padding:10px 14px;border:1px solid #dee2e6;font-weight:bold\">Судно</td><td style=\"padding:10px 14px;border:1px solid #dee2e6\">{{ $json.vessel }}</td></tr>\n<tr><td style=\"padding:10px 14px;border:1px solid #dee2e6;font-weight:bold\">POD</td><td style=\"padding:10px 14px;border:1px solid #dee2e6\">{{ $json.pod }}</td></tr>\n</table>\n<p style=\"color:#888;font-size:12px;margin-top:20px\">Автоматичне сповіщення системи трекінгу контейнерів</p>\n</div>",
+        "options": {},
+        "subject": "=⚠️ ETA змінилась: {{ $json.containerNo }}",
+        "toEmail": "i.karmazina@unitex.od.ua"
+      },
+      "position": [
+        1792,
+        160
+      ],
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "webhookId": "e14d0e9a-04ef-4b6c-854e-11324e0f5686"
+    },
+    {
+      "id": "node-merge",
+      "name": "Merge",
+      "parameters": {},
+      "position": [
+        2016,
+        304
+      ],
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3
+    },
+    {
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "S6pSxt1O96LflGWp",
+          "name": "Google Sheets account"
+        }
+      },
+      "id": "node-update-sheet",
+      "name": "Оновлюємо таблицю",
+      "parameters": {
+        "columns": {
+          "mappingMode": "defineBelow",
+          "matchingColumns": [
+            "row_number"
+          ],
+          "schema": [
+            {
+              "canBeUsedToMatch": true,
+              "defaultMatch": false,
+              "displayName": "Container No",
+              "id": "Container No",
+              "required": false,
+              "type": "string"
+            },
+            {
+              "canBeUsedToMatch": true,
+              "defaultMatch": false,
+              "displayName": "Shipping Line",
+              "id": "Shipping Line",
+              "required": false,
+              "type": "string"
+            },
+            {
+              "canBeUsedToMatch": true,
+              "defaultMatch": false,
+              "displayName": "POD",
+              "id": "POD",
+              "required": false,
+              "type": "string"
+            },
+            {
+              "canBeUsedToMatch": true,
+              "defaultMatch": false,
+              "displayName": "Vessel to POD",
+              "id": "Vessel to POD",
+              "required": false,
+              "type": "string"
+            },
+            {
+              "canBeUsedToMatch": true,
+              "defaultMatch": false,
+              "displayName": "ETA Port",
+              "id": "ETA Port",
+              "required": false,
+              "type": "string"
+            },
+            {
+              "canBeUsedToMatch": true,
+              "defaultMatch": false,
+              "displayName": "ETA Previous",
+              "id": "ETA Previous",
+              "required": false,
+              "type": "string"
+            },
+            {
+              "canBeUsedToMatch": true,
+              "defaultMatch": false,
+              "displayName": "ETA Current",
+              "id": "ETA Current",
+              "required": false,
+              "type": "string"
+            },
+            {
+              "canBeUsedToMatch": true,
+              "defaultMatch": false,
+              "displayName": "Status",
+              "id": "Status",
+              "required": false,
+              "type": "string"
+            },
+            {
+              "canBeUsedToMatch": true,
+              "defaultMatch": false,
+              "displayName": "Updated",
+              "id": "Updated",
+              "required": false,
+              "type": "string"
+            }
+          ],
+          "value": {
+            "Container No": "={{ $json.containerNo }}",
+            "ETA Current": "={{ $json.eta }}",
+            "ETA Port": "={{ $json.etaPort }}",
+            "ETA Previous": "={{ $json.prevEta }}",
+            "POD": "={{ $json.pod }}",
+            "Shipping Line": "={{ $json['Shipping Line'] || 'Maersk' }}",
+            "Status": "={{ $json.status }}",
+            "Updated": "={{ new Date().toISOString().substring(0,10) }}",
+            "Vessel to POD": "={{ $json.vessel }}",
+            "row_number": "={{ $json.rowNum }}"
+          }
+        },
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "1Q8PJhfmMXyuSYNcDb7ArkAkKZzftqvw5Pqx_0ur7YGA"
+        },
+        "operation": "update",
+        "options": {},
+        "sheetName": {
+          "__rl": true,
+          "mode": "url",
+          "value": "https://docs.google.com/spreadsheets/d/1Q8PJhfmMXyuSYNcDb7ArkAkKZzftqvw5Pqx_0ur7YGA/edit#gid=0"
+        }
+      },
+      "position": [
+        2224,
+        304
+      ],
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5
+    },
+    {
+      "id": "node-aggregate",
+      "name": "Збираємо всі результати",
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "position": [
+        2448,
+        304
+      ],
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1
+    },
+    {
+      "id": "node-build-report",
+      "name": "Формуємо звіт",
+      "parameters": {
+        "jsCode": "\nconst items = $input.item.json.data || [];\nconst today = new Date().toLocaleDateString('uk-UA', { day:'2-digit', month:'2-digit', year:'numeric' });\nconst changedCount = items.filter(i => i['ETA Previous'] && i['ETA Current'] !== 'N/A' && i['ETA Previous'] !== i['ETA Current']).length;\n\nlet rows = '';\nfor (const c of items) {\n  const etaChanged = !!(c['ETA Previous'] && c['ETA Previous'] !== 'N/A' && c['ETA Current'] !== 'N/A' && c['ETA Previous'] !== c['ETA Current']);\n  const etaColor = etaChanged ? 'color:#c0392b;font-weight:bold' : '';\n  const etaIcon = etaChanged ? ' ⚠️' : '';\n  const hasTerminal = c['ETA Port'] && c['ETA Port'] !== 'N/A' && c['ETA Port'] !== c['ETA Current'];\n  rows += `<tr>\n    <td style=\"padding:9px 12px;border:1px solid #dee2e6\">${c['Container No'] || ''}</td>\n    <td style=\"padding:9px 12px;border:1px solid #dee2e6\">${c['Shipping Line'] || 'Maersk'}</td>\n    <td style=\"padding:9px 12px;border:1px solid #dee2e6\">${c['POD'] || ''}</td>\n    <td style=\"padding:9px 12px;border:1px solid #dee2e6\">${c['Vessel to POD'] || ''}</td>\n    <td style=\"padding:9px 12px;border:1px solid #dee2e6;color:#555\">${c['ETA Port'] || ''}</td>\n    <td style=\"padding:9px 12px;border:1px solid #dee2e6;${etaColor}\">${c['ETA Current'] || ''}${etaIcon}</td>\n    <td style=\"padding:9px 12px;border:1px solid #dee2e6\">${c['Status'] || ''}</td>\n  </tr>`;\n}\n\nconst html = `<div style=\"font-family:Arial,sans-serif;max-width:900px\">\n<h2 style=\"color:#1a3a5c;border-bottom:3px solid #1a3a5c;padding-bottom:8px\">📦 Тижневий звіт по контейнерах</h2>\n<p style=\"color:#666\">Дата: <b>${today}</b> &nbsp;|&nbsp; Контейнерів: <b>${items.length}</b>${changedCount > 0 ? ` &nbsp;|&nbsp; <span style=\"color:#c0392b\">ETA змінилась: ${changedCount}</span>` : ''}</p>\n<table style=\"width:100%;border-collapse:collapse;margin-top:12px\">\n<thead><tr style=\"background:#1a3a5c;color:white\">\n  <th style=\"padding:10px 12px;text-align:left;border:1px solid #1a3a5c\">Контейнер</th>\n  <th style=\"padding:10px 12px;text-align:left;border:1px solid #1a3a5c\">Лінія</th>\n  <th style=\"padding:10px 12px;text-align:left;border:1px solid #1a3a5c\">POD/Термінал</th>\n  <th style=\"padding:10px 12px;text-align:left;border:1px solid #1a3a5c\">Судно</th>\n  <th style=\"padding:10px 12px;text-align:left;border:1px solid #1a3a5c\">ETA Порт</th>\n  <th style=\"padding:10px 12px;text-align:left;border:1px solid #1a3a5c\">ETA Термінал</th>\n  <th style=\"padding:10px 12px;text-align:left;border:1px solid #1a3a5c\">Статус</th>\n</tr></thead>\n<tbody>${rows}</tbody>\n</table>\n<p style=\"color:#aaa;font-size:11px;margin-top:20px\">Автоматичний звіт системи трекінгу контейнерів Unitex HD</p>\n</div>`;\n\nreturn { json: { html, count: items.length, changedCount } };\n"
+      },
+      "position": [
+        2672,
+        304
+      ],
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2
+    },
+    {
+      "credentials": {
+        "smtp": {
+          "id": "IRHmy9RLt9AtxQFS",
+          "name": "SMTP account"
+        }
+      },
+      "id": "node-weekly-report",
+      "name": "Тижневий звіт",
+      "parameters": {
+        "fromEmail": "i.karmazina@unitex.od.ua",
+        "html": "={{ $json.html }}",
+        "options": {},
+        "subject": "=📦 Тижневий звіт контейнери — {{ new Date().toLocaleDateString('uk-UA') }}",
+        "toEmail": "i.karmazina@unitex.od.ua"
+      },
+      "position": [
+        2896,
+        304
+      ],
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "webhookId": "ebfd023d-42f3-410f-a7ac-67f563104574"
+    },
+    {
+      "id": "node-maersk-token",
+      "name": "Maersk Token",
+      "parameters": {
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "grant_type",
+              "value": "client_credentials"
+            },
+            {
+              "name": "client_id",
+              "value": "euoSpwATjMpLeIlp6wcnFRtt9dG4i6Gg"
+            },
+            {
+              "name": "client_secret",
+              "value": "KkJZbbhrAhAzlwwS"
+            }
+          ]
+        },
+        "contentType": "form-urlencoded",
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Consumer-Key",
+              "value": "euoSpwATjMpLeIlp6wcnFRtt9dG4i6Gg"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/x-www-form-urlencoded"
+            }
+          ]
+        },
+        "method": "POST",
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        },
+        "sendBody": true,
+        "sendHeaders": true,
+        "url": "https://api.maersk.com/customer-identity/oauth/v2/access_token"
+      },
+      "position": [
+        464,
+        304
+      ],
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2
+    },
+    {
+      "id": "node-has-events",
+      "name": "Має події?",
+      "parameters": {
+        "conditions": {
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "cond-has-events",
+              "leftValue": "={{ ($json.events || []).length }}",
+              "operator": {
+                "name": "filter.operator.gt",
+                "operation": "gt",
+                "type": "number"
+              },
+              "rightValue": 0
+            }
+          ],
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 1
+          }
+        },
+        "options": {}
+      },
+      "position": [
+        1232,
+        304
+      ],
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2
+    },
+    {
+      "id": "node-fallback-api",
+      "name": "Запасний API",
+      "parameters": {
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Consumer-Key",
+              "value": "euoSpwATjMpLeIlp6wcnFRtt9dG4i6Gg"
+            },
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $('Maersk Token').first().json.access_token }}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        },
+        "sendHeaders": true,
+        "url": "=https://api.maersk.com/track-and-trace/events?equipmentReference={{ encodeURIComponent($('Тільки Maersk').item.json['Container No']) }}"
+      },
+      "position": [
+        1232,
+        520
+      ],
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2
+    }
+  ],
+  "pinData": {},
+  "settings": {
+    "binaryMode": "separate",
+    "executionOrder": "v1"
+  },
+  "shared": [
+    {
+      "project": {
+        "creatorId": "4045d201-6483-44b7-b7d6-07364d42fa70",
+        "customTelemetryTags": [],
+        "description": null,
+        "icon": null,
+        "id": "tM3V0WFDaLiytIxs",
+        "name": "Iryna Karmazina <irynakarmazina@gmail.com>",
+        "type": "personal"
+      },
+      "projectId": "tM3V0WFDaLiytIxs",
+      "role": "workflow:owner",
+      "workflowId": "9TYcb0FgtNfQn1EQ"
+    }
+  ],
+  "sourceWorkflowId": null,
+  "staticData": null,
+  "tags": [],
+  "versionCounter": 36
+}

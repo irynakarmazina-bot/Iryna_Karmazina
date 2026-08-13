@@ -1,0 +1,473 @@
+{
+  "active": false,
+  "activeVersion": null,
+  "activeVersionId": null,
+  "connections": {
+    "Готове до трекінгу? (IF)": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "Лінія (Switch)",
+            "type": "main"
+          }
+        ],
+        [
+          {
+            "index": 0,
+            "node": "Повернути менеджеру",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "Дані перевезення (Set)": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "Готове до трекінгу? (IF)",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "Лінія (Switch)": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "Maersk — автотрекінг",
+            "type": "main"
+          }
+        ],
+        [
+          {
+            "index": 0,
+            "node": "MSC — трекінг через API",
+            "type": "main"
+          }
+        ],
+        [
+          {
+            "index": 0,
+            "node": "CMA CGM — трекінг через API",
+            "type": "main"
+          }
+        ],
+        [
+          {
+            "index": 0,
+            "node": "Інші — трекінг через API",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "Старт (Manual Trigger)": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "Дані перевезення (Set)",
+            "type": "main"
+          }
+        ]
+      ]
+    }
+  },
+  "description": null,
+  "id": "sIoffBehm6Sf6awF",
+  "isArchived": false,
+  "meta": null,
+  "name": "ДЗ — маршрутизація по лінії (Manual, Set, IF, Switch, 4 гілки)",
+  "nodeGroups": [],
+  "nodes": [
+    {
+      "id": "Нотатка:_огляд",
+      "name": "Нотатка: огляд",
+      "parameters": {
+        "color": 5,
+        "content": "Цей воркфлоу направляє перевезення різними шляхами залежно від морської лінії. Запускається вручну кнопкою Execute Workflow.\n\nВузли: Manual Trigger — ручний старт. Set — тестові дані (лінія, готовність). IF — перевіряє, чи готове до трекінгу. Switch — розгалужує на кілька шляхів за значенням поля.",
+        "height": 175,
+        "width": 720
+      },
+      "position": [
+        150,
+        20
+      ],
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1
+    },
+    {
+      "id": "Нотатка:_IF-шлагбаум",
+      "name": "Нотатка: IF-шлагбаум",
+      "parameters": {
+        "color": 4,
+        "content": "IF тут як шлагбаум.\nПитаємо: готове до трекінгу? Якщо так — пускаємо далі у Switch. Якщо ні — повертаємо менеджеру. У IF завжди рівно два виходи.",
+        "height": 150,
+        "width": 260
+      },
+      "position": [
+        620,
+        680
+      ],
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1
+    },
+    {
+      "id": "Нотатка:_Switch",
+      "name": "Нотатка: Switch",
+      "parameters": {
+        "color": 6,
+        "content": "Switch — це багато шляхів.\nНа відміну від IF, де лише два виходи, Switch дивиться на поле line і направляє в один із виходів. Тепер кожна лінія трекається через свій API: Maersk, MSC, CMA CGM, а всі інші лінії — теж через API (за налаштуванням відповідної лінії). Зміни line у вузлі Set і запусти — підеш іншим виходом.",
+        "height": 210,
+        "width": 340
+      },
+      "position": [
+        1090,
+        620
+      ],
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1
+    },
+    {
+      "id": "manual-trigger",
+      "name": "Старт (Manual Trigger)",
+      "parameters": {},
+      "position": [
+        240,
+        360
+      ],
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1
+    },
+    {
+      "id": "set-data",
+      "name": "Дані перевезення (Set)",
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f1",
+              "name": "dealNumber",
+              "type": "string",
+              "value": "UT-1024"
+            },
+            {
+              "id": "f2",
+              "name": "direction",
+              "type": "string",
+              "value": "Імпорт"
+            },
+            {
+              "id": "f3",
+              "name": "line",
+              "type": "string",
+              "value": "Maersk"
+            },
+            {
+              "id": "f4",
+              "name": "bl",
+              "type": "string",
+              "value": "240001234"
+            },
+            {
+              "id": "f5",
+              "name": "container",
+              "type": "string",
+              "value": "MRKU1234567"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "position": [
+        460,
+        360
+      ],
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4
+    },
+    {
+      "id": "if-ready",
+      "name": "Готове до трекінгу? (IF)",
+      "parameters": {
+        "conditions": {
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "c1",
+              "leftValue": "={{ $json.dealNumber }}",
+              "operator": {
+                "operation": "notEmpty",
+                "singleValue": true,
+                "type": "string"
+              },
+              "rightValue": ""
+            },
+            {
+              "id": "c2",
+              "leftValue": "={{ $json.line }}",
+              "operator": {
+                "operation": "notEmpty",
+                "singleValue": true,
+                "type": "string"
+              },
+              "rightValue": ""
+            }
+          ],
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          }
+        },
+        "options": {}
+      },
+      "position": [
+        680,
+        360
+      ],
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2
+    },
+    {
+      "id": "switch-line",
+      "name": "Лінія (Switch)",
+      "parameters": {
+        "options": {
+          "fallbackOutput": "extra"
+        },
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "id": "s1",
+                    "leftValue": "={{ $json.line }}",
+                    "operator": {
+                      "operation": "equals",
+                      "type": "string"
+                    },
+                    "rightValue": "Maersk"
+                  }
+                ],
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                }
+              },
+              "outputKey": "Maersk",
+              "renameOutput": true
+            },
+            {
+              "conditions": {
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "id": "s2",
+                    "leftValue": "={{ $json.line }}",
+                    "operator": {
+                      "operation": "equals",
+                      "type": "string"
+                    },
+                    "rightValue": "MSC"
+                  }
+                ],
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                }
+              },
+              "outputKey": "MSC",
+              "renameOutput": true
+            },
+            {
+              "conditions": {
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "id": "s3",
+                    "leftValue": "={{ $json.line }}",
+                    "operator": {
+                      "operation": "equals",
+                      "type": "string"
+                    },
+                    "rightValue": "CMA CGM"
+                  }
+                ],
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                }
+              },
+              "outputKey": "CMA CGM",
+              "renameOutput": true
+            }
+          ]
+        }
+      },
+      "position": [
+        900,
+        300
+      ],
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2
+    },
+    {
+      "id": "set-return",
+      "name": "Повернути менеджеру",
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "r0",
+              "name": "Сценарій",
+              "type": "string",
+              "value": "Повернути менеджеру — немає ключових даних"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "position": [
+        900,
+        540
+      ],
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4
+    },
+    {
+      "id": "set-maersk",
+      "name": "Maersk — автотрекінг",
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "r1",
+              "name": "Сценарій",
+              "type": "string",
+              "value": "Автотрекінг по BL через API, щодня о 07:00"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "position": [
+        1140,
+        140
+      ],
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4
+    },
+    {
+      "id": "set-msc",
+      "name": "MSC — трекінг через API",
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "r2",
+              "name": "Сценарій",
+              "type": "string",
+              "value": "Автотрекінг по BL через API MSC, щодня о 07:00"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "position": [
+        1140,
+        260
+      ],
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4
+    },
+    {
+      "id": "set-cma",
+      "name": "CMA CGM — трекінг через API",
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "r3",
+              "name": "Сценарій",
+              "type": "string",
+              "value": "Автотрекінг по BL через API CMA CGM, щодня о 07:00"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "position": [
+        1140,
+        380
+      ],
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4
+    },
+    {
+      "id": "set-other",
+      "name": "Інші — трекінг через API",
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "r4",
+              "name": "Сценарій",
+              "type": "string",
+              "value": "Автотрекінг по BL через API лінії, щодня о 07:00"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "position": [
+        1140,
+        500
+      ],
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4
+    }
+  ],
+  "pinData": {},
+  "settings": {
+    "binaryMode": "separate",
+    "executionOrder": "v1"
+  },
+  "shared": [
+    {
+      "project": {
+        "creatorId": "4045d201-6483-44b7-b7d6-07364d42fa70",
+        "customTelemetryTags": [],
+        "description": null,
+        "icon": null,
+        "id": "tM3V0WFDaLiytIxs",
+        "name": "Iryna Karmazina <irynakarmazina@gmail.com>",
+        "type": "personal"
+      },
+      "projectId": "tM3V0WFDaLiytIxs",
+      "role": "workflow:owner",
+      "workflowId": "sIoffBehm6Sf6awF"
+    }
+  ],
+  "sourceWorkflowId": null,
+  "staticData": null,
+  "tags": [],
+  "versionCounter": 17
+}
