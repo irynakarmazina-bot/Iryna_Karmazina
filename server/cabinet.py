@@ -440,16 +440,13 @@ def updated_badge():
     ts = last_sync()
     if not ts:
         return ""
-    today = datetime.date.today()
-    if ts.date() == today:
-        when = "сьогодні о %s" % ts.strftime("%H:%M")
-    elif (today - ts.date()).days == 1:
-        when = "вчора о %s" % ts.strftime("%H:%M")
-    else:
-        when = ts.strftime("%d.%m о %H:%M")
+    # Формат за вказівкою користувачки 13.08.2026: «Оновлено (години, дата)».
+    # Дата в тому ж вигляді, що й у таблиці (16.08.26), щоб не було двох
+    # різних форматів дати на одному екрані.
+    when = ts.strftime("%H:%M, %d.%m.%y")
     return ('<div class="upd" title="Коли автоматика востаннє звіряла статуси '
             'з системами ліній">'
-            '<i></i>Дані з ліній оновлено <b>%s</b></div>' % esc(when))
+            '<i></i>Оновлено <b>%s</b></div>' % esc(when))
 
 
 def page_data(rows):

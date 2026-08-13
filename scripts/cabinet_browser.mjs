@@ -61,8 +61,8 @@ check('у доставленої угоди майбутніх кроків не
 check('підказка з назвами кроків є',
       ((await page.locator('tr.deal[data-id="201"] .mini').getAttribute('title')) || '').includes('▸'));
 const upd = await page.locator('.upd').innerText().catch(() => '');
-check('позначка «оновлено» видима', /Дані з ліній оновлено/.test(upd), upd);
-check('час у позначці — з журналу прогонів', /о \d{2}:\d{2}/.test(upd), upd);
+check('позначка «оновлено» видима', /^Оновлено/.test(upd.trim()), upd);
+check('у позначці є година і дата', /\d{2}:\d{2}, \d{2}\.\d{2}\.\d{2}/.test(upd), upd);
 
 console.log('\n=== картка угоди ===');
 // саме 201: у неї є документи. Перший рядок — 203 (найближча ETA), а в неї їх немає.

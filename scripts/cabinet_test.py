@@ -327,16 +327,18 @@ open(logf, "w").write(stamp.strftime("%Y-%m-%d %H:%M:%S")
                       + " Оновити угод: 25; без даних: 2; помилки: 0\n")
 CAB.TRACK_LOG = logf
 code, p11b, _ = get("/")
-check("позначка «оновлено» показана", "Дані з ліній оновлено" in p11b)
-check("час узятий із журналу, а не «щойно»", "сьогодні о 07:22" in p11b)
+check("позначка «оновлено» показана", ">Оновлено <b>" in p11b)
+check("час і дата — з журналу, а не «щойно»",
+      stamp.strftime("07:22, %d.%m.%y") in p11b, p11b[p11b.find("Оновлено"):][:60])
 open(logf, "w").write((stamp - datetime.timedelta(days=1)).strftime("%Y-%m-%d %H:%M:%S")
                       + " Оновити угод: 3; без даних: 0; помилки: 0\n")
 code, p11c, _ = get("/")
-check("вчорашній прогін підписаний «вчора»", "вчора о 07:22" in p11c)
+check("вчорашній прогін показує вчорашню дату",
+      (stamp - datetime.timedelta(days=1)).strftime("07:22, %d.%m.%y") in p11c)
 CAB.TRACK_LOG = os.path.join(TMP, "немає-такого.log")
 code, p11d, _ = get("/")
 check("журналу немає — позначки теж немає, час НЕ вигадується",
-      "Дані з ліній оновлено" not in p11d and "__UPDATED__" not in p11d)
+      ">Оновлено <b>" not in p11d and "__UPDATED__" not in p11d)
 
 print("\n=== 12. Прототип (build_preview.py) не зламався ===")
 import subprocess
