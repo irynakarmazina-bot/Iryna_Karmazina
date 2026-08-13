@@ -1,7 +1,7 @@
 {
-  "stdout": "       (сюди ж не потрапляє tasks.js — перевірка розділу «Задачі»)\nCHECK_OK — фасад можна викладати\n   бекап: index-20260812-190913.html (381235 б)\n   бекап: findash-20260812-190913.html (29444 б)\n   бекап: finperiod-20260812-190913.html (17527 б)\n   бекап: cabinet-20260812-190913.html (330772 б)\n   бекап: chart.min.js-20260812-190913.bak (205399 б)\n   копій, старших за 14 днів, немає — нічого не прибираю\n   усього копій у архіві: 183\n   журнал: 2026-08-12T19:09:13\tmain\t6cdf79357\tв. 12.08 16:07\tindex.html:384656 findash.html:29444 finperiod.html:17527\trelay: tsk-08 — викладення фасаду (видимість задач за роллю)\n   UI/FINDASH/CHART: 200 200 200\nDEPLOY_OK · гілка main · коміт 6cdf79357 · позначка «в. 12.08 16:07»\n",
+  "stdout": "version: {\"authType\":\"jwt\",\"baseHasAdmin\":true,\"firstUser\":false,\"type\":\"rest\",\"env\":\"production\",\"googleAuthEnabled\":false,\"gith\naudit / журнал змін    HTTP 404  {\"msg\":\"Cannot GET /api/v2/meta/bases/pbhr1qkpvx09z8m/audits\"}\naudit (v1)             HTTP 404  {\"msg\":\"Cannot GET /api/v1/db/meta/projects/pbhr1qkpvx09z8m/audits\"}\nверсії запису          HTTP 404  {\"msg\":\"Cannot GET /api/v2/tables/m58xsjo6at01ohl/records/1/revisions\"}\nправа на таблицю       HTTP 404  {\"msg\":\"Cannot GET /api/v2/meta/tables/m58xsjo6at01ohl/acl\"}\nправа на поле          HTTP 404  {\"msg\":\"Cannot GET /api/v2/meta/tables/m58xsjo6at01ohl/field-permissions\"}\nвласні ролі            HTTP 404  {\"msg\":\"Cannot GET /api/v2/meta/bases/pbhr1qkpvx09z8m/roles\"}\nвебхуки                HTTP 200  {\"list\":[]}\n",
   "stderr": "",
   "returncode": 0,
-  "id": "tsk-08",
-  "ts": "2026-08-12T16:09:13Z"
+  "id": "tsk-09",
+  "ts": "2026-08-13T08:36:23Z"
 }
