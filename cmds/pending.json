@@ -1,1 +1,1 @@
-{"id": "cab-25", "cmd": "sleep 60\necho \"== стан журналу ==\"\ncat /root/direct-sync/fill_vessel.log"}
+{"id": "cab-26", "cmd": "sleep 45\necho \"== фінал ==\"\ncat /root/direct-sync/fill_vessel.log\necho \"== процес ще живий? ==\"\npgrep -f fill_vessel_maersk.py >/dev/null && echo \"ще працює\" || echo \"завершився\""}
