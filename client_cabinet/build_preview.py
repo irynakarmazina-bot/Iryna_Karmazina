@@ -208,6 +208,23 @@ tr.deal{cursor:pointer;transition:background .12s}
 tr.deal:hover td{background:var(--surface-2)}
 tr.deal.open td{background:var(--accent-soft)}
 tbody tr:last-child td{border-bottom:0}
+/* позначка «дані оновлено …» — щоб було видно, що система жива */
+.upd{display:inline-flex;align-items:center;gap:8px;background:var(--surface);
+  border:1px solid var(--line);border-radius:11px;padding:9px 14px;font-size:12.5px;
+  color:var(--ink-2);box-shadow:var(--shadow);white-space:nowrap}
+.upd i{width:7px;height:7px;border-radius:50%;background:var(--pos);flex:none;
+  box-shadow:0 0 0 3px var(--pos-bg)}
+.upd b{color:var(--ink);font-weight:700}
+
+/* мініатюра маршруту в рядку таблиці */
+.mini{display:flex;align-items:center;margin-top:7px;height:11px}
+.mini .md{width:7px;height:7px;border-radius:50%;background:var(--mbg);flex:none;
+  box-shadow:inset 0 0 0 1.5px var(--mc);opacity:.45}
+.mini .md.done{background:var(--mc);opacity:1;box-shadow:none}
+.mini .md.now{width:11px;height:11px;background:var(--mc);opacity:1;
+  box-shadow:0 0 0 3px color-mix(in srgb,var(--mc) 22%,transparent)}
+.mini .ml{flex:1;height:2px;background:var(--mc);opacity:.2;min-width:6px}
+.mini .ml.on{opacity:.85}
 .mono{font-variant-numeric:tabular-nums}
 .num{font-weight:700;font-size:15px}
 .chip{display:inline-block;font-size:10.5px;font-weight:700;letter-spacing:.03em;
@@ -429,6 +446,7 @@ a.btn{text-decoration:none;display:inline-block;line-height:1.5}
       <button data-f="done">Доставлені</button>
       <button data-f="all">Усі</button>
     </div>
+    __UPDATED__
   </div>
 
   <div class="tw">
@@ -731,7 +749,10 @@ function steps(r){
   ]);
 }
 
-function routeHtml(r){
+/* Стан кроків рахується ОДИН раз і в одному місці. І велика схема в картці,
+   і мініатюра в рядку беруть його звідси: дві копії цієї логіки неминуче
+   розійшлися б, а вона тут найтонша (див. коментарі нижче про угоди 256 і 259). */
+function stepState(r){
   const st = steps(r), P = pal(r), delivered = done(r);
   /* ПОТОЧНИЙ КРОК визначаємо за СТАТУСОМ угоди, а не «перший без дати».
      Причина (угода 256, 02.08.2026): дат майже немає, і підсвічувалась
@@ -785,7 +806,11 @@ function routeHtml(r){
 
   const state = st.map((x, i) =>
     delivered ? "done" : (i < cur ? "done" : (i === cur ? "now" : "todo")));
+  return { st, cur, delivered, P, state };
+}
 
+function routeHtml(r){
+  const { st, cur, delivered, P, state } = stepState(r);
   const cells = [];
   st.forEach((x, i) => {
     if (x.i === "border"){
@@ -814,6 +839,22 @@ function routeHtml(r){
   return `<div class="route" style="--mc:${P.c};--mbg:${P.bg}">
     <div class="chain">${cells.join("")}</div>
   </div>`;
+}
+
+/* ── мініатюра маршруту в рядку ────────────────────────────────────────────
+   Щоб побачити, ДЕ зараз вантаж, не треба розкривати угоду: крапки — ті самі
+   кроки, що й у великій схемі (беруться з stepState, не рахуються вдруге).
+   Пройдені залиті кольором виду перевезення, поточна більша з ореолом,
+   майбутні бліді. Кордон пропускаємо: він роздільник, а не крок.
+   Підказка при наведенні — назви кроків по порядку, з позначкою поточного. */
+function miniRoute(r){
+  const { st, P, state } = stepState(r);
+  const pts = st.map((x,i)=>({x, s:state[i]})).filter(p => p.x.i !== "border");
+  if (pts.length < 2) return "";
+  const title = pts.map(p => (p.s === "now" ? "▸ " : "") + p.x.t.replace(/<br>/g," ")).join(" · ");
+  return `<div class="mini" style="--mc:${P.c};--mbg:${P.bg}" title="${esc(title)}">${
+    pts.map((p,i)=>`${i?`<i class="ml ${p.s==="todo"?"":"on"}"></i>`:""}<b class="md ${p.s}"></b>`).join("")
+  }</div>`;
 }
 
 /* ── картка ───────────────────────────────────────────── */
@@ -938,7 +979,7 @@ function render(){
       <td class="mono num">${esc(s(r,"Угода"))}</td>
       <td><span class="chip ${s(r,"Напрямок")==="Експорт"?"exp":""}">${
           s(r,"Напрямок")==="Імпорт"?"ІМП":(s(r,"Напрямок")==="Експорт"?"ЕКС":"ТРН")}</span></td>
-      <td data-l="Маршрут">${esc(routeArrows(s(r,"Маршрут"))||"—")}</td>
+      <td data-l="Маршрут">${esc(routeArrows(s(r,"Маршрут"))||"—")}${miniRoute(r)}</td>
       <td class="mono" data-l="Коносамент / контейнер">${bl?`<b>${esc(bl)}</b>`:'<span class="dim">—</span>'}${
           conts.map(c=>`<br><span class="dim">${esc(c)}</span>`).join("")}</td>
       <td data-l="Судно">${esc(s(r,"Судно")||"—")}</td>
@@ -1053,6 +1094,11 @@ def main():
                .replace("__FOOT__", "Дані оновлюються автоматично з систем ліній. "
                                     "Питання — через форму в картці вантажу.")
                .replace("__DEMO__", "true")
+               # Прототип не знає, коли автоматика востаннє звіряла дані з
+               # лініями (у нього немає доступу до журналу трекінгу), тому
+               # позначку не малює взагалі. Вигадувати час не можна — її показує
+               # лише справжній кабінет, і лише з журналу прогонів.
+               .replace("__UPDATED__", "")
                .replace("__CLIENTFULL__", client_title(a.client))
                .replace("__CLIENT__", a.client)
                .replace("__TODAY__", datetime.date.today().isoformat())
