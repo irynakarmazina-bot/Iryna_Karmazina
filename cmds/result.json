@@ -1,7 +1,7 @@
 {
-  "stdout": "=== ДО ===\n               total        used        free      shared  buff/cache   available\nMem:            1967        1204         152           4         807         763\nSwap:              0           0           0\n/dev/vda1        24G  8.2G   16G  36% /\nswap створено і додано в /etc/fstab\n=== ПІСЛЯ ===\n               total        used        free      shared  buff/cache   available\nMem:            1967        1203         150           4         809         764\nSwap:           2047           0        2047\nswappiness: 60\nswappiness виставлено: 10 (swap як страховка, не як щоденний режим)\n=== ГОТОВНІСТЬ ДО N8N ===\n== 1. Перевірка сервера ==\n  пам'ять: 1967 МБ усього, 764 МБ вільно, swap: 2047 МБ\n  диск:    14G вільно\n  ядер:    1\n  docker: Docker version 29.6.2\n\n== Перевірка завершена. Нічого не змінено. ==\n",
+  "stdout": "ФАЙЛ НЕ ЗНАЙДЕНО: /root/unitex-finrep/secure/odata_write.env\n",
   "stderr": "",
   "returncode": 0,
-  "id": "swap-1",
-  "ts": "2026-08-13T15:53:05Z"
+  "id": "erp-exp-probe11",
+  "ts": "2026-08-13T17:00:02Z"
 }
