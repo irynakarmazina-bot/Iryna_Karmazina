@@ -1,7 +1,7 @@
 {
-  "stdout": "ВСЬОГО УГОД: 280\n",
-  "stderr": "ine 1376, in _send_request\n    self.putrequest(method, url, **skips)\n  File \"/usr/lib/python3.12/http/client.py\", line 1210, in putrequest\n    self._validate_path(url)\n  File \"/usr/lib/python3.12/http/client.py\", line 1310, in _validate_path\n    raise InvalidURL(f\"URL can't contain control characters. {url!r} \"\nhttp.client.InvalidURL: URL can't contain control characters. '/DB/odata/standard.odata/Document_%D0%A1%D0%B4%D0%B5%D0%BB%D0%BA%D0%B0/$count?$filter=Posted eq false' (found at least ' ')\n",
-  "returncode": 1,
-  "id": "erp-exp-probe6",
-  "ts": "2026-08-13T09:36:57Z"
+  "stdout": "ВСЬОГО УГОД: 280\nНЕПРОВЕДЕНІ: 0\nНЕПРОВЕДЕНІ БЕЗ ПОМІТКИ ВИДАЛЕННЯ: 0\nЗ ПОМІТКОЮ ВИДАЛЕННЯ: 0\nОСТАННІ НЕПРОВЕДЕНІ:\n",
+  "stderr": "",
+  "returncode": 0,
+  "id": "erp-exp-probe7",
+  "ts": "2026-08-13T09:37:41Z"
 }
