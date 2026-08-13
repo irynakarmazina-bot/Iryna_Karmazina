@@ -38,6 +38,11 @@ FILES="index.html findash.html finperiod.html"
 #      спливало лише тому, що там немає playwright і крок пропускається. Варто
 #      було б колись поставити браузер на VPS — і жоден деплой не пройшов би.
 ASSETS="chart.min.js"
+# Модулі фасада (www/app/*.js), з 13.08.2026. Раніше весь код сидів усередині
+# index.html; тепер він переїжджає у файли-модулі, і кожен новий файл ТРЕБА
+# викласти — інакше сторінка на сервері мовчки лишиться без коду. Тому перелік
+# не зашитий руками, а читається з самої гілки: додали модуль — він поїде сам.
+MODDIR="app"
 # Файли, які цей скрипт НЕ викладає, але зобов'язаний зберегти перед викладенням.
 # Кабінет клієнтів збирається окремо (client_cabinet/build_preview.py), проте
 # лежить у тій самій теці й може постраждати — тому копію робимо і з нього.
@@ -101,6 +106,17 @@ TMP="$(mktemp -d)"; trap 'rm -rf "$TMP"' EXIT
 for f in $FILES $ASSETS; do
   git show "FETCH_HEAD:www/$f" > "$TMP/$f" 2>/dev/null || die "у гілці немає www/$f"
 done
+# Модулі: перелік беремо з гілки, а не з рук. Порожній перелік — не помилка
+# (так було до 13.08.2026), просто нічого не викладаємо.
+MODULES="$(git ls-tree --name-only "FETCH_HEAD:www/$MODDIR" 2>/dev/null | grep '\.js$' || true)"
+if [ -n "$MODULES" ]; then
+  mkdir -p "$TMP/$MODDIR"
+  for m in $MODULES; do
+    git show "FETCH_HEAD:www/$MODDIR/$m" > "$TMP/$MODDIR/$m" 2>/dev/null \
+      || die "у гілці немає www/$MODDIR/$m"
+  done
+  echo "   модулів у гілці: $(echo "$MODULES" | wc -w) ($(echo $MODULES | tr '\n' ' '))"
+fi
 if [ -x "$REPO/scripts/check_facade.sh" ] || [ -f "$REPO/scripts/check_facade.sh" ]; then
   OUT="$(bash "$REPO/scripts/check_facade.sh" "$TMP/index.html" 2>&1)" || true
   echo "$OUT" | tail -3
@@ -151,10 +167,28 @@ else
 fi
 echo "   усього копій у архіві: $(ls -1 "$BACKUPS"/*.html 2>/dev/null | wc -l)"
 
+# Модулі теж бекапимо — по одному файлу, під власним іменем з часом.
+if [ -n "${MODULES:-}" ] && [ -d "$WWW/$MODDIR" ]; then
+  for m in $MODULES; do
+    [ -f "$WWW/$MODDIR/$m" ] || continue
+    cp -p "$WWW/$MODDIR/$m" "$BACKUPS/$MODDIR-$m-$TS.bak" || die "не вдалося зробити бекап $MODDIR/$m"
+    echo "   бекап: $MODDIR-$m-$TS.bak ($(stat -c%s "$WWW/$MODDIR/$m") б)"
+  done
+fi
+
 # ── 5. копіювання + журнал ────────────────────────────────────────────────
 for f in $FILES $ASSETS; do
   cp "$TMP/$f" "$WWW/$f" || die "не вдалося скопіювати $f"
 done
+if [ -n "${MODULES:-}" ]; then
+  mkdir -p "$WWW/$MODDIR" || die "не вдалося створити $WWW/$MODDIR"
+  for m in $MODULES; do
+    cp "$TMP/$MODDIR/$m" "$WWW/$MODDIR/$m" || die "не вдалося скопіювати $MODDIR/$m"
+    cmp -s "$TMP/$MODDIR/$m" "$WWW/$MODDIR/$m" \
+      || die "після копіювання $MODDIR/$m на сервері відрізняється від кандидата"
+  done
+  echo "   викладено модулів: $(echo "$MODULES" | wc -w)"
+fi
 # Звірка «доїхало те саме»: ловить обірваний cp, брак місця на диску, права.
 for f in $FILES $ASSETS; do
   cmp -s "$TMP/$f" "$WWW/$f" || die "після копіювання $f на сервері відрізняється від кандидата"
