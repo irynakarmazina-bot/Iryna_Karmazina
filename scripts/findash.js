@@ -103,7 +103,11 @@ const check = (ok, what) => { console.log((ok ? "  ✓ " : "  ✗ ") + what); if
   check(pk.capLeft >= pk.calRight - 1, "плитка стоїть ПРАВОРУЧ від календаря");
   check(pk.calW > pk.capW, "календар ширший за плитку (" + Math.round(pk.calW) + " проти " + Math.round(pk.capW) + ")");
 
-  await page.screenshot({ path: path.join(__dirname, "shot-findash.png"), fullPage: true });
+  /* Знімок робимо ЛИШЕ на прохання: SHOT=/шлях/до/файла.png node scripts/findash.js …
+     Було `path.join(__dirname, …)` — тобто файл падав просто в scripts/, потрапляв
+     у репозиторій і його підбирало автозбереження сесії (13.08.2026, знімок на
+     211 КБ). Перевірка не повинна лишати сміття там, де лежить код. */
+  if (process.env.SHOT) await page.screenshot({ path: process.env.SHOT, fullPage: true });
 
   if (errors.length) { console.log("\nПОМИЛКИ В БРАУЗЕРІ:"); errors.forEach(e => console.log("   " + e)); }
   await browser.close(); srv.close();
