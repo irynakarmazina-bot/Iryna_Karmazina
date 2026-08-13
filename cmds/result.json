@@ -1,7 +1,7 @@
 {
-  "stdout": "gateway.py у репо : 78f1c918b37e\ngateway.py живий  : 8fc97b20e9ff\nоднакові          : False\n\nactive · порт: LISTEN 0      5          127.0.0.1:8792      0.0.0.0:*    users:((\"python3\",pid=607492,fd=\nGET записи (з токеном)                     8080=200(97б)  8792=200(97б)  ОДНАКОВО\nGET перелік таблиць                        8080=200(4310б)  8792=200(4310б)  ОДНАКОВО\nGET записи БЕЗ токена                      8080=401(91б)  8792=401(91б)  ОДНАКОВО\nPOST вхід з хибним паролем                 8080=400(29б)  8792=400(29б)  ОДНАКОВО\nPOST multipart без параметрів              8080=200(251б)  8792=200(251б)  РІЗНИЦЯ\n        8080: [{\"path\":\"download/2026/08/13/2f3859e5d334b0598fcf97b05ce59131f554ae38/t_quZSz.txt\",\"title\":\"t.txt\",\"mimetype\":\"text/plain\",\"size\":5,\"signedPath\":\"dlt\n        8792: [{\"path\":\"download/2026/08/13/2f3859e5d334b0598fcf97b05ce59131f554ae38/t_lqugj.txt\",\"title\":\"t.txt\",\"mimetype\":\"text/plain\",\"size\":5,\"signedPath\":\"dlt\n\nПІДСУМОК: Є РОЗБІЖНОСТІ — не перемикати\n",
+  "stdout": "бекап живого файла → /root/gateway.py.bak-20260813-130807\n-rw-r--r-- 1 root root 19266 Aug 10 19:53 /root/gateway.py.bak-20260813-130807\nкопіюю з репозиторію…\n\nрепо=78f1c918b37e  живий=78f1c918b37e  збіглись=True\nactive\nпорт: LISTEN 0      5          127.0.0.1:8792      0.0.0.0:*\nостанні рядки gateway.out: GATEWAY GET /api/v2/tables/mfo372vhs3fbbw7/records?limit=2 · невідомий · роль=— · роль невідома  [ТІЛЬКИ ДИВЛЮСЬ, пропускаю]\nGATEWAY GET /api/v2/tables/mfo372vhs3fbbw7/records?limit=2 · невідомий · роль=— · роль невідома  [ТІЛЬКИ ДИВЛЮСЬ, пропускаю]\nGATEWAY старт на 127.0.0.1:8792 · режим: тільки дивлюсь\nконтроль після заміни: 8080=200(9113б) 8792=200(9113б) ОДНАКОВО\n",
   "stderr": "",
   "returncode": 0,
-  "id": "tsk-14",
-  "ts": "2026-08-13T10:07:19Z"
+  "id": "tsk-15",
+  "ts": "2026-08-13T10:08:09Z"
 }
