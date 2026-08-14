@@ -633,8 +633,6 @@ def render_cabinet(acc):
                 .replace("__LOGO__", BP.logo())
                 .replace("__TITLE__", "UNITEX — особистий кабінет")
                 .replace("__HEADEXTRA__", head)
-                .replace("__FOOT__", "Дані оновлюються автоматично з систем ліній. "
-                                     "Питання — до вашого менеджера UNITEX.")
                 .replace("__DEMO__", "false")
                 .replace("__UPDATED__", updated_badge())
                 .replace("__CLIENTFULL__", esc(BP.client_title(acc["client"])))

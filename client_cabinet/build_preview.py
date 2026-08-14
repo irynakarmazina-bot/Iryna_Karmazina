@@ -372,7 +372,6 @@ a.btn{text-decoration:none;display:inline-block;line-height:1.5}
 .msg .row{display:flex;justify-content:space-between;align-items:center;margin-top:12px;gap:10px}
 .up{border:1.5px dashed var(--line);border-radius:12px;padding:16px;text-align:center;
   color:var(--muted);font-size:13px;margin-top:14px}
-.foot{margin-top:28px;color:var(--muted);font-size:12.5px;text-align:center}
 
 /* ===== ТЕЛЕФОН (≤720 px) ==========================================
    На телефоні сторінка їхала вбік: таблиця з 10 колонок ширша за екран,
@@ -446,7 +445,6 @@ a.btn{text-decoration:none;display:inline-block;line-height:1.5}
   .brd .bld{margin-top:0;margin-left:8px}
   .card{padding:14px}
   .kv{grid-template-columns:auto 1fr;gap:7px 12px;font-size:13.5px}
-  .foot{font-size:11.5px}
 }
 
 </style>
@@ -482,7 +480,6 @@ a.btn{text-decoration:none;display:inline-block;line-height:1.5}
     </table>
   </div>
 
-  <div class="foot">__FOOT__</div>
 </main>
 
 <script>
@@ -1172,8 +1169,6 @@ def main():
     html = (TPL.replace("__LOGO__", logo())
                .replace("__TITLE__", "UNITEX — особистий кабінет (прототип)")
                .replace("__HEADEXTRA__", "")
-               .replace("__FOOT__", "Дані оновлюються автоматично з систем ліній. "
-                                    "Питання — через форму в картці вантажу.")
                .replace("__DEMO__", "true")
                # Прототип не знає, коли автоматика востаннє звіряла дані з
                # лініями (у нього немає доступу до журналу трекінгу), тому
