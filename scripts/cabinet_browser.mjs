@@ -41,10 +41,10 @@ const body = await page.content();
 check('сторінка кабінету відкрилась', await page.locator('table').isVisible());
 check('видно назву компанії', body.includes('ТОВ Мірандор'));
 const rows = await page.locator('tr.deal').count();
-check('рядків угод у поданні «В дорозі» = 7', rows === 7, 'було ' + rows);
+check('рядків угод у поданні «В дорозі» = 8', rows === 8, 'було ' + rows);
 await page.click('#seg button[data-f=all]');
 const all = await page.locator('tr.deal').count();
-check('усього своїх угод 8', all === 8, 'було ' + all);
+check('усього своїх угод 9', all === 9, 'було ' + all);
 
 console.log('\n=== порядок рядків: за датою відправлення ===');
 const order = await page.$$eval('tr.deal', ns => ns.map(n => n.dataset.id));
@@ -150,7 +150,7 @@ await page.click('.tile[data-f=done]');
 const done = await page.locator('tr.deal').count();
 check('відбір «доставлено» дає 1', done === 1, 'було ' + done);
 await page.click('.tile[data-f=done]');
-check('повторний клік скидає відбір', (await page.locator('tr.deal').count()) === 8);
+check('повторний клік скидає відбір', (await page.locator('tr.deal').count()) === 9);
 
 console.log('\n=== плитка «відправляються за 7 днів» ===');
 const outTile = page.locator('.tile[data-f=out]');
@@ -160,6 +160,9 @@ const outRows = await page.$$eval('tr.deal', ns => ns.map(n => n.dataset.id));
 // 290 відправляється через 3 дні, 259 — 17.08. Обидві попереду, обидві мають бути.
 check('відбір показує ті, що ще відправляються', outRows.sort().join(',') === '259,290',
       outRows.join(','));
+// 252 стоїть на ПЕРЕВАЛЦІ: вона вже вийшла з порту відправлення, тому в цю
+// плитку потрапляти НЕ має, навіть маючи дату через два дні.
+check('той, хто вже на перевалці, не рахується', !outRows.includes('252'), outRows.join(','));
 // 251 вийшла 29.07 — вона вже в морі, у цю плитку потрапляти НЕ має.
 check('ті, що вже вийшли, не рахуються', !outRows.includes('251'), outRows.join(','));
 await outTile.click();
