@@ -1,1 +1,1 @@
-{"id": "check-31", "cmd": "sed -n '175,212p' /root/unitex-finrep/engine/build_dashboard_data.py; echo '=== crontab root ==='; crontab -l 2>&1 | head -8"}
+{"id": "check-32", "cmd": "sed -n '1,40p' /root/unitex-finrep/engine/build_dashboard_data.py; echo ...; grep -n \"^ar=\\|^ap=\\|rd(\\|def n(\" /root/unitex-finrep/engine/build_dashboard_data.py | head -12; echo '=== чи є supplier_invoices.csv ==='; head -1 /root/unitex-finrep/normalized/supplier_invoices.csv"}
