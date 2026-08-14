@@ -224,7 +224,7 @@ main{max-width:1560px;margin:0 auto;padding:24px 30px 70px}
 .tw{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);
   box-shadow:var(--shadow);overflow:hidden}
 table{width:100%;border-collapse:collapse}
-th{text-align:left;font-size:11.5px;letter-spacing:.02em;
+th{text-align:left;font-size:11.5px;letter-spacing:.02em;background:var(--surface);
   color:var(--ink);font-weight:700;padding:11px 16px;border-bottom:1.5px solid var(--line)}
 td{padding:12px 16px;border-bottom:1px solid var(--line-soft);vertical-align:middle;
   font-size:14px;color:var(--ink)}
@@ -391,6 +391,28 @@ a.btn{text-decoration:none;display:inline-block;line-height:1.5}
    перетворюється на список карток — кожна угода окремою карткою з
    підписами полів. Горизонтальна прокрутка лишається ТІЛЬКИ всередині
    схеми руху, де вона доречна. */
+
+/* ПРОКРУЧУЄТЬСЯ ТІЛЬКИ ТАБЛИЦЯ (вимога користувачки 14.08.2026: «прокрутка має
+   бути тільки в таблиці, цю шапку зафіксуй вгорі»).
+   Сторінка перестає прокручуватись сама: висота рівно на екран, а всередині
+   лишається один блок, що прокручується — рядки угод. Лого, назва компанії,
+   плитки, пошук і заголовки колонок лишаються на місці завжди.
+   `min-height:0` обов'язковий у обох гнучких блоках: без нього вміст РОЗПИРАЄ
+   контейнер, і прокрутка знову перекидається на сторінку — це типова пастка
+   flexbox, а не зайвий рядок.
+   Заголовок таблиці липкий і НЕПРОЗОРИЙ, інакше рядки просвічують крізь нього.
+   На вузьких екранах (телефон) усе лишається як було: там таблиця розкладається
+   в картки, і фіксована висота лише заважала б. */
+@media (min-width:721px){
+  html,body{height:100%}
+  body{overflow:hidden;display:flex;flex-direction:column}
+  header{position:static;flex:none}
+  main{flex:1;min-height:0;display:flex;flex-direction:column;padding-bottom:24px}
+  .tiles,.bar{flex:none}
+  .tw{flex:1;min-height:0;overflow:auto}
+  thead th{position:sticky;top:0;z-index:2}
+}
+
 @media (max-width:720px){
   html,body{overflow-x:hidden}
   header{padding:12px 0 10px}

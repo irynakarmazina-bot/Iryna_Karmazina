@@ -90,6 +90,28 @@ check('де реліз виданий — галка стоїть',
 check('де релізу немає — квадратик порожній',
       (await page.locator('tr.deal[data-id="203"] td[data-l="Реліз"] .ck.on').count()) === 0);
 
+console.log('\n=== прокрутка тільки в таблиці ===');
+const scrollState = await page.evaluate(() => {
+  const tw = document.querySelector('.tw');
+  return { page: document.documentElement.scrollHeight > window.innerHeight + 2,
+           table: tw.scrollHeight > tw.clientHeight + 2 };
+});
+check('сторінка сама не прокручується', scrollState.page === false, JSON.stringify(scrollState));
+const headBefore = await page.evaluate(() =>
+  Math.round(document.querySelector('header').getBoundingClientRect().top));
+await page.evaluate(() => { document.querySelector('.tw').scrollTop = 400; });
+await page.waitForTimeout(150);
+const after = await page.evaluate(() => ({
+  head: Math.round(document.querySelector('header').getBoundingClientRect().top),
+  tiles: Math.round(document.querySelector('.tiles').getBoundingClientRect().top),
+  th: Math.round(document.querySelector('thead th').getBoundingClientRect().top),
+  win: window.scrollY }));
+check('шапка лишилась на місці', after.head === headBefore, JSON.stringify(after));
+check('плитки лишились на місці', after.tiles > 0, JSON.stringify(after));
+check('заголовки колонок липкі', after.th > 0, JSON.stringify(after));
+check('сторінка не поїхала', after.win === 0, JSON.stringify(after));
+await page.evaluate(() => { document.querySelector('.tw').scrollTop = 0; });
+
 console.log('\n=== картка угоди ===');
 // саме 201: у неї є документи. Перший рядок — 203 (найближча ETA), а в неї їх немає.
 await page.locator('tr.deal[data-id="201"]').click();
