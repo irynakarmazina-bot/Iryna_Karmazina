@@ -1,1 +1,1 @@
-{"id": "cab-32", "cmd": "cd /root/Iryna_Karmazina && git pull -q origin main 2>&1 | tail -1\necho \"== перевірка наперед ==\"\nbash /root/Iryna_Karmazina/server/deploy_ui.sh main --check 2>&1 | tail -8"}
+{"id": "cab-33", "cmd": "cd /root/Iryna_Karmazina && git pull -q origin main 2>&1 | tail -1\nbash /root/Iryna_Karmazina/server/deploy_ui.sh main 2>&1 | tail -14\necho \"== чи є правка на сервері ==\"\ngrep -c roomForEditor /root/unitex-os-www/app/main.js"}
