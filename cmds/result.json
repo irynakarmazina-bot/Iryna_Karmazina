@@ -1,7 +1,7 @@
 {
-  "stdout": "документів усього: 243 (було 243 до спроб)\nтравневих комунальних: 0\n",
+  "stdout": "\nCABINET_OK\nЛОГО: є, data:image/png;base64,iVBORw0KGgoAAAANSUhEUgA…\nплиток у сітці 5: True\nплитка «відправляються»: True\n== де лежить LOGO_SRC на сервері ==\n/root/unitex-os-www/app/main.js\n",
   "stderr": "",
   "returncode": 0,
-  "id": "erp-verify",
-  "ts": "2026-08-14T09:13:04Z"
+  "id": "cab-43",
+  "ts": "2026-08-14T09:18:55Z"
 }
