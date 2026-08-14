@@ -1,7 +1,7 @@
 {
-  "stdout": "КЛЮЧІ: ['ODATA_PASS', 'ODATA_URL', 'ODATA_USER']\nЛОГІН: assistant pro | URL задано: True | пароль задано: True\n  ЧИТАННЯ угоди: HTTP 401\n  ЧИТАННЯ рахунки: HTTP 401\n  ЧИТАННЯ контрагенти: HTTP 401\n  ЧИТАННЯ машини: HTTP 401\n  ЧИТАННЯ водії: HTTP 401\nКОКО поля: Recorder, RecordSet, Recorder_Type\n",
+  "stdout": "СТАРИЙ (assistant): HTTP 200 -> 280\nНОВИЙ як записано: HTTP 401 | \nНОВИЙ без пробілу: HTTP 401 | \nдовжина логіна: 13 | довжина пароля: 78\n",
   "stderr": "",
   "returncode": 0,
-  "id": "erp-exp-check2",
-  "ts": "2026-08-14T07:26:12Z"
+  "id": "erp-exp-check3",
+  "ts": "2026-08-14T07:26:56Z"
 }
