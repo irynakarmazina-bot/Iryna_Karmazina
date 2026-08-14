@@ -1,7 +1,7 @@
 {
-  "stdout": "               total        used        free      shared  buff/cache   available\nMem:            1967        1257         169           3         737         710\n---\n/dev/vda1        24G   11G   13G  45% /\n---\n1\n---\n/usr/bin/node\n/usr/bin/npx\n---\n---\n3.12.3\n",
+  "stdout": "/e1cib/logon                           POST HTTP 404    218 б | <!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\"> <html><head><title>BAF applic\n/e1cib/logon?version=8.3.19.1529       POST HTTP 404    218 б | <!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\"> <html><head><title>BAF applic\n/e1cib/start                           GET  HTTP 404    218 б | <!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\"> <html><head><title>BAF applic\n/manifest.json                         GET  HTTP 404    220 б | <!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\"> <html><head><title>BAF applic\n",
   "stderr": "",
   "returncode": 0,
-  "id": "erp-vps",
-  "ts": "2026-08-14T14:41:48Z"
+  "id": "erp-logon",
+  "ts": "2026-08-14T14:42:32Z"
 }
