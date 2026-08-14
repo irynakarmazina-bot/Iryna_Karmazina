@@ -1,7 +1,7 @@
 {
-  "stdout": "/e1cib/logon                           POST HTTP 404    218 б | <!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\"> <html><head><title>BAF applic\n/e1cib/logon?version=8.3.19.1529       POST HTTP 404    218 б | <!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\"> <html><head><title>BAF applic\n/e1cib/start                           GET  HTTP 404    218 б | <!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\"> <html><head><title>BAF applic\n/manifest.json                         GET  HTTP 404    220 б | <!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\"> <html><head><title>BAF applic\n",
+  "stdout": "== чи є картка у ВИКЛАДЕНОМУ фасаді ==\n2\n2\n== версія на сервері ==\nв. 13.08 15:36\n== чи збігається з main у репо ==\nзбігається\n",
   "stderr": "",
   "returncode": 0,
-  "id": "erp-logon",
-  "ts": "2026-08-14T14:42:32Z"
+  "id": "cab-56",
+  "ts": "2026-08-14T14:43:47Z"
 }
