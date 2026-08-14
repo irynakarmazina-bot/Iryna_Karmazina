@@ -1,7 +1,7 @@
 {
-  "stdout": "КЛЮЧІ: ['ODATA_PASS', 'ODATA_URL', 'ODATA_USER']\nЛОГІН: assistant pro | URL задано: True | пароль задано: True\n  ЧИТАННЯ угоди: HTTP 401\n  ЧИТАННЯ рахунки: HTTP 401\n  ЧИТАННЯ контрагенти: HTTP 401\n  ЧИТАННЯ машини: HTTP 401\n  ЧИТАННЯ водії: HTTP 401\nКОКО поля: Recorder, RecordSet, Recorder_Type\n",
+  "stdout": "SCRIPTS_OK\n",
   "stderr": "",
   "returncode": 0,
-  "id": "erp-exp-check2",
-  "ts": "2026-08-14T07:26:12Z"
+  "id": "erp-exp-mkscript3",
+  "ts": "2026-08-14T07:28:49Z"
 }
