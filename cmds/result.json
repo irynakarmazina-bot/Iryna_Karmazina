@@ -1,7 +1,7 @@
 {
-  "stdout": "=== ТІЛО https://unitex.rdport.net:29231/DB/ (HTTP 200) ===\n﻿<!DOCTYPE html>\n<html>\n<head>\n    <title>BAF</title>\n    <meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\" />\n    <meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\" />\n    <link rel=\"shortcut icon\" href=\"e1csys/mngsrv/favicon.ico\" />\n    <link rel=\"apple-touch-icon\" href=\"e1csys/mngsrv/touchIcon.png\" />\n    <link rel=\"mask-icon\" color=\"red\" href=\"e1csys/mngsrv/_logo.svg\">\n    <meta name=\"application-name\" content=\"BAF\" />\n    <meta name=\"msapplication-TileColor\" content=\"#ffdd00\" />\n    <meta name=\"msapplication-square70x70logo\" content=\"e1csys/mngsrv/tileSmall.png\" />\n    <meta name=\"msapplication-square150x150logo\" content=\"e1csys/mngsrv/tileMedium.png\" />\n    <link id=\"id-manifest\" rel=\"manifest\" href=\"manifest.json?sysver=8.3.19.1529\" crossorigin=\"use-credentials\"/>\n<style type=\"text/css\">\nBODY\n{\n    margin: 0;\n    padding: 0;\n    border: 0;\n  \n",
+  "stdout": "               total        used        free      shared  buff/cache   available\nMem:            1967        1257         169           3         737         710\n---\n/dev/vda1        24G   11G   13G  45% /\n---\n1\n---\n/usr/bin/node\n/usr/bin/npx\n---\n---\n3.12.3\n",
   "stderr": "",
   "returncode": 0,
-  "id": "erp-web2",
-  "ts": "2026-08-14T14:41:10Z"
+  "id": "erp-vps",
+  "ts": "2026-08-14T14:41:48Z"
 }
