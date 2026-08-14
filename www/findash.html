@@ -293,8 +293,8 @@ function renderArDetail(){
     var od=c.maxOverdue>0?('<span class="od">прострочка '+c.maxOverdue+' дн</span>'):'<span class="od0">в строк</span>';
     h+='<tr class="crow" data-tg="arc'+ci+'"><td><span class="tri">▶</span>'+c.name+' <span class="muted">('+c.count+')</span></td><td class="n" style="font-weight:bold">'+f(c.total)+' <span class="muted">'+od+'</span></td></tr>';
     h+='<tr id="arc'+ci+'" style="display:none"><td colspan="2" style="padding:0"><table class="subt">';
-    h+='<tr><th>Угода</th><th>Рахунок</th><th>Дата</th><th class="n">Сума</th><th class="n">Борг</th><th class="n">Прострочка</th></tr>';
-    c.rows.forEach(function(r){var oc=r[4]>0?' class="od"':'';h+='<tr><td>'+(r[5]||'')+'</td><td>'+r[0]+'</td><td>'+r[1]+'</td><td class="n">'+f(r[2])+'</td><td class="n">'+f(r[3])+'</td><td class="n"'+oc+'>'+(r[4]>0?r[4]+' дн':'—')+'</td></tr>';});
+    h+='<tr><th>Угода</th><th>Рахунок</th><th>Дата</th><th class="n">Сума</th><th class="n">Сума, грн</th><th class="n">Борг</th><th class="n">Борг, грн</th><th class="n">Прострочка</th></tr>';
+    c.rows.forEach(function(r){var oc=r[4]>0?' class="od"':'';h+='<tr><td>'+(r[5]||'')+'</td><td>'+r[0]+'</td><td>'+r[1]+'</td><td class="n">'+f(r[2])+'</td><td class="n">'+(r[6]==null?'<span class="muted">—</span>':f(r[6]))+'</td><td class="n">'+f(r[3])+'</td><td class="n">'+(r[7]==null?'<span class="muted">—</span>':f(r[7]))+'</td><td class="n"'+oc+'>'+(r[4]>0?r[4]+' дн':'—')+'</td></tr>';});
     h+='</table></td></tr>';
   });
   h+='</table></div><div class="muted" style="margin-top:4px">Разом дебіторка: <b style="color:#1f2933">'+f(D.cards.ar)+' USD</b> · '+g.length+' клієнтів</div>';
@@ -305,8 +305,8 @@ function renderApDetail(){
   g.forEach(function(c,ci){
     h+='<tr class="crow" data-tg="apc'+ci+'"><td><span class="tri">▶</span>'+c.name+' <span class="muted">('+c.count+')</span></td><td class="n" style="font-weight:bold">'+f(c.total)+' <span class="muted">до '+c.maxAge+' дн</span></td></tr>';
     h+='<tr id="apc'+ci+'" style="display:none"><td colspan="2" style="padding:0"><table class="subt">';
-    h+='<tr><th>Угода</th><th>Рахунок</th><th>Дата</th><th class="n">Сума</th><th class="n">Борг</th><th class="n">Вік</th><th>Послуга</th></tr>';
-    c.rows.forEach(function(r){h+='<tr><td>'+(r[6]||'')+'</td><td>'+r[0]+'</td><td>'+r[1]+'</td><td class="n">'+f(r[2])+'</td><td class="n">'+f(r[3])+'</td><td class="n">'+r[4]+' дн</td><td class="muted">'+(r[5]||'')+'</td></tr>';});
+    h+='<tr><th>Угода</th><th>Рахунок</th><th>Дата</th><th class="n">Сума</th><th class="n">Сума, грн</th><th class="n">Борг</th><th class="n">Борг, грн</th><th class="n">Вік</th><th>Послуга</th></tr>';
+    c.rows.forEach(function(r){h+='<tr><td>'+(r[6]||'')+'</td><td>'+r[0]+'</td><td>'+r[1]+'</td><td class="n">'+f(r[2])+'</td><td class="n">'+(r[7]==null?'<span class="muted">—</span>':f(r[7]))+'</td><td class="n">'+f(r[3])+'</td><td class="n">'+(r[8]==null?'<span class="muted">—</span>':f(r[8]))+'</td><td class="n">'+r[4]+' дн</td><td class="muted">'+(r[5]||'')+'</td></tr>';});
     h+='</table></td></tr>';
   });
   h+='</table></div><div class="muted" style="margin-top:4px">Разом кредиторка: <b style="color:#1f2933">'+f(D.cards.ap)+' USD</b> · '+g.length+' постачальників</div>';
