@@ -1,7 +1,7 @@
 {
-  "stdout": "живих у 1С: угод 280, доходних 343, витратних 1061\n\nar_register.csv: рядків 343, ПРИВИДІВ (немає в 1С) 0\n\nap_register.csv: рядків 1061, ПРИВИДІВ (немає в 1С) 0\n\nwip_register.csv: рядків 136, ПРИВИДІВ (немає в 1С) 0\n\nar_register.csv: угод у реєстрі 242, з них немає в 1С: жодної\n\nap_register.csv: угод у реєстрі 255, з них немає в 1С: жодної\n",
+  "stdout": "\nCatalog_ШаблонСозданияРасходов: Ref_Key, Predefined, PredefinedDataName, DataVersion, Description, Code, DeletionMark, Пользователь_Key, Организация_Key, ТЧ\n\nCatalog_ШаблонСозданияРасходов_ТЧ: Ref_Key, LineNumber, ВидРасхода_Key, Контрагент_Key, ВидОплаты_Key, Сумма, УмножитьНа, СуммаБезНДС, СуммаНДС, Валюта_Key, СуммаВал, СуммаБезНДСВал, СуммаНДСВал, Предварительный\n\nCatalog_ШаблонИмпортаСчетаПоставщика: Ref_Key, Predefined, PredefinedDataName, DataVersion, Description, Code, DeletionMark, Пользователь_Key, Организация_Key, СтрокаСтарт, Шаг, Контейнер, КонтейнерПрефикс, КонтейнерНомер, Сумма, ТЧ\n\nШАБЛОНІВ СТВОРЕННЯ ВИТРАТ: 0\n",
   "stderr": "",
   "returncode": 0,
-  "id": "check-35",
-  "ts": "2026-08-14T14:37:06Z"
+  "id": "erp-tpl",
+  "ts": "2026-08-14T14:37:13Z"
 }
