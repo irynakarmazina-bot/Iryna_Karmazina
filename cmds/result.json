@@ -1,7 +1,7 @@
 {
-  "stdout": "HEAD is now at d947f56d8 relay: оновити кабінет на сервері\nactive\n200d947f56d8 relay: оновити кабінет на сервері\n",
-  "stderr": "From https://github.com/irynakarmazina-bot/Iryna_Karmazina\n * branch                main       -> FETCH_HEAD\n   fb94671b4..d947f56d8  main       -> origin/main\n",
+  "stdout": "5\nActiveEnterTimestamp=Fri 2026-08-14 17:49:58 EEST\nlogin=303\npage=200 bytes=166431\ngrad=5\ndeals=0\n",
+  "stderr": "",
   "returncode": 0,
-  "id": "61af24db15d5",
-  "ts": "2026-08-14T14:50:01Z"
+  "id": "58f95f0e691e",
+  "ts": "2026-08-14T14:50:45Z"
 }
