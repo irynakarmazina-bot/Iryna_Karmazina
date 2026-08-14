@@ -181,9 +181,21 @@ CREATE TABLE IF NOT EXISTS throttle(
 """
 
 
+# Колонки, додані ПІСЛЯ того, як база вже жила на сервері. `CREATE TABLE IF NOT
+# EXISTS` існуючу таблицю не чіпає, тому нову колонку треба додавати окремо —
+# інакше код пише в неї, а її немає. Саме так 14.08.2026 перегляд кабінету
+# співробітником відповів 500: у `sessions` не було `as_client`.
+MIGRATIONS = [("sessions", "as_client", "TEXT")]
+
+
 def init_db():
     con = db()
     con.executescript(SCHEMA)
+    for table, col, kind in MIGRATIONS:
+        have = {r["name"] for r in con.execute("PRAGMA table_info(%s)" % table)}
+        if col not in have:
+            con.execute("ALTER TABLE %s ADD COLUMN %s %s" % (table, col, kind))
+            log("база оновлена: %s.%s додано" % (table, col))
     con.commit()
     con.close()
 

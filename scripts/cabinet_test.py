@@ -451,6 +451,26 @@ check("плитка «відправляються» є в шаблоні", "в�
 check("для неї є свій відбір", '"out"' in p11 and "isSoonOut" in p11)
 check("плиток тепер п'ять", "repeat(5,1fr)" in p11)
 
+print("\n=== 11е. Оновлення старої бази ===")
+# Пастка, на якій 14.08.2026 перегляд кабінету відповів 500: таблиця вже
+# існувала, а CREATE TABLE IF NOT EXISTS нову колонку не додає. Відтворюємо
+# СТАРУ базу і перевіряємо, що init_db() її дотягує.
+import sqlite3 as _sq
+old_db = os.path.join(TMP, "old.db")
+_c = _sq.connect(old_db)
+_c.executescript("""CREATE TABLE sessions(sid TEXT PRIMARY KEY, email TEXT NOT NULL,
+  created TEXT NOT NULL, seen TEXT NOT NULL, ip TEXT, ua TEXT);""")
+_c.commit(); _c.close()
+_real_db = CAB.DB_PATH
+CAB.DB_PATH = old_db
+CAB.init_db()
+cols = {r[1] for r in _sq.connect(old_db).execute("PRAGMA table_info(sessions)")}
+check("стара база дотягується: as_client з'явився", "as_client" in cols, cols)
+check("нові таблиці теж створились",
+      {"invites", "views"} <= {r[0] for r in _sq.connect(old_db).execute(
+          "SELECT name FROM sqlite_master WHERE type='table'")})
+CAB.DB_PATH = _real_db
+
 print("\n=== 12. Прототип (build_preview.py) не зламався ===")
 import subprocess
 proto = os.path.join(TMP, "proto.html")
