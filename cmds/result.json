@@ -1,7 +1,7 @@
 {
-  "stdout": "угод 25\nперша 259\n",
+  "stdout": "сторінка входу /DB/ : 200\n  /e1csys/mngsrv/favicon.ico     (404, 0)\n  /e1csys/mngsrv/_logo.svg       (404, 0)\n  /manifest.json                 (404, 0)\n  /e1cib/                        (404, 0)\n  /e1csys/                       (404, 0)\n  /DB/                           (404, 0)\n\nбез авторизації (як бачить чужий браузер):\n  /                              (200, 1784)\n  /e1csys/mngsrv/favicon.ico     (404, 0)\n",
   "stderr": "",
   "returncode": 0,
-  "id": "59ea278271e3",
-  "ts": "2026-08-14T14:51:18Z"
+  "id": "erp-assets",
+  "ts": "2026-08-14T14:54:08Z"
 }
