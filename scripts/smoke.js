@@ -149,6 +149,13 @@ async function run(browser, url, file, viewport, label, missing) {
   /* Журнал кабінету клієнтів (з 14.08.2026) живе не в NocoDB, а на сервері
      кабінету — окремий маршрут /cabinet-log, який віддає лише адміністраторові.
      Без підміни перевірка бачила б «немає файла поруч з index.html». */
+  await page.route("**/cabinet-clients*", r => r.fulfill({ status: 200,
+    contentType: "application/json", body: JSON.stringify({ list: [
+      { client: "Мірандор", deals: 129, accounts: 2, active: 2 }] }) }));
+  await page.route("**/cabinet-accounts*", r => r.fulfill({ status: 200,
+    contentType: "application/json", body: JSON.stringify({ list: [
+      { email: "client@example.com", client: "Мірандор", name: "Іван",
+        active: true, new: false, last: "2026-08-14T10:10:23" }] }) }));
   await page.route("**/cabinet-log*", r => r.fulfill({ status: 200,
     contentType: "application/json", body: JSON.stringify({ list: [
       { ts: "2026-08-14T10:10:23", email: "client@example.com", client: "Мірандор",

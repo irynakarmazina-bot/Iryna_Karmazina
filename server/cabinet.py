@@ -1019,6 +1019,8 @@ class Handler(BaseHTTPRequestHandler):
             return self.serve_journal()
         if path == "/cabinet-clients":
             return self.serve_clients()
+        if path == "/cabinet-accounts":
+            return self.serve_accounts()
         if path.startswith("/doc/"):
             return self.serve_doc(path, acc)
         return self.send_plain(404, "Сторінки немає.")
@@ -1033,6 +1035,8 @@ class Handler(BaseHTTPRequestHandler):
             return self.do_logout()
         if path == "/cabinet-view":
             return self.do_view_link()
+        if path == "/cabinet-invite":
+            return self.do_invite_link()
         if path == "/set":
             return self.do_set()
         if path == "/password":
@@ -1197,6 +1201,40 @@ class Handler(BaseHTTPRequestHandler):
         return self.send_plain(200, json.dumps(
             {"url": PUBLIC_URL + "/as?t=" + token}, ensure_ascii=False).encode(),
             "application/json; charset=utf-8")
+
+    def serve_accounts(self):
+        """Акаунти клієнтів для платформи. Паролів і хешів тут НЕМАЄ."""
+        if not self.erp_admin():
+            return self.send_plain(403, "Доступно лише адміністратору.")
+        con = db()
+        rows = [{"email": r["email"], "client": r["client"], "name": r["name"],
+                 "active": bool(r["active"]), "new": bool(r["must_change"]),
+                 "last": r["last_login"] or ""}
+                for r in con.execute("SELECT email,client,name,active,must_change,"
+                                     "last_login FROM accounts ORDER BY client, email")]
+        con.close()
+        return self.send_plain(200, json.dumps({"list": rows}, ensure_ascii=False).encode(),
+                               "application/json; charset=utf-8")
+
+    def do_invite_link(self):
+        """Посилання, за яким КЛІЄНТ САМ створює пароль. Показується один раз."""
+        who = self.erp_admin()
+        if not who:
+            return self.send_plain(403, "Доступно лише адміністратору.")
+        email = (self.form().get("email") or "").strip().lower()
+        con = db()
+        row = con.execute("SELECT * FROM accounts WHERE email=?", (email,)).fetchone()
+        con.close()
+        if not row:
+            return self.send_plain(404, "Такого акаунта немає.")
+        if not row["active"]:
+            return self.send_plain(409, "Акаунт заблокований — спершу розблокуйте.")
+        token, exp = invite_new(email)
+        audit(email, row["client"], "створено посилання на пароль",
+              "з платформи, %s, діє до %s" % (who, exp), self.ip())
+        return self.send_plain(200, json.dumps(
+            {"url": PUBLIC_URL + "/set?t=" + token, "expires": exp},
+            ensure_ascii=False).encode(), "application/json; charset=utf-8")
 
     def serve_journal(self):
         """Журнал кабінету для ЕРП. Тільки адміністраторові ЕРП.

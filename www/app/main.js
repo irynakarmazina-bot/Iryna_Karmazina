@@ -3067,6 +3067,79 @@ async function renderAudit(){
   draw();
 }
 
+/* Кабінети клієнтів: відкрити чужий кабінет очима клієнта і видати доступ.
+   Обидві дії робить СЕРВЕР кабінету після перевірки ролі — сторінка лише
+   просить. Пароль ніде не показується: клієнт створює його сам за одноразовим
+   посиланням, тому в платформі нема чого зберігати. */
+async function renderCabinets(){
+  const note = $("cc-note");
+  if (!note) return;
+  const head = {"xc-auth": sessionStorage.jwt || ""};
+  let clients = [], accounts = [];
+  try{
+    const [c, a] = await Promise.all([
+      fetch("/cabinet-clients", {headers: head}),
+      fetch("/cabinet-accounts", {headers: head})]);
+    if (c.status === 403 || a.status === 403){
+      note.textContent = "Доступно лише адміністратору."; return; }
+    if (!c.ok || !a.ok) throw new Error("HTTP " + c.status + "/" + a.status);
+    clients = (await c.json()).list || [];
+    accounts = (await a.json()).list || [];
+  }catch(e){ note.textContent = "Не вдалося прочитати: " + e.message; return; }
+
+  $("cc-rows").innerHTML = clients.map(r=>`<tr>
+    <td><b>${esc(r.client)}</b></td>
+    <td class="mono">${r.deals}</td>
+    <td class="cell-muted">${r.active ? r.active + " з " + r.accounts : "немає"}</td>
+    <td style="text-align:right"><button class="btn cc-open" data-c="${esc(r.client)}">Відкрити кабінет</button></td>
+  </tr>`).join("") || '<tr><td colspan="4" class="cell-muted">Компаній немає.</td></tr>';
+
+  const when = v => { const d = new Date(v); return isNaN(d) ? "—" :
+    d.toLocaleString("uk-UA",{day:"2-digit",month:"2-digit",year:"2-digit",hour:"2-digit",minute:"2-digit"}); };
+  $("ca-rows").innerHTML = accounts.map(r=>`<tr>
+    <td class="mono">${esc(r.email)}</td>
+    <td>${esc(r.client)}</td>
+    <td>${r.active ? (r.new ? "новий" : "робочий") : "<b>заблокований</b>"}</td>
+    <td class="cell-muted mono">${r.last ? when(r.last) : "—"}</td>
+    <td style="text-align:right">${r.active
+      ? `<button class="btn ca-inv" data-e="${esc(r.email)}">Посилання на пароль</button>` : ""}</td>
+  </tr>`).join("") || '<tr><td colspan="5" class="cell-muted">Доступів ще немає.</td></tr>';
+  note.textContent = `компаній ${clients.length}, доступів ${accounts.length}`;
+
+  /* Вкладку відкриваємо ЗАЗДАЛЕГІДЬ, ще до запиту: якщо чекати відповіді, браузер
+     вважає відкриття не наслідком кліку і блокує його як спливне вікно. */
+  document.querySelectorAll(".cc-open").forEach(b=>b.addEventListener("click", async ()=>{
+    const tab = window.open("", "_blank");
+    try{
+      const r = await fetch("/cabinet-view", {method:"POST", headers:
+        Object.assign({"Content-Type":"application/x-www-form-urlencoded"}, head),
+        body: "client=" + encodeURIComponent(b.dataset.c)});
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      tab.location = (await r.json()).url;
+    }catch(e){ if (tab) tab.close(); toast("⚠ Не вдалося відкрити: " + e.message); }
+  }));
+
+  document.querySelectorAll(".ca-inv").forEach(b=>b.addEventListener("click", async ()=>{
+    try{
+      const r = await fetch("/cabinet-invite", {method:"POST", headers:
+        Object.assign({"Content-Type":"application/x-www-form-urlencoded"}, head),
+        body: "email=" + encodeURIComponent(b.dataset.e)});
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      const js = await r.json();
+      /* Показуємо в полі, а не в toast: посилання довге, його треба скопіювати. */
+      const box = document.createElement("div");
+      box.className = "note";
+      box.style.marginTop = "8px";
+      box.innerHTML = `<b>${esc(b.dataset.e)}</b> — посилання діє до ${esc(js.expires)}, спрацює один раз:
+        <input class="inp" readonly style="width:100%;margin-top:6px;font-size:12px" value="${esc(js.url)}">`;
+      b.closest("tr").after(Object.assign(document.createElement("tr"),
+        {innerHTML: `<td colspan="5"></td>`}));
+      b.closest("tr").nextElementSibling.firstElementChild.appendChild(box);
+      box.querySelector("input").select();
+    }catch(e){ toast("⚠ Не вдалося: " + e.message); }
+  }));
+}
+
 /* Журнал кабінету КЛІЄНТІВ. Джерело — не NocoDB, а сам сервер кабінету
    (/cabinet-log): акаунти і журнал живуть в окремій базі, щоб хеші паролів
    клієнтів не лежали в таблицях, які бачать співробітники.
@@ -4273,6 +4346,18 @@ PAGES.users = async () => {
         <tbody id="lg-rows"></tbody></table></div>
       <p class="sub" id="lg-note" style="margin-top:8px"></p>
       <div class="note">🔒 Журнал доступний лише адміністратору й нічого в ньому змінити не можна — він фіксує все.</div></div>` : ""}
+    ${isAdmin ? `<div class="card"><h3>🔑 Кабінети клієнтів</h3>
+      <p class="sub">відкрити кабінет очима клієнта і видати доступ</p>
+      <div class="tablewrap scrollbox" style="max-height:300px;margin-top:10px"><table>
+        <thead><tr><th>Компанія</th><th>Угод</th><th>Доступи</th><th></th></tr></thead>
+        <tbody id="cc-rows"></tbody></table></div>
+      <h4 style="margin:16px 0 6px;font-size:13.5px">Люди з доступом</h4>
+      <div class="tablewrap scrollbox" style="max-height:300px"><table>
+        <thead><tr><th>Пошта</th><th>Компанія</th><th>Стан</th><th>Останній вхід</th><th></th></tr></thead>
+        <tbody id="ca-rows"></tbody></table></div>
+      <p class="sub" id="cc-note" style="margin-top:8px">завантажую…</p>
+      <div class="note">🔒 Перегляд кабінету записується в журнал. Клієнт вашого перегляду не бачить.
+        Посилання на пароль діє 72 години й спрацьовує один раз — передайте його клієнту напряму.</div></div>` : ""}
     ${isAdmin ? `<div class="card"><h3>👤 Журнал кабінету клієнтів</h3>
       <p class="sub">хто з клієнтів заходив, що дивився і що завантажував — від найсвіжішого</p>
       <div class="filters" style="margin:10px 0 0">
@@ -4304,7 +4389,7 @@ PAGES.users = async () => {
   bindPalette();
   bindPasswordChange();
   if (isFin) renderPipelineJournal();
-  if (isAdmin){ renderAudit(); renderCabinetLog(); bindUserEdit(rows); bindUserAdmin(rows); }
+  if (isAdmin){ renderAudit(); renderCabinetLog(); renderCabinets(); bindUserEdit(rows); bindUserAdmin(rows); }
 };
 
 /* ===== старт ===== */
