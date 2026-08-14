@@ -41,10 +41,19 @@ const body = await page.content();
 check('сторінка кабінету відкрилась', await page.locator('table').isVisible());
 check('видно назву компанії', body.includes('ТОВ Мірандор'));
 const rows = await page.locator('tr.deal').count();
-check('рядків угод у поданні «В дорозі» = 2', rows === 2, 'було ' + rows);
+check('рядків угод у поданні «В дорозі» = 5', rows === 5, 'було ' + rows);
 await page.click('#seg button[data-f=all]');
 const all = await page.locator('tr.deal').count();
-check('усього своїх угод 3', all === 3, 'було ' + all);
+check('усього своїх угод 6', all === 6, 'було ' + all);
+
+console.log('\n=== порядок рядків: спершу етап, потім дата ===');
+const order = await page.$$eval('tr.deal', ns => ns.map(n => n.dataset.id));
+const pos = id => order.indexOf(id);
+check('«В морі» вище за «В порту відправлення», попри пізнішу ETA',
+      pos('251') < pos('259'), order.join(' → '));
+check('букінг — нижче за все, що вже в дорозі', pos('282') > pos('259'), order.join(' → '));
+check('доставлені — в самому кінці',
+      pos('202') === order.length - 1, order.join(' → '));
 // Дивимось саме на дані сторінки, а не на весь текст: «999» випадково
 // трапляється у міткax nonce/CSRF, і перевірка час від часу падала дарма.
 const ids = await page.$$eval('tr.deal', ns => ns.map(n => n.dataset.id));
@@ -100,7 +109,7 @@ await page.click('.tile[data-f=done]');
 const done = await page.locator('tr.deal').count();
 check('відбір «доставлено» дає 1', done === 1, 'було ' + done);
 await page.click('.tile[data-f=done]');
-check('повторний клік скидає відбір', (await page.locator('tr.deal').count()) === 3);
+check('повторний клік скидає відбір', (await page.locator('tr.deal').count()) === 6);
 
 console.log('\n=== вихід ===');
 await page.click('header button:has-text("Вийти")');

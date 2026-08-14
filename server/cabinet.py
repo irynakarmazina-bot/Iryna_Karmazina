@@ -459,6 +459,9 @@ def page_data(rows):
                        "url": "/doc/%s/%d" % (urllib.parse.quote(deal, safe=""), i)}
                       for i, x in enumerate(docs_of(r))]
         data.append(d)
+    # Базовий, передбачуваний порядок. Остаточний задає браузер (byProgress
+    # у шаблоні: спершу етап перевезення, потім дати) — список етапів живе там,
+    # і другої його копії тут бути не має.
     data.sort(key=lambda d: (BP.nz(d.get("Статус")) == "Вантаж доставлено",
                              BP.nz(d.get("ETA")) or "9999"))
     return data
