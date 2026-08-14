@@ -1,7 +1,7 @@
 {
-  "stdout": "\nCABINET_OK\nbyProgress у сторінці: True\nST_ORDER на рівні модуля: 1\n\nяк тепер стануть активні угоди Гранд Марин:\n  252   В порту перевалки              ETA —\n  251   В морі                         ETA 2026-10-02\n  259   В порту відправлення           ETA 2026-09-24\n  260   В порту відправлення           ETA 2026-10-15\n  278   Букінг                         ETA 2026-10-29\n  279   Букінг                         ETA 2026-10-29\n  280   Букінг                         ETA —\n  281   Букінг                         ETA —\n  282   Букінг                         ETA —\n",
+  "stdout": "КЛЮЧІ: ['ODATA_PASS', 'ODATA_URL', 'ODATA_USER']\nЛОГІН: assistant pro | URL задано: True | пароль задано: True\n  ЧИТАННЯ угоди: HTTP 401\n  ЧИТАННЯ рахунки: HTTP 401\n  ЧИТАННЯ контрагенти: HTTP 401\n  ЧИТАННЯ машини: HTTP 401\n  ЧИТАННЯ водії: HTTP 401\nКОКО поля: Recorder, RecordSet, Recorder_Type\n",
   "stderr": "",
   "returncode": 0,
-  "id": "cab-31",
-  "ts": "2026-08-14T07:18:01Z"
+  "id": "erp-exp-check2",
+  "ts": "2026-08-14T07:26:12Z"
 }
