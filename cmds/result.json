@@ -1,7 +1,7 @@
 {
-  "stdout": "== що запускає таймер ==\nExecStart=/usr/bin/python3 /root/Iryna_Karmazina/server/backup.py\n== чи збігається файл на сервері з репо ==\n  /root/backup.py = репо\n4\n== наступний запуск ==\nNEXT                         LEFT LAST                         PASSED UNIT                ACTIVATES\nSat 2026-08-15 03:30:36 EEST  16h Fri 2026-08-14 03:30:46 EEST 7h ago unitex-backup.timer unitex-backup.service\n\n",
+  "stdout": "CADDY: ДОПИСАНО\n43a44,46\n> \thandle /cabinet-log* {\n> \t\treverse_proxy 127.0.0.1:8793\n> \t}\nVALIDATE_OK\nRELOAD_OK\nслужба: active\nUI: 200\nжурнал без ключа (має бути 403): 403\n   бекап: app-main.js-20260814-111006.bak (334283 б)\n   викладено модулів: 1\n   журнал: 2026-08-14T11:10:06\tmain\t9628a5c1b\tв. 13.08 15:36\tindex.html:64284 findash.html:33514 finperiod.html:17527\trelay: cab-41\n   UI/FINDASH/CHART: 200 200 200\nDEPLOY_OK · гілка main · коміт 9628a5c1b · позначка «в. 13.08 15:36»\n",
   "stderr": "",
   "returncode": 0,
-  "id": "cab-40",
-  "ts": "2026-08-14T08:03:41Z"
+  "id": "cab-41",
+  "ts": "2026-08-14T08:10:07Z"
 }
