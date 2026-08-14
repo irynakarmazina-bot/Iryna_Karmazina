@@ -1,7 +1,7 @@
 {
-  "stdout": "зараз 16:56\n2026-08-14 16:55 +0300 ap_register.csv\n2026-08-14 16:55 +0300 dashboard_data.json\nкредиторка по угоді 251:\n   рах.1112   сума 3701.89   борг 0.0      Сплачений\n   рах.1111   сума 200.0     борг 200.0    Не оплачено\nкредиторка разом: груп 11, рядків 94, сума 20104.96\nУкрамарин у кредиторці: []\n",
+  "stdout": "/root/unitex-finrep/logs/actions.jsonl\n=== скільки триває повна перебудова ===\n3.53user 0.53system 0:45.90elapsed 8%CPU (0avgtext+0avgdata 88644maxresident)k\n0inputs+4744outputs (0major+57480minor)pagefaults 0swaps\n=== чим запускається за розкладом ===\nSat 2026-08-15 07:00:00 EEST       13h Fri 2026-08-14 07:00:01 EEST      10h ago expeditor-direct-sync.timer    expeditor-direct-sync.service\nSat 2026-08-15 07:20:00 EEST       13h Fri 2026-08-14 07:20:02 EEST      10h ago maersk-track-sync.timer        maersk-track-sync.service\nSat 2026-08-15 07:25:00 EEST       13h Fri 2026-08-14 07:25:02 EEST      10h ago cosco-track-sync.timer         cosco-track-sync.service\n",
   "stderr": "",
   "returncode": 0,
-  "id": "check-28",
-  "ts": "2026-08-14T13:56:18Z"
+  "id": "check-29",
+  "ts": "2026-08-14T14:26:46Z"
 }
