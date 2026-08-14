@@ -1,7 +1,7 @@
 {
-  "stdout": "знайдено рядок Id=189, угода=242, статус=Скасована, клієнт=ЮЕЙ ТРЕЙД\nзвірка з 1С: угоди 242 серед живих немає — можна видаляти\nкопія рядка збережена: /root/direct-sync/deleted_row_189_deal_242.json\nрядок Id=189 видалено\nрядків у таблиці тепер: 280 · угода 242: більше немає\n",
-  "stderr": "",
+  "stdout": "HEAD is now at d947f56d8 relay: оновити кабінет на сервері\nactive\n200d947f56d8 relay: оновити кабінет на сервері\n",
+  "stderr": "From https://github.com/irynakarmazina-bot/Iryna_Karmazina\n * branch                main       -> FETCH_HEAD\n   fb94671b4..d947f56d8  main       -> origin/main\n",
   "returncode": 0,
-  "id": "del-1",
-  "ts": "2026-08-14T14:43:59Z"
+  "id": "61af24db15d5",
+  "ts": "2026-08-14T14:50:01Z"
 }
