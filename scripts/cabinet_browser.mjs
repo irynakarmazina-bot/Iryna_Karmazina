@@ -46,14 +46,16 @@ await page.click('#seg button[data-f=all]');
 const all = await page.locator('tr.deal').count();
 check('усього своїх угод 6', all === 6, 'було ' + all);
 
-console.log('\n=== порядок рядків: спершу етап, потім дата ===');
+console.log('\n=== порядок рядків: за датою відправлення ===');
 const order = await page.$$eval('tr.deal', ns => ns.map(n => n.dataset.id));
 const pos = id => order.indexOf(id);
-check('«В морі» вище за «В порту відправлення», попри пізнішу ETA',
-      pos('251') < pos('259'), order.join(' → '));
-check('букінг — нижче за все, що вже в дорозі', pos('282') > pos('259'), order.join(' → '));
-check('доставлені — в самому кінці',
-      pos('202') === order.length - 1, order.join(' → '));
+// 251 вийшла 29.07, 259 — аж 17.08: та, що вийшла раніше, має бути вище.
+// Саме цей випадок користувачка й назвала першою помилкою сортування.
+check('хто раніше вийшов — той вище', pos('251') < pos('259'), order.join(' → '));
+// 282 без дати відправлення — має впасти вниз, під усіх, у кого дата є.
+check('без дати відправлення — вниз', pos('282') > pos('259') && pos('282') > pos('203'),
+      order.join(' → '));
+check('доставлені — в самому кінці', pos('202') === order.length - 1, order.join(' → '));
 // Дивимось саме на дані сторінки, а не на весь текст: «999» випадково
 // трапляється у міткax nonce/CSRF, і перевірка час від часу падала дарма.
 const ids = await page.$$eval('tr.deal', ns => ns.map(n => n.dataset.id));
