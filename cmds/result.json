@@ -1,7 +1,7 @@
 {
-  "stdout": "Document_РасходнаяНакладная: усього 1155, помічено на видалення 92, з них ПРОВЕДЕНІ 0\nDocument_Счет: усього 349, помічено на видалення 6, з них ПРОВЕДЕНІ 0\n\nap_register.csv: рядків 1062, з них помічених на видалення 0 (борг: 0.00)\n\nar_register.csv: рядків 343, з них помічених на видалення 0 (борг: 0.00)\n",
-  "stderr": "",
+  "stdout": "зараз на сервері: 2026-08-14 16:54\n56:def _debt(row):\n57-    \"\"\"Борг = сума_УЕ × (1 − ПроцентОплаты). Перевірено на рахунках постачальників.\"\"\"\n58-    return round(_num(row.get(\"сумма_УЕ\") or row.get(\"Сумма_УЕ\")) *\n59-                 (1 - float(row.get(\"ПроцентОплаты\") or 0)), 2)\n60-\n61-\n62-def _name_map(c, entity):\n63-    \"\"\"Ref_Key -> Description. Стійко до відсутності довідника в публікації OData:\n64-    якщо об'єкт не опубліковано (напр. 404) — повертаємо {} і йдемо далі\n65-    (назви лишаться порожні, але цифри й пайплайн не ламаються).\"\"\"\n66-    try:\n67-        return {r[\"Ref_Key\"]: (r.get(\"Description\") or \"\")\n68-                for r in c.list(entity, select=[\"Ref_Key\", \"Description\"])}\n",
+  "stderr": "ls: cannot access '/root/unitex-finrep/computed/{ap_register.csv,dashboard_data.json}': No such file or directory\n",
   "returncode": 0,
-  "id": "check-25",
-  "ts": "2026-08-14T13:53:10Z"
+  "id": "check-26",
+  "ts": "2026-08-14T13:54:25Z"
 }
