@@ -1,1 +1,1 @@
-{"id": "cab-38", "cmd": "cd /root/Iryna_Karmazina && git pull -q origin main 2>&1 | tail -1\ncd server\necho \"=== ЖУРНАЛ КАБІНЕТУ: усе, що є ===\"\npython3 cabinet_admin.py log --limit 100\necho\necho \"=== тільки по компанії Мірандор ===\"\npython3 cabinet_admin.py log --client \"Мірандор\" --limit 10"}
+{"id": "erp-deploy-ui", "cmd": "cd /root/Iryna_Karmazina && git fetch origin main -q && git checkout main -q && git pull -q origin main && bash server/deploy_ui.sh main 2>&1 | tail -14"}
