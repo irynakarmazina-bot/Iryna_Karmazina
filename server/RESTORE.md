@@ -157,3 +157,23 @@ systemctl list-timers unitex-backup.timer
 
 Рядок журналу: дата, `OK`, розмір у байтах, відбиток, скільки секунд зайняло, ім'я файла.
 Якщо `OK` немає або дата стара — копії не робляться, розбиратись треба одразу.
+
+
+## Кабінет клієнтів (з 14.08.2026)
+
+В архіві поруч із `noco.db` лежить **`cabinet.db`** — акаунти клієнтів, їхні
+сесії і серверний журнал (хто заходив, що дивився, що завантажував).
+
+Відновлення:
+```bash
+systemctl stop unitex-cabinet
+cp cabinet.db /root/cabinet/cabinet.db
+chown root:root /root/cabinet/cabinet.db && chmod 600 /root/cabinet/cabinet.db
+systemctl start unitex-cabinet
+cd /root/Iryna_Karmazina/server && python3 cabinet_admin.py list   # звірити акаунти
+```
+Файл `/root/cabinet/secret` в архів свідомо не входить: це ключ для міток форм,
+при першому запуску генерується новий. Наслідок — лише те, що відкриті в цю
+мить форми доведеться оновити.
+Сесії після відновлення можна лишити; якщо база не найсвіжіша, надійніше
+закрити всі: `python3 cabinet_admin.py kick --email <пошта>` для кожного.

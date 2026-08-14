@@ -65,6 +65,15 @@ KEEP_MIN = 3            # стільки найсвіжіших не чіпає�
 NAME_RE = re.compile(r"^unitex-\d{8}-\d{6}\.tar\.gz\.gpg$")   # точне ім'я, не маска
 
 DB = "/root/nocodb-data/noco.db"
+# База кабінету клієнтів: акаунти, сесії і СЕРВЕРНИЙ ЖУРНАЛ дій клієнтів.
+# Додано 14.08.2026 — до цього вона не бекапилась узагалі, тобто втрата диска
+# означала б, що доступи клієнтам треба заводити наново, а журнал (хто і коли
+# заходив, що завантажував) зникає безслідно.
+# Копіюється ГАРЯЧОЮ копією з перевіркою цілості, як і noco.db: служба пише в
+# неї постійно, у WAL-режимі, і звичайне копіювання дало б битий файл.
+# Файл /root/cabinet/secret свідомо НЕ беремо: це ключ для міток форм, при
+# відновленні генерується новий, а зайвий секрет в архіві нікому не потрібен.
+CABINET_DB = os.environ.get("CABINET_DB_PATH", "/root/cabinet/cabinet.db")
 ATTACH_DIRS = ["/root/nocodb-data/nc"]      # тека вкладень NocoDB; з'явиться з першим файлом
 OUT_DIR = "/root/backups"
 LOG = "/root/backup_log.tsv"
@@ -85,6 +94,7 @@ PATHS = [
     "/etc/systemd/system/cosco-track-sync.service",
     "/etc/systemd/system/cosco-track-sync.timer",
     "/etc/ssh/sshd_config.d/00-hardening.conf",
+    "/etc/systemd/system/unitex-cabinet.service",
 ]
 
 DRY = "--dry-run" in sys.argv
@@ -276,6 +286,19 @@ def main():
                 added += 1
         log("   службових файлів додано: %d із %d" % (added, len(PATHS)))
 
+        # 3б. база кабінету клієнтів
+        cab_snap = None
+        if os.path.exists(CABINET_DB):
+            cab_snap = os.path.join(work, "cabinet.db")
+            csize = hot_copy(CABINET_DB, cab_snap)
+            cok, cres = integrity_ok(cab_snap)
+            log("   кабінет клієнтів: %.2f МБ, цілість: %s" % (csize / 1048576.0, cres))
+            if not cok:
+                log("ПОМИЛКА: копія бази кабінету пошкоджена — бекап НЕ зараховано")
+                return 1
+        else:
+            log("   кабінет клієнтів: бази ще немає (%s) — пропускаю" % CABINET_DB)
+
         # 4. вкладення — щойно з'являться, потраплять сюди самі
         att = 0
         for d in ATTACH_DIRS:
@@ -289,6 +312,8 @@ def main():
         tar_path = os.path.join(work, "unitex-%s.tar.gz" % ts)
         with tarfile.open(tar_path, "w:gz") as t:
             t.add(snap, arcname="noco.db")
+            if cab_snap:
+                t.add(cab_snap, arcname="cabinet.db")
             t.add(cfg, arcname="config")
             ap = os.path.join(work, "attachments")
             if os.path.isdir(ap):
