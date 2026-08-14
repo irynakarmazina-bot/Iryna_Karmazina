@@ -393,6 +393,37 @@ jar.clear()
 code, _, _ = post("/login", {"email": "ivan@m.ua", "password": "мій-новий-пароль"})
 check("а колега тієї ж компанії заходить далі", code == 303, code)
 
+print("\n=== 11г. Журнал для ЕРП (/cabinet-log) ===")
+# Журнал — внутрішній документ. Клієнт не має бачити, хто ще заходив, тому
+# клієнтська сесія тут не приймається; пускає лише роль «Адміністратор» з ЕРП.
+class FakeGW:
+    role = None
+    @staticmethod
+    def whoami(jwt):
+        return ("admin@unitex.od.ua", "Ірина", FakeGW.role)
+
+CAB._GW = FakeGW
+code, body, _ = get("/cabinet-log")
+check("без ролі адміністратора — 403", code == 403, code)
+FakeGW.role = "Логіст"
+code, body, _ = get("/cabinet-log")
+check("чужа роль — теж 403", code == 403, code)
+check("у відмові не видно записів журналу", "перегляд" not in body)
+FakeGW.role = "Адміністратор"
+code, body, hdr = get("/cabinet-log?limit=50")
+check("адміністратор отримує журнал", code == 200, code)
+js = json.loads(body)
+check("це JSON зі списком", isinstance(js.get("list"), list) and len(js["list"]) > 0)
+check("у записі є час, пошта, компанія, дія",
+      all(k in js["list"][0] for k in ("ts", "email", "client", "action", "ip")), js["list"][0])
+code, body, _ = get("/cabinet-log?client=" + urllib.parse.quote("Мірандор Плюс"))
+only = {r["client"] for r in json.loads(body)["list"]}
+check("відбір за компанією працює", only <= {"Мірандор Плюс"}, only)
+con = CAB.db()
+acts = [r["action"] for r in con.execute("SELECT action FROM audit ORDER BY id DESC LIMIT 6")]
+con.close()
+check("відмови у журналі теж записані", "відмова у журналі" in acts, acts)
+
 print("\n=== 12. Прототип (build_preview.py) не зламався ===")
 import subprocess
 proto = os.path.join(TMP, "proto.html")

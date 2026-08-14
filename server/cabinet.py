@@ -467,6 +467,50 @@ def page_data(rows):
     return data
 
 
+
+# ── журнал для ЕРП ────────────────────────────────────────────────────────
+_GW = None
+
+
+def gateway():
+    """Прошарок ЕРП — з нього беремо перевірку «хто ти і яка в тебе роль».
+
+    Свою копію цієї логіки тут НЕ пишемо: роль читається з таблиці
+    «Користувачі», і два різні прочитання ролей рано чи пізно розійдуться.
+    """
+    global _GW
+    if _GW is None:
+        here = os.path.dirname(os.path.abspath(__file__))
+        for p in (os.path.join(here, "gateway.py"), "/root/gateway.py",
+                  "/root/Iryna_Karmazina/server/gateway.py"):
+            if os.path.exists(p):
+                spec = importlib.util.spec_from_file_location("gateway", p)
+                mod = importlib.util.module_from_spec(spec)
+                spec.loader.exec_module(mod)
+                _GW = mod
+                break
+        else:
+            _GW = False
+    return _GW or None
+
+
+def journal_rows(limit=500, client="", email=""):
+    con = db()
+    sql = "SELECT ts,email,client,action,detail,ip FROM audit"
+    args, where = [], []
+    if client:
+        where.append("lower(client)=lower(?)"); args.append(client)
+    if email:
+        where.append("lower(email)=lower(?)"); args.append(email)
+    if where:
+        sql += " WHERE " + " AND ".join(where)
+    sql += " ORDER BY id DESC LIMIT ?"
+    args.append(max(1, min(int(limit), 2000)))
+    rows = [dict(r) for r in con.execute(sql, args)]
+    con.close()
+    return rows
+
+
 # ── сторінки ──────────────────────────────────────────────────────────────
 LOGIN_CSS = """
 /* Палітра взята ДОСЛІВНО з кабінету (client_cabinet/build_preview.py),
@@ -763,6 +807,8 @@ class Handler(BaseHTTPRequestHandler):
                 return self.redirect("/")
             body, nonce = render_change(first=bool(acc["must_change"]))
             return self.send_html(200, body, nonce)
+        if path == "/cabinet-log":
+            return self.serve_journal()
         if path.startswith("/doc/"):
             return self.serve_doc(path, acc)
         return self.send_plain(404, "Сторінки немає.")
@@ -863,6 +909,30 @@ class Handler(BaseHTTPRequestHandler):
         sessions_drop_email(acc["email"], keep=sid)   # інші пристрої виходять
         audit(acc["email"], acc["client"], "пароль змінено", "", self.ip())
         return self.redirect("/")
+
+    def serve_journal(self):
+        """Журнал кабінету для ЕРП. Тільки адміністраторові ЕРП.
+
+        Клієнтська сесія тут НЕ приймається свідомо: журнал — внутрішній
+        документ, клієнтові нема чого бачити, хто ще заходив.
+        Перевірка ролі — через прошарок gateway.py, щоб не завести другого
+        прочитання ролей.
+        """
+        gw = gateway()
+        if gw is None:
+            return self.send_plain(503, "Перевірка ролі недоступна.")
+        jwt = self.headers.get("xc-auth") or ""
+        email, _name, role = gw.whoami(jwt)
+        if role != "Адміністратор":
+            audit(email or "", "", "відмова у журналі",
+                  "роль «%s»" % (role or "невідома"), self.ip())
+            return self.send_plain(403, "Журнал доступний лише адміністратору.")
+        q = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+        rows = journal_rows(limit=(q.get("limit") or ["500"])[0],
+                            client=(q.get("client") or [""])[0],
+                            email=(q.get("email") or [""])[0])
+        body = json.dumps({"list": rows}, ensure_ascii=False).encode("utf-8")
+        return self.send_plain(200, body, "application/json; charset=utf-8")
 
     def serve_doc(self, path, acc):
         """Файл віддається лише після перевірки, чия це угода.

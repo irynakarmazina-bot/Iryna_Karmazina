@@ -3056,6 +3056,53 @@ async function renderAudit(){
   draw();
 }
 
+/* Журнал кабінету КЛІЄНТІВ. Джерело — не NocoDB, а сам сервер кабінету
+   (/cabinet-log): акаунти і журнал живуть в окремій базі, щоб хеші паролів
+   клієнтів не лежали в таблицях, які бачать співробітники.
+   Віддається лише ролі «Адміністратор» — перевірку робить сервер, не сторінка.
+   Це НЕ журнал дій співробітників (той вище, renderAudit) і НЕ журнал
+   автоматики — тут видно тільки клієнтів. */
+async function renderCabinetLog(){
+  const note = $("cl-note");
+  if (!note) return;
+  let list = [];
+  try{
+    const r = await fetch("/cabinet-log?limit=1000", {headers: {"xc-auth": sessionStorage.jwt || ""}});
+    if (r.status === 403){ note.textContent = "Журнал доступний лише адміністратору."; return; }
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    list = (await r.json()).list || [];
+  }catch(e){
+    note.textContent = "Не вдалося прочитати журнал кабінету: " + e.message;
+    return;
+  }
+  const clients = [...new Set(list.map(r=>String(r.client||"").trim()).filter(Boolean))].sort();
+  const acts    = [...new Set(list.map(r=>String(r.action||"").trim()).filter(Boolean))].sort();
+  $("cl-client").innerHTML = '<option value="">Усі компанії</option>' + clients.map(c=>`<option>${esc(c)}</option>`).join("");
+  $("cl-act").innerHTML    = '<option value="">Усі дії</option>' + acts.map(a=>`<option>${esc(a)}</option>`).join("");
+  const when = v => { const d = new Date(v); return isNaN(d) ? String(v||"") :
+    d.toLocaleString("uk-UA",{day:"2-digit",month:"2-digit",year:"2-digit",hour:"2-digit",minute:"2-digit"}); };
+  /* Небезпечні дії підсвічуємо: саме їх шукають, коли щось пішло не так. */
+  const bad = a => /відмова|невдал|заблок/i.test(a || "");
+  const draw = () => {
+    const c = $("cl-client").value, a = $("cl-act").value, q = $("cl-q").value.toLowerCase();
+    const rows = list.filter(r =>
+      (!c || String(r.client||"") === c) &&
+      (!a || String(r.action||"") === a) &&
+      (!q || [r.email, r.detail, r.ip].join(" ").toLowerCase().includes(q)));
+    $("cl-rows").innerHTML = rows.length ? rows.map(r=>`<tr>
+      <td class="mono">${esc(when(r.ts))}</td>
+      <td>${esc(r.client||"—")}</td>
+      <td class="mono">${esc(r.email||"—")}</td>
+      <td${bad(r.action)?' style="color:var(--neg,#b42318);font-weight:600"':""}>${esc(r.action||"")}</td>
+      <td class="cell-muted">${esc(r.detail||"")}</td>
+      <td class="mono cell-muted">${esc(r.ip||"")}</td></tr>`).join("")
+      : '<tr><td colspan="6" class="cell-muted">Записів немає.</td></tr>';
+    $("cl-note").textContent = `показано ${rows.length} з ${list.length} записів`;
+  };
+  ["cl-client","cl-act","cl-q"].forEach(id=>$(id).addEventListener(id==="cl-q"?"input":"change", draw));
+  draw();
+}
+
 /* Журнал роботи автоматики (конвеєр даних). Джерело — logs/actions.jsonl на
    сервері, зведене в computed/pipeline.json. Читаємо через /finrep-data: там уже
    є перевірка ролі, окремого доступу не заводимо.
@@ -4215,6 +4262,18 @@ PAGES.users = async () => {
         <tbody id="lg-rows"></tbody></table></div>
       <p class="sub" id="lg-note" style="margin-top:8px"></p>
       <div class="note">🔒 Журнал доступний лише адміністратору й нічого в ньому змінити не можна — він фіксує все.</div></div>` : ""}
+    ${isAdmin ? `<div class="card"><h3>👤 Журнал кабінету клієнтів</h3>
+      <p class="sub">хто з клієнтів заходив, що дивився і що завантажував — від найсвіжішого</p>
+      <div class="filters" style="margin:10px 0 0">
+        <select id="cl-client"><option value="">Усі компанії</option></select>
+        <select id="cl-act"><option value="">Усі дії</option></select>
+        <input id="cl-q" placeholder="пошук: пошта, угода, деталі…">
+      </div>
+      <div class="tablewrap scrollbox" style="max-height:420px"><table>
+        <thead><tr><th>Час</th><th>Компанія</th><th>Користувач</th><th>Дія</th><th>Деталі</th><th>IP</th></tr></thead>
+        <tbody id="cl-rows"></tbody></table></div>
+      <p class="sub" id="cl-note" style="margin-top:8px">завантажую…</p>
+      <div class="note">🔒 Цей журнал пише СЕРВЕР кабінету, а не браузер — підробити його не можна. Клієнти його не бачать.</div></div>` : ""}
     ${isFin ? `<div class="card"><h3>⚙️ Журнал роботи автоматики</h3>
       <p class="sub">що робив конвеєр даних: коли тягнув з Експедитора, що вийшло, де впало</p>
       <div class="filters" style="margin:10px 0 0">
@@ -4234,7 +4293,7 @@ PAGES.users = async () => {
   bindPalette();
   bindPasswordChange();
   if (isFin) renderPipelineJournal();
-  if (isAdmin){ renderAudit(); bindUserEdit(rows); bindUserAdmin(rows); }
+  if (isAdmin){ renderAudit(); renderCabinetLog(); bindUserEdit(rows); bindUserAdmin(rows); }
 };
 
 /* ===== старт ===== */

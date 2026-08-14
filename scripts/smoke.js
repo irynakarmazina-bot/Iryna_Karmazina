@@ -146,6 +146,16 @@ async function run(browser, url, file, viewport, label, missing) {
   });
   await page.route("**/finrep-data*", r => r.fulfill({ status: 200,
     contentType: "application/json", body: JSON.stringify({ rows: [] }) }));
+  /* Журнал кабінету клієнтів (з 14.08.2026) живе не в NocoDB, а на сервері
+     кабінету — окремий маршрут /cabinet-log, який віддає лише адміністраторові.
+     Без підміни перевірка бачила б «немає файла поруч з index.html». */
+  await page.route("**/cabinet-log*", r => r.fulfill({ status: 200,
+    contentType: "application/json", body: JSON.stringify({ list: [
+      { ts: "2026-08-14T10:10:23", email: "client@example.com", client: "Мірандор",
+        action: "перегляд", detail: "угод 129", ip: "203.0.113.7" },
+      { ts: "2026-08-14T10:09:00", email: "client@example.com", client: "Мірандор",
+        action: "відмова у файлі", detail: "угода 999 не належить компанії", ip: "203.0.113.7" },
+    ] }) }));
 
   await page.goto(url + "/" + path.basename(file));
   // ключ сесії саме в sessionStorage — фасад читає звідти (причина 1 у шапці)
