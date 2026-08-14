@@ -1,7 +1,7 @@
 {
-  "stdout": "зараз 16:55\n16:21 ap_register.csv\n16:21 dashboard_data.json\nкредиторка по угоді 251 після перебудови:\n",
-  "stderr": "Traceback (most recent call last):\n  File \"<string>\", line 5, in <module>\nKeyError: 'debt'\n",
-  "returncode": 1,
-  "id": "check-27",
-  "ts": "2026-08-14T13:55:50Z"
+  "stdout": "зараз 16:56\n2026-08-14 16:55 +0300 ap_register.csv\n2026-08-14 16:55 +0300 dashboard_data.json\nкредиторка по угоді 251:\n   рах.1112   сума 3701.89   борг 0.0      Сплачений\n   рах.1111   сума 200.0     борг 200.0    Не оплачено\nкредиторка разом: груп 11, рядків 94, сума 20104.96\nУкрамарин у кредиторці: []\n",
+  "stderr": "",
+  "returncode": 0,
+  "id": "check-28",
+  "ts": "2026-08-14T13:56:18Z"
 }
