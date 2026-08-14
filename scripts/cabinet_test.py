@@ -424,6 +424,33 @@ acts = [r["action"] for r in con.execute("SELECT action FROM audit ORDER BY id D
 con.close()
 check("відмови у журналі теж записані", "відмова у журналі" in acts, acts)
 
+print("\n=== 11д. Лого і плитка «відправляються за 7 днів» ===")
+# 14.08.2026 лого зникло: скрипт фасада переїхав з index.html у app/main.js,
+# а кабінет далі дивився тільки в index.html. Перевіряємо обидва місця.
+logo_dir = os.path.join(TMP, "www")
+os.makedirs(os.path.join(logo_dir, "app"), exist_ok=True)
+open(os.path.join(logo_dir, "app", "main.js"), "w", encoding="utf-8").write(
+    'const LOGO_SRC = "data:image/png;base64,AAAB";\n')
+open(os.path.join(logo_dir, "index.html"), "w", encoding="utf-8").write("<html>нічого</html>")
+# ВАЖЛИВО: CAB.BP.logo на початку файла підмінений заглушкою, тому перевіряти
+# треба СВІЖУ копію модуля, інакше «перевірка» питає заглушку і завжди мовчить.
+_bp_spec = importlib.util.spec_from_file_location(
+    "bp_fresh", os.path.join(HERE, os.pardir, "client_cabinet", "build_preview.py"))
+BPF = importlib.util.module_from_spec(_bp_spec)
+_bp_spec.loader.exec_module(BPF)
+BPF.FACADE_FILES = [os.path.join(logo_dir, "app", "main.js"),
+                    os.path.join(logo_dir, "index.html")]
+check("лого знаходиться в app/main.js", BPF.logo() == "data:image/png;base64,AAAB",
+      BPF.logo()[:40])
+BPF.FACADE_FILES = [os.path.join(logo_dir, "index.html")]
+check("якщо лого ніде немає — порожньо, без падіння", BPF.logo() == "")
+BPF.FACADE_FILES = ["/немає/такого/файла.js"]
+check("зниклий файл не роняє збірку", BPF.logo() == "")
+
+check("плитка «відправляються» є в шаблоні", "відправляються за 7 днів" in p11)
+check("для неї є свій відбір", '"out"' in p11 and "isSoonOut" in p11)
+check("плиток тепер п'ять", "repeat(5,1fr)" in p11)
+
 print("\n=== 12. Прототип (build_preview.py) не зламався ===")
 import subprocess
 proto = os.path.join(TMP, "proto.html")

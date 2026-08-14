@@ -21,7 +21,13 @@ import urllib.request
 NC = "http://localhost:8080"
 TABLE = "m58xsjo6at01ohl"
 TOKEN_FILE = "/root/nocodb-token.txt"
-FACADE = "/root/unitex-os-www/index.html"
+# Лого беремо з фасада ЕРП, щоб воно було одне на систему і не лежало другою
+# копією. 14.08.2026 скрипт фасада винесли з index.html у app/main.js — лого
+# поїхало разом із ним, а кабінет далі дивився в index.html і показував порожню
+# картинку («зламалося лого»). Тому шукаємо у ВСІХ місцях, де воно може бути,
+# і перше знайдене беремо: переїзд коду більше не ламає кабінет.
+FACADE_FILES = ["/root/unitex-os-www/app/main.js",
+                "/root/unitex-os-www/index.html"]
 CANCELLED = "Скасована"
 
 # Єдині колонки, які взагалі виходять із бази для клієнта.
@@ -65,12 +71,20 @@ def nc_all():
 
 
 def logo():
-    try:
-        html = open(FACADE, encoding="utf-8").read()
-        m = re.search(r'const LOGO_SRC = "(data:image/png;base64,[^"]+)"', html)
-        return m.group(1) if m else ""
-    except Exception:  # noqa: BLE001
-        return ""
+    """Лого ЕРП у вигляді data:URL. Порожньо — якщо не знайшли ніде.
+
+    Порожній рядок дає биту картинку в шапці, тому це помітно одразу; мовчки
+    підставляти щось інше не можна — лого одне на систему.
+    """
+    for path in FACADE_FILES:
+        try:
+            src = open(path, encoding="utf-8").read()
+        except Exception:  # noqa: BLE001
+            continue
+        m = re.search(r'const LOGO_SRC = "(data:image/png;base64,[^"]+)"', src)
+        if m:
+            return m.group(1)
+    return ""
 
 
 # Правова форма для показу в кабінеті. За замовчуванням «ТОВ»; винятки —
@@ -163,7 +177,7 @@ header img{height:56px}
 main{max-width:1560px;margin:0 auto;padding:24px 30px 70px}
 
 /* плитки — з кольоровими іконками, як на дашборді ЕРП */
-.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:22px}
+.tiles{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:22px}
 .tile{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);
   padding:16px 18px;box-shadow:var(--shadow);display:flex;align-items:center;gap:14px;
   cursor:pointer;text-align:left;font:inherit;color:inherit;width:100%;
@@ -963,6 +977,11 @@ let FILTER="act", Q="";
    по тій самій плитці скидає відбір (прохання користувачки 02.08.2026). */
 const isSoon  = r => { const e=s(r,"ETA");
   return !done(r) && !!e && e >= TODAY && e <= addDays(TODAY,7); };
+/* Відправляється найближчими днями: дата ВІДПРАВЛЕННЯ попереду, але не далі
+   ніж через тиждень. Уже відправлені сюди не потрапляють — у них ETD у
+   минулому. Доставлені теж ні. */
+const isSoonOut = r => { const d = etdOf(r);
+  return !done(r) && !!d && d >= TODAY && d <= addDays(TODAY,7); };
 const hasDocs = r => (r._docs || []).length > 0;
 /* ПОРЯДОК РЯДКІВ — ЗА ДАТОЮ ВІДПРАВЛЕННЯ. Рішення користувачки 14.08.2026.
    Історія, щоб ніхто не «полагодив» це назад:
@@ -996,6 +1015,7 @@ function visible(){
     if (FILTER==="act"  && done(r)) return false;
     if (FILTER==="done" && !done(r)) return false;
     if (FILTER==="soon" && !isSoon(r)) return false;
+    if (FILTER==="out"  && !isSoonOut(r)) return false;
     if (FILTER==="docs" && !hasDocs(r)) return false;
     if (!q) return true;
     return ["Угода","BL","HBL","Контейнер","Судно","Маршрут"].some(k=>s(r,k).toLowerCase().includes(q));
@@ -1010,11 +1030,14 @@ function render(){
   const rows = visible();
   const act = DEALS.filter(r=>!done(r));
   const soon = DEALS.filter(isSoon);
+  const out  = DEALS.filter(isSoonOut);
   const docs = DEALS.reduce((n,r)=>n+(r._docs||[]).length,0);
-  const TICON =[["ship","ic-blue"],["port","ic-amber"],["box","ic-green"],["doc","ic-vio"]];
-  const TFILT =["act","soon","done","docs"];
+  const TICON =[["ship","ic-blue"],["truck","ic-amber"],["port","ic-amber"],
+                ["box","ic-green"],["doc","ic-vio"]];
+  const TFILT =["act","out","soon","done","docs"];
   document.getElementById("tiles").innerHTML = [
     [act.length,"вантажів у дорозі"],
+    [out.length,"відправляються за 7 днів"],
     [soon.length,"прибувають за 7 днів"],
     [DEALS.length-act.length,"доставлено"],
     [docs,"документів доступно"],
