@@ -1,7 +1,7 @@
 {
-  "stdout": "CABINET акаунт заблоковано · import@otis-tarda.com · з терміналу\nЗаблоковано: import@otis-tarda.com. Акаунт і журнал збережені.\n\n=== акаунти ОТІС ТАРДА ===\nПОШТА                              КОМПАНІЯ                   СТАН      ОСТАННІЙ ВХІД       СЕСІЙ\nbalenko_e@ukr.net                  ОТІС ТАРДА ООО             новий     —                   0\nimport.otis@gmail.com              ОТІС ТАРДА ООО             новий     —                   0\nimport@otis-tarda.com              ОТІС ТАРДА ООО             заблок.   —                   0\n\n=== перевірка наживо: чи пускає заблокований ===\nкод відповіді: 401\nдля порівняння, робочий: 303\n",
+  "stdout": "\nCABINET_OK\nCADDY: РОЗШИРЕНО\n44c44\n< \thandle /cabinet-log* {\n---\n> \thandle /cabinet-* {\nVALIDATE_OK\nRELOAD_OK\nслужба: active\n== без прав ==\n  /cabinet-clients: 403\n  /cabinet-view:    403\n  /as без токена:   410\n  /set без токена:  410\n",
   "stderr": "",
   "returncode": 0,
-  "id": "cab-49",
-  "ts": "2026-08-14T09:53:01Z"
+  "id": "cab-50",
+  "ts": "2026-08-14T09:59:26Z"
 }
