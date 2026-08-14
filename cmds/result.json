@@ -1,7 +1,7 @@
 {
-  "stdout": "/root/unitex-finrep/logs/actions.jsonl\n=== скільки триває повна перебудова ===\n3.53user 0.53system 0:45.90elapsed 8%CPU (0avgtext+0avgdata 88644maxresident)k\n0inputs+4744outputs (0major+57480minor)pagefaults 0swaps\n=== чим запускається за розкладом ===\nSat 2026-08-15 07:00:00 EEST       13h Fri 2026-08-14 07:00:01 EEST      10h ago expeditor-direct-sync.timer    expeditor-direct-sync.service\nSat 2026-08-15 07:20:00 EEST       13h Fri 2026-08-14 07:20:02 EEST      10h ago maersk-track-sync.timer        maersk-track-sync.service\nSat 2026-08-15 07:25:00 EEST       13h Fri 2026-08-14 07:25:02 EEST      10h ago cosco-track-sync.timer         cosco-track-sync.service\n",
+  "stdout": "=== заголовки реєстрів ===\nnumber,date,client,deal_number,currency,amount_uo,invoice_status,payment_date,days_to_pay_actual,open_debt_uo,expected_payment_date,days_overdue_vs_expected,expected_date_is_assumed_default,expected_payment_date_behavior\nnumber,date,payment_method,payer,currency,amount,amount_uo,invoice_status,payment_date,debt,manager,deal,client,income_date,line,invoice_type,transit_flag_source,informative,planned_payment_date\n=== де будується arDetail/apDetail ===\n187:arDetail=[]\n190:    arDetail.append({'name':client,'total':round(sum(x[3] for x in rows),2),\n192:arDetail.sort(key=lambda g:-g['total'])\n193:D['arDetail']=arDetail\n202:apDetail=[]\n205:    apDetail.append({'name':sup,'total':round(sum(x[3] for x in rows),2),\n207:apDetail.sort(key=lambda g:-g['total'])\n208:D['apDetail']=apDetail\n",
   "stderr": "",
   "returncode": 0,
-  "id": "check-29",
-  "ts": "2026-08-14T14:26:46Z"
+  "id": "check-30",
+  "ts": "2026-08-14T14:27:24Z"
 }
