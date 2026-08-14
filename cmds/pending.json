@@ -1,1 +1,1 @@
-{"id": "check-26", "cmd": "date '+зараз на сервері: %Y-%m-%d %H:%M'; ls -l --time-style=+%Y-%m-%d\\ %H:%M /root/unitex-finrep/computed/{ap_register.csv,dashboard_data.json} | awk '{print $6,$7,$8}'; grep -n 'def _debt' -A12 /root/unitex-finrep/engine/odata_ingest.py"}
+{"id": "deploy-15", "cmd": "cd /root/Iryna_Karmazina && git fetch -q origin main && bash server/deploy_ui.sh main 2>&1 | tail -3; curl -s -o /dev/null -w 'перебудова звіту запущена: %{http_code}\\n' --max-time 100 http://127.0.0.1:8791/refresh?token=ab035256f864e587ac4f2173ff0e9b12"}
