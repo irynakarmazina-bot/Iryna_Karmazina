@@ -349,6 +349,50 @@ check("в картці підпис міняється на «Авіалінія
 check("«Реліз» доїжджає з бази", "Реліз" in str(CAB.BP.CLIENT_COLS))
 check("колонка «Реліз» є в шаблоні", "<th>Реліз</th>" in p11)
 
+print("\n=== 11в. Кілька людей від однієї компанії ===")
+# Вимога користувачки 14.08.2026: «по деяких клієнтах буде по декілька
+# користувачів». Перевіряємо не «в теорії підтримується», а фактом: два різні
+# акаунти тієї самої компанії бачать однаковий набір угод, і в журналі видно,
+# ХТО саме заходив.
+con = CAB.db()
+con.execute("DELETE FROM throttle")
+con.execute("INSERT INTO accounts(email,client,name,pwd,active,must_change,created) "
+            "VALUES(?,?,?,?,1,0,?)",
+            ("petro@m.ua", "Мірандор", "Петро", CAB.hash_pwd("петрів-пароль-1"), CAB.now()))
+con.commit()
+con.close()
+
+def deals_of(page):
+    m = re.search(r"const DEALS = (\[.*?\]);\nconst TODAY", page, re.S)
+    return sorted(str(x.get("Угода")) for x in json.loads(m.group(1).replace("<\\/", "</")))
+
+jar.clear()
+post("/login", {"email": "ivan@m.ua", "password": "мій-новий-пароль"})
+_, page_ivan, _ = get("/")
+jar.clear()
+code, _, _ = post("/login", {"email": "petro@m.ua", "password": "петрів-пароль-1"})
+check("другий користувач тієї ж компанії входить", code == 303, code)
+_, page_petro, _ = get("/")
+check("обидва бачать той самий набір угод",
+      deals_of(page_ivan) == deals_of(page_petro) == ["101", "102"],
+      "%s vs %s" % (deals_of(page_ivan), deals_of(page_petro)))
+con = CAB.db()
+who = [r["email"] for r in con.execute(
+    "SELECT email FROM audit WHERE action='перегляд' ORDER BY id DESC LIMIT 4")]
+con.close()
+check("у журналі видно, ХТО саме дивився", "petro@m.ua" in who and "ivan@m.ua" in who, who)
+
+con = CAB.db()
+con.execute("UPDATE accounts SET active=0 WHERE email='petro@m.ua'")
+con.commit()
+con.close()
+jar.clear()
+code, _, _ = post("/login", {"email": "petro@m.ua", "password": "петрів-пароль-1"})
+check("блокування одного не чіпає інших: він не входить", code == 401, code)
+jar.clear()
+code, _, _ = post("/login", {"email": "ivan@m.ua", "password": "мій-новий-пароль"})
+check("а колега тієї ж компанії заходить далі", code == 303, code)
+
 print("\n=== 12. Прототип (build_preview.py) не зламався ===")
 import subprocess
 proto = os.path.join(TMP, "proto.html")

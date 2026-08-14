@@ -26,6 +26,7 @@
     python3 cabinet_admin.py passwd --email ivan@mirandor.ua
     python3 cabinet_admin.py block --email ivan@mirandor.ua
     python3 cabinet_admin.py log --limit 30
+    python3 cabinet_admin.py log --client "Мірандор"     # хто з компанії заходив
 """
 import argparse
 import importlib.util
@@ -183,19 +184,28 @@ def cmd_kick(a):
 
 
 def cmd_log(a):
+    """Журнал: увесь, по людині (--email) або по компанії (--client).
+
+    Відбір за компанією потрібен, бо на одну компанію буває кілька людей
+    (вимога користувачки 14.08.2026), і питання зазвичай звучить «хто з
+    Мірандора заходив», а не «що робив конкретно Іван».
+    """
     con = CAB.db()
     if a.email:
         rows = con.execute("SELECT * FROM audit WHERE email=? ORDER BY id DESC LIMIT ?",
                            (a.email.strip().lower(), a.limit)).fetchall()
+    elif a.client:
+        rows = con.execute("SELECT * FROM audit WHERE lower(client)=lower(?) "
+                           "ORDER BY id DESC LIMIT ?", (a.client.strip(), a.limit)).fetchall()
     else:
         rows = con.execute("SELECT * FROM audit ORDER BY id DESC LIMIT ?", (a.limit,)).fetchall()
     con.close()
     if not rows:
         return print("Журнал порожній.")
     for r in reversed(rows):
-        print("%s  %-30s %-22s %-15s %s"
-              % (r["ts"], (r["email"] or "—")[:30], r["action"][:22],
-                 (r["ip"] or "—")[:15], r["detail"] or ""))
+        print("%s  %-28s %-22s %-20s %-15s %s"
+              % (r["ts"], (r["email"] or "—")[:28], r["action"][:22],
+                 (r["client"] or "—")[:20], (r["ip"] or "—")[:15], r["detail"] or ""))
 
 
 def main():
@@ -221,7 +231,8 @@ def main():
 
     p = sub.add_parser("log", help="журнал дій у кабінеті")
     p.add_argument("--limit", type=int, default=40)
-    p.add_argument("--email", default="")
+    p.add_argument("--email", default="", help="лише по цій людині")
+    p.add_argument("--client", default="", help="лише по цій компанії")
     p.set_defaults(fn=cmd_log)
 
     a = ap.parse_args()
