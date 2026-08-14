@@ -1,7 +1,7 @@
 {
-  "stdout": "---\n",
-  "stderr": ", in <module>\n    from .decoder import JSONDecoder, JSONDecodeError\n  File \"/usr/lib/python3.12/json/decoder.py\", line 3, in <module>\n    import re\n  File \"/usr/lib/python3.12/re/__init__.py\", line 124, in <module>\n    import enum\n  File \"/tmp/enum.py\", line 3, in <module>\n    m = re.search(r'<EnumType Name=\"[^\"]*ПоляСделки[^\"]*\"[^>]*>(.*?)</EnumType>', xml, re.S)\n        ^^^^^^^^^\nAttributeError: partially initialized module 're' has no attribute 'search' (most likely due to a circular import)\n",
-  "returncode": 1,
-  "id": "erp-tplmake2",
-  "ts": "2026-08-14T15:00:02Z"
+  "stdout": "рядків у шаблоні: 9\nСТВОРЕННЯ ШАБЛОНУ: HTTP 500\n1С: Помилка при виконанні обробника - 'ПередЗаписью'\n",
+  "stderr": "",
+  "returncode": 0,
+  "id": "erp-tplmake3",
+  "ts": "2026-08-14T15:00:30Z"
 }
