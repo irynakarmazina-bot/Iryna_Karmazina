@@ -201,10 +201,19 @@ main{max-width:1560px;margin:0 auto;padding:24px 30px 70px}
   stroke-linecap:round;stroke-linejoin:round}
 .ic i.msk{display:block;width:21px;height:21px;background:currentColor;
   -webkit-mask:var(--m) center/contain no-repeat;mask:var(--m) center/contain no-repeat}
-.ic-blue{background:var(--accent-soft);color:var(--accent)}
-.ic-green{background:var(--pos-bg);color:var(--pos)}
-.ic-amber{background:var(--warn-bg);color:var(--warn)}
-.ic-vio{background:var(--vio-bg);color:var(--vio)}
+/* ІКОНКИ ПЛИТОК — ЯСКРАВІ (вимога користувачки 14.08.2026: «змінити кольори
+   іконок на більш яскраві»). Було: блідий фон і кольоровий значок — плитки
+   зливались у сіру смугу. Стало: насичена заливка, білий значок і м'яке
+   сяйво того ж кольору. Сяйво — не прикраса: без нього яскравий квадрат на
+   білій картці виглядає наліпкою.
+   Кожній плитці свій колір. Раніше «відправляються» і «прибувають» були
+   ОБИДВІ помаранчеві, і дві сусідні плитки не розрізнялись оком. */
+.ic{color:#fff}
+.ic-blue {background:linear-gradient(140deg,#3b82f6,#1d4ed8);box-shadow:0 3px 10px rgba(29,78,216,.32)}
+.ic-orange{background:linear-gradient(140deg,#fb923c,#ea580c);box-shadow:0 3px 10px rgba(234,88,12,.32)}
+.ic-amber{background:linear-gradient(140deg,#22d3ee,#0891b2);box-shadow:0 3px 10px rgba(8,145,178,.32)}
+.ic-green{background:linear-gradient(140deg,#34d399,#059669);box-shadow:0 3px 10px rgba(5,150,105,.32)}
+.ic-vio  {background:linear-gradient(140deg,#a78bfa,#6d28d9);box-shadow:0 3px 10px rgba(109,40,217,.32)}
 .tile .n{font-size:26px;font-weight:700;letter-spacing:-.6px;line-height:1.1}
 .tile .l{color:var(--ink-2);font-size:12.5px;margin-top:1px}
 
@@ -1105,7 +1114,7 @@ function render(){
   const soon = DEALS.filter(isSoon);
   const out  = DEALS.filter(isSoonOut);
   const docs = DEALS.reduce((n,r)=>n+(r._docs||[]).length,0);
-  const TICON =[["ship","ic-blue"],["truck","ic-amber"],["port","ic-amber"],
+  const TICON =[["ship","ic-blue"],["truck","ic-orange"],["port","ic-amber"],
                 ["box","ic-green"],["doc","ic-vio"]];
   const TFILT =["act","out","soon","done","docs"];
   document.getElementById("tiles").innerHTML = [
