@@ -1,7 +1,7 @@
 {
-  "stdout": "   журнал: 2026-08-14T16:52:02\tmain\tdfc1f6ef6\tв. 13.08 15:36\tindex.html:64284 findash.html:33556 finperiod.html:17527\trelay: deploy-14\n   UI/FINDASH/CHART: 200 200 200\nDEPLOY_OK · гілка main · коміт dfc1f6ef6 · позначка «в. 13.08 15:36»\n",
-  "stderr": "",
-  "returncode": 0,
-  "id": "deploy-14",
-  "ts": "2026-08-14T13:52:02Z"
+  "stdout": "apDetail: груп 12, рядків 95, сума 20194.27\narDetail: груп 4, рядків 7, сума 9286.17\nap_register: усього 1062, з боргом 95, сума боргу 20194.27\n",
+  "stderr": "Traceback (most recent call last):\n  File \"<string>\", line 11, in <module>\nKeyError: 'debt_uo'\n",
+  "returncode": 1,
+  "id": "check-24",
+  "ts": "2026-08-14T13:52:30Z"
 }
