@@ -1,7 +1,7 @@
 {
-  "stdout": "   журнал: 2026-08-14T17:30:34\tmain\te9a0adab5\tв. 13.08 15:36\tindex.html:64284 findash.html:33986 finperiod.html:17527\trelay: deploy-16\n   UI/FINDASH/CHART: 200 200 200\nDEPLOY_OK · гілка main · коміт e9a0adab5 · позначка «в. 13.08 15:36»\n",
+  "stdout": "https://unitex.rdport.net:29231/DB/                  HTTP 200 |   1729 б | ознаки: —\nhttps://unitex.rdport.net:29231/DB/ru_RU/            HTTP 404 |    213 б | ознаки: —\nhttps://unitex.rdport.net:29231/DB/e1cib/login       HTTP 404 |    218 б | ознаки: e1cib\nhttps://unitex.rdport.net:29231/                     HTTP 200 |    191 б | ознаки: —\n     тіло: <!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\"> <html> <head> <title>It works! Apache httpd</title> </head> <body> <p>It works!</p> </body> </html> \n",
   "stderr": "",
   "returncode": 0,
-  "id": "deploy-16",
-  "ts": "2026-08-14T14:30:34Z"
+  "id": "erp-web",
+  "ts": "2026-08-14T14:40:38Z"
 }
