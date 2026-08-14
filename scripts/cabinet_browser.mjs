@@ -98,6 +98,20 @@ const firstDot = async id => page.$$eval(`tr.deal[data-id="${id}"] .mini .md`,
 check('імпортний букінг — крапка перша', await firstDot('282') === 0, await firstDot('282'));
 check('експортний букінг — теж перша', await firstDot('279') === 0, await firstDot('279'));
 
+console.log('\n=== головне плече — посередині ===');
+// Частка шляху, на якій стоїть крапка. Раніше всі кроки були однакової ширини,
+// і вантаж «у порту відправлення» опинявся посередині, хоча щойно рушив.
+const dotAt = async id => page.$eval(`tr.deal[data-id="${id}"] .mini`, m => {
+  const box = m.getBoundingClientRect(), now = m.querySelector('.md.now');
+  if (!now) return -1;
+  const c = now.getBoundingClientRect();
+  return Math.round(((c.left + c.width / 2 - box.left) / box.width) * 100);
+});
+const pBook = await dotAt('282'), pSea = await dotAt('201');
+check('букінг — на самому початку', pBook <= 10, pBook + '%');
+check('у морі — за серединою', pSea >= 45, pSea + '%');
+check('букінг раніше за море', pBook < pSea, pBook + '% < ' + pSea + '%');
+
 console.log('\n=== прокрутка тільки в таблиці ===');
 const scrollState = await page.evaluate(() => {
   const tw = document.querySelector('.tw');
