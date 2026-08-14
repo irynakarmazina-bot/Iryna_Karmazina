@@ -1,1 +1,1 @@
-{"id": "erp-deploy-ui", "cmd": "cd /root/Iryna_Karmazina && git fetch origin main -q && git checkout main -q && git pull -q origin main && bash server/deploy_ui.sh main 2>&1 | tail -14"}
+{"id": "cab-39", "cmd": "cd /root/Iryna_Karmazina && git pull -q origin main 2>&1 | tail -1\ncp server/backup.py /root/backup.py 2>/dev/null || true\necho \"== пробний прогін бекапу (нічого не вивантажує) ==\"\npython3 /root/Iryna_Karmazina/server/backup.py --dry-run 2>&1 | tail -14"}
