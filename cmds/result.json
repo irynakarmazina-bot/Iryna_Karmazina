@@ -1,7 +1,7 @@
 {
-  "stdout": "== старий статичний кабінет на сервері ==\n-rw-r--r-- 1 root root 137751 Aug  2 17:07 /root/unitex-os-www/cabinet-gm.html\n-rw-r--r-- 1 root root 330772 Aug 10 17:11 /root/unitex-os-www/cabinet.html\n== чи віддається БЕЗ входу ==\n  https://134.209.94.12/cabinet.html → 200, 330772 б\n     угод у файлі: 128\n     компанія: ТОВ Мірандор\n  https://134.209.94.12/cabinet-gm.html → 200, 137751 б\n     угод у файлі: 20\n     компанія: ТОВ ГРАНД МАРИН\n",
+  "stdout": "КЛЮЧІ: ['ODATA_PASS', 'ODATA_URL', 'ODATA_USER']\nЛОГІН: assistant pro | URL задано: True | пароль задано: True\n  ЧИТАННЯ угоди: 280\n  ЧИТАННЯ рахунки: 349\n  ЧИТАННЯ контрагенти: 3618\n  ЧИТАННЯ машини: 0\n  ЧИТАННЯ водії: 0\nКОКО поля: Recorder, RecordSet, Recorder_Type\n",
   "stderr": "",
   "returncode": 0,
-  "id": "cab-34",
-  "ts": "2026-08-14T07:30:54Z"
+  "id": "erp-exp-check4",
+  "ts": "2026-08-14T07:36:27Z"
 }
