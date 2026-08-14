@@ -1,7 +1,7 @@
 {
-  "stdout": "       (сюди ж не потрапляє tasks.js — перевірка розділу «Задачі»)\nCHECK_OK — фасад можна викладати\n   бекап: index-20260814-105616.html (64284 б)\n   бекап: findash-20260814-105616.html (33514 б)\n   бекап: finperiod-20260814-105616.html (17527 б)\n   бекап: cabinet-20260814-105616.html (330772 б)\n   бекап: chart.min.js-20260814-105616.bak (205399 б)\n   копій, старших за 14 днів, немає — нічого не прибираю\n   усього копій у архіві: 211\n   бекап: app-main.js-20260814-105616.bak (331931 б)\n   викладено модулів: 1\n   журнал: 2026-08-14T10:56:16\tmain\t22606e342\tв. 13.08 15:36\tindex.html:64284 findash.html:33514 finperiod.html:17527\trelay: викласти фасад\n   UI/FINDASH/CHART: 200 200 200\nDEPLOY_OK · гілка main · коміт 22606e342 · позначка «в. 13.08 15:36»\n",
+  "stdout": "== що запускає таймер ==\nExecStart=/usr/bin/python3 /root/Iryna_Karmazina/server/backup.py\n== чи збігається файл на сервері з репо ==\n  /root/backup.py = репо\n4\n== наступний запуск ==\nNEXT                         LEFT LAST                         PASSED UNIT                ACTIVATES\nSat 2026-08-15 03:30:36 EEST  16h Fri 2026-08-14 03:30:46 EEST 7h ago unitex-backup.timer unitex-backup.service\n\n",
   "stderr": "",
   "returncode": 0,
-  "id": "erp-deploy-ui",
-  "ts": "2026-08-14T07:56:16Z"
+  "id": "cab-40",
+  "ts": "2026-08-14T08:03:41Z"
 }
