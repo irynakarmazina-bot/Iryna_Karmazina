@@ -346,6 +346,9 @@ check("колонка перейменована", "Судно / авіалін�
 check("«Перевізник» доїжджає з бази", "Перевізник" in str(CAB.BP.CLIENT_COLS))
 check("в картці підпис міняється на «Авіалінія / рейс»", "Авіалінія / рейс" in p11)
 
+check("«Реліз» доїжджає з бази", "Реліз" in str(CAB.BP.CLIENT_COLS))
+check("колонка «Реліз» є в шаблоні", "<th>Реліз</th>" in p11)
+
 print("\n=== 12. Прототип (build_preview.py) не зламався ===")
 import subprocess
 proto = os.path.join(TMP, "proto.html")

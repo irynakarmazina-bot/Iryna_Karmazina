@@ -31,7 +31,7 @@ CLIENT_COLS = [
     "ETA", "ETA порт (план)", "ETA порт (факт)", "Вивантаження в порту (факт)",
     "Порт перевалки", "Перевалка (прибуття)", "Перевалка (відправлення)",
     "Гейт аут", "Подача авто (план)", "Подача авто (факт)", "Статус",
-    "Вантаж", "Кількість", "Файли", "Перевізник", "Авіанакладна",
+    "Вантаж", "Кількість", "Файли", "Перевізник", "Авіанакладна", "Реліз",
     # Додано 02.08.2026. Ці колонки використовує схема руху, але їх не було в
     # списку — тому «Стафіровка», «Сухий порт», «Кордон» і «Доставлено»
     # малювались БЕЗ дат, хоча дати в базі є.
@@ -208,6 +208,14 @@ tr.deal{cursor:pointer;transition:background .12s}
 tr.deal:hover td{background:var(--surface-2)}
 tr.deal.open td{background:var(--accent-soft)}
 tbody tr:last-child td{border-bottom:0}
+/* квадратик «Реліз»: порожній — релізу немає, з галкою — виданий.
+   Показ, а не редагування: клієнт не змінює службові позначки. */
+.ck{display:inline-block;width:17px;height:17px;border:1.5px solid var(--line);
+  border-radius:5px;background:var(--surface);vertical-align:middle;position:relative}
+.ck.on{background:var(--pos);border-color:var(--pos)}
+.ck.on::after{content:"";position:absolute;left:5px;top:1.5px;width:4px;height:9px;
+  border:solid #fff;border-width:0 2px 2px 0;transform:rotate(43deg)}
+
 /* позначка «дані оновлено …» — щоб було видно, що система жива */
 .upd{display:inline-flex;align-items:center;gap:8px;background:var(--surface);
   border:1px solid var(--line);border-radius:11px;padding:9px 14px;font-size:12.5px;
@@ -453,7 +461,7 @@ a.btn{text-decoration:none;display:inline-block;line-height:1.5}
     <table>
       <thead><tr>
         <th>Угода</th><th></th><th>Маршрут</th><th>Коносамент / контейнер</th>
-        <th>Судно / авіалінія</th><th>Відправлення</th><th>Прибуття</th><th>Статус</th><th>Документи</th>
+        <th>Судно / авіалінія</th><th>Відправлення</th><th>Прибуття</th><th>Статус</th><th>Реліз</th><th>Документи</th>
         <th class="cmt">Коментар</th>
       </tr></thead>
       <tbody id="rows"></tbody>
@@ -612,6 +620,11 @@ const MODE_PAL = {
   road: {c:"#954e17", bg:"#fbf0e3", nm:"Авто"},
   rail: {c:"#1f7a5a", bg:"#e4f3ed", nm:"Залізниця"},
 };
+/* Галочка з бази. NocoDB віддає такі поля по-різному: true/false, 1/0 або
+   рядком «true» — тому перевіряємо всі три випадки, а не одне з них. */
+const isOn = (r, k) => { const v = r[k];
+  return v === true || v === 1 || String(v).toLowerCase() === "true"; };
+
 const modeOf = r => air(r) ? "air"
   : (/^авто$/i.test(s(r,"Вид перевезення")) ? "road" : (rail(r) ? "rail" : "sea"));
 const pal = r => MODE_PAL[modeOf(r)];
@@ -1023,11 +1036,13 @@ function render(){
       <td class="mono" data-l="Відправлення">${etd?`<span class="d">${fmt(etd)}</span>`:'<span class="dim">—</span>'}</td>
       <td class="mono" data-l="Прибуття">${s(r,"ETA")?`<span class="d">${fmt(s(r,"ETA"))}</span>`:'<span class="dim">—</span>'}</td>
       <td data-l="Статус"><span class="pill ${stCls(r)}">${esc(s(r,"Статус")||"—")}</span></td>
+      <td data-l="Реліз"><span class="ck${isOn(r,"Реліз")?" on":""}" title="${
+          isOn(r,"Реліз")?"Реліз виданий":"Релізу ще немає"}"></span></td>
       <td data-l="Документи">${nd?`<span class="docn">${svg("doc")}${nd}</span>`:'<span class="dim">—</span>'}</td>
       <td class="cmt" data-l="Коментар">${s(r,"Коментар клієнту")
           ? esc(s(r,"Коментар клієнту")) : '<span class="dim">—</span>'}</td>
     </tr>`;
-  }).join("") : `<tr><td colspan="10" class="empty" style="padding:20px 12px">Нічого не знайдено.</td></tr>`;
+  }).join("") : `<tr><td colspan="11" class="empty" style="padding:20px 12px">Нічого не знайдено.</td></tr>`;
 
   document.querySelectorAll("tr.deal").forEach(tr=>tr.addEventListener("click",()=>toggle(tr)));
 }

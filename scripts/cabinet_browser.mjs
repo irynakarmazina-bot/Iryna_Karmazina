@@ -79,6 +79,15 @@ check('в авіа-угоді показана авіалінія', airCell.incl
 const seaCell = await page.locator('tr.deal[data-id="201"] td[data-l="Судно / авіалінія"]').innerText();
 check('у морській лишилось судно', seaCell.includes('MAERSK'), seaCell);
 
+console.log('\n=== колонка «Реліз» ===');
+check('колонка є в шапці', (await page.locator('th', {hasText: 'Реліз'}).count()) === 1);
+check('квадратик є в кожному рядку',
+      (await page.locator('tr.deal td[data-l="Реліз"] .ck').count()) === await page.locator('tr.deal').count());
+check('де реліз виданий — галка стоїть',
+      (await page.locator('tr.deal[data-id="201"] td[data-l="Реліз"] .ck.on').count()) === 1);
+check('де релізу немає — квадратик порожній',
+      (await page.locator('tr.deal[data-id="203"] td[data-l="Реліз"] .ck.on').count()) === 0);
+
 console.log('\n=== картка угоди ===');
 // саме 201: у неї є документи. Перший рядок — 203 (найближча ETA), а в неї їх немає.
 await page.locator('tr.deal[data-id="201"]').click();
