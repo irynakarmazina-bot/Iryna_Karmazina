@@ -1,1 +1,1 @@
-{"id": "check-30", "cmd": "crontab -l 2>/dev/null | grep -v '^#' | head -10; echo '=== заголовки реєстрів ==='; head -1 /root/unitex-finrep/computed/ar_register.csv; head -1 /root/unitex-finrep/normalized/income_invoices.csv; echo '=== де будується arDetail/apDetail ==='; grep -n 'arDetail\\|apDetail' /root/unitex-finrep/engine/build_dashboard_data.py | head"}
+{"id": "check-31", "cmd": "sed -n '175,212p' /root/unitex-finrep/engine/build_dashboard_data.py; echo '=== crontab root ==='; crontab -l 2>&1 | head -8"}
