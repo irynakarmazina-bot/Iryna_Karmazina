@@ -1,7 +1,7 @@
 {
-  "stdout": "\nCABINET_OK\nшапка в рамці (.hbar): True\nкнопка всередині блоку назви: True\nлого: True\nназва 18px: True\n",
+  "stdout": "\nCABINET_OK\nпрокрутка лише в таблиці: True\nлипкі заголовки: True\nрозмір сторінки: 132849\n",
   "stderr": "",
   "returncode": 0,
-  "id": "cab-46",
-  "ts": "2026-08-14T09:36:11Z"
+  "id": "cab-47",
+  "ts": "2026-08-14T09:43:03Z"
 }
