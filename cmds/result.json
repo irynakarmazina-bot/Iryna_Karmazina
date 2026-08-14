@@ -1,7 +1,7 @@
 {
-  "stdout": "   усього копій у архіві: 219\n   бекап: app-main.js-20260814-124312.bak (338642 б)\n   викладено модулів: 1\n   журнал: 2026-08-14T12:43:12\tmain\tcd37006dd\tв. 13.08 15:36\tindex.html:64284 findash.html:33514 finperiod.html:17527\trelay: викласти фасад із маршрутом у заголовку документів\n   UI/FINDASH/CHART: 200 200 200\nDEPLOY_OK · гілка main · коміт cd37006dd · позначка «в. 13.08 15:36»\n",
+  "stdout": "КОРИСТУВАЧ 1С: assistant pro\nЧАС ЗАПИТУ: 14.08.2026 12:43:56 (Київ) / 09:43:56 (UTC)\n\nЗАПИТ:\nPOST https://unitex.rdport.net:29231/DB/odata/standard.odata/Document_%D0%9D%D0%B0%D0%BA%D0%BB%D0%B0%D0%B4%D0%BD%D1%8B%D0%B5%D0%A0%D0%B0%D1%81%D1%85%D0%BE%D0%B4%D1%8B?$format=json\nAuthorization: Basic <логін assistant pro>\nContent-Type: application/json\n{\n  \"Date\": \"2026-05-01T12:00:00\",\n  \"Сумма\": 5541,\n  \"ВидРасхода_Key\": \"40376bf3-d4f4-11f0-95ec-1a1a0222a059\"\n}\n\nВІДПОВІДЬ: HTTP 500 Internal server error\nDate: Fri, 14 Aug 2026 09:43:55 GMT\nServer: Apache/2.4.68 (Win64) OpenSSL/3.6.3\nContent-Type: application/json;charset=utf-8\n\n{\n\"odata.error\": {\n\"code\": \"-1\",\n\"message\": {\n\"lang\": \"uk\",\n\"value\": \"Помилка при виконанні обробника - 'ПередЗаписью'\"\n}\n}\n}\n",
   "stderr": "",
   "returncode": 0,
-  "id": "erp-deploy-ui2",
-  "ts": "2026-08-14T09:43:12Z"
+  "id": "erp-capture",
+  "ts": "2026-08-14T09:43:56Z"
 }
