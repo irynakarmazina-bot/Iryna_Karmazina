@@ -625,7 +625,9 @@ def render_cabinet(acc):
     nonce = secrets.token_urlsafe(16)
     payload = json.dumps(data, ensure_ascii=False).replace("</", "<\\/")
     who = esc(acc["name"] or acc["email"])
-    head = ('<form method="post" action="/logout" style="margin-left:18px">'
+    # Кнопка стоїть УСЕРЕДИНІ блоку з назвою компанії (див. .who в шаблоні):
+    # назва зверху, кнопка під нею, обидві по правому краю рамки таблиці.
+    head = ('<form method="post" action="/logout">'
             '<input type="hidden" name="_csrf" value="%s">'
             '<button class="btn" type="submit" title="%s">Вийти</button></form>'
             % (csrf_for(acc["sid"]), who))

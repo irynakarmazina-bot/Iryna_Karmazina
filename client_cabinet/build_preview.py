@@ -167,13 +167,24 @@ TPL = r"""<!doctype html>
 body{margin:0;background:var(--paper);color:var(--ink);
   font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
   -webkit-font-smoothing:antialiased}
+/* ШАПКА ВИРІВНЯНА ПО ТІЙ САМІЙ РАМЦІ, ЩО Й ТАБЛИЦЯ. Було: шапка на всю
+   ширину екрана з власним відступом 30px, а таблиця обмежена 1560px і
+   відцентрована — тому на широкому екрані лого стирчало ЛІВІШЕ за рамку
+   таблиці, а кнопка «Вийти» — правіше (зауваження користувачки 14.08.2026).
+   Тепер вміст шапки лежить у `.hbar` з тими самими max-width і padding, що й
+   `main`, і краї збігаються самі, без підбирання чисел. */
 header{background:var(--surface);border-bottom:1px solid var(--line);
-  padding:14px 30px;display:flex;align-items:center;gap:18px;position:sticky;top:0;z-index:5}
-header img{height:56px}
+  padding:22px 0 18px;position:sticky;top:0;z-index:5}
+.hbar{max-width:1560px;margin:0 auto;padding:0 30px;
+  display:flex;align-items:center;gap:18px}
+header img{height:56px;display:block}
 .spacer{flex:1}
-.who{text-align:right;line-height:1.25}
-.who b{display:block;font-size:15px;font-weight:700}
-.who span{font-size:12px;color:var(--muted)}
+/* Назва компанії і кнопка — стовпчиком: кнопка ПІД назвою, обидві притиснуті
+   до правого краю рамки (так просила користувачка). */
+.who{display:flex;flex-direction:column;align-items:flex-end;gap:9px;
+  text-align:right;line-height:1.25}
+.who b{display:block;font-size:18px;font-weight:700;letter-spacing:-.2px}
+.who span{display:block;font-size:12px;color:var(--muted);margin-top:-6px}
 main{max-width:1560px;margin:0 auto;padding:24px 30px 70px}
 
 /* плитки — з кольоровими іконками, як на дашборді ЕРП */
@@ -382,9 +393,11 @@ a.btn{text-decoration:none;display:inline-block;line-height:1.5}
    схеми руху, де вона доречна. */
 @media (max-width:720px){
   html,body{overflow-x:hidden}
-  header{padding:10px 14px;gap:10px}
+  header{padding:12px 0 10px}
+  .hbar{padding:0 14px;gap:10px}
   header img{height:38px}
-  .who b{font-size:13.5px} .who span{font-size:11px}
+  .who{gap:6px}
+  .who b{font-size:15px} .who span{font-size:11px}
   main{padding:14px 12px 48px}
 
   .tiles{grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
@@ -450,10 +463,11 @@ a.btn{text-decoration:none;display:inline-block;line-height:1.5}
 </style>
 
 <header>
-  <img src="__LOGO__" alt="UNITEX">
-  <div class="spacer"></div>
-  <div class="who"><b>__CLIENTFULL__</b><span>Особистий кабінет</span></div>
-  __HEADEXTRA__
+  <div class="hbar">
+    <img src="__LOGO__" alt="UNITEX">
+    <div class="spacer"></div>
+    <div class="who"><b>__CLIENTFULL__</b><span>Особистий кабінет</span>__HEADEXTRA__</div>
+  </div>
 </header>
 
 <main>
