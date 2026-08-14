@@ -1,7 +1,7 @@
 {
-  "stdout": "   викладено модулів: 1\n   журнал: 2026-08-14T13:04:35\tmain\t611908d96\tв. 13.08 15:36\tindex.html:64284 findash.html:33514 finperiod.html:17527\trelay: cab-53\n   UI/FINDASH/CHART: 200 200 200\nDEPLOY_OK · гілка main · коміт 611908d96 · позначка «в. 13.08 15:36»\n== маршрути (без прав мають бути 403) ==\n  /cabinet-clients → 403\n  /cabinet-accounts → 403\n  /cabinet-invite → 403\n",
+  "stdout": "перевірка дублів: HTTP 200 | знайдено: 0\nсума 5541 грн | курс 43.963 | в УО 126.04\nСТВОРЕННЯ: HTTP 500\nВІДПОВІДЬ 1С: {\n\"odata.error\": {\n\"code\": \"-1\",\n\"message\": {\n\"lang\": \"uk\",\n\"value\": \"Помилка при виконанні обробника - 'ПередЗаписью'\"\n}\n}\n}\n",
   "stderr": "",
   "returncode": 0,
-  "id": "cab-53",
-  "ts": "2026-08-14T10:04:36Z"
+  "id": "erp-create-kom5",
+  "ts": "2026-08-14T11:04:53Z"
 }
