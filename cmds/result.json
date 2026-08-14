@@ -1,7 +1,7 @@
 {
-  "stdout": "=== журнал тригера кас/звіту за сьогодні ===\nAug 14 16:20:59 ubuntu-s-1vcpu-1gb-ams3 python3[355826]: AUTHCHECK /refresh       роль=Адміністратор          ПРОПУЩЕНО\nAug 14 16:21:10 ubuntu-s-1vcpu-1gb-ams3 python3[713852]: QUEUE_RUN: почав перерахунок /root/unitex-finrep/run.sh\nAug 14 16:21:56 ubuntu-s-1vcpu-1gb-ams3 python3[713852]: QUEUE_DONE: перерахунок завершено, код 0\nAug 14 16:55:06 ubuntu-s-1vcpu-1gb-ams3 python3[355826]: AUTHCHECK /refresh       роль=невідома               ВІДМОВИВ БИ 401 (Цю дію можна запускати лише з платформи, після входу. Онови )\nAug 14 16:55:06 ubuntu-s-1vcpu-1gb-ams3 python3[355826]: AUTHCHECK /refresh       ПОПЕРЕДЖУВАЛЬНИЙ РЕЖИМ — запит пропущено попри відмову\nAug 14 16:55:16 ubuntu-s-1vcpu-1gb-ams3 python3[714921]: QUEUE_RUN: почав перерахунок /root/unitex-finrep/run.sh\nAug 14 16:56:03 ubuntu-s-1vcpu-1gb-ams3 python3[714921]: QUEUE_DONE: перерахунок завершено, код 0\nAug 14 17:22:52 ubuntu-s-1vcpu-1gb-ams3 python3[355826]: AUTHCHECK /refresh       роль=Адміністратор          ПРОПУЩЕНО\nAug 14 17:23:03 ubuntu-s-1vcpu-1gb-ams3 python3[715548]: QUEUE_RUN: почав перерахунок /root/unitex-finrep/run.sh\nAug 14 17:23:50 ubuntu-s-1vcpu-1gb-ams3 python3[715548]: QUEUE_DONE: перерахунок завершено, код 0\n=== журнал finrep-trigger ===\n-- No entries --\n",
+  "stdout": "порт 29231 (робочий): https://unitex.rdport.net:29231/DB/odata/standard.odata\nпорт 31231 (друга публікація): https://unitex.rdport.net:31231/DB/odata/standard.odata\n  31231 ЧИТАННЯ: HTTP 0 | URLError: <urlopen error [Errno 104] Connection reset by pee\n  17:35:52 PUT замість PATCH: HTTP 500 | Помилка при виконанні обробника - 'ПередЗаписью'\n",
   "stderr": "",
   "returncode": 0,
-  "id": "check-33",
-  "ts": "2026-08-14T14:35:35Z"
+  "id": "erp-port",
+  "ts": "2026-08-14T14:35:52Z"
 }
