@@ -23,7 +23,8 @@
     python3 cabinet_admin.py clients
     python3 cabinet_admin.py add --email ivan@mirandor.ua --client "Мірандор" --name "Іван"
     python3 cabinet_admin.py list
-    python3 cabinet_admin.py passwd --email ivan@mirandor.ua
+    python3 cabinet_admin.py invite --email ivan@mirandor.ua   # клієнт сам створює пароль
+    python3 cabinet_admin.py passwd --email ivan@mirandor.ua   # (старий спосіб) видати пароль
     python3 cabinet_admin.py block --email ivan@mirandor.ua
     python3 cabinet_admin.py log --limit 30
     python3 cabinet_admin.py log --client "Мірандор"     # хто з компанії заходив
@@ -183,6 +184,29 @@ def cmd_kick(a):
     print("Усі відкриті сесії %s закриті. Акаунт не змінено." % email)
 
 
+def cmd_invite(a):
+    """Одноразове посилання: клієнт сам придумує пароль.
+
+    Пароль після цього не існує ніде, крім голови клієнта, і зберігати нам
+    нічого. Посилання показується РІВНО ОДИН РАЗ — воно й є доступ, тому
+    поводитись із ним треба як із паролем: передати клієнту напряму і не
+    лишати в переписці.
+    """
+    email = (a.email or "").strip().lower()
+    con = CAB.db()
+    row = _must_exist(con, email)
+    con.close()
+    if not row["active"]:
+        sys.exit("ПОМИЛКА: акаунт %s заблокований. Спершу unblock." % email)
+    token, exp = CAB.invite_new(email, a.hours)
+    CAB.audit(email, row["client"], "створено посилання на пароль",
+              "діє до %s" % exp, "")
+    print("\n  Посилання для %s (%s):" % (email, row["client"]))
+    print("  https://cabinet.unitex.od.ua/set?t=%s" % token)
+    print("\n  Діє до %s, спрацьовує ОДИН раз." % exp)
+    print("  Попередні невикористані посилання цього акаунта більше не діють.\n")
+
+
 def cmd_log(a):
     """Журнал: увесь, по людині (--email) або по компанії (--client).
 
@@ -228,6 +252,11 @@ def main():
         p = sub.add_parser(name, help=helptext)
         p.add_argument("--email", required=True)
         p.set_defaults(fn=fn)
+
+    p = sub.add_parser("invite", help="одноразове посилання: клієнт сам створює пароль")
+    p.add_argument("--email", required=True)
+    p.add_argument("--hours", type=int, default=CAB.INVITE_HOURS)
+    p.set_defaults(fn=cmd_invite)
 
     p = sub.add_parser("log", help="журнал дій у кабінеті")
     p.add_argument("--limit", type=int, default=40)

@@ -241,6 +241,12 @@ tbody tr:last-child td{border-bottom:0}
 .ck.on::after{content:"";position:absolute;left:5px;top:1.5px;width:4px;height:9px;
   border:solid #fff;border-width:0 2px 2px 0;transform:rotate(43deg)}
 
+/* смуга «ви дивитесь як співробітник» — щоб ніхто не сплутав перегляд
+   із реальним входом клієнта */
+.staffbar{background:#fdf3e3;color:#8a4b09;border-bottom:1px solid #f0dcb8;
+  padding:9px 30px;font-size:13px;text-align:center}
+.staffbar b{font-weight:700}
+
 /* позначка «дані оновлено …» — щоб було видно, що система жива */
 .upd{display:inline-flex;align-items:center;gap:8px;background:var(--surface);
   border:1px solid var(--line);border-radius:11px;padding:9px 14px;font-size:12.5px;
@@ -484,6 +490,7 @@ a.btn{text-decoration:none;display:inline-block;line-height:1.5}
 
 </style>
 
+__BANNER__
 <header>
   <div class="hbar">
     <img src="__LOGO__" alt="UNITEX">
@@ -869,6 +876,18 @@ function stepState(r){
     cur = st.findIndex(x => !(x.f && past(x.d2 || x.d)));
     if (cur < 0) cur = st.length - 1;
   }
+  /* «Букінг» і «Виконується» означають, що перевезення ще НЕ почалось: нічого
+     не стафіровано, машина не подавалась. Тому крапка має стояти на ПЕРШОМУ
+     вузлі ланцюжка — яким би він не був.
+     Було: обидва статуси вели на «Стафіровку», а в ЕКСПОРТІ вона друга (перший
+     вузол — «Автоперевезення та оформлення»), і для експортних букінгів крапка
+     стояла на другій позиції, хоча ще нічого не відбулось. В імпорті стафіровка
+     перша, тому там усе виглядало правильно — і різниця між рядками збивала з
+     пантелику (зауваження користувачки 14.08.2026).
+     Нижче лишається правило «не раніше за фактично пройдений етап»: якщо дата
+     вже настала, крапка все одно посунеться вперед. */
+  if (stNow === "Букінг" || stNow === "Виконується") cur = 0;
+
   /* Підсвітка НЕ може стояти раніше за етап, який уже фактично відбувся.
      Угода 259: стафіровка була 31.07, а статус «Завантажений на авто» тягнув
      підсвітку на перший вузол — виходило, що вантаж ще не стафірований
@@ -1205,6 +1224,7 @@ def main():
     html = (TPL.replace("__LOGO__", logo())
                .replace("__TITLE__", "UNITEX — особистий кабінет (прототип)")
                .replace("__HEADEXTRA__", "")
+               .replace("__BANNER__", "")
                .replace("__DEMO__", "true")
                # Прототип не знає, коли автоматика востаннє звіряла дані з
                # лініями (у нього немає доступу до журналу трекінгу), тому

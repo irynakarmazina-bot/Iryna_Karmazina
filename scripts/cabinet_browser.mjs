@@ -41,10 +41,10 @@ const body = await page.content();
 check('сторінка кабінету відкрилась', await page.locator('table').isVisible());
 check('видно назву компанії', body.includes('ТОВ Мірандор'));
 const rows = await page.locator('tr.deal').count();
-check('рядків угод у поданні «В дорозі» = 6', rows === 6, 'було ' + rows);
+check('рядків угод у поданні «В дорозі» = 7', rows === 7, 'було ' + rows);
 await page.click('#seg button[data-f=all]');
 const all = await page.locator('tr.deal').count();
-check('усього своїх угод 7', all === 7, 'було ' + all);
+check('усього своїх угод 8', all === 8, 'було ' + all);
 
 console.log('\n=== порядок рядків: за датою відправлення ===');
 const order = await page.$$eval('tr.deal', ns => ns.map(n => n.dataset.id));
@@ -89,6 +89,14 @@ check('де реліз виданий — галка стоїть',
       (await page.locator('tr.deal[data-id="201"] td[data-l="Реліз"] .ck.on').count()) === 1);
 check('де релізу немає — квадратик порожній',
       (await page.locator('tr.deal[data-id="203"] td[data-l="Реліз"] .ck.on').count()) === 0);
+
+console.log('\n=== букінг: крапка на першому вузлі ===');
+const firstDot = async id => page.$$eval(`tr.deal[data-id="${id}"] .mini .md`,
+  ns => ns.findIndex(n => n.classList.contains('now')));
+// 282 — імпортний букінг, 279 — ЕКСПОРТНИЙ: в експорті перший вузол інший,
+// і саме там крапка раніше стояла на другій позиції.
+check('імпортний букінг — крапка перша', await firstDot('282') === 0, await firstDot('282'));
+check('експортний букінг — теж перша', await firstDot('279') === 0, await firstDot('279'));
 
 console.log('\n=== прокрутка тільки в таблиці ===');
 const scrollState = await page.evaluate(() => {
@@ -142,7 +150,7 @@ await page.click('.tile[data-f=done]');
 const done = await page.locator('tr.deal').count();
 check('відбір «доставлено» дає 1', done === 1, 'було ' + done);
 await page.click('.tile[data-f=done]');
-check('повторний клік скидає відбір', (await page.locator('tr.deal').count()) === 7);
+check('повторний клік скидає відбір', (await page.locator('tr.deal').count()) === 8);
 
 console.log('\n=== плитка «відправляються за 7 днів» ===');
 const outTile = page.locator('.tile[data-f=out]');

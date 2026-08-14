@@ -57,6 +57,9 @@ PORT = int(os.environ.get("CABINET_PORT", "8793"))
 DB_PATH = os.environ.get("CABINET_DB", "/root/cabinet/cabinet.db")
 SECRET_FILE = os.environ.get("CABINET_SECRET", "/root/cabinet/secret")
 LOG_FILE = os.environ.get("CABINET_LOG", "/root/cabinet.log")
+# Публічна адреса кабінету — потрібна, щоб платформа могла відкрити перехід
+# у новій вкладці. У змінній, а не зашита: домен може змінитись.
+PUBLIC_URL = os.environ.get("CABINET_URL", "https://cabinet.unitex.od.ua")
 
 COOKIE = "cab_sid"
 IDLE_HOURS = 12            # скільки живе сесія без дій
@@ -135,12 +138,16 @@ CREATE TABLE IF NOT EXISTS accounts(
   last_login  TEXT
 );
 CREATE TABLE IF NOT EXISTS sessions(
-  sid     TEXT PRIMARY KEY,
-  email   TEXT NOT NULL,
-  created TEXT NOT NULL,
-  seen    TEXT NOT NULL,
-  ip      TEXT,
-  ua      TEXT
+  sid       TEXT PRIMARY KEY,
+  email     TEXT NOT NULL,
+  created   TEXT NOT NULL,
+  seen      TEXT NOT NULL,
+  ip        TEXT,
+  ua        TEXT,
+  -- Заповнене as_client означає СЕСІЮ СПІВРОБІТНИКА: він дивиться кабінет
+  -- очима клієнта. Акаунта клієнта при цьому не існує і пароль не потрібен —
+  -- права дав ЕРП. У журналі така сесія позначається окремо.
+  as_client TEXT
 );
 CREATE TABLE IF NOT EXISTS audit(
   id     INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -150,6 +157,21 @@ CREATE TABLE IF NOT EXISTS audit(
   action TEXT NOT NULL,
   detail TEXT,
   ip     TEXT
+);
+CREATE TABLE IF NOT EXISTS invites(
+  th      TEXT PRIMARY KEY,          -- sha256 від токена; сам токен НЕ зберігається
+  email   TEXT NOT NULL,
+  created TEXT NOT NULL,
+  expires TEXT NOT NULL,
+  used    TEXT
+);
+CREATE TABLE IF NOT EXISTS views(
+  th      TEXT PRIMARY KEY,
+  email   TEXT NOT NULL,          -- співробітник, якому видано
+  client  TEXT NOT NULL,
+  created TEXT NOT NULL,
+  expires TEXT NOT NULL,
+  used    TEXT
 );
 CREATE TABLE IF NOT EXISTS throttle(
   k     TEXT PRIMARY KEY,
@@ -284,11 +306,12 @@ def same_str(a, b):
     return hmac.compare_digest(str(a or "").encode("utf-8"), str(b or "").encode("utf-8"))
 
 
-def session_new(email, ip, ua):
+def session_new(email, ip, ua, as_client=None):
     sid = secrets.token_urlsafe(32)
     con = db()
-    con.execute("INSERT INTO sessions(sid,email,created,seen,ip,ua) VALUES(?,?,?,?,?,?)",
-                (sid, email, now(), now(), ip, (ua or "")[:200]))
+    con.execute("INSERT INTO sessions(sid,email,created,seen,ip,ua,as_client) "
+                "VALUES(?,?,?,?,?,?,?)",
+                (sid, email, now(), now(), ip, (ua or "")[:200], as_client))
     con.commit()
     con.close()
     return sid
@@ -299,6 +322,27 @@ def session_get(sid):
     if not sid:
         return None
     con = db()
+    st = con.execute("SELECT * FROM sessions WHERE sid=?", (sid,)).fetchone()
+    if not st:
+        con.close()
+        return None
+    if st["as_client"]:
+        # Сесія співробітника: акаунта клієнта немає і не треба.
+        try:
+            idle = (datetime.datetime.now()
+                    - datetime.datetime.fromisoformat(st["seen"])).total_seconds()
+        except Exception:  # noqa: BLE001
+            idle = 0
+        if idle > IDLE_HOURS * 3600:
+            con.execute("DELETE FROM sessions WHERE sid=?", (sid,))
+            con.commit()
+            con.close()
+            return None
+        con.execute("UPDATE sessions SET seen=? WHERE sid=?", (now(), sid))
+        con.commit()
+        con.close()
+        return {"sid": sid, "email": st["email"], "client": st["as_client"],
+                "name": st["email"], "must_change": 0, "active": 1, "staff": 1}
     row = con.execute(
         "SELECT s.sid,s.seen,a.* FROM sessions s JOIN accounts a ON a.email=s.email "
         "WHERE s.sid=?", (sid,)).fetchone()
@@ -467,6 +511,107 @@ def page_data(rows):
 
 
 
+# ── одноразові посилання на встановлення пароля ───────────────────────────
+# НАВІЩО. Раніше пароль вигадував сервер, і його треба було якось передати —
+# через термінал, файл, листування. Будь-який із цих шляхів означає, що готовий
+# пароль десь лежить. Тепер пароль вигадує САМ КЛІЄНТ, а ми передаємо лише
+# одноразове посилання: воно живе обмежений час, спрацьовує один раз і після
+# використання не діє. Зберігати після цього нічого не треба.
+# У базі лежить лише sha256 від токена — навіть маючи базу, посилання не
+# відновити. Це та сама логіка, що з паролями: зберігаємо перевірку, не секрет.
+INVITE_HOURS = 72
+
+
+def _th(token):
+    return hashlib.sha256(("cab-invite:" + str(token)).encode("utf-8")).hexdigest()
+
+
+def invite_new(email, hours=INVITE_HOURS):
+    """Створити посилання. Повертає сам токен — його показують РІВНО ОДИН РАЗ."""
+    token = secrets.token_urlsafe(32)
+    exp = (datetime.datetime.now() + datetime.timedelta(hours=hours)).isoformat(timespec="seconds")
+    con = db()
+    # старі невикористані запрошення цієї людини гасимо: щоб не лишалось
+    # кількох робочих посилань на один акаунт
+    con.execute("UPDATE invites SET used=? WHERE email=? AND used IS NULL",
+                (now() + " (замінено новим)", email))
+    con.execute("INSERT INTO invites(th,email,created,expires) VALUES(?,?,?,?)",
+                (_th(token), email, now(), exp))
+    con.commit()
+    con.close()
+    return token, exp
+
+
+def invite_check(token):
+    """(email, причина_відмови). email None — посилання не годиться."""
+    if not token:
+        return None, "порожнє посилання"
+    con = db()
+    row = con.execute("SELECT * FROM invites WHERE th=?", (_th(token),)).fetchone()
+    con.close()
+    if not row:
+        return None, "посилання невідоме"
+    if row["used"]:
+        return None, "посилання вже використане"
+    if row["expires"] < now():
+        return None, "термін дії посилання минув"
+    return row["email"], ""
+
+
+def invite_use(token):
+    con = db()
+    con.execute("UPDATE invites SET used=? WHERE th=?", (now(), _th(token)))
+    con.commit()
+    con.close()
+
+
+def view_new(email, client, minutes=5):
+    """Короткий одноразовий токен: ЕРП відкриває кабінет клієнта в новій вкладці.
+
+    Живе хвилини, а не дні: він потрібен рівно на один перехід із платформи.
+    Права перевіряються ДО видачі — по ролі в ЕРП, а не по цьому токену.
+    """
+    token = secrets.token_urlsafe(32)
+    exp = (datetime.datetime.now() + datetime.timedelta(minutes=minutes)).isoformat(timespec="seconds")
+    con = db()
+    con.execute("INSERT INTO views(th,email,client,created,expires) VALUES(?,?,?,?,?)",
+                (_th(token), email, client, now(), exp))
+    con.commit()
+    con.close()
+    return token
+
+
+def view_use(token):
+    """(email, client) або (None, причина)."""
+    if not token:
+        return None, "порожнє посилання"
+    con = db()
+    row = con.execute("SELECT * FROM views WHERE th=?", (_th(token),)).fetchone()
+    if not row:
+        con.close()
+        return None, "посилання невідоме"
+    if row["used"]:
+        con.close()
+        return None, "посилання вже використане"
+    if row["expires"] < now():
+        con.close()
+        return None, "термін дії минув"
+    con.execute("UPDATE views SET used=? WHERE th=?", (now(), _th(token)))
+    con.commit()
+    con.close()
+    return (row["email"], row["client"]), ""
+
+
+def clients_with_deals():
+    """Компанії, у яких є непорожній кабінет: назва + скільки угод."""
+    out = {}
+    for r in all_rows():
+        name = BP.nz(r.get("Клієнт"))
+        if name and BP.nz(r.get("Статус")) != BP.CANCELLED:
+            out[name] = out.get(name, 0) + 1
+    return out
+
+
 # ── журнал для ЕРП ────────────────────────────────────────────────────────
 _GW = None
 
@@ -585,6 +730,24 @@ def render_login(msg="", kind="err", email=""):
         btn="Увійти", msg=msg, kind=kind, logo=logo, hint=hint)
 
 
+def render_invite(token, msg="", kind="err"):
+    """Сторінка за одноразовим посиланням: людина сама придумує пароль.
+    Поточного пароля тут не питаємо — його ніхто й не знає, у цьому вся суть."""
+    fields = ('<input type="hidden" name="t" value="%s">'
+              '<label for="new1">Придумайте пароль</label>'
+              '<input id="new1" name="new1" type="password" required autocomplete="new-password">'
+              '<label for="new2">Повторіть пароль</label>'
+              '<input id="new2" name="new2" type="password" required autocomplete="new-password">'
+              % esc(token))
+    return _fill_login(
+        title="UNITEX — створення пароля", h1="Створіть свій пароль",
+        sub="Це посилання одноразове й діє обмежений час",
+        action="/set", fields=fields, btn="Зберегти і увійти",
+        msg=msg, kind=kind, logo=BP.logo(),
+        hint="Щонайменше %d символів. Пароль знаєте тільки ви — "
+             "ми його не бачимо і не зберігаємо у відкритому вигляді." % MIN_PWD)
+
+
 def render_change(msg="", kind="err", first=False):
     fields = ('<label for="old">Поточний пароль</label>'
               '<input id="old" name="old" type="password" required autocomplete="current-password">'
@@ -629,9 +792,16 @@ def render_cabinet(acc):
     # назва зверху, кнопка під нею, обидві по правому краю рамки таблиці.
     head = ('<form method="post" action="/logout">'
             '<input type="hidden" name="_csrf" value="%s">'
-            '<button class="btn" type="submit" title="%s">Вийти</button></form>'
-            % (csrf_for(acc["sid"]), who))
+            '<button class="btn" type="submit" title="%s">%s</button></form>'
+            % (csrf_for(acc["sid"]), who,
+               "Закрити перегляд" if acc.get("staff") else "Вийти"))
+    banner = ""
+    if acc.get("staff"):
+        banner = ('<div class="staffbar">Ви дивитесь кабінет <b>%s</b> як співробітник '
+                  'UNITEX. Клієнт цього перегляду не бачить, але він записаний у журнал.'
+                  '</div>' % esc(BP.client_title(acc["client"])))
     html_out = (BP.TPL
+                .replace("__BANNER__", banner)
                 .replace("__LOGO__", BP.logo())
                 .replace("__TITLE__", "UNITEX — особистий кабінет")
                 .replace("__HEADEXTRA__", head)
@@ -801,6 +971,33 @@ class Handler(BaseHTTPRequestHandler):
                                             "Спробуйте, будь ласка, за хвилину.")
             audit(acc["email"], acc["client"], "перегляд", "угод %d" % n, self.ip())
             return self.send_html(200, body, nonce)
+        if path == "/as":
+            token = (urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+                     .get("t") or [""])[0]
+            who, why = view_use(token)
+            if not who:
+                audit("", "", "невдалий перегляд", why, self.ip())
+                return self.send_plain(410, "Посилання не діє: %s. "
+                                            "Відкрийте кабінет із платформи заново." % why)
+            staff_email, client = who
+            sid = session_new(staff_email, self.ip(), self.headers.get("User-Agent"),
+                              as_client=client)
+            audit(staff_email, client, "перегляд кабінету співробітником", "", self.ip())
+            return self.redirect("/", self.cookie_set(sid))
+        if path == "/set":
+            token = (urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+                     .get("t") or [""])[0]
+            email, why = invite_check(token)
+            if not email:
+                audit("", "", "невдале посилання", why, self.ip())
+                body, nonce = _fill_login(
+                    title="UNITEX — посилання недійсне", h1="Посилання не діє",
+                    sub=why, action="/", fields="", btn="На сторінку входу",
+                    msg="Попросіть менеджера UNITEX надіслати нове посилання.",
+                    kind="err", logo=BP.logo(), hint="")
+                return self.send_html(410, body, nonce)
+            body, nonce = render_invite(token)
+            return self.send_html(200, body, nonce)
         if path == "/password":
             if not acc:
                 return self.redirect("/")
@@ -808,6 +1005,8 @@ class Handler(BaseHTTPRequestHandler):
             return self.send_html(200, body, nonce)
         if path == "/cabinet-log":
             return self.serve_journal()
+        if path == "/cabinet-clients":
+            return self.serve_clients()
         if path.startswith("/doc/"):
             return self.serve_doc(path, acc)
         return self.send_plain(404, "Сторінки немає.")
@@ -820,6 +1019,10 @@ class Handler(BaseHTTPRequestHandler):
             return self.do_login()
         if path == "/logout":
             return self.do_logout()
+        if path == "/cabinet-view":
+            return self.do_view_link()
+        if path == "/set":
+            return self.do_set()
         if path == "/password":
             return self.do_password()
         return self.send_plain(404, "Сторінки немає.")
@@ -908,6 +1111,80 @@ class Handler(BaseHTTPRequestHandler):
         sessions_drop_email(acc["email"], keep=sid)   # інші пристрої виходять
         audit(acc["email"], acc["client"], "пароль змінено", "", self.ip())
         return self.redirect("/")
+
+    def do_set(self):
+        """Клієнт сам ставить собі пароль за одноразовим посиланням."""
+        f = self.form()
+        token = f.get("t") or ""
+        email, why = invite_check(token)
+        if not email:
+            audit("", "", "невдале посилання", why, self.ip())
+            return self.send_plain(410, "Посилання не діє: %s" % why)
+        new1, new2 = f.get("new1") or "", f.get("new2") or ""
+        if new1 != new2:
+            body, nonce = render_invite(token, "Паролі не збіглися.")
+            return self.send_html(400, body, nonce)
+        problem = pwd_problem(new1)
+        if problem:
+            body, nonce = render_invite(token, problem)
+            return self.send_html(400, body, nonce)
+        con = db()
+        row = con.execute("SELECT * FROM accounts WHERE email=?", (email,)).fetchone()
+        if not row or not row["active"]:
+            con.close()
+            audit(email, "", "невдале посилання", "акаунт заблокований або зник", self.ip())
+            return self.send_plain(403, "Доступ закритий. Зверніться до менеджера UNITEX.")
+        con.execute("UPDATE accounts SET pwd=?,must_change=0 WHERE email=?",
+                    (hash_pwd(new1), email))
+        con.commit()
+        con.close()
+        invite_use(token)
+        sessions_drop_email(email)          # старі входи обриваємо
+        sid = session_new(email, self.ip(), self.headers.get("User-Agent"))
+        audit(email, row["client"], "пароль створено за посиланням", "", self.ip())
+        return self.redirect("/", self.cookie_set(sid))
+
+    def erp_admin(self):
+        """Пошта адміністратора ЕРП або None. Роль читає gateway.py, не ми."""
+        gw = gateway()
+        if gw is None:
+            return None
+        email, _n, role = gw.whoami(self.headers.get("xc-auth") or "")
+        return email if role == "Адміністратор" else None
+
+    def serve_clients(self):
+        """Список компаній для платформи: кого можна відкрити і скільки угод."""
+        who = self.erp_admin()
+        if not who:
+            return self.send_plain(403, "Доступно лише адміністратору.")
+        counts = clients_with_deals()
+        con = db()
+        accs = {}
+        for r in con.execute("SELECT client, COUNT(*) n, SUM(active) a FROM accounts "
+                             "GROUP BY client"):
+            accs[r["client"]] = {"акаунтів": r["n"], "робочих": r["a"] or 0}
+        con.close()
+        rows = [{"client": c, "deals": n,
+                 "accounts": accs.get(c, {}).get("акаунтів", 0),
+                 "active": accs.get(c, {}).get("робочих", 0)}
+                for c, n in sorted(counts.items(), key=lambda kv: -kv[1])]
+        return self.send_plain(200, json.dumps({"list": rows}, ensure_ascii=False).encode(),
+                               "application/json; charset=utf-8")
+
+    def do_view_link(self):
+        """ЕРП просить посилання, щоб відкрити кабінет клієнта. Тільки адмін."""
+        who = self.erp_admin()
+        if not who:
+            return self.send_plain(403, "Доступно лише адміністратору.")
+        f = self.form()
+        client = (f.get("client") or "").strip()
+        if client not in clients_with_deals():
+            return self.send_plain(404, "Такої компанії немає серед угод.")
+        token = view_new(who, client)
+        audit(who, client, "видано посилання на перегляд", "з платформи", self.ip())
+        return self.send_plain(200, json.dumps(
+            {"url": PUBLIC_URL + "/as?t=" + token}, ensure_ascii=False).encode(),
+            "application/json; charset=utf-8")
 
     def serve_journal(self):
         """Журнал кабінету для ЕРП. Тільки адміністраторові ЕРП.
