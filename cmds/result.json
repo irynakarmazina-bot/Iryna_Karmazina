@@ -1,7 +1,7 @@
 {
-  "stdout": "5\nActiveEnterTimestamp=Fri 2026-08-14 17:49:58 EEST\nlogin=303\npage=200 bytes=166431\ngrad=5\ndeals=0\n",
+  "stdout": "угод 25\nперша 259\n",
   "stderr": "",
   "returncode": 0,
-  "id": "58f95f0e691e",
-  "ts": "2026-08-14T14:50:45Z"
+  "id": "59ea278271e3",
+  "ts": "2026-08-14T14:51:18Z"
 }
