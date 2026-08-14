@@ -1,7 +1,7 @@
 {
-  "stdout": "   журнал: 2026-08-14T16:55:05\tmain\td09b1f4a4\tв. 13.08 15:36\tindex.html:64284 findash.html:33542 finperiod.html:17527\trelay: deploy-15\n   UI/FINDASH/CHART: 200 200 200\nDEPLOY_OK · гілка main · коміт d09b1f4a4 · позначка «в. 13.08 15:36»\nперебудова звіту запущена: 200\n",
-  "stderr": "",
-  "returncode": 0,
-  "id": "deploy-15",
-  "ts": "2026-08-14T13:55:16Z"
+  "stdout": "зараз 16:55\n16:21 ap_register.csv\n16:21 dashboard_data.json\nкредиторка по угоді 251 після перебудови:\n",
+  "stderr": "Traceback (most recent call last):\n  File \"<string>\", line 5, in <module>\nKeyError: 'debt'\n",
+  "returncode": 1,
+  "id": "check-27",
+  "ts": "2026-08-14T13:55:50Z"
 }
