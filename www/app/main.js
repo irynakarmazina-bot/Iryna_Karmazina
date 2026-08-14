@@ -1870,7 +1870,18 @@ function renderDocList(){
 }
 function openDocs(r){
   DOC_ROW = r;
-  $("doc-title").textContent = `📄 Документи угоди №${r["Угода"]} · ${r["Клієнт"]||""}`;
+  /* У заголовку, крім номера і клієнта, — маршрут і коносамент (прохання
+     користувачки 14.08.2026). Вікно документів відкривають прямо з таблиці, і без
+     цих двох не видно, до якого саме перевезення чіпляється файл.
+     Маршрут і коносамент — світлішим і без жирного, щоб довгий заголовок читався,
+     а номер угоди лишався головним. Порожнє не показуємо: прочерків у заголовку
+     не малюємо (правило «немає даних — нічого не вигадуємо»).
+     Коносаментів може бути два — лінійний (BL) і домашній (HBL); показуємо обидва
+     через «/», як у колонці таблиці. */
+  const dtBL = [_s(r, "BL"), _s(r, "HBL")].filter(Boolean).join(" / ");
+  const dtTail = [routeArrows(_s(r, "Маршрут")), dtBL].filter(Boolean).join(" · ");
+  $("doc-title").innerHTML = `📄 Документи угоди №${esc(r["Угода"])} · ${esc(r["Клієнт"] || "")}`
+    + (dtTail ? ` <span style="font-weight:400;color:var(--muted)">· ${esc(dtTail)}</span>` : "");
   $("doc-upload-wrap").style.display = (ROLE === "Перегляд") ? "none" : "block";
   $("gen-wrap").style.display = GEN_DENY.has(ROLE) ? "none" : "block";
   $("gen-type").value = ""; $("gen-form").style.display = "none"; $("gen-form").innerHTML = "";
