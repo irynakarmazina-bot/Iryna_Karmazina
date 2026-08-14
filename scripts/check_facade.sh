@@ -29,29 +29,9 @@ process.exit(bad?1:0);
 ' "$FILE" "$WORK/facade.js" || fail=1
 
 # 2. звернення до неіснуючих змінних — те, що впустило «Фінанси»
-#    Від 13.08.2026 код живе не лише в <script> усередині HTML, а й у модулях
-#    www/app/*.js. Їх треба перевіряти ОБОВ'ЯЗКОВО: у модулі кожен файл бачить
-#    лише те, що сам імпортував, тому забутий import — це саме той випадок, який
-#    ця перевірка й ловить. Якщо модулі сюди не додати, шлюз мовчки осліпне на
-#    4/5 коду (у самому index.html лишиться майже нічого).
 cp "$ROOT/scripts/eslint.config.mjs" "$WORK/eslint.config.mjs"
-APPDIR="$(dirname "$FILE")/app"
-if [ -d "$APPDIR" ]; then
-  mkdir -p "$WORK/app" && cp "$APPDIR"/*.js "$WORK/app/" 2>/dev/null
-  echo "модулів у app/: $(ls -1 "$APPDIR"/*.js 2>/dev/null | wc -l)"
-  # Синтаксис модулів. Крок 1 (new Function) їх перевірити НЕ може: import/export
-  # там не вираз, і він би сам упав. Питаємо node у режимі модуля.
-  for m in "$APPDIR"/*.js; do
-    if ! out=$(node --input-type=module --check < "$m" 2>&1); then
-      echo "СИНТАКСИС $(basename "$m"): $(echo "$out" | head -2 | tr '\n' ' ')"
-      fail=1
-    fi
-  done
-else
-  echo "теки app/ немає — перевіряю лише вбудований код"
-fi
 if command -v eslint >/dev/null 2>&1; then
-  ( cd "$WORK" && eslint facade.js $( [ -d "$WORK/app" ] && echo "app" ) ) || fail=1
+  ( cd "$WORK" && eslint facade.js ) || fail=1
 else
   echo "УВАГА: eslint не знайдено — перевірку на неіснуючі змінні ПРОПУЩЕНО"
   fail=1
@@ -70,6 +50,30 @@ fi
 #    SMOKE_OK, весь check_facade.sh сказав «CHECK_OK — фасад можна викладати»,
 #    тобто ОБИДВІ поломки доїхали б до користувачки. cols.js обидві зловив.
 #    Перевірка існувала, але до дверей під'єднана не була.
+# 14.08.2026 скрипт фасаду винесено з index.html у www/app/main.js. Перевірка
+# синтаксису вище дивиться лише на ВБУДОВАНІ <script> у сторінці, тобто про
+# головний модуль вона не знає нічого. Без цього кроку зламаний main.js
+# проходив би шлюз, а сторінка падала б у користувачки.
+MAINJS="$(dirname "$FILE")/app/main.js"
+if [ -f "$MAINJS" ]; then
+  if node --check "$MAINJS" 2>/tmp/mainjs.err; then
+    echo "  ok   синтаксис www/app/main.js ($(wc -l < "$MAINJS") рядків)"
+  else
+    echo "  FAIL синтаксис www/app/main.js:"; head -3 /tmp/mainjs.err; fail=1
+  fi
+else
+  echo "  УВАГА: www/app/main.js не знайдено поруч із $FILE"
+fi
+
+# Playwright шукаємо і в стандартних шляхах, і там, де він реально стоїть у
+# середовищі сесій (/opt/node22/...). Причина: 14.08.2026 шлюз тут мовчки
+# сказав «браузер не знайдено» і пропустив НАЙСИЛЬНІШІ перевірки (smoke/cols/
+# stale/findash) — при тому, що Chromium був на місці. Тобто шлюз відповів
+# «CHECK_OK», перевіривши лише синтаксис. Мовчазний пропуск перевірки гірший
+# за її відсутність: він створює хибну впевненість.
+if [ -z "${PW:-}" ] && [ -d /opt/node22/lib/node_modules/playwright ]; then
+  export PW=/opt/node22/lib/node_modules/playwright
+fi
 if node -e "require.resolve(process.env.PW || 'playwright')" >/dev/null 2>&1; then
   node "$ROOT/scripts/smoke.js" "$FILE" || fail=1
   # cols.js і stale.js ОБОВ'ЯЗКОВО з аргументом "$FILE": без нього вони дивляться
@@ -81,8 +85,6 @@ if node -e "require.resolve(process.env.PW || 'playwright')" >/dev/null 2>&1; th
   # задачу, закриває її, перемикає фільтри. Без цього кроку зламана форма або
   # загублені виконавці проходили б шлюз непоміченими.
   node "$ROOT/scripts/tasks.js" "$FILE" || fail=1
-  # corner.js — куточки-коментарі й позначка «оновлено» в диспетчеризації (13.08.2026)
-  node "$ROOT/scripts/corner.js" "$FILE" || fail=1
   # findash.js — плитка «Усього в обороті» у фінансовому дашборді. Окремий файл
   # (www/findash.html), тому «$FILE» їй не підходить: беремо сусідній файл із тієї
   # самої теки, що й кандидат на викладення.

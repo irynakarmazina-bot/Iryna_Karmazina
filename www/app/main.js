@@ -772,6 +772,25 @@ let DISP_QUICK = null;          // швидкий фільтр з плиток �
    У списку STATUSES цього статусу навмисно немає, тому він не з'являється ні у
    випадайці фільтра, ні у виборі статусу в картці угоди. */
 const CANCELLED_ST = "Скасована";
+/* МІСЦЕ ПІД РЕДАКТОРОМ. Календар у <input type="date"> і список у <select>
+   малює САМ БРАУЗЕР, і відкриваються вони вниз від поля — їхньою позицією ми
+   не керуємо. Для останніх рядків таблиці це означало, що дату неможливо
+   вибрати: календар вилазив за нижній край екрана (зауваження користувачки
+   14.08.2026, угода 282).
+   Тому перед відкриттям редактора дивимось, чи лишається під клітинкою місце
+   на календар, і якщо ні — підкручуємо так, щоб вона стала по центру.
+   scrollIntoView сам прокручує потрібного предка, тобто і власну прокрутку
+   таблиці (#dscroll), і сторінку.
+   Прокрутка МИТТЄВА, не smooth: фокус ставиться одразу після, і плавна
+   анімація відкрила б календар ще на старому місці. */
+function roomForEditor(el, need){
+  try{
+    const r = el.getBoundingClientRect();
+    if (window.innerHeight - r.bottom < (need || 330))
+      el.scrollIntoView({block: "center", behavior: "auto"});
+  }catch(e){ /* дуже старий браузер — просто лишаємо як є */ }
+}
+
 async function dispRows(){
   if (!DISP_CACHE) DISP_CACHE = (await loadAll(T["Диспетчеризація"]))
     .filter(r => String(r["Статус"] || "").trim() !== CANCELLED_ST);
@@ -1383,6 +1402,7 @@ PAGES.dispatch = async () => {
           `<option${o===cur?" selected":""}>${esc(o)}</option>`).join("")}</select>`
       : `<input class="edinput" type="${kind==="date"?"date":"text"}" value="${esc(val0)}">`;
     const inp = td.querySelector(".edinput");
+    roomForEditor(td);
     inp.focus();
     if (kind === "text") inp.select();
     let closed = false;
@@ -2295,6 +2315,7 @@ function editCardField(td, r){
       ? `<textarea class="edinput" rows="3">${esc(val0)}</textarea>`
       : `<input class="edinput" type="${isDate?"date":"text"}" value="${esc(val0)}">`;
   const inp = td.querySelector(".edinput");
+  roomForEditor(td);
   inp.focus();
   if (inp.tagName === "INPUT" && !isDate) inp.select();
   let closed = false;
@@ -2954,6 +2975,7 @@ function bindUserEdit(rows){
       ? `<select class="edinput">${ROLE_LIST.map(o=>`<option${o===cur?" selected":""}>${esc(o)}</option>`).join("")}</select>`
       : `<input class="edinput" type="text" value="${esc(cur)}">`;
     const inp = td.querySelector(".edinput");
+    roomForEditor(td);
     inp.focus();
     let closed = false;
     const finish = (ok) => {
