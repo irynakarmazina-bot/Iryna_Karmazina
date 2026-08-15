@@ -1,7 +1,7 @@
 {
-  "stdout": "--- варіанти адрес ---\nhttp://134.209.94.12/                          308  -> https://134.209.94.12/\nhttp://134.209.94.12/app/main.js               308  -> https://134.209.94.12/app/main.js\nhttps://134.209.94.12/dashboard                200 text/html; charset=utf-8 -> \nhttps://134.209.94.12/index.html               200 text/html; charset=utf-8 -> \n--- маршрути Caddy ---\n{\"apps\":{\"http\":{\"servers\":{\"srv0\":{\"listen\":[\":443\"],\"routes\":[{\"handle\":[{\"handler\":\"subroute\",\"routes\":[{\"handle\":[{\"encodings\":{\"gzip\":{}},\"handler\":\"encode\",\"prefer\":[\"gzip\"]},{\"handler\":\"reverse_proxy\",\"upstreams\":[{\"dial\":\"127.0.0.1:8793\"}]}]}]}],\"match\":[{\"host\":[\"cabinet.unitex.od.ua\"]}],\"terminal\":true},{\"handle\":[{\"handler\":\"subroute\",\"routes\":[{\"handle\":[{\"encodings\":{\"gzip\":{}},\"handler\":\"encode\",\"prefer\":[\"gzip\"]}]},{\"group\":\"group12\",\"handle\":[{\"handler\":\"subroute\",\"routes\":[{\"group\":\"group7\",\"handle\":[{\"handler\":\"rewrite\",\"uri\":\"/localcosts?token=ab035256f864e587ac4f2173ff0e9b12\"}]},{\"handle\":[{\"handler\":\"reverse_proxy\",\"upstreams\":[{\"dial\":\"127.0.0.1:8791\"}]}]}]}],\"match\":[{\n",
-  "stderr": "",
-  "returncode": 0,
-  "id": "erp-ui-down3",
-  "ts": "2026-08-15T10:05:30Z"
+  "stdout": "",
+  "stderr": "'utf-8' codec can't decode byte 0xd1 in position 504: invalid continuation byte",
+  "returncode": -1,
+  "id": "erp-ui-down4",
+  "ts": "2026-08-15T10:05:52Z"
 }
