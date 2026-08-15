@@ -103,6 +103,15 @@ ROLE_EDIT = {"Адміністратор", "Сейлз-менеджер", "Оп�
 MARK_ROLES = {"Бухгалтер", "Фінансист"}
 MARK_FIELDS = {"Id", "Переказ за кордон", "Дата переказу", "Сума переказу"}
 
+# ── третій виняток: бухгалтер прикріплює файли до угоди ───────────────────
+# Дозвіл користувачки 15.08.2026 («дозволь»). Бухгалтер угоди не редагує, але
+# доносить до них акти й рахунки, а прикріплення ПИШЕ в колонку «Файли».
+# Дозволено рівно дві колонки і рівно PATCH: ні статус, ні дати, ні суми цим
+# шляхом не пройдуть. У фасаді той самий перелік — ATTACH_ROLES (www/app/main.js):
+# фасад ховає кнопку, прошарок стереже сам запис.
+FILE_ROLES = {"Бухгалтер"}
+FILE_FIELDS = {"Id", "Файли"}
+
 # ── другий виняток: задачі ────────────────────────────────────────────────
 # Розділ «Задачі» є в nav У ВСІХ ролей, окрім «Логіста». Правило ROLE_EDIT
 # описує право правити УГОДИ — бухгалтер і фінансист його не мають і мати не
@@ -251,15 +260,24 @@ def decide(method, path, role, name, fields=None, email=None):
             # виняток другий — позначка переказу за кордон, і тільки PATCH
             mark_ok = (role in MARK_ROLES and tname == "Диспетчеризація"
                        and method == "PATCH")
-            if not (task_ok or mark_ok):
+            file_ok = (role in FILE_ROLES and tname == "Диспетчеризація"
+                       and method == "PATCH")
+            if not (task_ok or mark_ok or file_ok):
                 return False, "роль «%s» не може змінювати дані" % role, None
-            if mark_ok:      # task_ok сюди не потрапляє — це інша таблиця
+            if mark_ok or file_ok:   # task_ok сюди не потрапляє — це інша таблиця
                 if fields is None:
                     return False, "не вдалося розібрати, що саме змінюють", None
-                extra = fields - MARK_FIELDS
+                # дозволене — це об'єднання винятків, які має саме ця роль
+                allowed_fields = set()
+                if mark_ok:
+                    allowed_fields |= MARK_FIELDS
+                if file_ok:
+                    allowed_fields |= FILE_FIELDS
+                extra = fields - allowed_fields
                 if extra:
-                    return False, ("роль «%s» може міняти лише позначку переказу, а не %s"
-                                   % (role, ", ".join(sorted(extra))[:80])), None
+                    return False, ("роль «%s» може міняти лише %s, а не %s"
+                                   % (role, ", ".join(sorted(allowed_fields)),
+                                      ", ".join(sorted(extra))[:80])), None
         if tname == "Журнал дій" and method == "DELETE":
             return False, "журнал дій не видаляється", None
     # Задачі: адміністратор бачить усі, решта — лише свої (12.08.2026).
