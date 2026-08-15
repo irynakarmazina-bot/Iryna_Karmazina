@@ -204,7 +204,13 @@ const RC = {
      «Фінанси», дашборда в нього немає взагалі.
      Якщо він усе ж набере адресу дашборда, go() поверне його на «Фінанси»:
      `if (!cfg().nav.includes(page)) page = cfg().nav[0]`. */
-  "Фінансист":            { nav:["finance","tasks","clients","accounting","instr","users"], scope:"all", fin:"full", sync:true },
+  /* «dispatch» повернуто фінансисту 15.08.2026 на прохання користувачки: «додай для
+     ролі Фінансист можливість переглядати Диспетчеризацію та скачувати і створювати
+     документи». Саме ПЕРЕГЛЯД: `edit` не додаємо, тому правити клітинки він не може
+     (CAN_EDIT = cfg().edit), а прошарок і поготів пропускає йому лише читання угод
+     плюс позначку переказу. «finance» лишається ПЕРШИМ — фінансист і далі заходить
+     одразу у «Фінанси» (рішення 11.08.2026). */
+  "Фінансист":            { nav:["finance","tasks","dispatch","clients","accounting","instr","users"], scope:"all", fin:"full", sync:true },
   "Операційний менеджер": { nav:["dashboard","tasks","dispatch","clients","crm","instr","users"], scope:"ops", fin:"none", sync:true, edit:true },
   "Логіст":               { nav:["dispatch","instr","users"], scope:"all", cols:"logist", fin:"none", sync:false, edit:true },
   "Перегляд":             { nav:["dashboard","tasks","dispatch","calc","finance","clients","instr","users"], scope:"all", fin:"blur", sync:false },
@@ -1882,7 +1888,14 @@ function openDocs(r){
   const dtTail = [routeArrows(_s(r, "Маршрут")), dtBL].filter(Boolean).join(" · ");
   $("doc-title").innerHTML = `📄 Документи угоди №${esc(r["Угода"])} · ${esc(r["Клієнт"] || "")}`
     + (dtTail ? ` <span style="font-weight:400;color:var(--muted)">· ${esc(dtTail)}</span>` : "");
-  $("doc-upload-wrap").style.display = (ROLE === "Перегляд") ? "none" : "block";
+  /* Прикріплення файлу ПИШЕ в угоду (колонка «Файли»), тому показуємо його лише тим,
+     хто має право правити угоди. Ролям без цього права (Бухгалтер, Фінансист, Перегляд)
+     прошарок `server/gateway.py` такий запис відхиляє — кнопка була б несправною.
+     Скачування і формування документів від цього не залежать: файли віддаються за
+     прямим посиланням, а «Сформувати документ» іде на службову адресу /gen-doc, яка
+     має власний перелік дозволених ролей (docgen.py: заборонено лише «Перегляд» і
+     «Логіст»). 15.08.2026. */
+  $("doc-upload-wrap").style.display = cfg().edit ? "block" : "none";
   $("gen-wrap").style.display = GEN_DENY.has(ROLE) ? "none" : "block";
   $("gen-type").value = ""; $("gen-form").style.display = "none"; $("gen-form").innerHTML = "";
   $("gen-btn").style.display = "none"; $("gen-status").textContent = "";
