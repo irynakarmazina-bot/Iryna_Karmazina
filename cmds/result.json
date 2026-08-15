@@ -1,7 +1,7 @@
 {
-  "stdout": "Rebasing (1/1)\n\n                                                                                \nSuccessfully rebased and updated refs/heads/main.\nTo https://github.com/irynakarmazina-bot/Iryna_Karmazina.git\n   8cc53e361..527c8ff04  HEAD -> main\n527c8ff04 handoff: угоди з питаннями по датах доставки\n8cc53e361 relay: дозалити файл переліку\n",
-  "stderr": "From https://github.com/irynakarmazina-bot/Iryna_Karmazina\n * branch                main       -> FETCH_HEAD\n   9c5d43622..8cc53e361  main       -> origin/main\n",
+  "stdout": "КОНТРАГЕНТ: Форлайн\n   Комментарий                  ''\n   Примечание                   ''\n   НаименованиеПолное           ''\n   КодПоЕДРПОУ                  ''\n   ДатаПоследнегоРедактирования '0001-01-01T00:00:00'\n\nШУКАЮ РАНІШНЮ КОПІЮ ЙОГО ДАНИХ У НАС:\n  файли з цим GUID у /root/direct-sync:\n    /root/direct-sync/names.json\n",
+  "stderr": "",
   "returncode": 0,
-  "id": "37101451ffb8",
-  "ts": "2026-08-15T09:32:46Z"
+  "id": "erp-chkcontr",
+  "ts": "2026-08-15T09:59:07Z"
 }
