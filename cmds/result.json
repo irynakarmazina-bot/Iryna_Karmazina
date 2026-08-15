@@ -1,7 +1,7 @@
 {
-  "stdout": "",
-  "stderr": "'utf-8' codec can't decode byte 0xd1 in position 504: invalid continuation byte",
-  "returncode": -1,
-  "id": "erp-ui-down4",
-  "ts": "2026-08-15T10:05:52Z"
+  "stdout": "HEAD is now at d643f9e6c relay: викласти кабінет і перевірити наживо\nactive\nдокумент 252: код=200 тип=application/pdf байт=1048935\n%PDF-\nсторінка: 200 байт=167566\nугода 173 -> Прибуття: не знайдено\n",
+  "stderr": "From https://github.com/irynakarmazina-bot/Iryna_Karmazina\n * branch                main       -> FETCH_HEAD\n   241e45da8..d643f9e6c  main       -> origin/main\n",
+  "returncode": 0,
+  "id": "09d0acaa35b5",
+  "ts": "2026-08-15T10:18:36Z"
 }
