@@ -81,6 +81,15 @@ check('в авіа-угоді показана авіалінія', airCell.incl
 const seaCell = await page.locator('tr.deal[data-id="201"] td[data-l="Судно / авіалінія"]').innerText();
 check('у морській лишилось судно', seaCell.includes('MAERSK'), seaCell);
 
+console.log('\n=== доставлені: у «Прибуття» ФАКТ, а не план ===');
+/* Угода 202 доставлена: ETA (план) 28.05.26, «Планова до клієнта (факт)» 01.06.26.
+   До 15.08.2026 кабінет показував клієнту план і видавав його за факт. */
+const arrCell = await page.locator('tr.deal[data-id="202"] td[data-l="Прибуття"]').innerText();
+check('показана фактична дата доставки', arrCell.includes('01.06.26'), arrCell);
+check('планова дата вже не показується', !arrCell.includes('28.05.26'), arrCell);
+const arrOnWay = await page.locator('tr.deal[data-id="201"] td[data-l="Прибуття"]').innerText();
+check('у вантажу в дорозі лишився план ETA', /\d{2}\.\d{2}\.\d{2}/.test(arrOnWay), arrOnWay);
+
 console.log('\n=== колонка «Реліз» ===');
 check('колонка є в шапці', (await page.locator('th', {hasText: 'Реліз'}).count()) === 1);
 check('квадратик є в кожному рядку',

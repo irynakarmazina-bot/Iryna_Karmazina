@@ -43,11 +43,20 @@ ROWS = [
      "Коментар клієнту": "Все за планом",
      "Файли": [{"title": "[Лінійний коносамент] bl101.pdf", "path": "download/noco/a/bl101.pdf",
                 "mimetype": "application/pdf"},
-               {"title": "[Внутрішній] margin.xlsx", "path": "download/noco/a/margin.xlsx"}]},
+               {"title": "[Внутрішній] margin.xlsx", "path": "download/noco/a/margin.xlsx"},
+               # Пробіл у назві — саме на такому файлі кабінет падав 15.08.2026
+               # (угода 252, «OBL NO.GDNBB2607002TH.pdf»): шлях підставлявся сирим.
+               {"title": "[Т1] t1 doc.pdf", "path": "download/noco/a/t1 doc.pdf",
+                "signedPath": "dltemp/xxx/1/t1 doc.pdf"}]},
     {"Угода": "102", "Клієнт": "мірандор  ", "Статус": "Вантаж доставлено",
      "Вид перевезення": "Авіа", "Маршрут": "Bangkok - Kyiv", "ETA": "2026-06-01",
      "Коментар клієнту": "Закрито </script><script>window.PWN=1</script>",
      "Файли": []},
+    # Доставлена угода, де ПЛАН і ФАКТ розходяться. У таблиці має бути факт.
+    {"Угода": "105", "Клієнт": "Мірандор", "Статус": "Вантаж доставлено",
+     "Напрямок": "Імпорт", "Вид перевезення": "Море", "Маршрут": "Ningbo - Gdansk",
+     "ETD (факт)": "2026-01-05", "ETA": "2026-03-10",
+     "Вивантаження у отримувача (факт)": "2026-04-17", "Файли": []},
     {"Угода": "103", "Клієнт": "Мірандор Плюс", "Статус": "В морі",
      "Маршрут": "Busan - Gdansk", "ETA": "2026-09-01", "Вантаж": "ЧУЖЕ",
      "Файли": [{"title": "[Рахунок] secret.pdf", "path": "download/noco/b/secret.pdf"}]},
@@ -203,7 +212,7 @@ check("сторінка кабінету відкрилась", code == 200 and 
 data = json.loads(re.search(r"const DEALS = (\[.*?\]);\nconst TODAY", page, re.S).group(1)
                   .replace("<\\/", "</"))
 deals = sorted(str(d.get("Угода")) for d in data)
-check("угоди рівно свої (101,102)", deals == ["101", "102"], deals)
+check("угоди рівно свої (101,102,105)", deals == ["101", "102", "105"], deals)
 check("чужа угода 103 відсутня", "ЧУЖЕ" not in page and "Busan" not in page)
 check("скасована 104 не показана", "104" not in deals)
 check("назва компанії в шапці", "Мірандор" in page)
@@ -214,6 +223,10 @@ check("клієнтський документ є", "Лінійний конос
 check("шляху у сховищі в сторінці немає", "download/noco" not in page)
 check("«</script>» у коментарі знешкоджено", page.count("</script>") == 1, page.count("</script>"))
 check("токен NocoDB не потрапив у сторінку", "faketoken" not in page)
+# Доставлена угода 105: план 10.03.26, факт доставки 17.04.26. Клієнт має бачити ФАКТ.
+check("у доставленої угоди дані про факт доставки поїхали в кабінет",
+      "2026-04-17" in page)
+check("план прибуття теж лишився в даних (для схеми)", "2026-03-10" in page)
 for col in ("Менеджер", "Оп. менеджер", "Коментар\"", "Профіт", "Ставка"):
     check("внутрішнє поле «%s» не поїхало" % col, ('"%s"' % col) not in page)
 
@@ -229,6 +242,15 @@ code, _, _ = get("/doc/101/5")
 check("неіснуючий номер → 404", code == 404, code)
 code, _, _ = get("/doc/101/../../etc/passwd")
 check("вихід із каталогу не проходить", code == 404, code)
+
+# Пробіл у назві файлу. Був баг 15.08.2026: сирий шлях у запиті до сховища —
+# файл не віддавався зовсім (502 «Файл тимчасово недоступний»).
+FETCHED.clear()
+code, blob, _ = get("/doc/101/1")
+check("документ із пробілом у назві віддається", code == 200 and blob.startswith("%PDF"), code)
+url = FETCHED[-1] if FETCHED else ""
+check("шлях до сховища екранований", "%20" in url and " " not in url, url)
+check("береться постійний шлях, не тимчасовий", "dltemp" not in url, url)
 
 print("\n=== 7. Вихід ===")
 code, body, _ = post("/logout", {"_csrf": "підроблено"})
@@ -374,7 +396,7 @@ code, _, _ = post("/login", {"email": "petro@m.ua", "password": "петрів-п
 check("другий користувач тієї ж компанії входить", code == 303, code)
 _, page_petro, _ = get("/")
 check("обидва бачать той самий набір угод",
-      deals_of(page_ivan) == deals_of(page_petro) == ["101", "102"],
+      deals_of(page_ivan) == deals_of(page_petro) == ["101", "102", "105"],
       "%s vs %s" % (deals_of(page_ivan), deals_of(page_petro)))
 con = CAB.db()
 who = [r["email"] for r in con.execute(

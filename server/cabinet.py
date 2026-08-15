@@ -451,7 +451,10 @@ def docs_of(row):
         kind = m.group(1).strip() if m else ""
         if kind and kind not in BP.CLIENT_DOCS:
             continue
-        path = f.get("signedPath") or f.get("path") or ""
+        # `path` — постійна адреса у сховищі, `signedPath` — тимчасова (dltemp/…)
+        # з датою протермінування всередині. Беремо постійну, бо файл віддається
+        # сервером із токеном і підпис нам не потрібен, а тимчасова колись стухне.
+        path = f.get("path") or f.get("signedPath") or ""
         if not path:
             continue
         out.append({"kind": kind or "Документ",
@@ -1286,8 +1289,15 @@ class Handler(BaseHTTPRequestHandler):
         if not (0 <= idx < len(docs)):
             return self.send_plain(404, "Документа немає.")
         doc = docs[idx]
+        # Шлях у сховищі підставляємо ЕКРАНОВАНИМ. Причина (15.08.2026): у першому
+        # ж реальному документі — угода 252, «OBL NO.GDNBB2607002TH.pdf» — у назві
+        # був пробіл, і запит із сирим шляхом не проходив зовсім, клієнт бачив
+        # «Файл тимчасово недоступний». Той самий шлях з екранованим пробілом
+        # віддає файл цілим (200, 1 048 935 байт). Раніше це не спливало, бо в базі
+        # не було жодного вкладення. `%` лишаємо як є, щоб не закодувати двічі.
+        url = NC + "/" + urllib.parse.quote(doc["path"].lstrip("/"), safe="/%")
         try:
-            req = urllib.request.Request(NC + "/" + doc["path"].lstrip("/"),
+            req = urllib.request.Request(url,
                                          headers={"xc-token": open(TOKEN_FILE).read().strip()})
             with urllib.request.urlopen(req, timeout=60) as resp:
                 blob = resp.read()
