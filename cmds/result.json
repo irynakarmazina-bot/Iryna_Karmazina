@@ -1,7 +1,7 @@
 {
-  "stdout": "КОНТРАГЕНТ: Форлайн\n   Комментарий                  ''\n   Примечание                   ''\n   НаименованиеПолное           ''\n   КодПоЕДРПОУ                  ''\n   ДатаПоследнегоРедактирования '0001-01-01T00:00:00'\n\nШУКАЮ РАНІШНЮ КОПІЮ ЙОГО ДАНИХ У НАС:\n  файли з цим GUID у /root/direct-sync:\n    /root/direct-sync/names.json\n",
+  "stdout": "<class 'dict'>\n{\"client\": {\"6fdbf3b2-c568-11ea-859a-bd10f878b2bf\": \"100 ШИН\", \"2f6ddfb2-d478-11ee-a4ca-005056b38d37\": \"1001 дрібниця\", \"e3883ec4-c581-11ea-859a-bd10f878b2bf\": \"4отель\", \"6fdbf3b6-c568-11ea-859a-bd10f878b2bf\": \"A&S МАСТЕР\", \"f7702209-c567-11ea-859a-bd10f878b2bf\": \"Acadana Cimento\", \"f77021d9-c567-11ea-859a-bd10f878b2bf\": \"Aclima\", \"ff2023dd-c581-11ea-859a-bd10f878b2bf\": \"Agala\", \"62b319b6-c568-11e\n---\n-rw-r--r-- 1 root root 541516 Aug 15 07:00 /root/direct-sync/names.json\n",
   "stderr": "",
   "returncode": 0,
-  "id": "erp-chkcontr",
-  "ts": "2026-08-15T09:59:07Z"
+  "id": "erp-names",
+  "ts": "2026-08-15T09:59:29Z"
 }
