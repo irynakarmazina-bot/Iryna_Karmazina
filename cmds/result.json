@@ -1,7 +1,7 @@
 {
-  "stdout": "",
-  "stderr": "/bin/sh: 1: Syntax error: Unterminated quoted string\n",
-  "returncode": 2,
-  "id": "erp-gw2",
-  "ts": "2026-08-15T14:51:38Z"
+  "stdout": "порт 8792 (прошарок) згадується: 1\nпорт 8080 (NocoDB)   згадується: 1\nпорт 8789 (findata)  згадується: 1\n--- куди що проксюється ---\n  проксі → ['127.0.0.1:8793'] | шлях: /apps/http/servers/srv0/routes[0]/handle[0]/routes[0]/handle[1]\n  проксі → ['127.0.0.1:8791'] | шлях: /apps/http/servers/srv0/routes[1]/handle[0]/routes[1]/handle[0]/routes[1]/handle[0]\n  проксі → ['127.0.0.1:8791'] | шлях: /apps/http/servers/srv0/routes[1]/handle[0]/routes[2]/handle[0]/routes[1]/handle[0]\n  проксі → ['127.0.0.1:8789'] | шлях: /apps/http/servers/srv0/routes[1]/handle[0]/routes[3]/handle[0]/routes[0]/handle[0]\n  проксі → ['127.0.0.1:8787'] | шлях: /apps/http/servers/srv0/routes[1]/handle[0]/routes[4]/handle[0]/routes[1]/handle[0]\n  проксі → ['127.0.0.1:8788'] | шлях: /apps/http/servers/srv0/routes[1]/handle[0]/routes[5]/handle[0]/routes[1]/handle[0]\n  проксі → ['127.0.0.1:8080'] | шлях: /apps/http/servers/srv0/routes[1]/handle[0]/routes[6]/handle[0]/routes[0]/handle[0]\n  проксі → ['127.0.0.1:8793'] | шлях: /apps/http/servers/srv0/routes[1]/handle[0]/routes[7]/handle[0]/routes[0]/handle[0]\n  проксі → ['127.0.0.1:8790'] | шлях: /apps/http/servers/srv0/routes[1]/handle[0]/routes[8]/handle[0]/routes[0]/handle[0]\n  проксі → ['127.0.0.1:8792'] | шлях: /apps/http/servers/srv0/routes[1]/handle[0]/routes[9]/handle[0]/routes[0]/handle[0]\n  проксі → ['127.0.0.1:8788'] | шлях: /apps/http/servers/srv0/routes[1]/handle[0]/routes[10]/handle[0]/routes[1]/handle[0]\n",
+  "stderr": "",
+  "returncode": 0,
+  "id": "erp-gw3",
+  "ts": "2026-08-15T14:52:00Z"
 }
