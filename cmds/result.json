@@ -1,7 +1,7 @@
 {
-  "stdout": "   бекап: app-main.js-20260815-132421.bak (345750 б)\n   викладено модулів: 1\n   журнал: 2026-08-15T13:24:21\tmain\t945e56587\tв. 13.08 15:36\tindex.html:64284 findash.html:33986 finperiod.html:17527\trelay: викласти зміну прав фінансиста\n   UI/FINDASH/CHART: 200 200 200\nDEPLOY_OK · гілка main · коміт 945e56587 · позначка «в. 13.08 15:36»\n",
-  "stderr": "",
+  "stdout": "--- чи в дорозі прошарок ---\n--- служба прошарку ---\nactive\nEnvironment=GATEWAY_PORT=8792\n--- копія на сервері ---\n-rw-r--r-- 1 root root 24064 Aug 13 13:08 /root/gateway.py\n",
+  "stderr": "  File \"<string>\", line 1\n    import json,sys;c=json.load(sys.stdin);s=json.dumps(c,ensure_ascii=False);print(8792\n                                                                                   ^\nSyntaxError: '(' was never closed\n",
   "returncode": 0,
-  "id": "erp-deploy-fin",
-  "ts": "2026-08-15T10:24:21Z"
+  "id": "erp-gw",
+  "ts": "2026-08-15T14:51:21Z"
 }
