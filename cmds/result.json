@@ -1,7 +1,7 @@
 {
-  "stdout": "-rw-r--r-- 1 root root 481 Aug 14 18:00 /tmp/enum.py\n--- після видалення ---\nфайла /tmp/enum.py більше немає\ntpl_make.py\ntpl_min.py\nverify_tpl.py\n",
-  "stderr": "",
-  "returncode": 0,
-  "id": "erp-rm-enum",
-  "ts": "2026-08-14T15:18:09Z"
+  "stdout": "",
+  "stderr": "self.parent.error(\n               ^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/urllib/request.py\", line 559, in error\n    return self._call_chain(*args)\n           ^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/urllib/request.py\", line 492, in _call_chain\n    result = func(*args)\n             ^^^^^^^^^^^\n  File \"/usr/lib/python3.12/urllib/request.py\", line 639, in http_error_default\n    raise HTTPError(req.full_url, code, msg, hdrs, fp)\nurllib.error.HTTPError: HTTP Error 400: Bad request\n",
+  "returncode": 1,
+  "id": "erp-etafind",
+  "ts": "2026-08-15T09:10:35Z"
 }
