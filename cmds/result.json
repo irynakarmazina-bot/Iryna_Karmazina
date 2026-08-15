@@ -1,7 +1,7 @@
 {
-  "stdout": "--- чи в дорозі прошарок ---\n--- служба прошарку ---\nactive\nEnvironment=GATEWAY_PORT=8792\n--- копія на сервері ---\n-rw-r--r-- 1 root root 24064 Aug 13 13:08 /root/gateway.py\n",
-  "stderr": "  File \"<string>\", line 1\n    import json,sys;c=json.load(sys.stdin);s=json.dumps(c,ensure_ascii=False);print(8792\n                                                                                   ^\nSyntaxError: '(' was never closed\n",
-  "returncode": 0,
-  "id": "erp-gw",
-  "ts": "2026-08-15T14:51:21Z"
+  "stdout": "",
+  "stderr": "/bin/sh: 1: Syntax error: Unterminated quoted string\n",
+  "returncode": 2,
+  "id": "erp-gw2",
+  "ts": "2026-08-15T14:51:38Z"
 }
