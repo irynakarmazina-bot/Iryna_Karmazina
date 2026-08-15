@@ -1,7 +1,7 @@
 {
-  "stdout": "КОЛОНКА: Документи | тип: Checkbox | id: cgj9oxisuaswjbh\nКОЛОНКА: Файли | тип: Attachment | id: cb427dp25ef992b\nугод усього: 280 | з непорожнім полем «Файли»: 1\nугод із непорожнім полем «Документи»: 0 []\n",
+  "stdout": "угода: 252 | клієнт: ГРАНД МАРИН | статус: В порту перевалки\nоновлено: 2026-08-14 09:36:48+00:00\n[\n {\n  \"path\": \"download/2026/08/14/2f3859e5d334b0598fcf97b05ce59131f554ae38/OBL NO.GDNBB2607002TH_rcXhT.pdf\",\n  \"title\": \"[Домашній коносамент] OBL NO.GDNBB2607002TH.pdf\",\n  \"mimetype\": \"application/pdf\",\n  \"size\": 1048935,\n  \"icon\": \"mdi-pdf-box\",\n  \"id\": \"atlvqy46h88s70cs\",\n  \"signedPath\": \"dltemp/mpvTvEZ6P1hxWCTF/1786795800000/2026/08/14/2f3859e5d334b0598fcf97b05ce59131f554ae38/OBL NO.GDNBB2607002TH_rcXhT.pdf\"\n }\n]\n",
   "stderr": "",
   "returncode": 0,
-  "id": "56ca9ea2f5b8",
-  "ts": "2026-08-15T10:02:24Z"
+  "id": "56faed023220",
+  "ts": "2026-08-15T10:02:58Z"
 }
