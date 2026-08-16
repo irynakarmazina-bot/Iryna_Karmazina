@@ -24,7 +24,7 @@ const srv = http.createServer((req,res)=>{
   await new Promise(r=>srv.listen(0,"127.0.0.1",r));
   const url = "http://127.0.0.1:"+srv.address().port;
   const browser = await chromium.launch();
-  const page = await browser.newPage({ viewport:{width:390,height:844}, isMobile:true, hasTouch:true });
+  const page = await browser.newPage({ viewport:{width:390,height:844}, isMobile:true, hasTouch:true, colorScheme:'dark' });
   const errs = []; page.on("pageerror", e=>errs.push(e.message));
   await page.route("**/api/**", route => { const u = route.request().url();
     if (u.includes("/auth/")) return route.fulfill({status:200,contentType:"application/json",body:JSON.stringify({token:"j"})});
@@ -38,6 +38,12 @@ const srv = http.createServer((req,res)=>{
   await page.waitForTimeout(1200);
   await page.evaluate(()=>{ if (typeof go==="function") return go("dispatch"); });
   await page.waitForTimeout(900);
+  /* Телефон навмисно емулюється в ТЕМНОМУ системному режимі: саме так у
+     користувачки 16.08.2026 картка з позначкою «застаріло» малювалась світлою
+     серед темних. Темну тему вимкнено назовсім (data-theme="light" у <html>),
+     і ця перевірка стежить, щоб вона не повернулась. */
+  const t = await page.evaluate(()=>({ theme: document.documentElement.getAttribute("data-theme"),
+    bg: getComputedStyle(document.body).backgroundColor }));
   const g = await page.evaluate(()=>{
     const rows=[...document.querySelectorAll("#drows tr")];
     const last=rows[rows.length-1].getBoundingClientRect();
@@ -50,9 +56,11 @@ const srv = http.createServer((req,res)=>{
   if (g.maxH !== "none") bad.push("рамці задано max-height="+g.maxH+" (на телефоні має бути none)");
   if (g.docH < g.lastBottom - 4) bad.push("сторінка коротша за вміст: "+g.docH+" проти "+g.lastBottom+" — до нижніх карток не прокрутити");
   if (g.spacer) bad.push("на телефоні з'явився порожній добірний блок");
+  if (t.theme !== "light") bad.push("темна тема повернулась: data-theme=" + t.theme);
+  if (t.bg !== "rgb(249, 249, 247)") bad.push("тло сторінки не світле: " + t.bg);
   if (errs.length) bad.push("помилка JS: "+errs[0]);
-  console.log("карток: %s | max-height: %s | низ останньої: %s | висота сторінки: %s",
-              g.rows, g.maxH, g.lastBottom, g.docH);
+  console.log("карток: %s | max-height: %s | низ останньої: %s | висота сторінки: %s | тема: %s, тло: %s",
+              g.rows, g.maxH, g.lastBottom, g.docH, t.theme, t.bg);
   console.log(bad.length ? "PHONE_FAIL — " + bad.join("; ") : "PHONE_OK — на телефоні видно всі картки, таблиця не обрізана");
   await browser.close(); srv.close();
   process.exit(bad.length?1:0);
