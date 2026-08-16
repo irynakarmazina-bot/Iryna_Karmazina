@@ -1,1 +1,1 @@
-{"id": "erp-deploy-phone", "cmd": "cd /root/Iryna_Karmazina && git fetch origin main -q && git checkout main -q && git pull -q origin main && bash server/deploy_ui.sh main 2>&1 | tail -4"}
+{"id": "erp-deploy-theme", "cmd": "cd /root/Iryna_Karmazina && git fetch origin main -q && git checkout main -q && git pull -q origin main && bash server/deploy_ui.sh main 2>&1 | tail -4"}
