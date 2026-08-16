@@ -1,7 +1,7 @@
 {
-  "stdout": "   викладено модулів: 1\n   журнал: 2026-08-16T07:45:28\tmain\t970b9bd52\tв. 13.08 15:36\tindex.html:64284 findash.html:33986 finperiod.html:17527\trelay: викласти виправлення телефонної таблиці\n   UI/FINDASH/CHART: 200 200 200\nDEPLOY_OK · гілка main · коміт 970b9bd52 · позначка «в. 13.08 15:36»\n",
+  "stdout": "   викладено модулів: 1\n   журнал: 2026-08-16T07:51:54\tmain\t0f33780c4\tв. 13.08 15:36\tindex.html:65589 findash.html:33986 finperiod.html:17527\trelay: викласти вимкнення темної теми\n   UI/FINDASH/CHART: 200 200 200\nDEPLOY_OK · гілка main · коміт 0f33780c4 · позначка «в. 13.08 15:36»\n",
   "stderr": "",
   "returncode": 0,
-  "id": "erp-deploy-phone",
-  "ts": "2026-08-16T04:45:28Z"
+  "id": "erp-deploy-theme",
+  "ts": "2026-08-16T04:51:54Z"
 }
