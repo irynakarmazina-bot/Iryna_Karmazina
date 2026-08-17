@@ -1,7 +1,7 @@
 {
-  "stdout": "сутностей: було 711, стало 711\nсутностей зі зміненим набором полів: 0\nEntitySet: було 711, стало 711, різниця: немає\nдовжина файла: 2849873 → 2849873\n",
+  "stdout": "7d3b81e40981d893108bcc25ce5f1cde  /root/erp-exp-metadata.xml\n7d3b81e40981d893108bcc25ce5f1cde  /root/erp-exp-metadata.xml.new\nФАЙЛИ ІДЕНТИЧНІ\n",
   "stderr": "",
   "returncode": 0,
-  "id": "erp-metadiff",
-  "ts": "2026-08-17T11:12:24Z"
+  "id": "erp-metahash",
+  "ts": "2026-08-17T11:12:57Z"
 }
