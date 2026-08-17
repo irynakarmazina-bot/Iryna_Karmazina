@@ -1,1 +1,1 @@
-{"id": "erp-runcheck", "cmd": "tail -4 /root/erp-scripts/run.log 2>/dev/null; echo \"--- журнал трекінгу ---\"; grep \"2026-08-17\" /root/direct-sync/maersk.log | tail -4"}
+{"id": "erp-runcheck2", "cmd": "tail -6 /root/erp-scripts/run.log 2>/dev/null; echo \"--- чи ще працює ---\"; pgrep -af maersk_track_sync | head -2 || echo \"процес завершився\""}
