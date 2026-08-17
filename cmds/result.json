@@ -1,7 +1,7 @@
 {
-  "stdout": "HTTP/1.1 308 Permanent Redirect\nLocation: https://134.209.94.12/\n--- за перенаправленням ---\nкінцевий: https://134.209.94.12/ код=200 байт=65589\n<title>UNITEX ERP</title>\n0\n60:cabinet.unitex.od.ua {\n",
+  "stdout": "акаунти ГРАНД МАРИН:\n   irynakarmazina@gmail.com | активний: 1 | пароль створено: так\n   a.malevskii@grandmarine.com.ua | активний: 1 | пароль створено: так\n",
   "stderr": "",
   "returncode": 0,
-  "id": "9ce1f038223c",
-  "ts": "2026-08-17T12:29:47Z"
+  "id": "3016b651704d",
+  "ts": "2026-08-17T12:34:04Z"
 }
