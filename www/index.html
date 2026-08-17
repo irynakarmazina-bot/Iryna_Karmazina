@@ -747,6 +747,7 @@
         <option value="akt">Акт наданих послуг (до інвойсу)</option>
         <option value="zayavka">Заявка на перевезення (додаток до договору)</option>
         <option value="zayavka_cma">Заявка CMA (agency haulage)</option>
+        <option value="maersk_zayavka">Заявка на авто Maersk (agency haulage)</option>
         <option value="loi">LOI CMA (export)</option>
         <option value="kkk">Заявка Кампус Коттон Клаб</option>
         <option value="t1">Заявка на Т1 (ВІМГАРАНТ)</option>
@@ -2302,6 +2303,29 @@ const GEN_FORMS = {
   {k:"goods3",label:"Вантаж 3"},
   {k:"packing",label:"Пакування"},
   {k:"rate",label:"Ставка"},
+ ],
+ maersk_zayavka: [
+  {k:"pickup_dt",label:"Дата і час подачі авто (напр. 27-28.08 на 8.00)"},
+  {k:"booking",label:"Номер букінгу",v:r=>r["BL"]},
+  {k:"cnt",label:"Кількість контейнерів",v:r=>r["Кількість"]||"1"},
+  {k:"cont_type",label:"Тип контейнера",v:r=>r["Тип обладнання"]},
+  {k:"line",label:"Судноплавна лінія",v:()=>"Маерск"},
+  {k:"goods",label:"Вантаж (англ. / укр.)",v:r=>r["Вантаж"]},
+  {k:"weight",label:"Вага брутто вантажу"},
+  {k:"loading_addr",label:"Місце завантаження (координати / адреса)",ta:1,v:(r,c)=>c["Адреса завантаження"]},
+  {k:"loading_contact",label:"Контакт на завантаженні",v:(r,c)=>c["Контакт завантаження"]},
+  {k:"customs_addr",label:"Митниця (координати / адреса)",ta:1,v:r=>r["Адреса розмитнення"]},
+  {k:"special",label:"Особливі вимоги"},
+  {k:"pol",label:"Порт завантаження",v:r=>r["POL"]},
+  {k:"transship",label:"Порт перевалки"},
+  {k:"pod",label:"Порт вивантаження",v:r=>r["POD"]},
+  {k:"vessel_voyage",label:"Судно / рейс",v:r=>joinNZ(r["Судно"],r["Вояж"]).replace(", ","\nРейс:")},
+  {k:"eta",label:"Дата судозаходу"},
+  {k:"rate",label:"Узгоджена ставка"},
+  {k:"currency",label:"Валюта платежу",v:()=>"USD"},
+  {k:"maersk_code",label:"Код компанії в системі Maersk",v:()=>"UA00078237"},
+  {k:"maersk_name",label:"Назва компанії в системі Maersk",v:()=>"UNITEX HD LTD"},
+  {k:"note",label:"Примітка (рядок «ВАЖНО»)",ta:1},
  ],
  loi: [
   {k:"booking",label:"Букінг",v:r=>r["BL"]},

@@ -3,13 +3,14 @@
 set -e
 cd /root
 
-# 1. venv з python-docx
+# 1. venv з python-docx (Word-бланки) і openpyxl (Excel-бланки, напр. заявка на авто Maersk)
 if [ ! -x /root/docgen-venv/bin/python3 ]; then python3 -m venv /root/docgen-venv; fi
-/root/docgen-venv/bin/pip install -q python-docx
+/root/docgen-venv/bin/pip install -q python-docx openpyxl
 
 # 2. шаблони бланків
 mkdir -p /root/doc-templates
 cp /root/Iryna_Karmazina/doc-templates/*.docx /root/doc-templates/
+cp /root/Iryna_Karmazina/doc-templates/*.xlsx /root/doc-templates/
 
 # 3. сервіс
 cp /root/Iryna_Karmazina/server/docgen.py /root/docgen.py
