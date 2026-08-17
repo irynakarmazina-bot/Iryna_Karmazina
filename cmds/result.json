@@ -1,7 +1,7 @@
 {
-  "stdout": "PUT_status 200\ntoEmail_now: sales@unitex.od.ua | from: docs@unitex.od.ua\nactive True\n",
+  "stdout": "сайт: код=200 байт=172660\nрозмір сторінки: 162498\nзнайдено посилань зі словом «кабінет»: 1\n    <a class=\"elementor-button elementor-button-link elementor-size-sm\" href=\"https://cabinet.unitex.od.ua\" target=\"_blank\"> <span class=\"elementor-button-content-wrapper\"> <span class=\"elementor-button-text\">Особистий кабінет</span> </span> </a>\n   href -> https://cabinet.unitex.od.ua\nкабінет: код=200\n",
   "stderr": "",
   "returncode": 0,
-  "id": "change-to-20260718-1",
-  "ts": "2026-08-17T11:05:52Z"
+  "id": "abf815c351c7",
+  "ts": "2026-08-17T11:10:22Z"
 }
