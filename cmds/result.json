@@ -1,7 +1,7 @@
 {
-  "stdout": "Traceback (most recent call last):\n  File \"/root/erp-scripts/mt_new.py\", line 790, in <module>\n    from runlock import single_run\nModuleNotFoundError: No module named 'runlock'\n",
-  "stderr": "",
-  "returncode": 0,
-  "id": "erp-dryrun260",
-  "ts": "2026-08-17T07:00:34Z"
+  "stdout": "",
+  "stderr": "Timeout (120s)",
+  "returncode": -1,
+  "id": "erp-dryrun260b",
+  "ts": "2026-08-17T07:02:50Z"
 }
