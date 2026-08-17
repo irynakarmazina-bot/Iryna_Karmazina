@@ -272,6 +272,62 @@ def fill_mloi(fields):
         fields["date_txt"] = date_dot(fields["date"])
     return fill_map("maersk_loi.docx", MLOI_MAP, fields)
 
+# ── Заявка на авто в Maersk (бланк .xlsx: колонка A — мітка, колонка B — значення) ──
+# Тут, на відміну від docx-бланків, шукаємо не зразкове ЗНАЧЕННЯ, а МІТКУ в колонці A,
+# і завжди перезаписуємо колонку B — навіть коли поле порожнє. Інакше в готовій заявці
+# лишились би дані клієнта, з якого знято бланк (адреса заводу, телефон водія, ставка).
+MZAY_ROWS = [
+  ("ВАЖНО", "note"),
+  ("Дата и время подачи", "pickup_dt"),
+  ("НОМЕР БУКИНГА", "booking"),
+  ("КОЛ-ВО КОНТЕЙНЕРОВ", "cnt"),
+  ("ТИП КОНТЕЙНЕРА", "cont_type"),
+  ("СУДОХОДНАЯ ЛИНИЯ", "line"),
+  ("ГРУЗ", "goods"),
+  ("ВЕС БРУТТО ГРУЗА", "weight"),
+  ("МЕСТО ПОГРУЗКИ,КОНТАКТ", "loading_addr"),
+  ("ТАМОЖНЯ,КОНТАКТ", "customs_addr"),
+  ("Особые требования", "special"),
+  ("Порт погрузки", "pol"),
+  ("Порт перевалки", "transship"),
+  ("Порт выгрузки", "pod"),
+  ("Судно", "vessel_voyage"),
+  ("Дата судозахода", "eta"),
+  ("Оговоренная ставка", "rate"),
+  ("Валюта платежа", "currency"),
+  ("Код компании в системе Маерска", "maersk_code"),
+  ("НАЗВАНИЕ Компании в системе Маерска", "maersk_name"),
+]
+# мітки немає, значення лежить у рядку нижче тієї ж колонки (контакт на завантаженні)
+MZAY_NEXT = {"loading_addr": "loading_contact"}
+
+def _norm(s): return re.sub(r"\s+", " ", str(s if s is not None else "")).strip().lower()
+
+def _row_by_label(ws, label):
+    n = _norm(label)
+    for r in range(1, ws.max_row + 1):
+        if _norm(ws.cell(row=r, column=1).value).startswith(n):
+            return r
+    return None
+
+def fill_mzay(fields):
+    import openpyxl
+    wb = openpyxl.load_workbook(os.path.join(TPL_DIR, "maersk_zayavka.xlsx"))
+    ws = wb.worksheets[0]
+    rows = [(lbl, key, _row_by_label(ws, lbl)) for lbl, key in MZAY_ROWS]
+    missing = [lbl for lbl, _, r in rows if r is None]
+    if missing:
+        raise RuntimeError(
+            "Бланк maersk_zayavka.xlsx змінено: не знайдено рядки %s%s. Заявка НЕ створена, "
+            "щоб не відправити в лінію дані іншого клієнта." %
+            (", ".join(missing[:3]), " та ін." if len(missing) > 3 else ""))
+    for lbl, key, r in rows:
+        ws.cell(row=r, column=2).value = sval(fields, key)
+        nxt = MZAY_NEXT.get(key)
+        if nxt and r < ws.max_row and _norm(ws.cell(row=r + 1, column=1).value) == "":
+            ws.cell(row=r + 1, column=2).value = sval(fields, nxt)
+    buf = io.BytesIO(); wb.save(buf); return buf.getvalue()
+
 # ── Інформаційний лист для страхування (ТДВ «Альянс Україна») ──
 INS_MAP = [
   ("BULIDING MATERIALS / БУДІВЕЛЬНІ МАТЕРІАЛИ", "cargo"),
@@ -386,8 +442,13 @@ TYPES = {
   "insurance":   (fill_ins, lambda f: "Лист страхування %s" % f.get("container", "")),
   "maersk_poa":  (fill_mpoa, lambda f: "POA Maersk %s" % f.get("bl", "")),
   "maersk_loi":  (fill_mloi, lambda f: "LOI Maersk %s" % f.get("booking", "")),
+  "maersk_zayavka": (fill_mzay, lambda f: "Заявка авто Maersk %s" % f.get("booking", "")),
   "akt":         (fill_akt,  lambda f: "Akt %s %s" % (f.get("act_no", ""), f.get("customer_short", ""))),
 }
+# типи, чий бланк — не Word, а Excel (інше розширення файла і MIME при прикріпленні)
+XLSX_TYPES = {"maersk_zayavka"}
+MIME = {".docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        ".xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}
 
 def get_role(jwt):
     try:
@@ -402,10 +463,10 @@ def get_role(jwt):
     except Exception:
         return None
 
-def upload_and_attach(deal_id, fname, data):
+def upload_and_attach(deal_id, fname, data, ext=".docx"):
     boundary = uuid.uuid4().hex
     body = (("--%s\r\nContent-Disposition: form-data; name=\"file\"; filename=\"%s\"\r\n"
-             "Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document\r\n\r\n") % (boundary, fname)).encode() + data + ("\r\n--%s--\r\n" % boundary).encode()
+             "Content-Type: %s\r\n\r\n") % (boundary, fname, MIME.get(ext, MIME[".docx"]))).encode() + data + ("\r\n--%s--\r\n" % boundary).encode()
     r = urllib.request.Request(NC + "/api/v2/storage/upload", data=body, method="POST",
         headers={"xc-token": admin_tok(), "Content-Type": "multipart/form-data; boundary=%s" % boundary})
     with urllib.request.urlopen(r, timeout=60) as resp:
@@ -442,8 +503,9 @@ class H(http.server.BaseHTTPRequestHandler):
             if typ not in TYPES or not deal_id: return self._send(400, {"error": "bad request"})
             gen, name_fn = TYPES[typ]
             data = gen(fields)
-            fname = clean_fn("%s %s" % (name_fn(fields), datetime.date.today().strftime("%d.%m.%Y"))) + ".docx"
-            merged = upload_and_attach(deal_id, fname, data)
+            ext = ".xlsx" if typ in XLSX_TYPES else ".docx"
+            fname = clean_fn("%s %s" % (name_fn(fields), datetime.date.today().strftime("%d.%m.%Y"))) + ext
+            merged = upload_and_attach(deal_id, fname, data, ext)
             self._send(200, {"ok": True, "title": fname, "files": merged})
         except Exception as e:
             self._send(500, {"error": str(e)[:150]})
