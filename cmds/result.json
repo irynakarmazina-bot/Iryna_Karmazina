@@ -1,7 +1,7 @@
 {
-  "stdout": "PUT_status 200\nparams_now: {\"fromEmail\": \"docs@unitex.od.ua\", \"toEmail\": \"sales@unitex.od.ua\", \"subject\": \"={{ $json.subject }}\", \"emailType\": \"text\", \"text\": \"={{ $json.body }}\"}\nactive True\n",
+  "stdout": "кабінетів: 5\nвідбиток самого шаблону TPL: 8daedde524149cb5\n  відбиток c4a4728fdde5d011 -> ГРАНД МАРИН (26 угод), Кампус Коттон Клаб (4 угод), Космов (3 угод), Мірандор (129 угод), ОТІС ТАРДА ООО (9 угод)\nРІЗНИХ ВЕРСІЙ СТОРІНКИ: 1\n",
   "stderr": "",
   "returncode": 0,
-  "id": "fix-body-20260817-1",
-  "ts": "2026-08-17T12:56:37Z"
+  "id": "bee9ea7306f1",
+  "ts": "2026-08-17T13:00:16Z"
 }
