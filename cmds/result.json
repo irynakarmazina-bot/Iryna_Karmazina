@@ -1,7 +1,7 @@
 {
-  "stdout": "акаунти ГРАНД МАРИН:\n   irynakarmazina@gmail.com | активний: 1 | пароль створено: так\n   a.malevskii@grandmarine.com.ua | активний: 1 | пароль створено: так\n",
+  "stdout": "пошта                              компанія             актив  має міняти останній вхід\na.malevskii@grandmarine.com.ua     ГРАНД МАРИН          1      1          —\nirynakarmazina@gmail.com           ГРАНД МАРИН          1      1          2026-08-17T14:11:00\nbov@campus.carrier.kiev.ua         Кампус Коттон Клаб   1      1          —\nvishnyak.v@gmail.com               Кампус Коттон Клаб   1      1          —\nvitagolod@gmail.com                Кампус Коттон Клаб   1      1          —\nalmaznev@ukr.net                   Космов               1      1          —\nv.pontus@unitex.od.ua              Мірандор             1      1          2026-08-13T18:22:32\nbalenko_e@ukr.net                  ОТІС ТАРДА ООО       1      1          2026-08-14T12:53:01\nimport.otis@gmail.com              ОТІС ТАРДА ООО       1      1          —\nimport@otis-tarda.com              ОТІС ТАРДА ООО       0      1          —\n",
   "stderr": "",
   "returncode": 0,
-  "id": "3016b651704d",
-  "ts": "2026-08-17T12:34:04Z"
+  "id": "56d3e49f2540",
+  "ts": "2026-08-17T12:34:54Z"
 }
