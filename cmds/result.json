@@ -1,7 +1,7 @@
 {
-  "stdout": "сайт: код=200 байт=172660\nрозмір сторінки: 162498\nзнайдено посилань зі словом «кабінет»: 1\n    <a class=\"elementor-button elementor-button-link elementor-size-sm\" href=\"https://cabinet.unitex.od.ua\" target=\"_blank\"> <span class=\"elementor-button-content-wrapper\"> <span class=\"elementor-button-text\">Особистий кабінет</span> </span> </a>\n   href -> https://cabinet.unitex.od.ua\nкабінет: код=200\n",
+  "stdout": "Environment=CABINET_PORT=8793 CABINET_NO_PASSWORD=1\n--- спроба входу лише з поштою, без пароля ---\nкод=303\nсторінка=200 байт=167512\nГРАНД МАРИН\n--- скільки акаунтів у базі ---\nакаунтів: 10\n['ГРАНД МАРИН', 'Мірандор', 'ГРАНД МАРИН', 'ОТІС ТАРДА ООО', 'ОТІС ТАРДА ООО', 'ОТІС ТАРДА ООО', 'Кампус Коттон Клаб', 'Кампус Коттон Клаб', 'Кампус Коттон Клаб', 'Космов']\n",
   "stderr": "",
   "returncode": 0,
-  "id": "abf815c351c7",
-  "ts": "2026-08-17T11:10:22Z"
+  "id": "fb6ed2dcec56",
+  "ts": "2026-08-17T11:11:02Z"
 }
