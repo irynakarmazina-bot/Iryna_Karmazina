@@ -1,7 +1,7 @@
 {
-  "stdout": "рядок Id 256 → угода 260 | статус 'В порту відправлення' | джерело 'людина' | оновлено 2026-08-13\nрядок Id 266 → угода 270 | статус 'В морі' | джерело None | оновлено None\nугода 260 має рядок Id: 256\n",
+  "stdout": "--- бекап зроблено, файл замінено ---\n-rw-r--r-- 1 root root 50671 Aug 17 10:14 /root/direct-sync/maersk_track_sync.py\n-rw-r--r-- 1 root root 22657 Aug  1 14:43 /root/direct-sync/maersk_track_sync.py.bak-01082026\n-rw-r--r-- 1 root root 32877 Aug  3 13:42 /root/direct-sync/maersk_track_sync.py.bak-0805b\n-rw-r--r-- 1 root root 48295 Aug 11 07:46 /root/direct-sync/maersk_track_sync.py.bak-20260817-071444\n-rw-r--r-- 1 root root 18153 Jul 31 21:32 /root/direct-sync/maersk_track_sync.py.bak-cont\n--- трекінг запущено ---\n",
   "stderr": "",
   "returncode": 0,
-  "id": "erp-ids",
-  "ts": "2026-08-17T07:05:00Z"
+  "id": "erp-install-run",
+  "ts": "2026-08-17T07:14:53Z"
 }
