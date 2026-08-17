@@ -1,1 +1,1 @@
-{"id": "erp-dry-log", "cmd": "grep -n \"260\\|MAERSK_DRY\\|Оновити угод\\|людин\" /root/erp-scripts/dryrun.log | tail -20; echo ---; tail -6 /root/erp-scripts/dryrun.log"}
+{"id": "erp-lock", "cmd": "ps aux | grep -i maersk | grep -v grep | head; echo \"--- замок ---\"; ls -la /var/lock/unitex-maersk.lock 2>/dev/null; echo \"--- останні прогони ---\"; systemctl list-timers 2>/dev/null | grep -i maersk; tail -3 /root/direct-sync/maersk.log 2>/dev/null"}
