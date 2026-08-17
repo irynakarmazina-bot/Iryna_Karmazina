@@ -1,1 +1,1 @@
-{"id": "erp-runcheck2", "cmd": "tail -6 /root/erp-scripts/run.log 2>/dev/null; echo \"--- чи ще працює ---\"; pgrep -af maersk_track_sync | head -2 || echo \"процес завершився\""}
+{"id": "erp-runcheck3", "cmd": "for i in 1 2 3 4 5 6 7 8 9 10; do pgrep -f maersk_track_sync >/dev/null || break; sleep 10; done; echo \"--- підсумок ---\"; tail -8 /root/erp-scripts/run.log"}
