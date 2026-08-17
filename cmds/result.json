@@ -1,7 +1,7 @@
 {
-  "stdout": "ЕРП по IP: код=308 байт=0\nЕРП по імені os.unitex.od.ua: код=000\nкартка «Кабінети клієнтів» у фасаді: 2\nкнопка «Відкрити кабінет»: 1\nендпойнт /cabinet-clients без входу: 308\n",
+  "stdout": "HTTP/1.1 308 Permanent Redirect\nLocation: https://134.209.94.12/\n--- за перенаправленням ---\nкінцевий: https://134.209.94.12/ код=200 байт=65589\n<title>UNITEX ERP</title>\n0\n60:cabinet.unitex.od.ua {\n",
   "stderr": "",
   "returncode": 0,
-  "id": "610f94be7eb3",
-  "ts": "2026-08-17T12:29:25Z"
+  "id": "9ce1f038223c",
+  "ts": "2026-08-17T12:29:47Z"
 }
