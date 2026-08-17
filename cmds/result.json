@@ -1,7 +1,7 @@
 {
-  "stdout": "запущено у фоні\n-rw-r--r-- 1 root root 208 Aug 17 10:03 /root/erp-scripts/dryrun.log\n",
+  "stdout": "---\nALREADY_RUNNING maersk\nВЖЕ ВИКОНУЄТЬСЯ: інший запуск «maersk» ще працює (/var/lock/unitex-maersk.lock). Цей запуск пропускаю — це не помилка.\n",
   "stderr": "",
   "returncode": 0,
-  "id": "erp-dry-bg",
-  "ts": "2026-08-17T07:03:10Z"
+  "id": "erp-dry-log",
+  "ts": "2026-08-17T07:03:37Z"
 }
