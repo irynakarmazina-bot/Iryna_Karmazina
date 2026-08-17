@@ -1,7 +1,7 @@
 {
-  "stdout": "--- бекап зроблено, файл замінено ---\n-rw-r--r-- 1 root root 50671 Aug 17 10:14 /root/direct-sync/maersk_track_sync.py\n-rw-r--r-- 1 root root 22657 Aug  1 14:43 /root/direct-sync/maersk_track_sync.py.bak-01082026\n-rw-r--r-- 1 root root 32877 Aug  3 13:42 /root/direct-sync/maersk_track_sync.py.bak-0805b\n-rw-r--r-- 1 root root 48295 Aug 11 07:46 /root/direct-sync/maersk_track_sync.py.bak-20260817-071444\n-rw-r--r-- 1 root root 18153 Jul 31 21:32 /root/direct-sync/maersk_track_sync.py.bak-cont\n--- трекінг запущено ---\n",
+  "stdout": "Без коносамента і без номера контейнера — не трекаються: 30\nПропущено скасованих в Експедиторі: 1\nУгод для трекінгу: 40 (усього в платформі 280)\nТокен Maersk отримано\n--- журнал трекінгу ---\n2026-08-17 10:14:51 Без коносамента і без номера контейнера — не трекаються: 30\n2026-08-17 10:14:51 Пропущено скасованих в Експедиторі: 1\n2026-08-17 10:14:51 Угод для трекінгу: 40 (усього в платформі 280)\n2026-08-17 10:14:51 Токен Maersk отримано\n",
   "stderr": "",
   "returncode": 0,
-  "id": "erp-install-run",
-  "ts": "2026-08-17T07:14:53Z"
+  "id": "erp-runcheck",
+  "ts": "2026-08-17T07:15:31Z"
 }
