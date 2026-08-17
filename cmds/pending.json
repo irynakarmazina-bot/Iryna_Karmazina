@@ -1,1 +1,1 @@
-{"id": "erp-dryrun260b", "cmd": "cd /root/Iryna_Karmazina && cp direct_sync/maersk_track_sync.py /root/direct-sync/mt_new.py && cd /root/direct-sync && python3 mt_new.py --dry-run 2>&1 | tail -22"}
+{"id": "erp-dry-bg", "cmd": "cd /root/direct-sync && nohup python3 mt_new.py --dry-run > /root/erp-scripts/dryrun.log 2>&1 & sleep 3; echo \"запущено у фоні\"; ls -la /root/erp-scripts/dryrun.log"}
