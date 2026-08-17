@@ -1,7 +1,7 @@
 {
-  "stdout": "   усього копій у архіві: 257\n   бекап: app-main.js-20260817-160133.bak (352644 б)\n   викладено модулів: 1\n   журнал: 2026-08-17T16:01:34\tmain\tee24ddf92\tв. 13.08 15:36\tindex.html:65688 findash.html:33986 finperiod.html:17527\trelay: викласти фасад (митниця з картки клієнта)\n   UI/FINDASH/CHART: 200 200 200\nDEPLOY_OK · гілка main · коміт ee24ddf92 · позначка «в. 13.08 15:36»\n",
-  "stderr": "",
+  "stdout": "HEAD is now at 88ceed4b3 relay: викласти виправлення схеми\nactive\n88ceed4b3 relay: викласти виправлення схеми\n",
+  "stderr": "From https://github.com/irynakarmazina-bot/Iryna_Karmazina\n * branch                main       -> FETCH_HEAD\n",
   "returncode": 0,
-  "id": "d5f2a1b70c33",
-  "ts": "2026-08-17T13:01:34Z"
+  "id": "047ced0dc07a",
+  "ts": "2026-08-17T15:57:19Z"
 }
