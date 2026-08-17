@@ -1,7 +1,7 @@
 {
-  "stdout": "У ПЛАТФОРМІ: угода 244 | ETA 2026-08-22 | статус В порту перевалки | судно MAERSK NUBA\nВ ЕКСПЕДИТОРІ: етап Букинг | ЕТА '0001-01-01' | версія AAAAAAAAyzI=\n\nБУЛО → СТАНЕ:  ЕТА порожня → 2026-08-22\n14:20:36  ЗАПИС: HTTP 500 | Помилка при виконанні обробника - 'ПередЗаписью'\nПІСЛЯ: ЕТА '0001-01-01' | етап Букинг | версія AAAAAAAAyzI=\nЗМІНИЛОСЬ ПОЛІВ: ['odata.metadata']\n",
+  "stdout": "PUT_status 200\nnodes_ok True\nprepare_ok True\nconn_media {\"main\": [[{\"node\": \"Copy Media to Group\", \"type\": \"main\", \"index\": 0}]]}\nconn_msg {\"main\": [[{\"node\": \"IF Is Complete\", \"type\": \"main\", \"index\": 0}, {\"node\": \"IF Has Media\", \"type\": \"main\", \"index\": 0}]]}\nactive True\n",
   "stderr": "",
   "returncode": 0,
-  "id": "erp-eta244",
-  "ts": "2026-08-17T11:20:36Z"
+  "id": "forward-media-20260817-1",
+  "ts": "2026-08-17T11:22:28Z"
 }
