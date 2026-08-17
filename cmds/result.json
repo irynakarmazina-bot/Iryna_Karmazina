@@ -1,7 +1,7 @@
 {
-  "stdout": "HTTP/1.1 308 Permanent Redirect\nLocation: https://134.209.94.12/\n--- за перенаправленням ---\nкінцевий: https://134.209.94.12/ код=200 байт=65589\n<title>UNITEX ERP</title>\n0\n60:cabinet.unitex.od.ua {\n",
+  "stdout": "REPO: e58ecde91 relay: поставити openpyxl, викласти бланк заявки на авто Maersk, перевірити фасад\nOPENPYXL: 3.1.5\nTPL: /root/doc-templates/maersk_avto_export.xlsx\n/root/doc-templates/maersk_zayavka.xlsx\nDOCGEN: active\nFILL maersk_zayavka: 6898 bytes\nTYPES: True | XLSX: {'maersk_zayavka'}\n== гілка: main ==\n   коміт: e58ecde91 · 2026-08-17 12:33:25 +0000\n   опис:  relay: поставити openpyxl, викласти бланк заявки на авто Maersk, перевірити фасад\n   модулів у гілці: 1 (main.js )\n       і звернення до змінних. Вигляд сторінки там не перевіряє ніхто.\n       (сюди ж не потрапляє tasks.js — перевірка розділу «Задачі»)\nCHECK_OK — фасад можна викладати\n   на сервері: 65589 б · позначка «в. 13.08 15:36»\n   у гілці:    65688 б · позначка «в. 13.08 15:36»\nCHECK_ONLY: версії різні — деплой оновить сервер\n",
   "stderr": "",
   "returncode": 0,
-  "id": "9ce1f038223c",
-  "ts": "2026-08-17T12:29:47Z"
+  "id": "df0129c9f5ff",
+  "ts": "2026-08-17T12:33:36Z"
 }
