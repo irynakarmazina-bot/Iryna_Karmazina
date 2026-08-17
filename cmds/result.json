@@ -1,7 +1,7 @@
 {
-  "stdout": "пошта                              компанія             актив  має міняти останній вхід\na.malevskii@grandmarine.com.ua     ГРАНД МАРИН          1      1          —\nirynakarmazina@gmail.com           ГРАНД МАРИН          1      1          2026-08-17T14:11:00\nbov@campus.carrier.kiev.ua         Кампус Коттон Клаб   1      1          —\nvishnyak.v@gmail.com               Кампус Коттон Клаб   1      1          —\nvitagolod@gmail.com                Кампус Коттон Клаб   1      1          —\nalmaznev@ukr.net                   Космов               1      1          —\nv.pontus@unitex.od.ua              Мірандор             1      1          2026-08-13T18:22:32\nbalenko_e@ukr.net                  ОТІС ТАРДА ООО       1      1          2026-08-14T12:53:01\nimport.otis@gmail.com              ОТІС ТАРДА ООО       1      1          —\nimport@otis-tarda.com              ОТІС ТАРДА ООО       0      1          —\n",
+  "stdout": "== гілка: main ==\n   коміт: 14a95b412 · 2026-08-17 12:36:58 +0000\n   опис:  Merge branch 'main' of https://github.com/irynakarmazina-bot/Iryna_Karmazina\n   модулів у гілці: 1 (main.js )\n       і звернення до змінних. Вигляд сторінки там не перевіряє ніхто.\n       (сюди ж не потрапляє tasks.js — перевірка розділу «Задачі»)\nCHECK_OK — фасад можна викладати\n   бекап: index-20260817-153708.html (65589 б)\n   бекап: findash-20260817-153708.html (33986 б)\n   бекап: finperiod-20260817-153708.html (17527 б)\n   бекап: chart.min.js-20260817-153708.bak (205399 б)\n   копій, старших за 14 днів, немає — нічого не прибираю\n   усього копій у архіві: 254\n   бекап: app-main.js-20260817-153708.bak (350806 б)\n   викладено модулів: 1\n   журнал: 2026-08-17T15:37:09\tmain\t14a95b412\tв. 13.08 15:36\tindex.html:65688 findash.html:33986 finperiod.html:17527\tMerge branch 'main' of https://github.com/irynakarmazina-bot/Iryna_Karmazina\n   UI/FINDASH/CHART: 200 200 200\nDEPLOY_OK · гілка main · коміт 14a95b412 · позначка «в. 13.08 15:36»\n",
   "stderr": "",
   "returncode": 0,
-  "id": "56d3e49f2540",
-  "ts": "2026-08-17T12:34:54Z"
+  "id": "aa4108152f3c",
+  "ts": "2026-08-17T12:37:09Z"
 }
