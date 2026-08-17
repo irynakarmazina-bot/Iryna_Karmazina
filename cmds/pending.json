@@ -1,1 +1,1 @@
-{"id": "d5f2a1b70c33", "cmd": "bash /root/Iryna_Karmazina/server/deploy_ui.sh main 2>&1 | tail -6"}
+{"id": "047ced0dc07a", "cmd": "cd /root/Iryna_Karmazina && git fetch origin main && git reset --hard origin/main && systemctl restart unitex-cabinet && sleep 3 && systemctl is-active unitex-cabinet ; git log --oneline -1"}
