@@ -1,7 +1,7 @@
 {
-  "stdout": "",
-  "stderr": "Timeout (120s)",
-  "returncode": -1,
-  "id": "erp-dryrun260b",
-  "ts": "2026-08-17T07:02:50Z"
+  "stdout": "запущено у фоні\n-rw-r--r-- 1 root root 208 Aug 17 10:03 /root/erp-scripts/dryrun.log\n",
+  "stderr": "",
+  "returncode": 0,
+  "id": "erp-dry-bg",
+  "ts": "2026-08-17T07:03:10Z"
 }
