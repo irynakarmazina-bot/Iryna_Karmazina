@@ -1,7 +1,7 @@
 {
-  "stdout": "=== ДО: що саме приберемо ===\n-rw-r--r-- 1 root root 137751 Aug  2 17:07 /root/unitex-os-www/cabinet-gm.html\n-rw-r--r-- 1 root root 330772 Aug 10 17:11 /root/unitex-os-www/cabinet.html\n14:Environment=CABINET_PORT=8793\n20:Environment=CABINET_NO_PASSWORD=1\n=== 1. вхід без пароля -> вимикаємо ===\nEnvironment=CABINET_PORT=8793 CABINET_NO_PASSWORD=1\nactive\n=== 2. старі файли -> у сховок поза веб-каталогом (НЕ видаляємо) ===\nrenamed '/root/unitex-os-www/cabinet.html' -> '/root/cabinet-archive-2026-08-15/cabinet.html'\nrenamed '/root/unitex-os-www/cabinet-gm.html' -> '/root/cabinet-archive-2026-08-15/cabinet-gm.html'\ntotal 476\ndrwxr-xr-x  2 root root   4096 Aug 17 15:27 .\ndrwx------ 32 root root  12288 Aug 17 15:27 ..\n-rw-r--r--  1 root root 137751 Aug  2 17:07 cabinet-gm.html\n-rw-r--r--  1 root root 330772 Aug 10 17:11 cabinet.html\n",
+  "stdout": "Environment=CABINET_PORT=8793\nactive\n=== живий тест: вхід лише з поштою, без пароля ===\nкод=401\nпароль\nпароль\nсторінка після спроби=200\nчи видно угоди ГРАНД МАРИН: 0\n=== старі файли з веба ===\ncabinet.html: 000\nу веб-каталозі файлів cabinet* немає\n",
   "stderr": "",
   "returncode": 0,
-  "id": "c7275b43f7dd",
-  "ts": "2026-08-17T12:27:37Z"
+  "id": "5e8afb718c7b",
+  "ts": "2026-08-17T12:28:36Z"
 }
