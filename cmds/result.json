@@ -1,7 +1,7 @@
 {
-  "stdout": "акаунти ГРАНД МАРИН:\n   irynakarmazina@gmail.com | активний: 1 | пароль створено: так\n   a.malevskii@grandmarine.com.ua | активний: 1 | пароль створено: так\n",
-  "stderr": "",
-  "returncode": 0,
-  "id": "3016b651704d",
-  "ts": "2026-08-17T12:34:04Z"
+  "stdout": "пошта                              активний має міняти   останній вхід\n",
+  "stderr": "Traceback (most recent call last):\n  File \"<string>\", line 1, in <module>\nIndexError: No item with that key\n",
+  "returncode": 1,
+  "id": "5af4a4f0374d",
+  "ts": "2026-08-17T12:34:32Z"
 }
