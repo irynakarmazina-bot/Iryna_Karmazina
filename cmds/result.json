@@ -1,7 +1,7 @@
 {
-  "stdout": "PUT_status 200\nprompt_ok True\nactive True\n",
+  "stdout": "=== 1. ВЕБ-КЛІЄНТ (чи ввімкнули) ===\n   /                              HTTP 200\n   /manifest.json                 HTTP 404\n   /e1csys/mngsrv/favicon.ico     HTTP 404\n   /e1cib/                        HTTP 404\n\n=== 2. ПУБЛІКАЦІЯ OData ===\n   сутностей було: 711, стало: 711\n   відбиток метаданих: e6f819f309eb059e → 7e34ef1fa2a1ad48  ⚠️ ЗМІНИЛИСЬ\n   зʼявилось: []\n   зникло:    []\n   нові метадані збережено окремо: /root/erp-exp-metadata.xml.new\n\n=== 3. ЧИТАННЯ ПРАЦЮЄ ===\n   Сделка             HTTP 200 → 281\n   Счет               HTTP 200 → 353\n   НакладныеРасходы   HTTP 200 → 245\n",
   "stderr": "",
   "returncode": 0,
-  "id": "deploy-docs-20260817-1",
-  "ts": "2026-08-17T11:11:32Z"
+  "id": "erp-softpro",
+  "ts": "2026-08-17T11:11:51Z"
 }
