@@ -1,7 +1,7 @@
 {
-  "stdout": "угод зі статусом від людини: 5\nз них СТАТУС СТАРІШИЙ за факт від Maersk: 1\n  №260  В порту відправлення       поставлено 2026-08-13 | факт: вийшло судно (ETD факт) 2026-08-14\n",
+  "stdout": "Traceback (most recent call last):\n  File \"/root/erp-scripts/mt_new.py\", line 790, in <module>\n    from runlock import single_run\nModuleNotFoundError: No module named 'runlock'\n",
   "stderr": "",
   "returncode": 0,
-  "id": "erp-frozen",
-  "ts": "2026-08-17T06:55:59Z"
+  "id": "erp-dryrun260",
+  "ts": "2026-08-17T07:00:34Z"
 }
