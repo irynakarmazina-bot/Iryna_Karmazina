@@ -147,6 +147,46 @@ def post(path, data, opener=None, origin=True, headers=None):
         return e.code, e.read().decode("utf-8", "replace"), dict(e.headers)
 
 
+print("\n=== 0. Правила спільні: жодних винятків під клієнта чи угоду ===")
+# Вимога користувачки 15.08.2026: «правила мають бути загальні та чіткі», без
+# латок під конкретну угоду. Ця перевірка не дає такій латці з'явитись непомітно:
+# у ЖИВОМУ коді (докстрінги й коментарі не рахуються) не має бути ні назви
+# компанії, ні порівняння з номером угоди.
+def _strip_py(src):
+    src = re.sub(r'"""(?:.|\n)*?"""', "", src)
+    return "\n".join(re.sub(r"(?<!['\"])#.*$", "", ln) for ln in src.split("\n"))
+
+
+def _strip_js(src):
+    out, i, n = [], 0, len(src)
+    while i < n:
+        if src.startswith("//", i):
+            j = src.find("\n", i)
+            i = n if j < 0 else j
+        elif src.startswith("/*", i):
+            j = src.find("*/", i)
+            i = n if j < 0 else j + 2
+        else:
+            out.append(src[i])
+            i += 1
+    return "".join(out)
+
+
+NAMES = ["ГРАНД", "МАРИН", "ОТІС", "ТАРДА", "Мірандор", "Коттон", "Космов",
+         "Кампус", "Громикс", "Олео", "Сидун", "ІВІНГ"]
+for fname in ("build_preview.py", "cabinet.py", "cabinet_admin.py"):
+    full = (os.path.join(HERE, os.pardir, "client_cabinet", fname)
+            if fname == "build_preview.py"
+            else os.path.join(HERE, os.pardir, "server", fname))
+    body = _strip_js(_strip_py(open(full, encoding="utf-8").read()))
+    # єдиний дозволений виняток — значення за замовчуванням у старому прототипі
+    body = body.replace('ap.add_argument("--client", default="Мірандор")', "")
+    found = sorted({w for w in NAMES if w in body})
+    check("%s: назв компаній у коді немає" % fname, not found, found)
+    deals = [t.strip()[:80] for t in body.split("\n")
+             if re.search(r'Угода[^\n]{0,40}[=!]==?\s*["\']?\d', t)]
+    check("%s: немає порівнянь із номером угоди" % fname, not deals, deals)
+
 print("\n=== 1. Без входу нічого не видно ===")
 code, body, hdr = get("/")
 check("головна дає форму входу", code == 200 and "Особистий кабінет" in body and "password" in body)

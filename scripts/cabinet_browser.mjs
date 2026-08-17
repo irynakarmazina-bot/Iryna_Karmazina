@@ -41,10 +41,10 @@ const body = await page.content();
 check('сторінка кабінету відкрилась', await page.locator('table').isVisible());
 check('видно назву компанії', body.includes('ТОВ Мірандор'));
 const rows = await page.locator('tr.deal').count();
-check('рядків угод у поданні «В дорозі» = 8', rows === 8, 'було ' + rows);
+check('рядків угод у поданні «В дорозі» = 9', rows === 9, 'було ' + rows);
 await page.click('#seg button[data-f=all]');
 const all = await page.locator('tr.deal').count();
-check('усього своїх угод 9', all === 9, 'було ' + all);
+check('усього своїх угод 10', all === 10, 'було ' + all);
 
 console.log('\n=== порядок рядків: за датою відправлення ===');
 const order = await page.$$eval('tr.deal', ns => ns.map(n => n.dataset.id));
@@ -80,6 +80,23 @@ const airCell = await page.locator('tr.deal[data-id="202"] td[data-l="Судно
 check('в авіа-угоді показана авіалінія', airCell.includes('Turkish Cargo'), airCell);
 const seaCell = await page.locator('tr.deal[data-id="201"] td[data-l="Судно / авіалінія"]').innerText();
 check('у морській лишилось судно', seaCell.includes('MAERSK'), seaCell);
+
+console.log('\n=== неможлива дата не рухає крапку в кінець ===');
+/* Угода 238: «Вивантаження у отримувача (факт)» 16.06 стоїть раніше за
+   відправлення 22.06. Крапка має лишитись на морському плечі, а не в кінці,
+   і останній вузол не має бути пройденим — статус ще не «Вантаж доставлено». */
+const d238 = await page.evaluate(() => {
+  const tr = document.querySelector('tr.deal[data-id="238"]');
+  if (!tr) return null;
+  const dots = [...tr.querySelectorAll('.mini .md')];
+  return { всього: dots.length,
+           тепер: dots.findIndex(d => d.classList.contains('now')),
+           пройдено: dots.filter(d => d.classList.contains('done')).length };
+});
+check('рядок 238 є', d238 !== null);
+check('крапка НЕ в кінці стрічки', d238 && d238.тепер < d238.всього - 1, JSON.stringify(d238));
+check('крапка на морському плечі', d238 && d238.тепер === 4, JSON.stringify(d238));
+check('пройденими позначені не всі вузли', d238 && d238.пройдено < d238.всього, JSON.stringify(d238));
 
 console.log('\n=== доставлені: у «Прибуття» ФАКТ, а не план ===');
 /* Угода 202 доставлена: ETA (план) 28.05.26, «Планова до клієнта (факт)» 01.06.26.
@@ -173,7 +190,7 @@ await page.click('.tile[data-f=done]');
 const done = await page.locator('tr.deal').count();
 check('відбір «доставлено» дає 1', done === 1, 'було ' + done);
 await page.click('.tile[data-f=done]');
-check('повторний клік скидає відбір', (await page.locator('tr.deal').count()) === 9);
+check('повторний клік скидає відбір', (await page.locator('tr.deal').count()) === 10);
 
 console.log('\n=== плитка «відправляються за 7 днів» ===');
 const outTile = page.locator('.tile[data-f=out]');
