@@ -1,7 +1,7 @@
 {
-  "stdout": "додано\n17:    \"transit\": \"transit_report.json\",\nactive\n",
+  "stdout": "   журнал: 2026-08-18T19:42:25\tmain\tf767dd959\tв. 13.08 15:36\tindex.html:66188 findash.html:33986 finperiod.html:17527\trelay: deploy-18\n   UI/FINDASH/CHART: 200 200 200\nDEPLOY_OK · гілка main · коміт f767dd959 · позначка «в. 13.08 15:36»\n",
   "stderr": "",
   "returncode": 0,
-  "id": "ep-1",
-  "ts": "2026-08-18T16:37:16Z"
+  "id": "deploy-18",
+  "ts": "2026-08-18T16:42:25Z"
 }
