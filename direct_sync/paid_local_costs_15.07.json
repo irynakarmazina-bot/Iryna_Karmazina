@@ -1,0 +1,155 @@
+[
+ {
+  "deal": "18",
+  "cont": "TRHU4436286",
+  "bl": "260499493",
+  "route": "Xiamen-Gdansk",
+  "inv_date": "2026-02-08",
+  "amount": 540.0,
+  "note": "локальні витрати за кордоном"
+ },
+ {
+  "deal": "19",
+  "cont": "HASU4662110",
+  "bl": "264820812",
+  "route": "Yantian-Gdansk",
+  "inv_date": "2026-01-12",
+  "amount": 851.0,
+  "note": "локальні витрати за кордоном"
+ },
+ {
+  "deal": "20",
+  "cont": "SEKU6885866",
+  "bl": "260066263",
+  "route": "Ningbo-Constanta",
+  "inv_date": "2026-01-05",
+  "amount": 783.0,
+  "note": "локальні витрати за кордоном"
+ },
+ {
+  "deal": "21",
+  "cont": "TGBU9665867",
+  "bl": "264900732",
+  "route": "Yantian-Gdansk",
+  "inv_date": "2026-02-02",
+  "amount": 730.0,
+  "note": "локальні витрати за кордоном"
+ },
+ {
+  "deal": "22",
+  "cont": "HASU4640002",
+  "bl": "264909561",
+  "route": "Ningbo-Gdansk",
+  "inv_date": "2026-03-09",
+  "amount": 275.0,
+  "note": "локальні витрати за кордоном"
+ },
+ {
+  "deal": "23",
+  "cont": "MRSU4626703",
+  "bl": "261714468",
+  "route": "Ningbo-Gdansk",
+  "inv_date": "2026-03-11",
+  "amount": 838.0,
+  "note": "локальні витрати за кордоном"
+ },
+ {
+  "deal": "25",
+  "cont": "MRSU7873420",
+  "bl": "262503366",
+  "route": "Bremerhaven-Jebel Ali",
+  "inv_date": "2026-01-05",
+  "amount": 705.0,
+  "note": "локальні витрати за кордоном"
+ },
+ {
+  "deal": "29",
+  "cont": "MSKU1683205",
+  "bl": "263383895",
+  "route": "Gdansk-Fremantle",
+  "inv_date": "2026-01-05",
+  "amount": 644.0,
+  "note": "локальні витрати за кордоном"
+ },
+ {
+  "deal": "30",
+  "cont": "HASU5011684",
+  "bl": "262362017",
+  "route": "Qingdao-Gdansk",
+  "inv_date": "2026-03-09",
+  "amount": 854.0,
+  "note": "локальні витрати за кордоном"
+ },
+ {
+  "deal": "31",
+  "cont": "BEAU6305262",
+  "bl": "264914651",
+  "route": "Jiangmen-Gdansk",
+  "inv_date": "2026-03-09",
+  "amount": 780.0,
+  "note": "локальні витрати за кордоном"
+ },
+ {
+  "deal": "32",
+  "cont": "CAIU7832494",
+  "bl": "MEDUKY504319",
+  "route": "Ningbo-Gdansk",
+  "inv_date": "2026-03-09",
+  "amount": 347.0,
+  "note": "локальні витрати за кордоном"
+ },
+ {
+  "deal": "33",
+  "cont": "MSKU1934912",
+  "bl": "262190526",
+  "route": "Busan-Gdansk",
+  "inv_date": "2026-02-02",
+  "amount": 607.0,
+  "note": "локальні витрати за кордоном"
+ },
+ {
+  "deal": "34",
+  "cont": "TLLU8070459",
+  "bl": "263120787",
+  "route": "Ningbo-Gdansk",
+  "inv_date": "2026-03-11",
+  "amount": 894.0,
+  "note": "локальні витрати за кордоном"
+ },
+ {
+  "deal": "36",
+  "cont": "HASU1514103",
+  "bl": "261360691",
+  "route": "Chennai-Gdansk",
+  "inv_date": "2026-01-05",
+  "amount": 536.0,
+  "note": "локальні витрати за кордоном"
+ },
+ {
+  "deal": "37",
+  "cont": "MRKU9878599",
+  "bl": "261397724",
+  "route": "Chennai-Gdansk",
+  "inv_date": "2026-02-02",
+  "amount": 484.0,
+  "note": "локальні витрати за кордоном"
+ },
+ {
+  "deal": "40",
+  "cont": "MSKU5170427",
+  "bl": "263902944",
+  "route": "Chennai-Gdansk",
+  "inv_date": "2026-03-09",
+  "amount": 227.0,
+  "note": "локальні витрати за кордоном"
+ },
+ {
+  "deal": "211",
+  "cont": "MRKU4748503",
+  "bl": "802109221",
+  "route": "Ningbo-Gdansk",
+  "inv_date": "2026-05-20",
+  "amount": 3100.0,
+  "note": "фрахт"
+ }
+]
