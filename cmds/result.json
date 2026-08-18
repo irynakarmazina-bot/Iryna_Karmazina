@@ -1,7 +1,7 @@
 {
-  "stdout": "/var/lib/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/16/fs/etc/caddy/Caddyfile\n/var/lib/docker/rootfs/overlayfs/670b04f31e715dd222b1d48f04a247db91ef32d450553d1886464453a607a08d/etc/caddy/Caddyfile\n/root/Caddyfile\n/root/Caddyfile.bak-cabview-20260814-125922\n/root/Caddyfile.bak-http\n--- serve ---\nLISTEN 0      4096               *:443             *:*    users:((\"caddy\",pid=52136,fd=9))                         \nLISTEN 0      4096               *:80              *:*    users:((\"caddy\",pid=52136,fd=10))                        \n",
+  "stdout": "5:https://134.209.94.12 {\n6:\ttls {\n7:\t\tissuer acme {\n12:\thandle /api/* {\n15:\thandle /download/* {\n18:\thandle /finrep-data* {\n21:\thandle /finrep-run {\n25:\thandle /sync {\n29:\thandle /sync-state {\n33:\thandle /cash-refresh {\n37:\thandle /localcosts-refresh {\n41:\thandle /gen-doc {\n44:\thandle /cabinet-* {\n47:\thandle {\n51:\t\ttry_files {path} /index.html\n56:http://134.209.94.12, http://:80 {\n57:\tredir https://134.209.94.12{uri} permanent\n60:cabinet.unitex.od.ua {\n",
   "stderr": "",
   "returncode": 0,
-  "id": "verify-live-3",
-  "ts": "2026-08-18T07:04:57Z"
+  "id": "verify-live-4",
+  "ts": "2026-08-18T07:05:19Z"
 }
