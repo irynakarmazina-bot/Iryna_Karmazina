@@ -1,1 +1,1 @@
-{"id":"diag-path-2","cmd":"ls /root/unitex-finrep/secure/ 2>/dev/null; echo '--- де токен nocodb ---'; grep -rl 'NOCODB\\|xc-token' /root/*.py /root/*.sh /root/unitex-finrep/*.py 2>/dev/null | head -5"}
+{"id":"diag-path-3","cmd":"cd /root && python3 -c \"\nimport re\ns=open('/root/ac.py').read()\nm=re.findall(r'.{0,90}(?:TOKEN|token).{0,90}', s)[:6]\nfor x in m: print(x[:60], '...')\n\" 2>&1 | head -10; echo '--- ---'; grep -n 'xc-token\\|TOKEN *=' /root/ac.py | head -5 | cut -c1-70"}
