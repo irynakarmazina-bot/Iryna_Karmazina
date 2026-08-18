@@ -1,1 +1,1 @@
-{"id":"verify-live-3","cmd":"find / -name 'Caddyfile*' -not -path '*/proc/*' 2>/dev/null | head -5; echo '--- serve ---'; ss -ltnp 2>/dev/null | grep -E ':(80|443) ' | head -5"}
+{"id":"verify-live-4","cmd":"grep -nE '^[^ \\t#{}].*\\{' /root/Caddyfile | head -20"}
