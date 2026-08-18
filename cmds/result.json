@@ -1,7 +1,7 @@
 {
-  "stdout": "файлів у угоді 287: 1\n\n--- вкладення ---\n   path           download/2026/08/18/2f3859e5d334b0598fcf97b05ce59131f554ae38/Заявка авто Maersk 275820304 18.08.2026_Cjg5r.xls\n   title          Заявка авто Maersk 275820304 18.08.2026.xlsx\n   mimetype       application/vnd.openxmlformats-officedocument.spreadsheetml.sheet\n   size           7037\n   id             at5awaozt9s8a2q1\n   signedPath     dltemp/o_KzO256YVbOlAu0/1787043600000/2026/08/18/2f3859e5d334b0598fcf97b05ce59131f554ae38/Заявка авто Maersk 2\n   ФАСАД ВІДКРИЄ: /dltemp/o_KzO256YVbOlAu0/1787043600000/2026/08/18/2f3859e5d334b0598fcf97b05ce59131f554ae38/Заявка авто Maersk 275820304 18.08.2026_Cjg5r.xlsx\n   ПЕРЕВІРКА → InvalidURL\n",
+  "stdout": "path (download/…)      https://134.209.94.12      HTTP 200 | application/vnd.openxmlformats-officedoc | 7037 б\npath (download/…)      http://127.0.0.1:8080      HTTP 200 | application/vnd.openxmlformats-officedoc | 7037 б\nsignedPath (dltemp/…)  https://134.209.94.12      HTTP 200 | text/html; charset=utf-8 | 65688 б\nsignedPath (dltemp/…)  http://127.0.0.1:8080      HTTP 200 | application/vnd.openxmlformats-officedoc | 7037 б\n",
   "stderr": "",
   "returncode": 0,
-  "id": "erp-f287",
-  "ts": "2026-08-18T06:54:17Z"
+  "id": "erp-f287b",
+  "ts": "2026-08-18T06:55:01Z"
 }
