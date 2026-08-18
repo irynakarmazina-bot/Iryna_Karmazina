@@ -1,1 +1,1 @@
-{"id":"verify-live-filelink-1","cmd":"curl -s https://erp.unitex.od.ua/app/main.js | grep -c 'BEREMO_MARK' ; curl -s https://erp.unitex.od.ua/app/main.js | grep -c 'download/' ; curl -s https://erp.unitex.od.ua/app/main.js | md5sum ; md5sum /root/unitex-os-www/app/main.js"}
+{"id":"verify-live-2","cmd":"grep -n 'unitex-os-www' /etc/caddy/Caddyfile | head -5; echo '--- domains ---'; grep -nE '^[a-z0-9.-]+\\.(od\\.ua|com|net)' /etc/caddy/Caddyfile | head -10"}
