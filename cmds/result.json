@@ -1,7 +1,7 @@
 {
-  "stdout": "path (download/…)      https://134.209.94.12      HTTP 200 | application/vnd.openxmlformats-officedoc | 7037 б\npath (download/…)      http://127.0.0.1:8080      HTTP 200 | application/vnd.openxmlformats-officedoc | 7037 б\nsignedPath (dltemp/…)  https://134.209.94.12      HTTP 200 | text/html; charset=utf-8 | 65688 б\nsignedPath (dltemp/…)  http://127.0.0.1:8080      HTTP 200 | application/vnd.openxmlformats-officedoc | 7037 б\n",
+  "stdout": "   журнал: 2026-08-18T09:58:14\tmain\te22d85596\tв. 13.08 15:36\tindex.html:65688 findash.html:33986 finperiod.html:17527\trelay: викласти виправлення посилань на файли\n   UI/FINDASH/CHART: 200 200 200\nDEPLOY_OK · гілка main · коміт e22d85596 · позначка «в. 13.08 15:36»\n",
   "stderr": "",
   "returncode": 0,
-  "id": "erp-f287b",
-  "ts": "2026-08-18T06:55:01Z"
+  "id": "erp-deploy-file",
+  "ts": "2026-08-18T06:58:14Z"
 }
