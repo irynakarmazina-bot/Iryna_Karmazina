@@ -1,7 +1,7 @@
 {
-  "stdout": "5:https://134.209.94.12 {\n6:\ttls {\n7:\t\tissuer acme {\n12:\thandle /api/* {\n15:\thandle /download/* {\n18:\thandle /finrep-data* {\n21:\thandle /finrep-run {\n25:\thandle /sync {\n29:\thandle /sync-state {\n33:\thandle /cash-refresh {\n37:\thandle /localcosts-refresh {\n41:\thandle /gen-doc {\n44:\thandle /cabinet-* {\n47:\thandle {\n51:\t\ttry_files {path} /index.html\n56:http://134.209.94.12, http://:80 {\n57:\tredir https://134.209.94.12{uri} permanent\n60:cabinet.unitex.od.ua {\n",
+  "stdout": "HTTP 200 354264 b\n0\n1\n9c46d509152ebb2cfbff834479b50219  /tmp/live_main.js\n9c46d509152ebb2cfbff834479b50219  /root/unitex-os-www/app/main.js\n",
   "stderr": "",
   "returncode": 0,
-  "id": "verify-live-4",
-  "ts": "2026-08-18T07:05:19Z"
+  "id": "verify-live-5",
+  "ts": "2026-08-18T07:05:46Z"
 }
