@@ -2,12 +2,16 @@
 # -*- coding: utf-8 -*-
 """Звіт про переказ транзитних коштів.
 
-Логіка (постановка користувачки 18.08.2026):
+Логіка (постановка користувачки 18.08.2026 + уточнення того ж дня):
     усе, що надійшло від клієнта, за винятком ВИНАГОРОДИ ЕКСПЕДИТОРА, має бути
     переказане транзитом далі. Банківські комісії, податки і бонуси — це ОПЕРАЦІЙНІ
     витрати компанії: в управлінському обліку вони лежать на угоді (щоб бачити реальний
-    дохід по перевезенню), але в цей звіт не входять. На угоду тут лягають ТІЛЬКИ ПРЯМІ
-    ТРАНЗИТНІ ОПЛАТИ.
+    дохід по перевезенню), але в цей звіт не входять.
+
+    ⚠️ ГОЛОВНЕ УТОЧНЕННЯ: транзит — це переказ З ТОГО САМОГО РАХУНКУ, НА ЯКИЙ ПРИЙШЛИ
+    ГРОШІ. В угоді бувають оплати з різних видів оплати (Маерск USD, каси, Cr String
+    Cycle) — вони до цього звіту НЕ належать і показуються лише довідково.
+    Тому рахунок ведеться ПО КОЖНОМУ РАХУНКУ ОКРЕМО: надійшло на Х → переказано з Х.
 
 Що рахуємо по кожній угоді:
     1) скільки НАДІЙШЛО (рахунки клієнта, сплачені на рахунки Юнітекса, з розбивкою);
@@ -108,7 +112,7 @@ def build(c):
             "date": d10(r.get("Date")),
             "in_total": 0.0, "in_by_acc": collections.Counter(), "paid": "",
             "fee": 0.0, "transit": [], "operating": collections.Counter(),
-            "unpaid": [],
+            "unpaid": [], "other_acc": [], "out_by_acc": collections.Counter(),
         }
 
     # 1) надходження від клієнта
@@ -147,19 +151,30 @@ def build(c):
         a_name = art.get(r.get("Услуга_Key"), "") or "(без статті)"
         amount = f(r.get("Сумма_УЕ"))
         paid_ok = str(r.get("СтатусСчета") or "") == PAID
-        if a_name in OPERATING:
-            if paid_ok:
-                d["operating"][a_name] += amount
-            continue
+        from_acc = acc.get(r.get("ВидОплаты_Key"), "")
         item = {
             "article": a_name,
             "amount": round(amount, 2),
             "payee": who.get(r.get("Контрагент_Key")) or "не визначено",
-            "from_account": acc.get(r.get("ВидОплаты_Key"), ""),
+            "from_account": from_acc,
             "invoice": (r.get("Number") or "").lstrip("0"),
             "date": d10(r.get("ДатаОплаты")) or d10(r.get("Date")),
         }
-        (d["transit"] if paid_ok else d["unpaid"]).append(item)
+        if a_name in OPERATING:
+            if paid_ok:
+                d["operating"][a_name] += amount
+            continue
+        if from_acc not in ACCOUNTS:
+            # оплачено з іншого рахунку (Маерск USD, каси, Cr String Cycle) — це НЕ транзит
+            # з наших рахунків; показуємо довідково, у залишок не входить
+            if paid_ok:
+                d["other_acc"].append(item)
+            continue
+        if paid_ok:
+            d["transit"].append(item)
+            d["out_by_acc"][from_acc] += amount
+        else:
+            d["unpaid"].append(item)
 
     rows = []
     for d in deals.values():
@@ -170,8 +185,18 @@ def build(c):
         by_art = collections.Counter()
         for x in d["transit"]:
             by_art[x["article"]] += x["amount"]
+        # залишок по кожному рахунку окремо: надійшло на Х мінус переказано з Х
+        per_acc = []
+        for a_name in ACCOUNTS:
+            got, sent = d["in_by_acc"].get(a_name, 0.0), d["out_by_acc"].get(a_name, 0.0)
+            if got or sent:
+                per_acc.append({"account": a_name, "in": round(got, 2), "out": round(sent, 2),
+                                "left": round(got - sent, 2)})
         rows.append({
             "num": d["num"], "status": d["status"], "bl": d["bl"], "cont": d["cont"],
+            "per_account": per_acc,
+            "other_acc_total": round(sum(x["amount"] for x in d["other_acc"]), 2),
+            "other_acc_items": sorted(d["other_acc"], key=lambda x: -x["amount"]),
             "date": d["date"], "paid": d["paid"],
             "in_total": round(d["in_total"], 2),
             "in_by_acc": {k: round(v, 2) for k, v in d["in_by_acc"].items()},
@@ -212,6 +237,8 @@ def main():
           (sum(1 for r in rows if r["unpaid_total"]), sum(r["unpaid_total"] for r in rows)))
     print("операційні (комісії, податки, бонуси) — окремо, у транзит не входять: %.2f" %
           sum(r["operating_total"] for r in rows))
+    print("оплачено з ІНШИХ рахунків (не транзит із наших): %.2f у %d угодах" %
+          (sum(r["other_acc_total"] for r in rows), sum(1 for r in rows if r["other_acc_total"])))
 
     if a.deal:
         r = next((x for x in rows if x["num"] == a.deal), None)
@@ -220,6 +247,9 @@ def main():
         else:
             print("\n=== УГОДА %s (%s) ===" % (r["num"], r["status"]))
             print("надійшло %.2f: %s" % (r["in_total"], r["in_by_acc"]))
+            for x in r["per_account"]:
+                print("   %-26s надійшло %9.2f · переказано %9.2f · лишилось %9.2f" %
+                      (x["account"], x["in"], x["out"], x["left"]))
             print("винагорода експедитора: %.2f" % r["fee"])
             print("переказано транзитом %.2f:" % r["transit_total"])
             for x in r["transit_items"]:
@@ -229,6 +259,10 @@ def main():
                 print("НЕ переказано (рахунки без оплати) %.2f:" % r["unpaid_total"])
                 for x in r["unpaid_items"]:
                     print("   %-28s %9.2f  →  %s" % (x["article"][:28], x["amount"], x["payee"][:24]))
+            if r["other_acc_items"]:
+                print("оплачено з інших рахунків (довідково, не транзит) %.2f:" % r["other_acc_total"])
+                for x in r["other_acc_items"]:
+                    print("   %-28s %9.2f  з %s" % (x["article"][:28], x["amount"], x["from_account"]))
             if r["operating_by_article"]:
                 print("операційні (не транзит) %.2f: %s" %
                       (r["operating_total"], ", ".join("%s %.2f" % (x["article"], x["amount"])

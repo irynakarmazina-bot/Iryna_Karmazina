@@ -2556,8 +2556,10 @@ PAGES.accounting = async () => {
       <button class="btn" id="lc-recalc" title="дані станом на ${stamp}">⟳ Перерахувати з Експедитора</button>
       <span id="lc-note"></span></span>
     <button class="btn ghost" id="lc-csv">⬇ Вивантажити в CSV</button>
-    <button class="btn" id="acc-tax">🧾 Єдиний податок</button>`;
+    <button class="btn" id="acc-tax">🧾 Єдиний податок</button>
+    <button class="btn" id="acc-transit">💸 Транзитні перекази</button>`;
   $("acc-tax").addEventListener("click", () => renderSingleTax());
+  $("acc-transit").addEventListener("click", () => renderTransit());
 
   $("content").innerHTML = `
   <div class="card">
@@ -2742,6 +2744,160 @@ PAGES.accounting = async () => {
    у яких заповнена дата оплати. Винагорода — стаття «Винагорода експедитора»
    з рядків рахунка, гривнею з самого документа. 5% + 1% = 6%.
    Дані рахує finrep/single_tax.py → computed/single_tax.json. */
+/* ===== ЗВІТ ПРО ПЕРЕКАЗ ТРАНЗИТНИХ КОШТІВ =====
+   Логіка користувачки: усе, що надійшло від клієнта, крім винагороди експедитора,
+   переказується транзитом далі — і саме З ТОГО РАХУНКУ, на який прийшло. Оплати з інших
+   видів оплати (Маерск USD, каси, Cr String Cycle) сюди не входять і показані довідково.
+   Комісії, податки й бонуси — операційні витрати, у транзит не входять.
+   Дані рахує finrep/transit_report.py → computed/transit_report.json. */
+async function renderTransit(){
+  $("content").innerHTML = '<div class="card"><p class="sub">Рахую транзитні перекази…</p></div>';
+  let js;
+  try { js = await fetchFin("transit"); }
+  catch(e){
+    $("content").innerHTML = `<div class="card"><h3>💸 Транзитні перекази</h3>
+      <div class="note">⚠ Не вдалося отримати дані: ${esc(e.message)}</div></div>`;
+    return;
+  }
+  const D = js.data || {}, all = D.rows || [];
+  const stamp = js.mtime ? new Date(js.mtime*1000).toLocaleString("uk-UA",
+      {day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}) : "—";
+  const dd = v => (Number(v)||0).toLocaleString("uk-UA",{minimumFractionDigits:2,maximumFractionDigits:2});
+  const dmy = v => v ? esc(String(v).slice(0,10).split("-").reverse().join(".")) : "";
+
+  $("page-actions").innerHTML = `
+    <button class="btn ghost" id="tr-back">← Локальні витрати</button>
+    <label class="sub" style="margin:0">оплата з <input type="date" id="tr-from"></label>
+    <label class="sub" style="margin:0">по <input type="date" id="tr-to"></label>
+    <button class="btn ghost" id="tr-csv">⬇ CSV по кожному переказу</button>`;
+  $("tr-back").addEventListener("click", ()=>PAGES.accounting());
+
+  $("content").innerHTML = `
+  <div class="card">
+    <h3>💸 Переказ транзитних коштів</h3>
+    <p class="sub">що надійшло на рахунки Юнітекса і скільки з них уже переказано далі ·
+      дані з Експедитора станом на ${stamp}</p>
+    <div class="tiles" style="margin-top:12px" id="tr-tiles"></div>
+    <div class="note" style="margin-top:12px">
+      Транзит рахується <b>з того самого рахунку, на який прийшли гроші</b>
+      (${esc((D.accounts||[]).join(", "))}). Оплати з інших видів оплати показані в
+      розкритті окремо — вони в залишок не входять. Комісії, податки й бонуси
+      (${esc((D.operating||[]).slice(0,4).join(", "))}…) — операційні витрати, не транзит.
+      <b>Клік по рядку</b> — куди саме переказано по кожній статті.
+    </div>
+    <div class="filters" style="margin-top:12px">
+      <input id="tr-q" placeholder="пошук: угода, коносамент, контейнер" style="min-width:240px">
+      <select id="tr-f"><option value="">усі угоди</option>
+        <option value="left">є залишок</option>
+        <option value="zero">нічого не переказано</option>
+        <option value="unpaid">є неоплачені транзитні рахунки</option>
+        <option value="minus">переказано більше, ніж надійшло</option></select>
+      <button class="btn ghost" id="tr-reset" style="padding:4px 10px;font-size:12.5px">скинути</button>
+      <span id="tr-count" class="sub"></span>
+    </div>
+    <div id="tr-table"></div>
+  </div>`;
+
+  const visible = () => {
+    const q = ($("tr-q").value||"").trim().toLowerCase();
+    const f = $("tr-f").value, a = $("tr-from").value, b = $("tr-to").value;
+    return all.filter(r => {
+      if (a && (!r.paid || r.paid < a)) return false;
+      if (b && (!r.paid || r.paid > b)) return false;
+      if (f === "left" && r.balance <= 0) return false;
+      if (f === "zero" && r.transit_total > 0) return false;
+      if (f === "unpaid" && !r.unpaid_total) return false;
+      if (f === "minus" && r.balance >= 0) return false;
+      return !q || [r.num,r.bl,r.cont].join(" ").toLowerCase().includes(q);
+    });
+  };
+  const details = r => {
+    const li = x => `<tr><td>${esc(x.article)}</td><td class="num">${dd(x.amount)}</td>
+      <td>${esc(x.payee||"")}</td><td class="sub">${esc(x.from_account||"")}</td>
+      <td class="mono sub">${dmy(x.date)}</td></tr>`;
+    const tbl = (title, items, cls) => !items || !items.length ? "" :
+      `<div style="margin-top:8px"><b>${title}</b>
+        <table class="subt" style="width:100%;margin-top:4px"><tr><th>Стаття</th><th class="num">Сума</th>
+        <th>Кому</th><th>З якого рахунку</th><th>Дата</th></tr>${items.map(li).join("")}</table></div>`;
+    const acc = (r.per_account||[]).map(x=>`<tr><td>${esc(x.account)}</td>
+        <td class="num">${dd(x.in)}</td><td class="num">${dd(x.out)}</td>
+        <td class="num"><b>${dd(x.left)}</b></td></tr>`).join("");
+    return `<div style="padding:10px 12px;background:var(--tile-bg)">
+      <b>Рух по рахунках</b>
+      <table class="subt" style="width:100%;margin-top:4px"><tr><th>Рахунок</th>
+        <th class="num">Надійшло</th><th class="num">Переказано</th><th class="num">Лишилось</th></tr>
+        ${acc || '<tr><td colspan="4" class="sub">немає</td></tr>'}</table>
+      ${tbl("Переказано транзитом", r.transit_items)}
+      ${tbl("⚠ Не переказано — рахунок є, оплати немає", r.unpaid_items)}
+      ${tbl("Довідково: оплачено з інших рахунків (не транзит)", r.other_acc_items)}
+      ${(r.operating_by_article||[]).length ? `<div style="margin-top:8px" class="sub">
+        Операційні (не транзит): ${r.operating_by_article.map(x=>esc(x.article)+" "+dd(x.amount)).join(" · ")}</div>` : ""}
+    </div>`;
+  };
+  const draw = () => {
+    const list = visible();
+    const sum = k => list.reduce((s,r)=>s+(Number(r[k])||0),0);
+    $("tr-count").textContent = `показано ${list.length} угод`;
+    $("tr-tiles").innerHTML = `
+      <div class="tile tready"><div class="tbody"><div class="lbl">Надійшло</div>
+        <div class="val">${dd(sum("in_total"))}</div><div class="hint">УО від клієнтів</div></div></div>
+      <div class="tile tready"><div class="tbody"><div class="lbl">Винагорода</div>
+        <div class="val">${dd(sum("fee"))}</div><div class="hint">лишається компанії</div></div></div>
+      <div class="tile tready"><div class="tbody"><div class="lbl">Переказано транзитом</div>
+        <div class="val">${dd(sum("transit_total"))}</div><div class="hint">з тих самих рахунків</div></div></div>
+      <div class="tile tready"><div class="tbody"><div class="lbl">Залишок</div>
+        <div class="val">${dd(sum("balance"))}</div><div class="hint">ще не переказано</div></div></div>`;
+    $("tr-table").innerHTML = finTable(
+      ["№ угоди","Коносамент","Контейнер","Оплата клієнта","Надійшло","Винагорода",
+       "Переказано","Не переказано","Залишок",""],
+      list.map(r => `<tr class="trrow" data-num="${esc(r.num)}" style="cursor:pointer">
+        <td class="mono"><b>${esc(r.num)}</b></td>
+        <td class="mono">${esc(r.bl)||"<span class='sub'>—</span>"}</td>
+        <td class="mono">${esc(r.cont)||"<span class='sub'>—</span>"}</td>
+        <td class="mono">${dmy(r.paid)}</td>
+        <td style="text-align:right">${dd(r.in_total)}</td>
+        <td style="text-align:right">${dd(r.fee)}</td>
+        <td style="text-align:right">${dd(r.transit_total)}</td>
+        <td style="text-align:right">${r.unpaid_total ? `<span style="color:var(--crit-text)">${dd(r.unpaid_total)}</span>` : ""}</td>
+        <td style="text-align:right"><b>${dd(r.balance)}</b></td>
+        <td class="sub">▸</td></tr>
+        <tr id="trd-${esc(r.num)}" style="display:none"><td colspan="10" style="padding:0">${details(r)}</td></tr>`));
+    $("tr-table").querySelectorAll("tr.trrow").forEach(tr => tr.addEventListener("click", () => {
+      const d = $("trd-" + tr.dataset.num);
+      if (d) d.style.display = d.style.display === "none" ? "" : "none";
+    }));
+  };
+  ["tr-q","tr-f","tr-from","tr-to"].forEach(id =>
+    $(id).addEventListener(id === "tr-q" ? "input" : "change", draw));
+  $("tr-reset").addEventListener("click", ()=>{
+    ["tr-q","tr-from","tr-to"].forEach(id=>$(id).value=""); $("tr-f").value=""; draw();
+  });
+  draw();
+
+  // CSV: один рядок = один переказ, щоб було видно КУДИ пішла кожна стаття
+  $("tr-csv").addEventListener("click", ()=>{
+    const head = ["Номер угоди","Коносамент","Контейнер","Оплата клієнта","Надійшло по угоді",
+      "Винагорода","Тип","Стаття","Сума","Кому","З якого рахунку","Дата","Залишок по угоді"];
+    const e2 = v => '"' + String(v==null?"":v).replace(/"/g,'""') + '"';
+    const out = [head.map(e2).join(";")];
+    visible().forEach(r => {
+      const base = [r.num,r.bl,r.cont,r.paid,r.in_total,r.fee];
+      const push = (type,x) => out.push(base.concat([type,x.article,x.amount,x.payee,
+        x.from_account,x.date,r.balance]).map(e2).join(";"));
+      (r.transit_items||[]).forEach(x=>push("переказано",x));
+      (r.unpaid_items||[]).forEach(x=>push("НЕ переказано",x));
+      (r.other_acc_items||[]).forEach(x=>push("з іншого рахунку",x));
+      if (!(r.transit_items||[]).length && !(r.unpaid_items||[]).length)
+        out.push(base.concat(["нічого не переказано","","","","","",r.balance]).map(e2).join(";"));
+    });
+    const blob = new Blob(["﻿"+out.join("\r\n")], {type:"text/csv;charset=utf-8"});
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob); a.download = "tranzytni-perekazy.csv";
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(a.href), 3000);
+  });
+}
+
 async function renderSingleTax(){
   $("content").innerHTML = '<div class="card"><p class="sub">Рахую єдиний податок…</p></div>';
   let js;
