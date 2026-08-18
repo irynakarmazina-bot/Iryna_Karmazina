@@ -1,7 +1,7 @@
 {
-  "stdout": "HTTP 200 354264 b\n0\n1\n9c46d509152ebb2cfbff834479b50219  /tmp/live_main.js\n9c46d509152ebb2cfbff834479b50219  /root/unitex-os-www/app/main.js\n",
+  "stdout": "=== ЗАГОЛОВКИ /app/main.js ===\nHTTP/2 200 \netag: \"dkrvlth4px3d7lco\"\nlast-modified: Tue, 18 Aug 2026 07:03:21 GMT\n=== ЩО ВІДДАЄ NocoDB У ПОЛІ Файли (угода 287) ===\nenv: \n",
   "stderr": "",
   "returncode": 0,
-  "id": "verify-live-5",
-  "ts": "2026-08-18T07:05:46Z"
+  "id": "diag-cache-and-path-1",
+  "ts": "2026-08-18T07:38:47Z"
 }
