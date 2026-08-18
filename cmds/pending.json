@@ -1,1 +1,1 @@
-{"id":"robot-install-4","cmd":"tail -8 /root/webbot/install.log; echo ---; ls /root/.cache/ms-playwright 2>/dev/null; df -h / | tail -1"}
+{"id":"robot-install-5","cmd":"grep -c INSTALL2_DONE /root/webbot/install.log; tail -3 /root/webbot/install.log; echo ---; ls /root/.cache/ms-playwright 2>/dev/null"}
