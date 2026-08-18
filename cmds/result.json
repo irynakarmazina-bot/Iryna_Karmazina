@@ -1,7 +1,7 @@
 {
-  "stdout": "found 0 vulnerabilities\nYou are running Node.js 18.19.1.\nPlaywright requires Node.js 20 or higher. \nPlease update your version of Node.js.\nINSTALL_DONE rc=1\n---\nMem:            1967         985         165           3        1013         982\n",
+  "stdout": "пішла установка playwright@1.49.1\n",
   "stderr": "",
   "returncode": 0,
-  "id": "robot-install-2",
-  "ts": "2026-08-18T17:23:44Z"
+  "id": "robot-install-3",
+  "ts": "2026-08-18T17:24:17Z"
 }
