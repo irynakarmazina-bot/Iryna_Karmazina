@@ -1,1 +1,1 @@
-{"id": "check-37", "cmd": "ls -l --time-style=+%m-%d\\ %H:%M /root/unitex-os-www/app/main.js 2>&1; grep -n 'main.js\\|app/' /root/Iryna_Karmazina/server/deploy_ui.sh | head -6; echo '=== чи є нові колонки на сервері ==='; grep -c 'Дата переказу' /root/unitex-os-www/app/main.js 2>/dev/null"}
+{"id":"meta-entities-1","cmd":"ls -la /root/erp-exp-metadata.xml 2>/dev/null; echo '=== типи документів ==='; grep -o 'Name=\"Document_[A-Za-zА-Яа-яЁёІіЇїЄєҐґ_]*\"' /root/erp-exp-metadata.xml | sort -u | head -40"}
