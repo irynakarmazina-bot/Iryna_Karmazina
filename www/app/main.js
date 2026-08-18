@@ -2635,7 +2635,8 @@ PAGES.accounting = async () => {
       sum.toLocaleString("uk-UA",{maximumFractionDigits:2})} УО`;
     $("lc-table").innerHTML = finTable(
       ["№ угоди","Статус","Коносамент","Контейнер","Маршрут","Оплата від клієнта",
-       "Профіт","Винагорода","Курс НБУ","Винагорода, грн","Інфо+комісії","Різниця","Переказано"],
+       "Профіт","Винагорода","Курс НБУ","Винагорода, грн","Інфо+комісії","Різниця",
+       "Переказано","Сума переказу","Дата переказу"],
       list.map(r => `<tr class="${r.sent?"lc-sent":""}">
         <td class="mono">${esc(r.num)}</td>
         <td>${esc(r.status)}</td>
@@ -2655,8 +2656,12 @@ PAGES.accounting = async () => {
         <td class="mono" style="white-space:nowrap">${r._row
           ? `<label style="display:flex;align-items:center;gap:6px;cursor:${canMark?"pointer":"default"}">
                <input type="checkbox" class="lc-mark" data-num="${esc(r.num)}" ${r.sent?"checked":""} ${canMark?"":"disabled"}>
-               <span class="sub">${r.sent ? (dmy(r.sentDate) || "так") : ""}</span></label>`
+               <span class="sub">${r.sent ? "переказано" : ""}</span></label>`
           : `<span class="sub" title="цієї угоди немає в таблиці диспетчеризації">—</span>`}</td>
+        <td class="lc-keep" style="text-align:right">${r.sent && r.sentAmt != null
+          ? fmtN(r.sentAmt,2) : "<span class='sub'>—</span>"}</td>
+        <td class="lc-keep mono">${r.sent && r.sentDate
+          ? dmy(r.sentDate) : "<span class='sub'>—</span>"}</td>
         </tr>`));
     if (canMark) $("lc-table").querySelectorAll("input.lc-mark").forEach(ch =>
       ch.addEventListener("change", () => mark(ch)));
