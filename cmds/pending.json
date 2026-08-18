@@ -1,1 +1,1 @@
-{"id":"meta-entities-1","cmd":"ls -la /root/erp-exp-metadata.xml 2>/dev/null; echo '=== типи документів ==='; grep -o 'Name=\"Document_[A-Za-zА-Яа-яЁёІіЇїЄєҐґ_]*\"' /root/erp-exp-metadata.xml | sort -u | head -40"}
+{"id": "meta-doc-1", "cmd": "python3 - <<'PYEOF'\nimport re\ns = open('/root/erp-exp-metadata.xml', encoding='utf-8').read()\nnames = sorted(set(re.findall(r'EntityType Name=\"(Document_[^\"_]+)\"', s)))\nprint('документів:', len(names))\nfor n in names: print('  ', n)\nPYEOF"}
