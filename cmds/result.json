@@ -1,7 +1,7 @@
 {
-  "stdout": "TITLE: BAF\nINPUTS: []\nПОЛІВ ВХОДУ НЕ ЗНАЙДЕНО\nBODY: \n",
+  "stdout": "крок 1: видимих input=0, тексту=0 символів\nкрок 2: видимих input=0, тексту=0 символів\nкрок 3: видимих input=0, тексту=0 символів\nкрок 4: видимих input=0, тексту=0 символів\nкрок 5: видимих input=0, тексту=0 символів\nкрок 6: видимих input=0, тексту=0 символів\nкрок 7: видимих input=0, тексту=0 символів\nкрок 8: видимих input=0, тексту=0 символів\nкрок 9: видимих input=0, тексту=0 символів\nкрок 10: видимих input=0, тексту=0 символів\nкрок 11: видимих input=0, тексту=0 символів\nкрок 12: видимих input=0, тексту=0 символів\nFRAMES: https://unitex.rdport.net:29231/DB/\nHTML довжина: 1670\nHTML шматок: <!DOCTYPE html><html><head> <title>BAF</title> <meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\"> <meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\"> <link rel=\"shortcut icon\" href=\"e1csys/mngsrv/favicon.ico\"> <link rel=\"apple-touch-icon\" href=\"e1csys/mngsrv/touchIcon.png\"> <link rel=\"mask-icon\" color=\"red\" href=\"e1csys/mngsrv/_logo.svg\"> <meta name=\"application-name\" content=\"BAF\"> <meta name=\"msapplication-TileColor\" content=\"#ffdd00\"> <meta name=\"msapplication-square70x70lo\nПОМИЛКИ (3):\n   CONSOLE: Failed to load resource: the server responded with a status of 404 (Not found)\n   REQFAIL: unitex.rdport.net:29231/DB/scripts/mod_bootstrap_bootstrap.js?sysver=8.3.19.1529 net::ERR_ABORTED\n   PAGEERR: ReferenceError: initMain is not defined\n",
   "stderr": "",
   "returncode": 0,
-  "id": "robot-login-1",
-  "ts": "2026-08-18T17:30:59Z"
+  "id": "robot-login-2",
+  "ts": "2026-08-18T17:33:06Z"
 }
