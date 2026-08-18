@@ -1,7 +1,7 @@
 {
-  "stdout": "odata.env\nodata_cert.pem\nodata_write.env\nodata_write.env.save\ntrigger_token\n--- де токен nocodb ---\n/root/ac.py\n/root/add_button.py\n/root/add_incoterms.py\n/root/add_vitalii.py\n/root/at.py\n",
+  "stdout": "TOK=open('/root/nocodb-token.txt').read().strip() ...\n    r=urllib.request.Request('http://localhost:8080'+p,heade ...\n--- ---\n5:    r=urllib.request.Request('http://localhost:8080'+p,headers={'xc-\n",
   "stderr": "",
   "returncode": 0,
-  "id": "diag-path-2",
-  "ts": "2026-08-18T07:39:04Z"
+  "id": "diag-path-3",
+  "ts": "2026-08-18T07:39:15Z"
 }
