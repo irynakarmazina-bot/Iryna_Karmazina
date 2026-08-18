@@ -1,7 +1,7 @@
 {
-  "stdout": "--- domains ---\n",
-  "stderr": "grep: /etc/caddy/Caddyfile: No such file or directory\ngrep: /etc/caddy/Caddyfile: No such file or directory\n",
+  "stdout": "/var/lib/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/16/fs/etc/caddy/Caddyfile\n/var/lib/docker/rootfs/overlayfs/670b04f31e715dd222b1d48f04a247db91ef32d450553d1886464453a607a08d/etc/caddy/Caddyfile\n/root/Caddyfile\n/root/Caddyfile.bak-cabview-20260814-125922\n/root/Caddyfile.bak-http\n--- serve ---\nLISTEN 0      4096               *:443             *:*    users:((\"caddy\",pid=52136,fd=9))                         \nLISTEN 0      4096               *:80              *:*    users:((\"caddy\",pid=52136,fd=10))                        \n",
+  "stderr": "",
   "returncode": 0,
-  "id": "verify-live-2",
-  "ts": "2026-08-18T07:04:27Z"
+  "id": "verify-live-3",
+  "ts": "2026-08-18T07:04:57Z"
 }
