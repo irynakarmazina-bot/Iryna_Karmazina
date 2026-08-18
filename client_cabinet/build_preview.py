@@ -134,9 +134,15 @@ def files_of(row):
         title = nz(f.get("title") or f.get("fileName"))
         m = re.match(r"^\s*\[([^\]]+)\]\s*(.*)$", title)
         kind = m.group(1).strip() if m else ""
-        if kind and kind not in CLIENT_DOCS:
+        # ⚠️ БЕЗ ПРЕФІКСА [Тип] — ТЕЖ НЕ ПОКАЗУЄМО. Було `if kind and kind not in …`,
+        # тобто порожній тип пропускався далі й файл ставав видимим клієнту як
+        # «Документ». Через це 18.08.2026 в кабінет «Гранд Марин» потрапила
+        # «Заявка авто …» — внутрішній документ. Білий список має працювати як
+        # білий список: показуємо ЛИШЕ те, що в ньому названо. Новий файл без
+        # префікса лишається всередині фірми, поки хтось не проставить тип.
+        if kind not in CLIENT_DOCS:
             continue                      # внутрішній документ — клієнту не віддаємо
-        out.append({"kind": kind or "Документ", "name": (m.group(2) if m else title) or title})
+        out.append({"kind": kind, "name": (m.group(2) if m else title) or title})
     return out
 
 

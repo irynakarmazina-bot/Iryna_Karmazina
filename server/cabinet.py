@@ -449,7 +449,11 @@ def docs_of(row):
         title = BP.nz(f.get("title") or f.get("fileName"))
         m = DOC_RE.match(title)
         kind = m.group(1).strip() if m else ""
-        if kind and kind not in BP.CLIENT_DOCS:
+        # ⚠️ БЕЗ ПРЕФІКСА [Тип] — ТЕЖ НЕ ВІДДАЄМО (див. пояснення у BP.files_of).
+        # Тут це критичніше, ніж у прев'ю: цей перелік не лише малює сторінку, а й
+        # вирішує, чи віддасть сервер файл за номером. Поки умова була
+        # `if kind and …`, клієнт міг і побачити, і СКАЧАТИ внутрішній документ.
+        if kind not in BP.CLIENT_DOCS:
             continue
         # `path` — постійна адреса у сховищі, `signedPath` — тимчасова (dltemp/…)
         # з датою протермінування всередині. Беремо постійну, бо файл віддається
@@ -457,7 +461,7 @@ def docs_of(row):
         path = f.get("path") or f.get("signedPath") or ""
         if not path:
             continue
-        out.append({"kind": kind or "Документ",
+        out.append({"kind": kind,
                     "name": (m.group(2) if m else title) or title,
                     "path": path,
                     "mime": f.get("mimetype") or "application/octet-stream"})
