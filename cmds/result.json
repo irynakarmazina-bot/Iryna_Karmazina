@@ -1,7 +1,7 @@
 {
-  "stdout": "лог: \nлогу немає\n",
+  "stdout": "коміт: 2e707342b relay: перезапустити кабінет із виправленням\nумова у cabinet.py: 456:        if kind not in BP.CLIENT_DOCS:\nactive\nкабінет HTTP 200\n",
   "stderr": "",
   "returncode": 0,
-  "id": "diag-log-1",
-  "ts": "2026-08-18T07:40:10Z"
+  "id": "cabinet-hotfix-1",
+  "ts": "2026-08-18T07:47:19Z"
 }
