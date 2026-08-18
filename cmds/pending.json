@@ -1,1 +1,1 @@
-{"id":"verify-live-4","cmd":"grep -nE '^[^ \\t#{}].*\\{' /root/Caddyfile | head -20"}
+{"id":"verify-live-5","cmd":"curl -sk https://134.209.94.12/app/main.js -o /tmp/live_main.js -w 'HTTP %{http_code} %{size_download} b\\n'; grep -c 'BEREMO' /tmp/live_main.js; grep -c 'a.path) return' /tmp/live_main.js; md5sum /tmp/live_main.js /root/unitex-os-www/app/main.js"}
