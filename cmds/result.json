@@ -1,7 +1,7 @@
 {
-  "stdout": "200 191б  /\n200 1784б  /DB/\n404 266б  /DB/scripts/mod_bootstrap_bootstrap.js\n404 266б  /DB/scripts/mod_bootstrap_bootstrap.js?sysver=8.3.19.1529\n404 245б  /DB/manifest.json?sysver=8.3.19.1529\n404 243б  /DB/e1cib/logon\n404 243б  /DB/e1cib/start\n404 238б  /DB/ru_RU/\n404 238б  /DB/uk_UA/\n404 238б  /DB/en_US/\n",
+  "stdout": "== https://unitex.rdport.net:31231/ ==\nHTTP 000 0б\nне з єдналося\n\n== https://unitex.rdport.net:31231/DB/ ==\nHTTP 000 0б\nне з єдналося\n\n== http://unitex.rdport.net:31231/DB/ ==\nHTTP 000 0б\nне з єдналося\n\n",
   "stderr": "",
   "returncode": 0,
-  "id": "robot-paths-1",
-  "ts": "2026-08-18T17:34:07Z"
+  "id": "robot-31231-1",
+  "ts": "2026-08-18T17:34:45Z"
 }
