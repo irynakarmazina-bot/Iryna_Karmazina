@@ -1,7 +1,7 @@
 {
-  "stdout": "-rw-r--r-- 1 root root 354596 08-18 17:09 /root/unitex-os-www/app/main.js\n41:# Модулі фасада (www/app/*.js), з 13.08.2026. Раніше весь код сидів усередині\n132:# посилалась на /app/main.js БЕЗ жодної позначки версії, а Caddy на статику не\n151:# ловимо і \"/app/main.js\", і \"/app/main.js?v=старий\" — щоб ключ оновлювався, а не множився\n225:# Що сталося: index.html уже посилався на /app/main.js, а на сервері виконувався\n228:# скопіював — і Caddy на запит /app/main.js віддав `try_files … /index.html`,\n=== чи є нові колонки на сервері ===\n4\n",
-  "stderr": "",
+  "stdout": "-rw-r--r-- 1 root root 3325421 Aug 12 12:08 /root/erp-exp-metadata.xml\n=== типи документів ===\n",
+  "stderr": "grep: Invalid collation character\n",
   "returncode": 0,
-  "id": "check-37",
-  "ts": "2026-08-18T14:09:44Z"
+  "id": "meta-entities-1",
+  "ts": "2026-08-18T14:59:53Z"
 }
