@@ -1,1 +1,1 @@
-{"id": "deploy-17", "cmd": "cd /root/Iryna_Karmazina && git fetch -q origin main && bash server/deploy_ui.sh main 2>&1 | tail -3"}
+{"id": "check-37", "cmd": "ls -l --time-style=+%m-%d\\ %H:%M /root/unitex-os-www/app/main.js 2>&1; grep -n 'main.js\\|app/' /root/Iryna_Karmazina/server/deploy_ui.sh | head -6; echo '=== чи є нові колонки на сервері ==='; grep -c 'Дата переказу' /root/unitex-os-www/app/main.js 2>/dev/null"}
