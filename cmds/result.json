@@ -1,7 +1,7 @@
 {
-  "stdout": "1\n|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■| 100% of 100.9 MiB\nChromium Headless Shell 131.0.6778.33 (playwright build v1148) downloaded to /root/.cache/ms-playwright/chromium_headless_shell-1148\nINSTALL2_DONE rc=0\n---\nchromium-1148\nchromium_headless_shell-1148\nffmpeg-1010\n",
+  "stdout": "TITLE: BAF\nINPUTS: []\nПОЛІВ ВХОДУ НЕ ЗНАЙДЕНО\nBODY: \n",
   "stderr": "",
   "returncode": 0,
-  "id": "robot-install-5",
-  "ts": "2026-08-18T17:29:33Z"
+  "id": "robot-login-1",
+  "ts": "2026-08-18T17:30:59Z"
 }
