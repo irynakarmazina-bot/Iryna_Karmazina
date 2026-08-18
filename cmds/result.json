@@ -1,7 +1,7 @@
 {
-  "stdout": "TOK=open('/root/nocodb-token.txt').read().strip() ...\n    r=urllib.request.Request('http://localhost:8080'+p,heade ...\n--- ---\n5:    r=urllib.request.Request('http://localhost:8080'+p,headers={'xc-\n",
+  "stdout": "угод з файлами: 1\n--- угода 252 Id 8 файлів 1\n   ключі: ['icon', 'id', 'mimetype', 'path', 'signedPath', 'size', 'title']\n   path  : download/2026/08/14/2f3859e5d334b0598fcf97b05ce59131f554ae38/OBL NO.GD\n   sPath : dltemp/uqNFXrkbqMgX9UPW/1787046000000/2026/08/14/2f3859e5d334b0598fcf9\n   sUrl  : None\n   url   : None\n",
   "stderr": "",
   "returncode": 0,
-  "id": "diag-path-3",
-  "ts": "2026-08-18T07:39:15Z"
+  "id": "diag-path-4",
+  "ts": "2026-08-18T07:39:32Z"
 }
