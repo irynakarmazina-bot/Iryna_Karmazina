@@ -1,7 +1,7 @@
 {
-  "stdout": "пішла установка playwright@1.49.1\n",
+  "stdout": "Setting up xfonts-cyrillic (1:1.0.5+nmu1) ...\nSetting up fonts-liberation (1:2.1.5-3) ...\nSetting up xserver-common (2:21.1.12-1ubuntu1.6) ...\nSetting up xfonts-scalable (1:1.0.3-1.3) ...\nSetting up fonts-unifont (1:15.1.01-1build1) ...\nSetting up xvfb (2:21.1.12-1ubuntu1.6) ...\nProcessing triggers for fontconfig (2.15.0-1.1ubuntu2) ...\nProcessing triggers for man-db (2.12.0-4build2) ...\n---\n/dev/vda1        24G   11G   13G  45% /\n",
   "stderr": "",
   "returncode": 0,
-  "id": "robot-install-3",
-  "ts": "2026-08-18T17:24:17Z"
+  "id": "robot-install-4",
+  "ts": "2026-08-18T17:24:44Z"
 }
