@@ -1,7 +1,7 @@
 {
-  "stdout": "   журнал: 2026-08-18T17:09:26\tmain\t594f52aa3\tв. 13.08 15:36\tindex.html:66188 findash.html:33986 finperiod.html:17527\trelay: deploy-17\n   UI/FINDASH/CHART: 200 200 200\nDEPLOY_OK · гілка main · коміт 594f52aa3 · позначка «в. 13.08 15:36»\n",
+  "stdout": "-rw-r--r-- 1 root root 354596 08-18 17:09 /root/unitex-os-www/app/main.js\n41:# Модулі фасада (www/app/*.js), з 13.08.2026. Раніше весь код сидів усередині\n132:# посилалась на /app/main.js БЕЗ жодної позначки версії, а Caddy на статику не\n151:# ловимо і \"/app/main.js\", і \"/app/main.js?v=старий\" — щоб ключ оновлювався, а не множився\n225:# Що сталося: index.html уже посилався на /app/main.js, а на сервері виконувався\n228:# скопіював — і Caddy на запит /app/main.js віддав `try_files … /index.html`,\n=== чи є нові колонки на сервері ===\n4\n",
   "stderr": "",
   "returncode": 0,
-  "id": "deploy-17",
-  "ts": "2026-08-18T14:09:26Z"
+  "id": "check-37",
+  "ts": "2026-08-18T14:09:44Z"
 }
