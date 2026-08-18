@@ -1,1 +1,1 @@
-{"id":"verify-live-2","cmd":"grep -n 'unitex-os-www' /etc/caddy/Caddyfile | head -5; echo '--- domains ---'; grep -nE '^[a-z0-9.-]+\\.(od\\.ua|com|net)' /etc/caddy/Caddyfile | head -10"}
+{"id":"verify-live-3","cmd":"find / -name 'Caddyfile*' -not -path '*/proc/*' 2>/dev/null | head -5; echo '--- serve ---'; ss -ltnp 2>/dev/null | grep -E ':(80|443) ' | head -5"}
