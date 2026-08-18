@@ -1,7 +1,7 @@
 {
-  "stdout": "   журнал: 2026-08-18T19:42:25\tmain\tf767dd959\tв. 13.08 15:36\tindex.html:66188 findash.html:33986 finperiod.html:17527\trelay: deploy-18\n   UI/FINDASH/CHART: 200 200 200\nDEPLOY_OK · гілка main · коміт f767dd959 · позначка «в. 13.08 15:36»\n",
+  "stdout": "== сутності про користувачів ==\n['Catalog_ГруппыПользователей', 'Catalog_ГруппыПользователей_ПользователиГруппы', 'Catalog_ИсторияРаботыПользователей', 'Catalog_СохраненныеНастройки_Пользователи']\n== сутності про Бітрикс ==\n[]\n== інформаційні регістри (всі 6) ==\n['InformationRegister_КОКО', 'InformationRegister_КОКО_RecordType', 'InformationRegister_КритерииСтатусаНовыйДляКлиентов', 'InformationRegister_КурсыВалют', 'InformationRegister_ТекущаяПозицияСП', 'InformationRegister_ТрекингКонтейнеровСП']\n== поля автора/відповідального в угоді ==\n['ИзБитрикса', 'ИзБитриксаДатаПоследнегоРедактирования', 'Менеджер', 'Менеджер_Key', 'ОперативныйМенеджер', 'ОперативныйМенеджер_Key', 'Создал_Key']\natt.py\natt2.py\nbad_dates.py\nbtn.py\nchk.py\nchk_contr.py\nd260.py\ndeal22.py\ndiff_dates.py\ndone_dates.py\ndryrun.log\neta244.py\n",
   "stderr": "",
   "returncode": 0,
-  "id": "deploy-18",
-  "ts": "2026-08-18T16:42:25Z"
+  "id": "robot-probe-1",
+  "ts": "2026-08-18T17:14:20Z"
 }
