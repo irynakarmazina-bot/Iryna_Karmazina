@@ -1,7 +1,7 @@
 {
-  "stdout": "=== ЗАГОЛОВКИ /app/main.js ===\nHTTP/2 200 \netag: \"dkrvlth4px3d7lco\"\nlast-modified: Tue, 18 Aug 2026 07:03:21 GMT\n=== ЩО ВІДДАЄ NocoDB У ПОЛІ Файли (угода 287) ===\nenv: \n",
+  "stdout": "odata.env\nodata_cert.pem\nodata_write.env\nodata_write.env.save\ntrigger_token\n--- де токен nocodb ---\n/root/ac.py\n/root/add_button.py\n/root/add_incoterms.py\n/root/add_vitalii.py\n/root/at.py\n",
   "stderr": "",
   "returncode": 0,
-  "id": "diag-cache-and-path-1",
-  "ts": "2026-08-18T07:38:47Z"
+  "id": "diag-path-2",
+  "ts": "2026-08-18T07:39:04Z"
 }
