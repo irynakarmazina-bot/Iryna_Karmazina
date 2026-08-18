@@ -1,7 +1,7 @@
 {
-  "stdout": "0\n0\nd41d8cd98f00b204e9800998ecf8427e  -\n9c46d509152ebb2cfbff834479b50219  /root/unitex-os-www/app/main.js\n",
-  "stderr": "",
+  "stdout": "--- domains ---\n",
+  "stderr": "grep: /etc/caddy/Caddyfile: No such file or directory\ngrep: /etc/caddy/Caddyfile: No such file or directory\n",
   "returncode": 0,
-  "id": "verify-live-filelink-1",
-  "ts": "2026-08-18T07:03:54Z"
+  "id": "verify-live-2",
+  "ts": "2026-08-18T07:04:27Z"
 }
