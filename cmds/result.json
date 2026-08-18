@@ -1,7 +1,7 @@
 {
-  "stdout": "               total        used        free      shared  buff/cache   available\nMem:            1967         975         222           3         965         992\nSwap:           2047         332        1715\n---\n/dev/vda1        24G   11G   14G  44% /\n---\nNAME      TYPE SIZE   USED PRIO\n/swapfile file   2G 332.3M   -2\n--- node ---\nv18.19.1\n--- браузери ---\nкінець\n",
+  "stdout": "установку запущено у фоні, журнал /root/webbot/install.log\n",
   "stderr": "",
   "returncode": 0,
-  "id": "robot-vps-1",
-  "ts": "2026-08-18T17:20:28Z"
+  "id": "robot-install-1",
+  "ts": "2026-08-18T17:21:00Z"
 }
