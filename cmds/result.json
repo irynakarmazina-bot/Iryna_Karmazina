@@ -1,7 +1,7 @@
 {
-  "stdout": "нерозпізнаних рахунків: 432 · різних GUID: 11\nшукаю 193d19b3\nрезультат: ніде не знайдено\n",
+  "stdout": "=== що взагалі відкрито через OData ===\n  Document                     327\n  Catalog                      305\n  AccumulationRegister         54\n  AccountingRegister           6\n  InformationRegister          6\n  ChartOfCharacteristicTypes   5\n  DocumentJournal              3\n  ChartOfAccounts              3\n  ExchangePlan                 2\n\n=== плани обміну (готовий канал, якщо є) ===\n  знайдено: 2\n    ExchangePlan_Линейный\n    ExchangePlan_Полный\n",
   "stderr": "",
   "returncode": 0,
-  "id": "check-41",
-  "ts": "2026-08-18T15:36:35Z"
+  "id": "meta-exch-1",
+  "ts": "2026-08-18T15:38:05Z"
 }
