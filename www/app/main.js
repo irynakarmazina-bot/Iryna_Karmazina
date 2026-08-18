@@ -1876,9 +1876,23 @@ function docBtn(r){
   return `<button class="btn ghost docs-btn" data-doc="${r.Id}" style="padding:3px 10px" title="Документи">📄${n||""}</button>`;
 }
 function fileUrl(a){
+  /* БЕРЕМО `path`, А НЕ ПІДПИСАНЕ ПОСИЛАННЯ. Чому (знайдено 18.08.2026):
+     NocoDB віддає у вкладенні і `path` (download/…), і `signedUrl`/`signedPath`
+     (dltemp/…). Фасад брав підписане — а в Caddy маршруту `/dltemp/*` НЕМАЄ,
+     до бази прокинуто лише `/download/*`. Тому браузер на такий шлях отримував
+     не файл, а нашу ж сторінку: перевірено на угоді 287 —
+        /download/…  → 200, application/…sheet, 7037 б  (справжній файл)
+        /dltemp/…    → 200, text/html, 65 688 б         (сторінка ЕРП)
+     Виглядало це так, як описала користувачка: відкривається нова вкладка з ЕРП,
+     файл не відкривається, а оскільки ключ сесії живе В МЕЖАХ ВКЛАДКИ — у новій
+     вкладці її зустрічав екран входу, тобто «вибивало з програми».
+     Кожен відрізок шляху кодуємо окремо: у назвах файлів бувають пробіли й
+     кирилиця («Заявка авто Maersk … .xlsx»), а косі риски мають лишитись косими. */
+  const enc = p => String(p).replace(/^\/+/, "").split("/").map(encodeURIComponent).join("/");
+  if (a.path) return "/" + enc(a.path);
   let u = a.signedUrl || a.url || "";
   if (u && u.startsWith("http")){ try{ const p = new URL(u); u = p.pathname + p.search; }catch(e){} }
-  if (!u){ u = "/" + String(a.signedPath || a.path || "").replace(/^\/+/, ""); }
+  if (!u){ u = "/" + enc(a.signedPath || ""); }
   return u;
 }
 let DOC_ROW = null;
