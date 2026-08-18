@@ -1,1 +1,1 @@
-{"id":"robot-install-1","cmd":"mkdir -p /root/webbot && cd /root/webbot && nohup bash -c 'npm init -y >/dev/null 2>&1; npm i playwright >>/root/webbot/install.log 2>&1; npx playwright install --with-deps chromium >>/root/webbot/install.log 2>&1; echo INSTALL_DONE rc=$? >>/root/webbot/install.log' >/dev/null 2>&1 & echo 'установку запущено у фоні, журнал /root/webbot/install.log'"}
+{"id":"robot-install-2","cmd":"tail -5 /root/webbot/install.log 2>/dev/null; echo ---; ls /root/.cache/ms-playwright 2>/dev/null; free -m | sed -n 2p"}
