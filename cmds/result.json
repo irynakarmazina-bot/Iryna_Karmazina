@@ -1,7 +1,7 @@
 {
-  "stdout": "бекап: /root/Caddyfile.bak-dltemp-20260819-134503\nмаршрут /dltemp/* додано\nValid configuration\n{\"level\":\"info\",\"ts\":1787136304.2811813,\"msg\":\"adapted config to JSON\",\"adapter\":\"caddyfile\"}\nперезавантажено\n== наскрізна перевірка ==\nOK [Домашній коносамент] OBL NO.GDNBB260700 | download: 200 application/pdf | dltemp: 200 application/pdf\nOK POA Maersk 272095767 19.08.2026.docx | download: 200 application/vnd.openxmlformats-officedocument.wordprocessingml.document | dltemp: 200 application/vnd.openxmlformats-officedocument.wordprocessingml.document\nOK Заявка авто Maersk 275820304 18.08.2026. | download: 200 application/vnd.openxmlformats-officedocument.spreadsheetml.sheet | dltemp: 200 application/vnd.openxmlformats-officedocument.spreadsheetml.sheet\nсторінка платформи: 200 | загалом: ВСЕ ПРАЦЮЄ\n",
+  "stdout": "== що зверталось до 1С 14:40–15:40 Києва ==\n== усі процеси python/node, що працювали в цей час (по auth-журналу навряд видно) ==\nroot     pts/0        185.218.200.131  Fri Aug 14 10:33:39 2026 - Fri Aug 14 10:36:04 2026  (00:02)\nroot     pts/0        185.218.200.131  Fri Aug 14 10:32:08 2026 - Fri Aug 14 10:33:25 2026  (00:01)\nroot     pts/0        185.218.200.131  Fri Aug 14 10:23:44 2026 - Fri Aug 14 10:32:03 2026  (00:08)\nroot     pts/0        185.218.200.131  Thu Aug 13 20:15:22 2026 - Fri Aug 14 02:47:37 2026  (06:32)\nroot     pts/0        185.218.200.131  Mon Aug 10 07:20:58 2026 - Wed Aug 12 01:21:02 2026 (1+18:00)\n== вихідні з єднання до rdport зараз ==\n0\nжурнали перевірено\n",
   "stderr": "",
   "returncode": 0,
-  "id": "filelink-fix-2",
-  "ts": "2026-08-19T10:45:04Z"
+  "id": "who-1511-1",
+  "ts": "2026-08-19T13:33:34Z"
 }
