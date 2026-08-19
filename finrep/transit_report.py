@@ -8,10 +8,17 @@
     витрати компанії: в управлінському обліку вони лежать на угоді (щоб бачити реальний
     дохід по перевезенню), але в цей звіт не входять.
 
-    ⚠️ ГОЛОВНЕ УТОЧНЕННЯ: транзит — це переказ З ТОГО САМОГО РАХУНКУ, НА ЯКИЙ ПРИЙШЛИ
-    ГРОШІ. В угоді бувають оплати з різних видів оплати (Маерск USD, каси, Cr String
-    Cycle) — вони до цього звіту НЕ належать і показуються лише довідково.
-    Тому рахунок ведеться ПО КОЖНОМУ РАХУНКУ ОКРЕМО: надійшло на Х → переказано з Х.
+    ⚠️ ЯК ГРОШІ ЙДУТЬ НАСПРАВДІ (уточнення користувачки 18.08.2026): переказ іде не одним
+    кроком, а ланцюгом через ВНУТРІШНІ ПЕРЕМІЩЕННЯ: з «Банк Юнітекс Ейч-Ді» (грн) на
+    Ейч-Ді USD/EUR, або на «Банк Юнітекс Ейч-Ді Восток», далі на «Банк Cr String Cycle LLC»
+    («Стрінг») чи «Маерск USD» — і вже звідти платять постачальнику.
+
+    ПЕРЕВІРЕНО В БАЗІ: внутрішні переміщення видно в регістрі «Хозрасчетный» (259 проводок
+    гроші↔гроші), але ЖОДНЕ з них НЕ прив'язане до угоди (реквізит «Сделка» порожній у всіх
+    259). Тому сказати, яка саме угода стоїть за конкретним переміщенням, база не дозволяє.
+    Наслідок для звіту: транзитом по угоді вважаємо ВСІ оплати постачальникам за цією
+    угодою — з будь-якого рахунку, бо вони і є кінець ланцюга. У кожному переказі видно,
+    з якого рахунку він пішов, а самі переміщення показані окремим блоком (загалом).
 
 Що рахуємо по кожній угоді:
     1) скільки НАДІЙШЛО (рахунки клієнта, сплачені на рахунки Юнітекса, з розбивкою);
@@ -86,6 +93,49 @@ def d10(x):
 def names(c, entity):
     return {r["Ref_Key"]: (r.get("Description") or "").strip()
             for r in page(c, entity, ["Ref_Key", "Description"])}
+
+
+def moves(c):
+    """Внутрішні переміщення грошей: звідки → куди, скільки, коли.
+
+    Вид оплати лежить у субконто регістру ОКРЕМО по дебету (куди) і кредиту (звідки),
+    тому одна проводка показує обидва боки переміщення. Реквізит «Сделка» у цих проводках
+    порожній — прив'язати переміщення до угоди неможливо (перевірено 18.08.2026).
+    """
+    import urllib.request                                       # noqa: PLC0415
+    MONEY = {"1110", "1210", "1220", "1300"}
+    pay = names(c, "Catalog_ВидОплаты")
+    accounts = {r["Ref_Key"]: (r.get("Code") or "").strip()
+                for r in page(c, "ChartOfAccounts_Хозрасчетный", ["Ref_Key", "Code"])}
+    ent = urllib.parse.quote("AccountingRegister_Хозрасчетный")
+    recs, skip = [], 0
+    while True:
+        url = "%s/%s/RecordsWithExtDimensions?$format=json&$top=1000&$skip=%d" % (c.url, ent, skip)
+        req = urllib.request.Request(url)
+        req.add_header("Authorization", c._auth)                # noqa: SLF001
+        with urllib.request.urlopen(req, timeout=300, context=c._ctx) as r:  # noqa: SLF001
+            b = json.loads(r.read().decode("utf-8", "replace")).get("value", [])
+        recs += b
+        if len(b) < 1000:
+            break
+        skip += 1000
+
+    def side(rec, s_):
+        for i in (1, 2, 3):
+            if rec.get("ExtDimension%s%d_Type" % (s_, i)) == "StandardODATA.Catalog_ВидОплаты":
+                return pay.get(rec.get("ExtDimension%s%d" % (s_, i)), "")
+        return ""
+
+    NULL = "00000000-0000-0000-0000-000000000000"
+    out = []
+    for r in recs:
+        if (accounts.get(r.get("AccountDr_Key")) not in MONEY
+                or accounts.get(r.get("AccountCr_Key")) not in MONEY):
+            continue
+        out.append({"date": d10(r.get("Period")), "from": side(r, "Cr"), "to": side(r, "Dr"),
+                    "amount": round(f(r.get("Сумма")), 2),
+                    "deal": r.get("Сделка_Key") not in (None, "", NULL)})
+    return out
 
 
 def build(c):
@@ -164,15 +214,12 @@ def build(c):
             if paid_ok:
                 d["operating"][a_name] += amount
             continue
-        if from_acc not in ACCOUNTS:
-            # оплачено з іншого рахунку (Маерск USD, каси, Cr String Cycle) — це НЕ транзит
-            # з наших рахунків; показуємо довідково, у залишок не входить
-            if paid_ok:
-                d["other_acc"].append(item)
-            continue
         if paid_ok:
+            # кінець ланцюга: гроші дійшли до постачальника, хай і через переміщення
             d["transit"].append(item)
             d["out_by_acc"][from_acc] += amount
+            if from_acc not in ACCOUNTS:
+                d["other_acc"].append(item)      # довідково: пішло не напряму з наших рахунків
         else:
             d["unpaid"].append(item)
 
@@ -187,11 +234,10 @@ def build(c):
             by_art[x["article"]] += x["amount"]
         # залишок по кожному рахунку окремо: надійшло на Х мінус переказано з Х
         per_acc = []
-        for a_name in ACCOUNTS:
+        for a_name in sorted(set(list(d["in_by_acc"]) + list(d["out_by_acc"]))):
             got, sent = d["in_by_acc"].get(a_name, 0.0), d["out_by_acc"].get(a_name, 0.0)
-            if got or sent:
-                per_acc.append({"account": a_name, "in": round(got, 2), "out": round(sent, 2),
-                                "left": round(got - sent, 2)})
+            per_acc.append({"account": a_name, "in": round(got, 2), "out": round(sent, 2),
+                            "left": round(got - sent, 2)})
         rows.append({
             "num": d["num"], "status": d["status"], "bl": d["bl"], "cont": d["cont"],
             "per_account": per_acc,
@@ -222,7 +268,8 @@ def main():
     ap.add_argument("--deal", default="")
     a = ap.parse_args()
 
-    rows = build(client())
+    c = client()
+    rows = build(c)
     pos = [r for r in rows if r["balance"] > 0]
     print("угод із надходженням від клієнта: %d" % len(rows))
     print("надійшло разом: %.2f · винагорода: %.2f · переказано транзитом: %.2f" %
@@ -237,8 +284,17 @@ def main():
           (sum(1 for r in rows if r["unpaid_total"]), sum(r["unpaid_total"] for r in rows)))
     print("операційні (комісії, податки, бонуси) — окремо, у транзит не входять: %.2f" %
           sum(r["operating_total"] for r in rows))
-    print("оплачено з ІНШИХ рахунків (не транзит із наших): %.2f у %d угодах" %
+    print("з них пішло не напряму з наших рахунків (через переміщення): %.2f у %d угодах" %
           (sum(r["other_acc_total"] for r in rows), sum(1 for r in rows if r["other_acc_total"])))
+    mv = moves(c)
+    print("\nВНУТРІШНІ ПЕРЕМІЩЕННЯ між рахунками: %d проводок, з прив'язкою до угоди: %d"
+          % (len(mv), sum(1 for x in mv if x["deal"])))
+    top = collections.Counter()
+    for x in mv:
+        if x["from"] != x["to"]:
+            top[(x["from"], x["to"])] += x["amount"]
+    for (src_acc, dst_acc), v in top.most_common(8):
+        print("   %-26s → %-26s %11.2f" % (src_acc[:26], dst_acc[:26], v))
 
     if a.deal:
         r = next((x for x in rows if x["num"] == a.deal), None)
@@ -271,6 +327,7 @@ def main():
 
     if not a.dry_run:
         data = {"rows": rows, "accounts": ACCOUNTS, "operating": sorted(OPERATING),
+                "moves": mv,
                 "total_in": round(sum(r["in_total"] for r in rows), 2),
                 "total_fee": round(sum(r["fee"] for r in rows), 2),
                 "total_transit": round(sum(r["transit_total"] for r in rows), 2),
