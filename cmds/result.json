@@ -1,7 +1,7 @@
 {
-  "stdout": "nocodb fb359673c42f 127.0.0.1:8080->8080/tcp\ncaddy caddy:2-alpine \n---\nls: cannot access '/etc/caddy': No such file or directory\n---\nугода 252 · [Домашній коносамент] OBL NO.GDNBB2607002TH.p\n   path      : download/2026/08/14/2f3859e5d334b0598fcf97b05ce59131f554ae38/OBL NO.GDNBB2607002TH_rcXhT.pdf\n   через /download: 200 application/pdf 300...\n   через /dltemp  : 200 text/html; charset=utf-8 300...\nугода 238 · POA Maersk 272095767 19.08.2026.docx\n   path      : download/2026/08/19/2f3859e5d334b0598fcf97b05ce59131f554ae38/POA Maersk 272095767 19.08.2026_WC\n   через /download: 200 application/vnd.openxmlformats-officedocument.wordprocessingml.document 300...\n   через /dltemp  : 200 text/html; charset=utf-8 300...\nугода 287 · Заявка авто Maersk 275820304 18.08.2026.xlsx\n   path      : download/2026/08/18/2f3859e5d334b0598fcf97b05ce59131f554ae38/Заявка авто Maersk 275820304 18.08\n   через /download: 200 application/vnd.openxmlformats-officedocument.spreadsheetml.sheet 300...\n   через /dltemp  : 200 text/html; charset=utf-8 300...\n",
+  "stdout": "host\n/root/Caddyfile -> /etc/caddy/Caddyfile\n/root/unitex-os-www -> /srv/www\n\n--- чи збігається конфіг у контейнері з /root/Caddyfile ---\nОДНАКОВІ\ndltemp у конфігу немає\n",
   "stderr": "",
   "returncode": 0,
-  "id": "filelink-diag-4",
-  "ts": "2026-08-19T10:43:26Z"
+  "id": "filelink-fix-1",
+  "ts": "2026-08-19T10:44:30Z"
 }
