@@ -1,1 +1,1 @@
-{"id": "deploy-18", "cmd": "cd /root/Iryna_Karmazina && git fetch -q origin main && bash server/deploy_ui.sh main 2>&1 | tail -3"}
+{"id":"filelink-diag-1","cmd":"grep -n 'root\\|handle\\|reverse_proxy\\|^[a-z0-9.]' /root/Caddyfile | sed -n '1,60p'; echo ...; sed -n '55,120p' /root/Caddyfile"}
