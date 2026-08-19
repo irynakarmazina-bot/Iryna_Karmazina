@@ -1,7 +1,7 @@
 {
-  "stdout": "host\n/root/Caddyfile -> /etc/caddy/Caddyfile\n/root/unitex-os-www -> /srv/www\n\n--- чи збігається конфіг у контейнері з /root/Caddyfile ---\nОДНАКОВІ\ndltemp у конфігу немає\n",
+  "stdout": "бекап: /root/Caddyfile.bak-dltemp-20260819-134503\nмаршрут /dltemp/* додано\nValid configuration\n{\"level\":\"info\",\"ts\":1787136304.2811813,\"msg\":\"adapted config to JSON\",\"adapter\":\"caddyfile\"}\nперезавантажено\n== наскрізна перевірка ==\nOK [Домашній коносамент] OBL NO.GDNBB260700 | download: 200 application/pdf | dltemp: 200 application/pdf\nOK POA Maersk 272095767 19.08.2026.docx | download: 200 application/vnd.openxmlformats-officedocument.wordprocessingml.document | dltemp: 200 application/vnd.openxmlformats-officedocument.wordprocessingml.document\nOK Заявка авто Maersk 275820304 18.08.2026. | download: 200 application/vnd.openxmlformats-officedocument.spreadsheetml.sheet | dltemp: 200 application/vnd.openxmlformats-officedocument.spreadsheetml.sheet\nсторінка платформи: 200 | загалом: ВСЕ ПРАЦЮЄ\n",
   "stderr": "",
   "returncode": 0,
-  "id": "filelink-fix-1",
-  "ts": "2026-08-19T10:44:30Z"
+  "id": "filelink-fix-2",
+  "ts": "2026-08-19T10:45:04Z"
 }
