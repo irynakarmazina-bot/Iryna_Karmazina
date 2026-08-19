@@ -1,7 +1,7 @@
 {
-  "stdout": "5:https://134.209.94.12 {\n12:\thandle /api/* {\n13:\t\treverse_proxy 127.0.0.1:8792\n15:\thandle /download/* {\n16:\t\treverse_proxy 127.0.0.1:8080\n18:\thandle /finrep-data* {\n19:\t\treverse_proxy 127.0.0.1:8789\n21:\thandle /finrep-run {\n23:\t\treverse_proxy 127.0.0.1:8787\n25:\thandle /sync {\n27:\t\treverse_proxy 127.0.0.1:8788\n29:\thandle /sync-state {\n31:\t\treverse_proxy 127.0.0.1:8788\n33:\thandle /cash-refresh {\n35:\t\treverse_proxy 127.0.0.1:8791\n37:\thandle /localcosts-refresh {\n39:\t\treverse_proxy 127.0.0.1:8791\n41:\thandle /gen-doc {\n42:\t\treverse_proxy 127.0.0.1:8790\n44:\thandle /cabinet-* {\n45:\t\treverse_proxy 127.0.0.1:8793\n47:\thandle {\n50:\t\troot * /srv/www\n56:http://134.209.94.12, http://:80 {\n60:cabinet.unitex.od.ua {\n62:\treverse_proxy 127.0.0.1:8793\n...\n\nhttp://134.209.94.12, http://:80 {\n\tredir https://134.209.94.12{uri} permanent\n}\n\ncabinet.unitex.od.ua {\n\tencode gzip\n\treverse_proxy 127.0.0.1:8793\n}\n",
+  "stdout": "ls: cannot access '/srv/www': No such file or directory\n---\nsrc=\"/app/main.js?v=672b9906bc\"\n0\n1\n---\n2026-08-18T17:09:26\tmain\t594f52aa3\tв. 13.08 15:36\tindex.html:66188 findash.html:33986 finperiod.html:17527\trelay: deplo\n2026-08-18T19:42:25\tmain\tf767dd959\tв. 13.08 15:36\tindex.html:66188 findash.html:33986 finperiod.html:17527\trelay: deplo\n2026-08-19T10:52:25\tmain\t17b9e966d\tв. 13.08 15:36\tindex.html:66188 findash.html:33986 finperiod.html:17527\trelay: deplo\n---\nвкладень всього 3, з path 3, без path 0\n",
   "stderr": "",
   "returncode": 0,
-  "id": "filelink-diag-1",
-  "ts": "2026-08-19T10:40:02Z"
+  "id": "filelink-diag-2",
+  "ts": "2026-08-19T10:41:01Z"
 }
