@@ -1,7 +1,7 @@
 {
-  "stdout": "ls: cannot access '/srv/www': No such file or directory\n---\nsrc=\"/app/main.js?v=672b9906bc\"\n0\n1\n---\n2026-08-18T17:09:26\tmain\t594f52aa3\tв. 13.08 15:36\tindex.html:66188 findash.html:33986 finperiod.html:17527\trelay: deplo\n2026-08-18T19:42:25\tmain\tf767dd959\tв. 13.08 15:36\tindex.html:66188 findash.html:33986 finperiod.html:17527\trelay: deplo\n2026-08-19T10:52:25\tmain\t17b9e966d\tв. 13.08 15:36\tindex.html:66188 findash.html:33986 finperiod.html:17527\trelay: deplo\n---\nвкладень всього 3, з path 3, без path 0\n",
+  "stdout": "== чим запущено caddy ==\ncaddy run --config /etc/caddy/Caddyfile --adapter caddyfile\n\n== живий конфіг (маршрути) ==\nсервер srv0 порти [':443']\n     (усе) → encode | reverse_proxy→127.0.0.1:8793\n  маршрут 0 host= ['cabinet.unitex.od.ua'] path= [] → ['subroute']\n     (усе) → encode\n     ['/localcosts-refresh'] → subroute\n     ['/cash-refresh'] → subroute\n     ['/finrep-data*'] → subroute\n     ['/finrep-run'] → subroute\n     ['/sync-state'] → subroute\n     ['/download/*'] → subroute\n     ['/cabinet-*'] → subroute\n     ['/gen-doc'] → subroute\n     ['/api/*'] → subroute\n     ['/sync'] → subroute\n     (усе) → subroute\n  маршрут 1 host= ['134.209.94.12'] path= [] → ['subroute']\nсервер srv1 порти [':80']\n  маршрут 0 host= [] path= [] → ['static_response']\n== перевірка посилань на файл угоди 287 ==\ndownload-шлях: HTTP 404 тип text/html; charset=utf-8 розмір 14\n",
   "stderr": "",
   "returncode": 0,
-  "id": "filelink-diag-2",
-  "ts": "2026-08-19T10:41:01Z"
+  "id": "filelink-diag-3",
+  "ts": "2026-08-19T10:42:11Z"
 }
