@@ -1,1 +1,1 @@
-{"id":"dup-280-287-8","cmd":"grep -n -B2 -A6 'Запис по колонках' /root/direct-sync/sync.log | tail -50; echo '=== згадки 287 ==='; grep -n '287' /root/direct-sync/sync.log | tail -12; echo '=== згадки 275820304 у всіх логах ==='; grep -n '275820304' /root/direct-sync/*.log | tail -12"}
+{"id": "906b7bca5e61", "cmd": "cd /root/Iryna_Karmazina && git fetch origin main && git reset --hard origin/main && bash server/deploy_ui.sh main 2>&1 | tail -15"}
