@@ -1,7 +1,7 @@
 {
-  "stdout": "31:def _load_env():\n43:    def __init__(self):\n61:    def _verify_pin(self):\n68:    def _get(self, path):\n75:    def entity_sets(self):\n80:    def list(self, entity, select=None, filter=None, expand=None, order=None, top=None, page=1000):\n163:    def first(self, entity, **kw):\n--- як синхронізація його викликає ---\n295:                          for r in c.list(ent, select=[\"Ref_Key\", \"Description\"])}\n669:    every = list(c.list(\"Document_Сделка\"))\n",
+  "stdout": "угод з номером 292 в Експедиторі: 0\n",
   "stderr": "",
   "returncode": 0,
-  "id": "c6aa4cb3b518",
-  "ts": "2026-08-21T17:24:14Z"
+  "id": "19569e7cc21a",
+  "ts": "2026-08-21T17:24:49Z"
 }
