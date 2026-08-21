@@ -1,7 +1,7 @@
 {
-  "stdout": "ExecStart=/usr/bin/python3 /root/Iryna_Karmazina/server/cabinet.py\n--- який файл реально виконується ---\n 816193 Tue Aug 18 10:47:15 2026 /usr/bin/python3 /root/Iryna_Karmazina/server/cabinet.py\n--- чи є градієнти й правки у файлі, на який вказує служба ---\n/root/Iryna_Karmazina/client_cabinet/build_preview.py: градієнтів=5 iMove=1 xf=1 змінено=2026-08-21 15:10\n--- останні рядки журналу служби ---\nAug 17 18:57:16 ubuntu-s-1vcpu-1gb-ams3 systemd[1]: Started unitex-cabinet.service - Unitex client cabinet (вхід за паролем, фільтрація на сервері).\nAug 18 10:47:15 ubuntu-s-1vcpu-1gb-ams3 systemd[1]: Stopping unitex-cabinet.service - Unitex client cabinet (вхід за паролем, фільтрація на сервері)...\nAug 18 10:47:15 ubuntu-s-1vcpu-1gb-ams3 systemd[1]: unitex-cabinet.service: Deactivated successfully.\nAug 18 10:47:15 ubuntu-s-1vcpu-1gb-ams3 systemd[1]: Stopped unitex-cabinet.service - Unitex client cabinet (вхід за паролем, фільтрація на сервері).\nAug 18 10:47:15 ubuntu-s-1vcpu-1gb-ams3 systemd[1]: unitex-cabinet.service: Consumed 7.683s CPU time.\nAug 18 10:47:15 ubuntu-s-1vcpu-1gb-ams3 systemd[1]: Started unitex-cabinet.service - Unitex client cabinet (вхід за паролем, фільтрація на сервері).\n",
-  "stderr": "",
+  "stdout": "HEAD is now at 2adf23f5f relay: викласти схему і перезапустити службу\nActiveEnterTimestamp=Fri 2026-08-21 15:21:47 EEST\nactive\nмитне оформлення у живій сторінці: 0\nнова логіка гейт ауту у живій сторінці: 0\n",
+  "stderr": "From https://github.com/irynakarmazina-bot/Iryna_Karmazina\n * branch                main       -> FETCH_HEAD\n   da3bd7072..2adf23f5f  main       -> origin/main\n",
   "returncode": 0,
-  "id": "62909c5077ff",
-  "ts": "2026-08-21T12:12:57Z"
+  "id": "2bfc5aaea033",
+  "ts": "2026-08-21T12:21:51Z"
 }
