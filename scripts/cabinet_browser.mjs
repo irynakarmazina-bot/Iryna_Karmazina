@@ -41,10 +41,10 @@ const body = await page.content();
 check('сторінка кабінету відкрилась', await page.locator('table').isVisible());
 check('видно назву компанії', body.includes('ТОВ Мірандор'));
 const rows = await page.locator('tr.deal').count();
-check('рядків угод у поданні «В дорозі» = 9', rows === 9, 'було ' + rows);
+check('рядків угод у поданні «В дорозі» = 10', rows === 10, 'було ' + rows);
 await page.click('#seg button[data-f=all]');
 const all = await page.locator('tr.deal').count();
-check('усього своїх угод 10', all === 10, 'було ' + all);
+check('усього своїх угод 11', all === 11, 'було ' + all);
 
 console.log('\n=== порядок рядків: за датою відправлення ===');
 const order = await page.$$eval('tr.deal', ns => ns.map(n => n.dataset.id));
@@ -85,18 +85,70 @@ console.log('\n=== неможлива дата не рухає крапку в �
 /* Угода 238: «Вивантаження у отримувача (факт)» 16.06 стоїть раніше за
    відправлення 22.06. Крапка має лишитись на морському плечі, а не в кінці,
    і останній вузол не має бути пройденим — статус ще не «Вантаж доставлено». */
+// Перевіряємо НАЗВУ кроку, а не його номер: номер їде щоразу, коли зі схеми
+// прибирають або додають вузол, і тест починає падати на рівному місці.
 const d238 = await page.evaluate(() => {
   const tr = document.querySelector('tr.deal[data-id="238"]');
   if (!tr) return null;
   const dots = [...tr.querySelectorAll('.mini .md')];
-  return { всього: dots.length,
-           тепер: dots.findIndex(d => d.classList.contains('now')),
+  const names = (tr.querySelector('.mini').getAttribute('title') || '')
+    .split('·').map(s => s.replace('▸', '').trim()).filter(Boolean);
+  const i = dots.findIndex(d => d.classList.contains('now'));
+  return { всього: dots.length, тепер: i, крок: names[i],
            пройдено: dots.filter(d => d.classList.contains('done')).length };
 });
 check('рядок 238 є', d238 !== null);
 check('крапка НЕ в кінці стрічки', d238 && d238.тепер < d238.всього - 1, JSON.stringify(d238));
-check('крапка на морському плечі', d238 && d238.тепер === 4, JSON.stringify(d238));
+check('крапка на перевалці', d238 && d238.крок === 'Перевалка', JSON.stringify(d238));
 check('пройденими позначені не всі вузли', d238 && d238.пройдено < d238.всього, JSON.stringify(d238));
+
+console.log('\n=== залізниця: «ETA сухий порт» — це план завантаження на потяг ===');
+/* Пояснення користувачки 21.08.2026: «Гейт аут» = виїзд з порту = факт
+   завантаження на потяг; «ETA сухий порт» Маерск заповнює ПЛАНОМ завантаження
+   на потяг, а не прибуттям у сухий порт. Тому дата 10.08 не має підписувати
+   крок «Сухий порт», а крапка має стояти на потязі — вантаж їде саме там. */
+await page.click('tr.deal[data-id="224"]');
+await page.waitForTimeout(400);
+const rail = await page.evaluate(() => {
+  const tr = document.querySelector('tr.deal[data-id="224"]');
+  const names = (tr.querySelector('.mini').getAttribute('title') || '')
+    .split('·').map(s => s.replace('▸', '').trim()).filter(Boolean);
+  const dots = [...tr.querySelectorAll('.mini .md')];
+  const i = dots.findIndex(d => d.classList.contains('now'));
+  const nd = [...document.querySelectorAll('.nd')].map(n =>
+    ((n.querySelector('.dt') || n.querySelector('.plan') || {}).innerText || '—').trim());
+  return { крок: names[i], сухийПорт: nd[names.indexOf('Сухий порт')],
+           потяг: nd[names.indexOf('Завантажений на потяг')] };
+});
+check('крапка на потязі, а не на сухому порту', rail.крок === 'Завантажений на потяг', JSON.stringify(rail));
+check('на потязі стоїть факт гейт ауту 11.08', (rail.потяг || '').includes('11.08'), JSON.stringify(rail));
+check('«Сухий порт» лишився без дати', rail.сухийПорт === '—', JSON.stringify(rail));
+
+// Сухий порт уже в Україні, тому позначка кордону має стояти ПЕРЕД ним, а не
+// після (зауваження користувачки 21.08.2026). І жодного митного оформлення в
+// схемі бути не має — клієнту показуємо рух вантажу, а не оформлення.
+const chain = await page.$$eval('tr.deal[data-id="224"] .mini', ns =>
+  (ns[0].getAttribute('title') || '').split('·').map(s => s.replace('▸', '').trim()).filter(Boolean));
+check('митного оформлення в схемі немає',
+      !chain.some(n => /митн/i.test(n)), chain.join(' → '));
+const brd = await page.evaluate(() => {
+  // У схемі кордон — це пунктирна риска (.brd), а не кружечок. Дивимось, які
+  // кроки стоять до неї, а які після.
+  const brd = document.querySelector('.chain .brd');
+  if (!brd) return null;
+  const kids = [...brd.parentElement.children];
+  const i = kids.indexOf(brd);
+  const nm = n => n.className.startsWith('nd') ? n.innerText.replace(/\s+/g, ' ').trim() : '';
+  return { до: kids.slice(0, i).map(nm).filter(Boolean),
+           після: kids.slice(i + 1).map(nm).filter(Boolean) };
+});
+check('позначка кордону в схемі є', brd !== null, JSON.stringify(brd));
+check('«Сухий порт» — ПІСЛЯ кордону (він уже в Україні)',
+      brd && brd.після.some(n => /Сухий порт/.test(n)), JSON.stringify(brd));
+check('«Завантажений на потяг» — ДО кордону',
+      brd && brd.до.some(n => /на потяг/.test(n)), JSON.stringify(brd));
+await page.click('tr.deal[data-id="224"]');
+await page.waitForTimeout(300);
 
 console.log('\n=== доставлені: у «Прибуття» ФАКТ, а не план ===');
 /* Угода 202 доставлена: ETA (план) 28.05.26, «Планова до клієнта (факт)» 01.06.26.
@@ -203,7 +255,7 @@ await page.click('.tile[data-f=done]');
 const done = await page.locator('tr.deal').count();
 check('відбір «доставлено» дає 1', done === 1, 'було ' + done);
 await page.click('.tile[data-f=done]');
-check('повторний клік скидає відбір', (await page.locator('tr.deal').count()) === 10);
+check('повторний клік скидає відбір', (await page.locator('tr.deal').count()) === 11);
 
 console.log('\n=== плитка «відправляються за 7 днів» ===');
 const outTile = page.locator('.tile[data-f=out]');
