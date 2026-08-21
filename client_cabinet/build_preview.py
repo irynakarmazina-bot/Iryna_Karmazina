@@ -938,7 +938,7 @@ function stepState(r){
   let lastDone = -1;
   st.forEach((x, i) => {
     const d = x.d2 || x.d;
-    if (!x.d || !past(d)) return;
+    if (!x.d || !past(d) || !x.f) return;
     if (dep && iMove >= 0 && i > iMove && d < dep) return;
     if (x.k === "done" && !delivered) return;
     lastDone = i;
