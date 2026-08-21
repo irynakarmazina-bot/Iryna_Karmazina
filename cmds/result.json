@@ -1,7 +1,7 @@
 {
-  "stdout": "Traceback (most recent call last):\n  File \"/root/erp-scripts/e292.py\", line 4, in <module>\n    from odata_client import ODataClient\nModuleNotFoundError: No module named 'odata_client'\n",
+  "stdout": "/root/direct-sync/add_awb_column.py\n/root/direct-sync/add_border_date.py\n/root/direct-sync/add_border_status.py\n/root/direct-sync/add_dryport_eta.py\n/root/direct-sync/add_dryport_status.py\n/root/direct-sync/add_final_point.py\n/root/direct-sync/add_gateout_delivery.py\n/root/direct-sync/add_hbl_column.py\n/root/direct-sync/add_port_handover.py\n/root/direct-sync/add_route_columns.py\n/root/direct-sync/add_stage_column.py\n/root/direct-sync/add_stuffing.py\n/root/direct-sync/add_surname_column.py\n/root/direct-sync/add_transfer_columns.py\n/root/direct-sync/add_transship_columns.py\n/root/direct-sync/attrib_probe.py\n/root/direct-sync/audit_tracking.py\n/root/direct-sync/cash_from_invoices.py\n/root/direct-sync/cash_probe.py\n/root/direct-sync/cash_v3.py\n--- де живе odata_client ---\n/root/unitex-finrep/engine/odata_client.py.bak-20260811-1702\n/root/unitex-finrep/engine/__pycache__/odata_client.cpython-312.pyc\n/root/unitex-finrep/engine/odata_client.py\n/root/unitex-finrep/engine/odata_client.py.bak-20260811-1644\n--- як його імпортує синхронізація ---\n    log(\"WARN не вдалося додати варіанти в «%s» (%s %s) — ці значення не пишу\" % (col_title, st, js))\n    return have\n\n\n# ---------------------------------------------------------------- Експедитор\ndef odata_client():\n    os.chdir(FINREP)\n    sys.path.insert(0, os.path.join(FINREP, \"engine\"))\n    from odata_client import ODataClient  # noqa: PLC0415\n    return ODataClient()\n\n\ndef load_names(c, force=False):\n    names = {}\n    if os.path.exists(NAMES) and not force:\n        try:\n",
   "stderr": "",
   "returncode": 0,
-  "id": "f1c01467eca8",
-  "ts": "2026-08-21T17:23:03Z"
+  "id": "53377f61ee3d",
+  "ts": "2026-08-21T17:23:20Z"
 }
