@@ -1,7 +1,7 @@
 {
-  "stdout": "HEAD is now at a05d5ef23 relay: викласти колонки дат і перезапустити\nActiveEnterTimestamp=Fri 2026-08-21 18:39:27 EEST\nactive\na05d5ef23 relay: викласти колонки дат і перезапустити\nнові колонки у файлі: 1\n",
-  "stderr": "From https://github.com/irynakarmazina-bot/Iryna_Karmazina\n * branch                main       -> FETCH_HEAD\n   76e37cc5d..a05d5ef23  main       -> origin/main\n",
+  "stdout": "користувачі ЕРП:\n   irynakarmazina@gmail.com           роль: Адміністратор            активний: 1\n   v.pontus@unitex.od.ua              роль: Адміністратор            активний: 1\n   irinabuhgalter33@gmail.com         роль: Фінансист                активний: 1\n",
+  "stderr": "",
   "returncode": 0,
-  "id": "11324f11e23f",
-  "ts": "2026-08-21T15:39:31Z"
+  "id": "1e0751e18467",
+  "ts": "2026-08-21T16:01:21Z"
 }
