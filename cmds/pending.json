@@ -1,1 +1,1 @@
-{"id": "a0700616d162", "cmd": "F=/root/direct-sync/expeditor_direct_sync.py ; echo '=== 80-95 ===' ; sed -n '80,95p' $F ; echo '=== 185,195 ===' ; sed -n '185,195p' $F ; echo '=== де збирається маршрут ===' ; grep -n 'ROUTE_ORDER\\|ROUTE_PARTS\\|ROUTE_MIN_PARTS' $F ; echo '=== чи є сухий режим ===' ; grep -n 'dry.run\\|--dry\\|argparse\\|add_argument' $F | head"}
+{"id": "afdca2a46f14", "cmd": "sed -n '1,60p' /root/direct-sync/add_route_columns.py"}
