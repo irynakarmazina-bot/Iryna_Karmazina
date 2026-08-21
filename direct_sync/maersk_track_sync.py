@@ -698,6 +698,41 @@ def main():
     # COSCO). Це не помилка нашого коду і не збій API — тому окремий список.
     patches, no_data, errors, foreign, changed_cols = [], [], [], [], {}
     how_stat = {}
+    # 🔒 ЗАПОБІЖНИК ВІД «ДВІЙНИКА» (рішення користувачки 21.08.2026, угоди 280/287).
+    # Той самий коносамент у двох рядках означає, що Maersk віддасть їм ОДНАКОВІ
+    # судно, дати і статус — і в таблиці з'являться два нерозрізненні рядки-близнюки.
+    # Саме так рядок 287 з чужим BL став копією 280, і помітила це людина, а не ми.
+    # Тепер: якщо один BL стоїть у кількох рядках — НЕ заповнюємо жоден з них,
+    # а в видиму колонку «Трекінг (стан)» обох пишемо, з ким конфлікт. Позначка
+    # зітреться сама (див. parse_events), щойно конфлікт розв'яжуть і рядок
+    # знову почне трекатись. Трекінг по контейнеру це не зачіпає.
+    by_bl = {}
+    for bl, r in todo:
+        if bl:
+            by_bl.setdefault(bl, []).append(r)
+    dup_ids = set()
+    for bl, rs in sorted(by_bl.items()):
+        if len(rs) < 2:
+            continue
+        deals_all = sorted(str(x.get("Угода") or "") for x in rs)
+        log("%s🔴 КОНФЛІКТ КОНОСАМЕНТА: BL %s одночасно в угодах %s — жодну не оновлюю"
+            % (tag, bl, ", ".join(deals_all)))
+        for r in rs:
+            dup_ids.add(r["Id"])
+            others = ", ".join(d for d in deals_all if d != str(r.get("Угода") or ""))
+            state = "Конфлікт: той самий BL %s в угоді %s" % (bl, others)
+            if str(r.get("Трекінг (стан)") or "") != state:
+                patches.append({"Id": r["Id"], "Трекінг (стан)": state})
+        if not a.dry_run:
+            try:
+                import journal_note
+                journal_note.note("трекінг Maersk", "конфлікт коносамента",
+                                  "угоди " + ", ".join(deals_all), "BL", bl,
+                                  "жодну не оновлюю, приберіть зайвий BL")
+            except Exception:  # noqa: BLE001 — журнал не має валити трекінг
+                pass
+    if dup_ids:
+        todo = [(bl, r) for bl, r in todo if r["Id"] not in dup_ids]
     for bl, row in todo:
         cont = str(row.get("Контейнер") or "").split(",")[0].strip()
         events, how, note = collect_events(env, token, bl, cont)

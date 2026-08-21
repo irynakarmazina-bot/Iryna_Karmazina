@@ -217,6 +217,31 @@ def main():
             and str(r.get("BL") or "").strip()
             and str(r.get("Статус") or "") != DELIVERED
             and deal_no(r.get("Угода")) not in cancelled]
+    # 🔒 ЗАПОБІЖНИК ВІД «ДВІЙНИКА» (21.08.2026) — те саме правило, що в Maersk-трекінгу:
+    # один BL у кількох рядках → не заповнюємо жоден, конфлікт іде в лог і в
+    # «Журнал дій». Видимої позначки в «Трекінг (стан)» тут НЕ ставимо: цей скрипт
+    # її ніколи не стирає, і позначка лишилась би висіти після розв'язання конфлікту.
+    by_bl = {}
+    for r in todo:
+        by_bl.setdefault(str(r.get("BL")).strip(), []).append(r)
+    dup_ids = set()
+    for bl, rs in sorted(by_bl.items()):
+        if len(rs) < 2:
+            continue
+        deals_all = sorted(str(x.get("Угода") or "") for x in rs)
+        log("%s🔴 КОНФЛІКТ КОНОСАМЕНТА: BL %s одночасно в угодах %s — жодну не оновлюю"
+            % (tag, bl, ", ".join(deals_all)))
+        dup_ids.update(r["Id"] for r in rs)
+        if not a.dry_run:
+            try:
+                import journal_note
+                journal_note.note("трекінг COSCO", "конфлікт коносамента",
+                                  "угоди " + ", ".join(deals_all), "BL", bl,
+                                  "жодну не оновлюю, приберіть зайвий BL")
+            except Exception:  # noqa: BLE001 — журнал не має валити трекінг
+                pass
+    if dup_ids:
+        todo = [r for r in todo if r["Id"] not in dup_ids]
     log("%sУгод COSCO для трекінгу: %d (усього в платформі %d)" % (tag, len(todo), len(rows)))
     if not todo:
         print("COSCO_OK tracked=0 updated=0")

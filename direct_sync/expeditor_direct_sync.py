@@ -714,6 +714,21 @@ def main():
     to_create, to_update, eta_changes, route_lost = [], [], [], []
     field_hits, conflicts = {}, {}
     new_state = {}
+    # 🔒 ЗАПОБІЖНИК ВІД «ДВІЙНИКА» (рішення користувачки 21.08.2026).
+    # Історія: 17.08 в Експедиторі створили угоду 287 з коносаментом угоди 280.
+    # Цей код тоді слухняно скопіював BL у новий рядок, трекінг по ньому заповнив
+    # судно й дати — і в таблиці з'явились дві «однакові» угоди. Помітила людина.
+    # Тепер: один коносамент належить ОДНІЙ угоді. Якщо BL, який їде з
+    # Експедитора, вже стоїть в іншому рядку платформи (або дістався іншій угоді
+    # в цьому ж прогоні) — у цю угоду його НЕ пишемо, а конфлікт голосно
+    # називаємо в лозі і в «Журналі дій» платформи. Джерело помилки при цьому
+    # не ховаємо: в Експедиторі коносамент лишається як є — виправляти його там.
+    bl_owner = {}
+    for r in rows:
+        b = str(r.get("BL") or "").strip()
+        if b:
+            bl_owner.setdefault(b, num(r.get("Угода")))
+    bl_dups = []
     for d in deals:
         n = num(d.get("Number"))
         if not n:
@@ -721,6 +736,18 @@ def main():
         want = map_deal(d, names, allowed_lines, allowed_kinds, allowed_statuses)
         mine = state.get(n, {})
         cur = by_num.get(n)
+        # див. запобіжник bl_owner вище: чужий коносамент у цю угоду не пишемо
+        bl_new = str(want.get("BL") or "").strip()
+        if bl_new:
+            owner = bl_owner.get(bl_new)
+            if owner and owner != n:
+                want.pop("BL", None)
+                conflicts["BL (той самий коносамент у іншій угоді — не пишу)"] = \
+                    conflicts.get("BL (той самий коносамент у іншій угоді — не пишу)", 0) + 1
+                bl_dups.append("коносамент %s вже в угоді %s — в угоду %s НЕ записано"
+                               % (bl_new, owner, n))
+            else:
+                bl_owner.setdefault(bl_new, n)
         # «Маршрут» збираємо тут, бо треба бачити, що вже стоїть у платформі:
         # ланку, якої Експедитор ще не знає (сухий порт), не можна втрачати.
         seq = want.pop(ROUTE_PARTS, [])
@@ -802,6 +829,17 @@ def main():
         if new_eta and old_eta and new_eta != old_eta:
             eta_changes.append("угода %s: ETA %s → %s" % (n, old_eta, new_eta))
 
+    if bl_dups:
+        log("%s🔴 КОНФЛІКТ КОНОСАМЕНТА (%d): %s" % (tag, len(bl_dups), "; ".join(bl_dups[:10])))
+        if not dry:
+            try:
+                import journal_note
+                for msg in bl_dups[:10]:
+                    journal_note.note("синхронізація з Експедитором",
+                                      "конфлікт коносамента", msg,
+                                      "BL", "", "не записано, виправіть в Експедиторі")
+            except Exception:  # noqa: BLE001 — журнал не має валити синк
+                pass
     log("%sНових угод: %d, оновити наявних: %d" % (tag, len(to_create), len(to_update)))
     if field_hits:
         log("%sЗапис по колонках: %s" % (tag, ", ".join(
