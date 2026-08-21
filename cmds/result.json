@@ -1,7 +1,7 @@
 {
-  "stdout": "сторінка=200 байт=24240\n  'ВИЇЗД З ПОРТУ' у живій сторінці: /tmp/l.html:0\n  'уже в Україні' у живій сторінці: /tmp/l.html:0\n  'митне' у живій сторінці: 0\n  'Сухий порт' у живій сторінці: /tmp/l.html:0\n",
-  "stderr": "grep: З: No such file or directory\ngrep: ПОРТУ\": No such file or directory\ngrep: в: No such file or directory\ngrep: Україні\": No such file or directory\ngrep: порт\": No such file or directory\n",
+  "stdout": "файл змінено: 2026-08-21 15:21:47\nActiveEnterTimestamp=Fri 2026-08-21 15:21:47 EEST\nвузлів митного оформлення у файлі: 0\nкордон додається у наземне плече: 1\nсухий порт без дати: 1\nгейт аут як факт завантаження: 2\nкоміт на сервері: c8525a950 relay: update cmds/result.json\n",
+  "stderr": "",
   "returncode": 0,
-  "id": "d9835ae9fa0b",
-  "ts": "2026-08-21T12:22:19Z"
+  "id": "dbf5f14cd5e3",
+  "ts": "2026-08-21T12:22:56Z"
 }
