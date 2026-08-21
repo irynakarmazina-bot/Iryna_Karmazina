@@ -1,7 +1,7 @@
 {
-  "stdout": "HEAD is now at 2adf23f5f relay: викласти схему і перезапустити службу\nActiveEnterTimestamp=Fri 2026-08-21 15:21:47 EEST\nactive\nмитне оформлення у живій сторінці: 0\nнова логіка гейт ауту у живій сторінці: 0\n",
-  "stderr": "From https://github.com/irynakarmazina-bot/Iryna_Karmazina\n * branch                main       -> FETCH_HEAD\n   da3bd7072..2adf23f5f  main       -> origin/main\n",
+  "stdout": "сторінка=200 байт=24240\n  'ВИЇЗД З ПОРТУ' у живій сторінці: /tmp/l.html:0\n  'уже в Україні' у живій сторінці: /tmp/l.html:0\n  'митне' у живій сторінці: 0\n  'Сухий порт' у живій сторінці: /tmp/l.html:0\n",
+  "stderr": "grep: З: No such file or directory\ngrep: ПОРТУ\": No such file or directory\ngrep: в: No such file or directory\ngrep: Україні\": No such file or directory\ngrep: порт\": No such file or directory\n",
   "returncode": 0,
-  "id": "2bfc5aaea033",
-  "ts": "2026-08-21T12:21:51Z"
+  "id": "d9835ae9fa0b",
+  "ts": "2026-08-21T12:22:19Z"
 }
