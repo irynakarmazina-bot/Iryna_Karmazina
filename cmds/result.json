@@ -1,7 +1,7 @@
 {
-  "stdout": "користувачі ЕРП:\n   irynakarmazina@gmail.com           роль: Адміністратор            активний: 1\n   v.pontus@unitex.od.ua              роль: Адміністратор            активний: 1\n   irinabuhgalter33@gmail.com         роль: Фінансист                активний: 1\n",
+  "stdout": "CABINET створено посилання на пароль · vitagolod@gmail.com · діє до 2026-08-22T19:03:54\n\n  Посилання для vitagolod@gmail.com (Кампус Коттон Клаб):\n  https://cabinet.unitex.od.ua/set?t=xeuMvpHkavtAPpyPEgkHdDiDm69VmNnioagxYaBHEqM\n\n  Діє до 2026-08-22T19:03:54, спрацьовує ОДИН раз.\n  Попередні невикористані посилання цього акаунта більше не діють.\n\n",
   "stderr": "",
   "returncode": 0,
-  "id": "1e0751e18467",
-  "ts": "2026-08-21T16:01:21Z"
+  "id": "c633f1b3474e",
+  "ts": "2026-08-21T16:03:54Z"
 }
