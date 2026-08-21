@@ -1,7 +1,7 @@
 {
-  "stdout": "",
-  "stderr": "self.parent.error(\n               ^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/urllib/request.py\", line 559, in error\n    return self._call_chain(*args)\n           ^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/urllib/request.py\", line 492, in _call_chain\n    result = func(*args)\n             ^^^^^^^^^^^\n  File \"/usr/lib/python3.12/urllib/request.py\", line 639, in http_error_default\n    raise HTTPError(req.full_url, code, msg, hdrs, fp)\nurllib.error.HTTPError: HTTP Error 400: Bad request\n",
-  "returncode": 1,
-  "id": "dup-280-287-10",
-  "ts": "2026-08-21T17:33:38Z"
+  "stdout": "№00000280: Коносамент='275820304' · ЕТА=2026-09-08 · ЕТА_ПОЛ=0001-01-01 · Судно=—\n   поля з 2758…: {\"Коносамент\": \"275820304\"}\n№00000287: Коносамент='' · ЕТА=2026-09-12 · ЕТА_ПОЛ=0001-01-01 · Судно=—\n",
+  "stderr": "",
+  "returncode": 0,
+  "id": "dup-280-287-11",
+  "ts": "2026-08-21T17:34:00Z"
 }
