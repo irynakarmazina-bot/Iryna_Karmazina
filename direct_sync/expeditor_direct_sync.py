@@ -736,18 +736,28 @@ def main():
         want = map_deal(d, names, allowed_lines, allowed_kinds, allowed_statuses)
         mine = state.get(n, {})
         cur = by_num.get(n)
-        # див. запобіжник bl_owner вище: чужий коносамент у цю угоду не пишемо
+        # див. запобіжник bl_owner вище: чужий коносамент у цю угоду не пишемо.
+        # Уточнення після першого ж холостого прогону 21.08.2026: у базі є 11
+        # СТАРИХ угод, де спільний коносамент — законний стан (збірні вантажі:
+        # MEDUHX176330 стоїть у 10 доставлених угодах). Тому конфлікт — це НЕ
+        # «BL зустрівся двічі», а «синк збирається ВПИСАТИ рядку BL, який уже
+        # належить іншій угоді». Якщо в рядку цей BL уже стоїть — не чіпаємо
+        # і не галасуємо.
         bl_new = str(want.get("BL") or "").strip()
         if bl_new:
-            owner = bl_owner.get(bl_new)
-            if owner and owner != n:
-                want.pop("BL", None)
-                conflicts["BL (той самий коносамент у іншій угоді — не пишу)"] = \
-                    conflicts.get("BL (той самий коносамент у іншій угоді — не пишу)", 0) + 1
-                bl_dups.append("коносамент %s вже в угоді %s — в угоду %s НЕ записано"
-                               % (bl_new, owner, n))
+            cur_bl = str((cur or {}).get("BL") or "").strip()
+            if cur_bl == bl_new:
+                bl_owner.setdefault(bl_new, n)      # давно стоїть — законно
             else:
-                bl_owner.setdefault(bl_new, n)
+                owner = bl_owner.get(bl_new)
+                if owner and owner != n:
+                    want.pop("BL", None)
+                    conflicts["BL (той самий коносамент у іншій угоді — не пишу)"] = \
+                        conflicts.get("BL (той самий коносамент у іншій угоді — не пишу)", 0) + 1
+                    bl_dups.append("коносамент %s вже в угоді %s — в угоду %s НЕ записано"
+                                   % (bl_new, owner, n))
+                else:
+                    bl_owner.setdefault(bl_new, n)
         # «Маршрут» збираємо тут, бо треба бачити, що вже стоїть у платформі:
         # ланку, якої Експедитор ще не знає (сухий порт), не можна втрачати.
         seq = want.pop(ROUTE_PARTS, [])
