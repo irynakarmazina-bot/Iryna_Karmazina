@@ -1,7 +1,7 @@
 {
-  "stdout": "до запису:\n  BL         = '275820304' (очікувалось '275820304')\n  Судно      = 'MAERSK SARAT' (очікувалось 'MAERSK SARAT')\n  ETD (план) = '2026-09-08' (очікувалось '2026-09-08')\n  ETA        = '2026-11-12' (очікувалось '2026-11-12')\nповна копія рядка збережена: /root/row282_before_clear.json\nпісля запису:\n  BL         = None\n  Судно      = None\n  ETD (план) = None\n  ETA        = None\nінші поля змінились: жодне\nРЕЗУЛЬТАТ: OK — очищено рівно 4 поля\n",
-  "stderr": "",
+  "stdout": "HEAD is now at 4427fffb4 relay: викласти фасад із ПОО і перезапустити кабінет\n   викладено модулів: 1\n   журнал: 2026-08-21T20:45:35\tmain\t4427fffb4\tв. 13.08 15:36\tindex.html:67021 findash.html:33986 finperiod.html:17527\trelay: викласти фасад із ПОО і перезапустити кабінет\n   UI/FINDASH/CHART: 200 200 200\nDEPLOY_OK · гілка main · коміт 4427fffb4 · позначка «в. 13.08 15:36»\nactive\n",
+  "stderr": "From https://github.com/irynakarmazina-bot/Iryna_Karmazina\n * branch                main       -> FETCH_HEAD\n   1e59f4fce..4427fffb4  main       -> origin/main\n",
   "returncode": 0,
-  "id": "clear-287-1",
-  "ts": "2026-08-21T17:44:17Z"
+  "id": "140dede19722",
+  "ts": "2026-08-21T17:45:38Z"
 }
