@@ -1,7 +1,7 @@
 {
-  "stdout": "=== як збирач будує bill_of_lading ===\n  odata_ingest.py:             \"bill_of_lading\": \"\",\n  odata_ingest.py:             \"bill_of_lading\": \"\",\n  parse.py:             \"bill_of_lading\": clean_str(get_cell(ws, r, header_map, \"Коносамент\")),\n  parse.py:             \"bill_of_lading\": clean_str(get_cell(ws, r, header_map, \"Коносамент\")),\n\n=== документи «Коносамент» з номером 275820304 в 1С ===\n\n=== коносаменти, прив язані до 287 і 280 (за полем Сделка) ===\n  №280 ← коносаментів немає\n  №287 ← коносаментів немає\n",
+  "stdout": "=== /root/direct-sync/expeditor_direct_sync.py ===\n  …        log(\"%sЗапис по колонках: %s\" % (tag, \", \".join(\n  БУКІНГ: …BOOKING_STAGE = \"Букинг\"\n=== /root/update_sync_map.py ===\n  …    'BL': r['BL/Booking']||null,\n",
   "stderr": "",
   "returncode": 0,
-  "id": "dup-280-287-4",
-  "ts": "2026-08-21T17:29:50Z"
+  "id": "dup-280-287-5",
+  "ts": "2026-08-21T17:30:17Z"
 }
