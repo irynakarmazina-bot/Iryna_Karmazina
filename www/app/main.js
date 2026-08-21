@@ -513,6 +513,46 @@ const isDone  = r => r["Статус"] === "Вантаж доставлено";
 const fmtD = v => { const m=/(\d{4})-(\d{2})-(\d{2})/.exec(String(v||""));
   return m ? `${m[3]}.${m[2]}.${m[1].slice(2)}` : ""; };
 const dateB = v => { const d=fmtD(v); return d ? `<b>${d}</b>` : '<span class="cell-muted">—</span>'; };
+
+/* ── редактор дати ─────────────────────────────────────────────────────────
+   ДАТУ МОЖНА ВВОДИТИ З КЛАВІАТУРИ. Перевірено 21.08.2026 у браузері: у
+   нативному <input type="date"> набір цифр дає сміття — «26082026»
+   перетворюється на «82026-02-06», бо цифри розкладаються по сегментах у
+   порядку локалі. Користувачка: «вибір в календарі працює, але треба додати
+   ще і можливість вводити вручну, це було».
+   Тому основне поле — звичайний текст у форматі дд.мм.рррр, а поруч вузький
+   нативний date-інпут, який слугує ЛИШЕ календариком.
+   Приймаємо: 26.08.2026, 26.08.26, 26/08/26, 26-08-2026, 26082026, 260826,
+   а також ISO 2026-08-26. Незрозуміле НЕ зберігаємо — краще сказати людині,
+   ніж мовчки записати не ту дату. */
+const DATE_HINT = "дд.мм.рррр";
+function parseUserDate(s){
+  s = String(s == null ? "" : s).trim();
+  if (!s) return "";                                  // порожнє = очистити поле
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  const m = /^(\d{1,2})[.\-/](\d{1,2})[.\-/](\d{2}|\d{4})$/.exec(s)
+         || /^(\d{2})(\d{2})(\d{4})$/.exec(s)
+         || /^(\d{2})(\d{2})(\d{2})$/.exec(s);
+  if (!m) return null;
+  const d = m[1].padStart(2, "0"), mo = m[2].padStart(2, "0");
+  const y = m[3].length === 2 ? "20" + m[3] : m[3];
+  const iso = `${y}-${mo}-${d}`;
+  const dt = new Date(iso + "T00:00:00Z");
+  if (isNaN(dt) || dt.getUTCDate() !== +d || dt.getUTCMonth() + 1 !== +mo) return null;
+  return iso;
+}
+const dateEditorHTML = iso =>
+  `<span class="dted"><input class="edinput" type="text" inputmode="numeric"
+     placeholder="${DATE_HINT}" value="${esc(fmtD(iso) || "")}"
+     title="введіть з клавіатури (26.08.2026 або 26.08.26) або оберіть у календарі"
+   ><input class="edpick" type="date" value="${esc(iso || "")}" title="календар"></span>`;
+/* Календарик і текстове поле — одне значення: що вибрали мишкою, те й
+   з'являється в тексті, і навпаки. */
+function bindDatePair(wrap, onPicked){
+  const txt = wrap.querySelector(".edinput"), pick = wrap.querySelector(".edpick");
+  if (!txt || !pick) return;
+  pick.addEventListener("change", ()=>{ txt.value = fmtD(pick.value) || ""; onPicked(); });
+}
 /* Дата З ЧАСОМ — «13.08 17:44». Потрібна тільки для позначки «оновлено» вгорі
    диспетчеризації, тому рік не показуємо, а час показуємо обов'язково.
    База віддає час у UTC («2026-08-13 17:44:12+00:00») — переводимо в місцевий
@@ -1423,7 +1463,8 @@ PAGES.dispatch = async () => {
     td.innerHTML = kind === "select"
       ? `<select class="edinput"><option value=""></option>${(ED_OPTS[col]||(()=>[]))().map(o=>
           `<option${o===cur?" selected":""}>${esc(o)}</option>`).join("")}</select>`
-      : `<input class="edinput" type="${kind==="date"?"date":"text"}" value="${esc(val0)}">`;
+      : kind === "date" ? dateEditorHTML(val0)
+      : `<input class="edinput" type="text" value="${esc(val0)}">`;
     const inp = td.querySelector(".edinput");
     roomForEditor(td);
     inp.focus();
@@ -1432,7 +1473,17 @@ PAGES.dispatch = async () => {
     const finish = async (save) => {
       if (closed) return;
       closed = true;
-      const v = String(inp.value || "").trim();
+      let v = String(inp.value || "").trim();
+      if (kind === "date"){
+        const iso = parseUserDate(v);
+        if (iso === null){                       // не зрозуміли — не зберігаємо
+          closed = false;
+          toast("⚠ Не зрозуміла дату «" + v + "». Формат: " + DATE_HINT);
+          inp.focus(); inp.select();
+          return;
+        }
+        v = iso;
+      }
       if (!save || v === val0){ td.innerHTML = keep; return; }
       td.classList.add("saving");
       try{
@@ -1457,6 +1508,7 @@ PAGES.dispatch = async () => {
       if (e.key === "Escape"){ e.preventDefault(); finish(false); }
     });
     if (kind === "select") inp.addEventListener("change", ()=>finish(true));
+    if (kind === "date") bindDatePair(td.querySelector(".dted"), ()=>finish(true));
   };
 
   let firstDraw = true;
@@ -2432,7 +2484,8 @@ function editCardField(td, r){
         `<option${o===cur?" selected":""}>${esc(o)}</option>`).join("")}</select>`
     : CARD_LONG[f]
       ? `<textarea class="edinput" rows="3">${esc(val0)}</textarea>`
-      : `<input class="edinput" type="${isDate?"date":"text"}" value="${esc(val0)}">`;
+      : isDate ? dateEditorHTML(val0)
+        : `<input class="edinput" type="text" value="${esc(val0)}">`;
   const inp = td.querySelector(".edinput");
   roomForEditor(td);
   inp.focus();
@@ -2441,7 +2494,17 @@ function editCardField(td, r){
   const finish = async (save) => {
     if (closed) return;
     closed = true;
-    const v = String(inp.value || "").trim();
+    let v = String(inp.value || "").trim();
+    if (isDate){
+      const iso = parseUserDate(v);
+      if (iso === null){                         // не зрозуміли — не зберігаємо
+        closed = false;
+        toast("⚠ Не зрозуміла дату «" + v + "». Формат: " + DATE_HINT);
+        inp.focus(); inp.select();
+        return;
+      }
+      v = iso;
+    }
     if (!save || v === val0){ td.innerHTML = keep; return; }
     try{
       await saveField(r, f, v || null);
@@ -2457,6 +2520,7 @@ function editCardField(td, r){
     if (e.key === "Escape"){ e.preventDefault(); finish(false); }
   });
   if (CARD_SELECT[f]) inp.addEventListener("change", ()=>finish(true));
+  if (isDate) bindDatePair(td.querySelector(".dted"), ()=>finish(true));
 }
 $("row-close").addEventListener("click",()=>$("row-overlay").classList.remove("open"));
 $("row-overlay").addEventListener("click",e=>{ if(e.target===$("row-overlay")) $("row-overlay").classList.remove("open"); });
