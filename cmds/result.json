@@ -1,7 +1,7 @@
 {
-  "stdout": "DEPLOY_OK · гілка main · коміт e16ecf87a · позначка «в. 13.08 15:36»\nверсія: /app/main.js?v=90ae7b5e95\n3\n",
-  "stderr": "",
+  "stdout": "HEAD is now at 271e39f96 relay: перезапустити кабінет після правок заголовків\nactive\nActiveEnterTimestamp=Tue 2026-08-25 13:45:36 EEST\n271e39f96 relay: перезапустити кабінет після правок заголовків\n",
+  "stderr": "From https://github.com/irynakarmazina-bot/Iryna_Karmazina\n * branch                main       -> FETCH_HEAD\n   01c879370..271e39f96  main       -> origin/main\n",
   "returncode": 0,
-  "id": "deploy-truck2-1",
-  "ts": "2026-08-25T10:45:13Z"
+  "id": "7aab40f4512d",
+  "ts": "2026-08-25T10:45:40Z"
 }
