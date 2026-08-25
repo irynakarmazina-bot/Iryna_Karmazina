@@ -1,1 +1,1 @@
-{"id": "deploy-22", "cmd": "cd /root/Iryna_Karmazina && git fetch -q origin main && bash server/deploy_ui.sh main 2>&1 | tail -2"}
+{"id": "check-43", "cmd": "python3 -c \"\nimport json\nd=json.load(open('/root/unitex-finrep/computed/local_costs.json'))\nr=[x for x in d['rows'] if x['num']=='60'][0]\nfor k in ('num','status','paid','revenue','cost','cost_all','profit','fee','info_bank','info_added','local_abroad','diff'):\n    print('%-12s %s' % (k, r.get(k)))\n\""}
