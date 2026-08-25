@@ -819,6 +819,12 @@ let DISP_QUICK = null;          // швидкий фільтр з плиток �
    Ставиться при відкритті сторінки диспетчеризації, приймає Id рядка, щоб
    повернути його рівно туди, де він стояв на екрані. */
 let DISP_REDRAW = null;
+/* Оновлення червоних лічильників задач у таблиці БЕЗ перезаходу на сторінку.
+   Зауваження користувачки 25.08.2026: «я закрила задачу, а кнопка з цифрою
+   залишилась». Ставиться в PAGES.dispatch; смикається з saveTask() — єдиного
+   шляху запису задач, тож ловить і закриття, і створення, і зміну, звідки б
+   вони не робились (сторінка задач, картка угоди, картка задачі). */
+let DISP_TASKS_REFRESH = null;
 /* Скасована угода не існує для роботи (правило користувачки 01.08.2026): не показуємо
    її ніде — ні в таблиці диспетчеризації, ні на дашборді, ні в лічильниках чи алертах.
    Фільтр стоїть в ОДНОМУ місці — усі сторінки беруть дані через dispRows().
@@ -1102,19 +1108,24 @@ PAGES.dispatch = async () => {
      рядку). Якщо задачі не завантажились — таблиця живе без чіпів, це не привід
      її не показувати. */
   let TASKS_BY_DEAL = {};
-  try{
-    for (const t of (await taskRows(true)).filter(t => String(t["Тип"]) === "Угода" && taskIsOpen(t))){
+  const buildTaskMap = async (force) => {
+    const map = {};
+    for (const t of (await taskRows(force)).filter(t => String(t["Тип"]) === "Угода" && taskIsOpen(t))){
       const n = String(t["Угода"] || "").trim();
-      if (n) (TASKS_BY_DEAL[n] = TASKS_BY_DEAL[n] || []).push(t);
+      if (n) (map[n] = map[n] || []).push(t);
     }
-  }catch(e){ TASKS_BY_DEAL = {}; }
+    TASKS_BY_DEAL = map;
+  };
+  try{ await buildTaskMap(true); }catch(e){ TASKS_BY_DEAL = {}; }
+  /* Вигляд за уточненням користувачки 25.08.2026: «прибери кнопку, просто
+     червоним виділяй кількість задач» — жодного чіпа-кнопки, лише червоне число
+     під номером угоди. Назви й терміни — у підказці, повний список — у картці. */
   const taskChip = r => {
     const list = TASKS_BY_DEAL[String(r["Угода"] || "").trim()] || [];
     if (!list.length) return "";
-    const over = list.some(t => { const d = taskDays(t); return d !== null && d < 0; });
     const tip = list.map(t => "• " + String(t["Задача"] || "") +
       (t["Термін"] ? " (до " + fmtD(t["Термін"]) + ")" : "")).join("\n");
-    return `<span class="taskchip${over ? " over" : ""}" title="${esc(tip)}\n\nклік по рядку відкриє картку угоди з задачами">📌${over ? "!" : ""}${list.length}</span>`;
+    return `<span class="taskn" title="${esc(tip)}\n\nклік по рядку відкриє картку угоди з задачами">${list.length} ${plural(list.length, "задача", "задачі", "задач")}</span>`;
   };
   const _done = r => r["Статус"] === "Вантаж доставлено";
   const _num = r => parseInt(r["Угода"])||0;
@@ -1855,6 +1866,10 @@ PAGES.dispatch = async () => {
   /* Дати картці угоди змогу перемалювати цю таблицю. rowSpot видно лише звідси,
      тому загортаємо: назовні достатньо передати Id рядка. */
   DISP_REDRAW = (id) => draw(id ? rowSpot(id) : null);
+  DISP_TASKS_REFRESH = async () => {
+    try{ await buildTaskMap(); }catch(e){ return; }   // без задач таблицю не смикаємо
+    if ($("drows")) draw(null);                       // прокрутка лишається на місці
+  };
   /* ⚠️ draw() ВИКЛИКАЄМО БЕЗ АРГУМЕНТІВ — саме тому тут стрілка, а не просто
      `draw`. Перший аргумент draw(keep) означає «поверни оцей рядок туди, де він
      був на екрані» і використовується після правки угоди. Якщо передати сюди
@@ -4448,6 +4463,8 @@ async function saveTask(body, before, what){
             body["Задача"] || (before && before["Задача"]) || ("№" + body.Id),
             "Статус", before ? before["Статус"] : "", body["Статус"] || "");
   refreshTaskBadge();
+  // якщо на екрані таблиця угод — червоне число задач оновлюється одразу
+  if (typeof DISP_TASKS_REFRESH === "function" && $("drows")) DISP_TASKS_REFRESH();
 }
 
 /* Картка задачі: створення і редагування. preset — коли ставимо задачу з картки

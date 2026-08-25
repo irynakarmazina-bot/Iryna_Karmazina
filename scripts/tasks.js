@@ -95,7 +95,22 @@ const check = (ok, what) => { console.log((ok ? "  ✓ " : "  ✗ ") + what); if
     const json = b => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(b) });
     if (u.includes("/auth/")) return json({ token: "stub" });
     if (u.includes("/meta/")) return json(META);
-    if (m !== "GET") { writes.push({ u, m, body: route.request().postData() }); return json([{ Id: 99 }]); }
+    if (m !== "GET") {
+      writes.push({ u, m, body: route.request().postData() });
+      /* Заглушка поводиться як СПРАВЖНЯ база (25.08.2026): POST додає задачу,
+         PATCH змінює наявну. Без цього неможливо перевірити головне — що після
+         закриття задачі число в таблиці угод зникає/зменшується ОДРАЗУ:
+         код-бо перечитує список, а нежива заглушка віддавала б старий. */
+      if (u.includes("/" + ID("Задачі") + "/")) {
+        try {
+          for (const b of JSON.parse(route.request().postData() || "[]")) {
+            if (m === "POST") TASKS.push(Object.assign({ Id: 100 + TASKS.length }, b));
+            if (m === "PATCH") { const t = TASKS.find(x => String(x.Id) === String(b.Id)); if (t) Object.assign(t, b); }
+          }
+        } catch (e) { /* не-JSON тіло — просто фіксуємо у writes */ }
+      }
+      return json([{ Id: 99 }]);
+    }
     if (u.includes("/" + ID("Задачі") + "/")) return json({ list: TASKS, pageInfo: { isLastPage: true } });
     if (u.includes("/" + ID("Користувачі") + "/")) return json({ list: USERS, pageInfo: { isLastPage: true } });
     if (u.includes("/" + ID("Диспетчеризація") + "/")) return json({ list: DEALS, pageInfo: { isLastPage: true } });
@@ -190,7 +205,10 @@ const check = (ok, what) => { console.log((ok ? "  ✓ " : "  ✗ ") + what); if
   check(!(await page.isVisible("#task-overlay.open")), "після збереження вікно закрилось");
 
   console.log("\n— закриття задачі галочкою —");
-  await page.click(".taskrow .tk-mark");
+  /* Закриваємо САМЕ Id=2 («сьогодні моя», тип «Клієнт»): заглушка тепер жива,
+     і якби галочка закрила «прострочену мою», далі впали б перевірки дашборда
+     й не-адміна, які на неї спираються. */
+  await page.click('.taskrow[data-task="2"] .tk-mark');
   await page.waitForTimeout(600);
   const patch = writes.find(w => w.m === "PATCH" && /Виконано/.test(w.body || ""));
   check(!!patch, "пішов PATCH зі статусом «Виконано»");
@@ -210,13 +228,30 @@ const check = (ok, what) => { console.log((ok ? "  ✓ " : "  ✗ ") + what); if
   console.log("\n— картка угоди —");
   await page.click('.nav-item[data-page="dispatch"]');
   await page.waitForSelector(".dispscroll tbody tr", { timeout: 8000 });
-  /* Чіп задач просто в таблиці (25.08.2026): під номером угоди видно «📌 N»,
-     а коли є прострочена — чіп червоний і з «!». */
-  check(await page.isVisible(".taskchip"), "під номером угоди є чіп задач 📌");
-  check(((await page.getAttribute(".taskchip", "class")) || "").includes("over"),
-        "чіп червоний — по угоді є прострочена задача");
-  check(/задача/i.test((await page.getAttribute(".taskchip", "title")) || ""),
-        "у підказці чіпа видно назви задач");
+  /* Кількість задач просто в таблиці (25.08.2026, після уточнення): під номером
+     угоди — червоне число задач без чіпа-«кнопки», деталі в підказці. */
+  check(await page.isVisible(".taskn"), "під номером угоди видно кількість задач");
+  check(/^\d+ задач/.test(((await page.textContent(".taskn")) || "").trim()),
+        "це число з підписом, а не кнопка");
+  const tnColor = await page.$eval(".taskn", el => getComputedStyle(el).color);
+  check(tnColor === "rgb(209, 69, 59)", "число червоне: " + tnColor);
+  check(/прострочена моя/.test((await page.getAttribute(".taskn", "title")) || ""),
+        "у підказці видно назви задач");
+  /* Закриття задачі прибирає число ОДРАЗУ (зауваження користувачки 25.08.2026:
+     «я закрила задачу, а кнопка з цифрою залишилися»). Закриваємо всі відкриті
+     задачі угоди 259 прямо з її картки і дивимось на таблицю під нею. */
+  const tnBefore = ((await page.textContent(".taskn")) || "").trim();
+  check(/^2 /.test(tnBefore), "до закриття по угоді 259 дві задачі: «" + tnBefore + "»");
+  await page.click(".dispscroll tbody tr td:first-child");
+  await page.waitForSelector("#row-overlay.open", { timeout: 5000 });
+  await page.waitForTimeout(600);
+  await page.click('#row-tasks .taskrow:has-text("перевірка створення") [data-done]');
+  await page.waitForTimeout(900);
+  await page.click("#row-close");
+  await page.waitForTimeout(600);
+  const tnAfter = ((await page.textContent(".taskn")) || "").trim();
+  check(/^1 задача/.test(tnAfter),
+        "після закриття число оновилось ОДРАЗУ, без перезаходу: «" + tnBefore + "» → «" + tnAfter + "»");
   await page.click(".dispscroll tbody tr td:first-child");
   await page.waitForSelector("#row-overlay.open", { timeout: 5000 });
   await page.waitForTimeout(700);

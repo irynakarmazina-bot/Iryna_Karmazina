@@ -419,12 +419,10 @@
   td.c-num,th.c-num{white-space:normal}
   td.c-num>b{white-space:nowrap}
   td.c-num .newchip{display:inline-block;margin-left:0;margin-top:2px}
-  /* Чіп «📌 N» під номером угоди — відкриті задачі по ній (25.08.2026).
-     Червоний із «!» — серед них є прострочені. Список — у підказці і в картці. */
-  .taskchip{display:inline-block;font-size:10px;font-weight:700;border-radius:5px;
-    padding:1px 4px;margin-top:2px;white-space:nowrap;cursor:help;
-    background:var(--accent-soft);color:var(--accent)}
-  .taskchip.over{background:var(--warn-bg);color:var(--warn-text)}
+  /* Кількість відкритих задач під номером угоди — просто червоне число, без
+     чіпа-«кнопки» (уточнення користувачки 25.08.2026). Деталі — у підказці. */
+  .taskn{display:block;font-size:10.5px;font-weight:800;margin-top:1px;
+    white-space:nowrap;cursor:help;color:#d1453b}
   .flag{display:inline-block;font-size:11.5px;font-weight:600;border-radius:5px;padding:1px 6px;margin:1px 2px 1px 0;white-space:nowrap}
   .flag.on{background:var(--good-bg);color:var(--good-text)}
   .flag.off{background:var(--neutral-bg);color:var(--muted);text-decoration:line-through;text-decoration-thickness:1px}
@@ -604,16 +602,19 @@
      другим рядком у клітинці — маленький помаранчевий трикутник у кутку; клік
      відкриває текст. Рядок не росте, а увага лишається на самих датах. */
   .dispscroll td{position:relative}
+  /* Колір куточка змінено 25.08.2026 на прохання користувачки: помаранчевий
+     «важко сприймається оком, як сміття на екрані» — тепер спокійний блакитний,
+     без жодних тіней. Форма та сама, щоб звичне місце кліку не змінилось. */
   .cnote{position:absolute;top:0;right:0;width:0;height:0;cursor:pointer;
     border-style:solid;border-width:0 9px 9px 0;
-    border-color:transparent #e6a817 transparent transparent}
-  .cnote:hover{border-right-color:#b45309}
+    border-color:transparent #8ab4e8 transparent transparent}
+  .cnote:hover{border-right-color:#5b8fd4}
   /* клікати трикутник пальцем незручно, тому область натискання більша за нього */
   .cnote::after{content:"";position:absolute;top:-3px;right:-3px;width:18px;height:18px}
   #notepop{position:fixed;display:none;z-index:80;max-width:260px;
     background:var(--surface);color:var(--ink);border:1px solid var(--line);
-    border-left:3px solid #e6a817;border-radius:8px;padding:8px 11px;
-    font-size:12.5px;line-height:1.45;box-shadow:0 6px 22px rgba(16,24,40,.16)}
+    border-left:3px solid #8ab4e8;border-radius:8px;padding:8px 11px;
+    font-size:12.5px;line-height:1.45}
   /* позначка «оновлено» біля кнопки «Оновити» */
   .updstamp{font-size:12px;color:var(--muted);white-space:nowrap}
   .abadge.a-red::before{background:#d1453b}    .abadge.a-red b{color:#d1453b}
