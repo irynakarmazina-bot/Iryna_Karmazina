@@ -2973,8 +2973,8 @@ PAGES.accounting = async () => {
   $("content").innerHTML = `
   <div class="card">
     <h3>🌍 Локальні витрати за кордоном</h3>
-    <p class="sub">угоди зі статусами ${esc((d.statuses||[]).join(", "))}, де рахунок клієнту
-      сплачений на <b>${esc((d.accounts||[d.account||"—"]).join(" або "))}</b> ·
+    <p class="sub">закриті угоди з галочкою <b>«Оброблена (нарахований прибуток)»</b>,
+      де рахунок клієнту сплачений на <b>${esc((d.accounts||[d.account||"—"]).join(" або "))}</b> ·
       дані з Експедитора станом на ${stamp}</p>
     <div class="tiles" style="margin-top:12px">
       <div class="tile tready clickable" data-tile="diff" title="показати тільки ці угоди">
