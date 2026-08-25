@@ -1,7 +1,7 @@
 {
-  "stdout": "   бекап: app-main.js-20260825-101908.bak (371294 б)\n   викладено модулів: 1\n   журнал: 2026-08-25T10:19:09\tmain\t7c0329e0a\tв. 13.08 15:36\tindex.html:68226 findash.html:33986 finperiod.html:17527\trelay: викласти задачі-в-таблиці + редактор дат + галочку\n   UI/FINDASH/CHART: 200 200 200\nDEPLOY_OK · гілка main · коміт 7c0329e0a · позначка «в. 13.08 15:36»\nsrc=\"/app/main.js?v=2fc569d025\"\n1\n1\n",
+  "stdout": "   викладено модулів: 1\n   журнал: 2026-08-25T10:54:38\tmain\tcb2ef87af\tв. 13.08 15:36\tindex.html:68453 findash.html:33986 finperiod.html:17527\trelay: викласти число задач і блакитний куточок\n   UI/FINDASH/CHART: 200 200 200\nDEPLOY_OK · гілка main · коміт cb2ef87af · позначка «в. 13.08 15:36»\nверсія: /app/main.js?v=a1b6e67f24\n3\n2\n",
   "stderr": "",
   "returncode": 0,
-  "id": "deploy-tasks-ui-1",
-  "ts": "2026-08-25T07:19:09Z"
+  "id": "deploy-taskn-1",
+  "ts": "2026-08-25T07:54:38Z"
 }
