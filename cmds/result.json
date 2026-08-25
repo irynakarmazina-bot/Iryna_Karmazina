@@ -1,7 +1,7 @@
 {
-  "stdout": "=== чи запущено щось із RDP на сервері ===\n(порожньо = нічого не запущено)\n\n=== останні команди реле ===\nAug 25 15:38:06 ubuntu-s-1vcpu-1gb-ams3 python3[326334]: Executing [deploy-20]: cd /root/Iryna_Karmazina && git fetch -q origin main && bash server/deploy_ui.sh main 2>&1 | tail -3\nAug 25 15:44:34 ubuntu-s-1vcpu-1gb-ams3 python3[326334]: Executing [deploy-22]: cd /root/Iryna_Karmazina && git fetch -q origin main && bash server/deploy_ui.sh main 2>&1 | tail -2\nAug 25 15:47:11 ubuntu-s-1vcpu-1gb-ams3 python3[326334]: Executing [check-43]: python3 -c \"\nAug 25 15:49:13 ubuntu-s-1vcpu-1gb-ams3 python3[326334]: Executing [check-44]: echo '=== чи запущено щось із RDP на сервері ==='; ps aux | grep -iE 'freerdp|rdp|xdotool|Xvfb' | grep -v grep | head; echo '(порожньо = нічого не запущено)'; echo; echo '=== останні команди реле ==='; journalctl -u cmdrunner --since '30 min ago' --no-pager 2>/dev/null | grep Executing | tail -6; echo; echo '=== чи живий 1С прямо зараз (лише читання) ==='; python3 -c \"\n\n=== чи живий 1С прямо зараз (лише читання) ===\nOData відповідає: 3 валют за 0.4 с\n",
+  "stdout": "   UI/FINDASH/CHART: 200 200 200\nDEPLOY_OK · гілка main · коміт 65f77b0ec · позначка «в. 13.08 15:36»\n",
   "stderr": "",
   "returncode": 0,
-  "id": "check-44",
-  "ts": "2026-08-25T12:49:13Z"
+  "id": "deploy-23",
+  "ts": "2026-08-25T12:50:11Z"
 }
