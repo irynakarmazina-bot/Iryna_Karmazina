@@ -1,7 +1,7 @@
 {
-  "stdout": "колонку «Закрито нами» (галочка) додано\n",
+  "stdout": "DEPLOY_OK · гілка main · коміт a8f3b3fab · позначка «в. 13.08 15:36»\nверсія: /app/main.js?v=2bc7a44ec3\n8\n",
   "stderr": "",
   "returncode": 0,
-  "id": "tuck-col-1",
-  "ts": "2026-08-25T10:29:38Z"
+  "id": "deploy-tuck-1",
+  "ts": "2026-08-25T10:32:05Z"
 }
