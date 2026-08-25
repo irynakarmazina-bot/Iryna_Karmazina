@@ -1,7 +1,7 @@
 {
-  "stdout": "скасовано користувачкою (стоп)\n",
+  "stdout": "   журнал: 2026-08-25T11:06:32\tmain\teefa6ca20\tв. 13.08 15:36\tindex.html:69189 findash.html:33986 finperiod.html:17527\trelay: викласти варіанти 4+4\n   UI/FINDASH/CHART: 200 200 200\nDEPLOY_OK · гілка main · коміт eefa6ca20 · позначка «в. 13.08 15:36»\nверсія: /app/main.js?v=d1afc5003c\n3\n1\n",
   "stderr": "",
   "returncode": 0,
-  "id": "cancel-noop-1",
-  "ts": "2026-08-25T08:01:18Z"
+  "id": "deploy-v4-1",
+  "ts": "2026-08-25T08:06:32Z"
 }
