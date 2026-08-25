@@ -828,7 +828,12 @@ function steps(r){
       { k:"border", t:"Кордон",              i:"border",    d:s(r,"На кордоні") || s(r,"Перетин кордону (факт)"), f:true, p:"" },
       { k:"pol", t:A?"Аеропорт відправлення":"Порт відправлення", i:"crane",
         d:s(r,"Здача в порт (факт)") || s(r,"Гейт ін"), f:true, p:from },
-      { k:"move", t:moveT, i:moveI, d:etd, f:etdF, p:s(r,"Судно"), dur:days(etd, eta) },
+      /* Дату виходу на цьому вузлі НЕ показуємо (прохання користувачки
+         25.08.2026: «прибери дату взагалі») — вона й так є в колонці
+         «Відправлення». У даних лишаємо: за нею рахується «скільки днів у
+         дорозі» і по ній рухається підсвітка, якщо статус відстав. */
+      { k:"move", t:moveT, i:moveI, d:etd, f:etdF, p:s(r,"Судно"),
+        dur:days(etd, eta), hide:true },
     ], transship(), [
       /* Останній крок експорту — порт призначення (вказівка користувачки
          02.08.2026). Місце беремо з ОСТАННЬОЇ ланки маршруту, а не з другої:
@@ -899,7 +904,8 @@ function steps(r){
     { k:"stuff", t:"Стафіровка",         i:"warehouse", d:s(r,"Stuffing"), f:true, p:from },
     { k:"pol", t:A?"Аеропорт відправлення":"Порт відправлення", i:"crane",
       d:s(r,"Здача в порт (факт)") || s(r,"Гейт ін"), f:true, p:from },
-    { k:"move", t:moveT, i:moveI, d:etd, f:etdF, p:s(r,"Судно"), dur:days(etd, eta) },
+    { k:"move", t:moveT, i:moveI, d:etd, f:etdF, p:s(r,"Судно"),
+      dur:days(etd, eta), hide:true },
   ].concat(transship(), [
     { k:"pod", t:A?"Аеропорт прибуття":"Порт прибуття", i:A?"plane":"crane", d:eta, f:etaF, p:to },
   ], land, [
@@ -1030,7 +1036,7 @@ function routeHtml(r){
       <div class="ttl">${x.t}</div>
       ${x.p ? `<div class="place">${esc(x.p)}</div>` : ""}
       ${x.dur != null ? `<div class="dur">${x.dur} ${plural(x.dur,"день","дні","днів")}</div>` : ""}
-      ${x.d ? (x.f && past(x.d2 || x.d)
+      ${x.d && !x.hide ? (x.f && past(x.d2 || x.d)
                  ? `<div class="dt">${fmtY(x.d)}${x.d2 ? " → " + fmtY(x.d2) : ""}</div>`
                  : `<div class="plan">план ${fmtDM(x.d)}${x.d2 ? " → " + fmtDM(x.d2) : ""}</div>`)
             : ""}
