@@ -1094,6 +1094,28 @@ PAGES.dispatch = async () => {
      фактичний, а поки його немає — плановий. */
   const _key = r => { const v = _s(r,"Напрямок") === "Експорт" ? etdOf(r) : String(r["ETA"] || "");
     const m = /(\d{4})-(\d{2})-(\d{2})/.exec(v); return m ? (m[1]+m[2]+m[3]) : ""; };
+  /* ЗАДАЧІ ПРОСТО В ТАБЛИЦІ УГОД (прохання користувачки 25.08.2026: «щоб задачі
+     були видні по угодам на загальному екрані Диспетчеризації»). У вузький рядок
+     повні тексти не вміщаються, тому під номером угоди — чіп «📌 N» з кількістю
+     ВІДКРИТИХ задач; є прострочені — чіп червоний і в ньому «!». Назви задач і
+     терміни — у підказці при наведенні, повний список — у картці угоди (клік по
+     рядку). Якщо задачі не завантажились — таблиця живе без чіпів, це не привід
+     її не показувати. */
+  let TASKS_BY_DEAL = {};
+  try{
+    for (const t of (await taskRows(true)).filter(t => String(t["Тип"]) === "Угода" && taskIsOpen(t))){
+      const n = String(t["Угода"] || "").trim();
+      if (n) (TASKS_BY_DEAL[n] = TASKS_BY_DEAL[n] || []).push(t);
+    }
+  }catch(e){ TASKS_BY_DEAL = {}; }
+  const taskChip = r => {
+    const list = TASKS_BY_DEAL[String(r["Угода"] || "").trim()] || [];
+    if (!list.length) return "";
+    const over = list.some(t => { const d = taskDays(t); return d !== null && d < 0; });
+    const tip = list.map(t => "• " + String(t["Задача"] || "") +
+      (t["Термін"] ? " (до " + fmtD(t["Термін"]) + ")" : "")).join("\n");
+    return `<span class="taskchip${over ? " over" : ""}" title="${esc(tip)}\n\nклік по рядку відкриє картку угоди з задачами">📌${over ? "!" : ""}${list.length}</span>`;
+  };
   const _done = r => r["Статус"] === "Вантаж доставлено";
   const _num = r => parseInt(r["Угода"])||0;
   /* Просування вантажу — потрібне ЛИШЕ для угод БЕЗ ключової дати. Там раніше
@@ -1477,6 +1499,21 @@ PAGES.dispatch = async () => {
           `<option${o===cur?" selected":""}>${esc(o)}</option>`).join("")}</select>`
       : kind === "date" ? dateEditorHTML(val0)
       : `<input class="edinput" type="text" value="${esc(val0)}">`;
+    /* РОЗШИРЕННЯ КОЛОНКИ НА ЧАС РЕДАГУВАННЯ ДАТИ (користувачка, 25.08.2026:
+       «не відкривається дата — розшир її за рахунок зміщення вправо колонок,
+       нехай коментар не буде видно на екрані»). Колонки дат ужаті під вміст
+       («29.07.26» ≈ 80 px), а редактор — це текстове поле ПЛЮС календарик, йому
+       треба ~132 px, і в вузькій клітинці від дати лишалося «26». Постійно
+       тримати колонки широкими — таблиця не влазить, тому колонка виростає
+       ЛИШЕ поки її редагують: сусіди зсуваються вправо (Коментар може піти за
+       край — на це дозвіл), а після Enter/Esc ширина повертається. */
+    let edCol = null, edColW = "";
+    if (kind === "date"){
+      const cg = td.closest("table").querySelector("colgroup");
+      const c = cg && cg.children[td.cellIndex];
+      if (c){ edCol = c; edColW = c.style.width; c.style.width = "132px"; }
+    }
+    const unwiden = () => { if (edCol){ edCol.style.width = edColW; edCol = null; } };
     const inp = td.querySelector(".edinput");
     roomForEditor(td);
     inp.focus();
@@ -1496,7 +1533,7 @@ PAGES.dispatch = async () => {
         }
         v = iso;
       }
-      if (!save || v === val0){ td.innerHTML = keep; return; }
+      if (!save || v === val0){ td.innerHTML = keep; unwiden(); return; }
       td.classList.add("saving");
       try{
         const was = row[col];
@@ -1512,6 +1549,7 @@ PAGES.dispatch = async () => {
         td.innerHTML = keep;
         toast("⚠ Не збереглось: " + err.message);
       }
+      unwiden();                       // draw() і сам перемалює, але шлях помилки — теж сюди
       td.classList.remove("saving");
     };
     inp.addEventListener("blur", ()=>finish(true));
@@ -1590,7 +1628,7 @@ PAGES.dispatch = async () => {
             :((staleStatus(r)||trackSilent(r))?`title="Дані застаріли: ${esc(staleWhy(r))}. Статус не змінювався автоматично — виправ вручну, якщо знаєш, як насправді."`
               :(stageStale(r)?`title="Статус «${esc(_s(r,"Статус"))}», а етап в Експедиторі досі «Букинг» — менеджер не вніс зміни"`
                 :(gateInMissing(r)?'title="Експорт без дати заїзду в порт — її ставлять одразу після букінгу"':"")))}>
-        <td class="mono c-num"><b>${esc(r["Угода"])}</b>${_isNew(r)?'<span class="newchip" title="угода з\'явилася в таблиці за останні 7 днів">нова</span>':""}</td>
+        <td class="mono c-num"><b>${esc(r["Угода"])}</b>${_isNew(r)?'<span class="newchip" title="угода з\'явилася в таблиці за останні 7 днів">нова</span>':""}${taskChip(r)}</td>
         <td>${r["Напрямок"]?`<span class="dirchip ${r["Напрямок"]==="Імпорт"?"imp":"exp"}">${r["Напрямок"]==="Імпорт"?"ІМП":(r["Напрямок"]==="Експорт"?"ЕКС":"ТРН")}</span>`:""}</td>
         <td class="c-cli" data-l="Клієнт" title="${esc(r["Клієнт"]||"")}">${esc(cliName(r["Клієнт"])||"—")}</td>
         <td class="c-rt${ED}" data-l="Маршрут" data-ed="Маршрут" title="${esc(r["Маршрут"]||"")}">${
@@ -4476,7 +4514,12 @@ async function openTask(t, preset){
         }).join("")}</select>`;
       return;
     }
-    wrap.innerHTML = `<label for="tk-obj">${kind === "Угода" ? "Номер угоди" : "Клієнт"}</label>
+    /* Поруч із номером угоди — живе посилання на її картку (прохання
+       користувачки 25.08.2026). Ховається, поки в полі номер, якого немає в
+       таблиці, — щоб не вести «в нікуди». */
+    wrap.innerHTML = `<label for="tk-obj">${kind === "Угода"
+        ? 'Номер угоди <a href="#" id="tk-goto" style="display:none;margin-left:8px;font-weight:600">відкрити угоду ↗</a>'
+        : "Клієнт"}</label>
       <input id="tk-obj" type="text" list="tk-obj-list" value="${esc(cur)}" placeholder="${
         kind === "Угода" ? "напр. 259" : "назва з довідника"}">
       <datalist id="tk-obj-list"></datalist>`;
@@ -4491,6 +4534,28 @@ async function openTask(t, preset){
         : [...new Set((await loadAll(T["Клієнти"])).map(c=>String(c["Назва"]||"").trim()).filter(Boolean))].sort();
       dl.innerHTML = vals.map(v=>`<option value="${esc(v)}"></option>`).join("");
     }catch(e){ /* підказки не критичні — поле лишається вільним для вводу */ }
+    if (kind === "Угода"){
+      try{
+        const rowsAll = await dispRows();          // кешовано — другий виклик безкоштовний
+        const goto = $("tk-goto"), inp = $("tk-obj");
+        if (!goto || !inp) return;
+        const found = () => rowsAll.find(r => String(r["Угода"]||"").trim() === inp.value.trim());
+        const upd = () => { goto.style.display = found() ? "" : "none"; };
+        inp.addEventListener("input", upd);
+        upd();
+        goto.addEventListener("click", e => {
+          e.preventDefault(); e.stopPropagation();
+          const r = found();
+          if (!r) return;
+          /* Картку задачі закриваємо: показати картку угоди ПОВЕРХ задачі не
+             вийде — обидві накладки мають однаковий z-index, і задача, стоячи
+             пізніше в розмітці, лишилась би зверху. Незбережені правки задачі
+             при цьому пропадають, як і при будь-якому закритті картки. */
+          $("task-overlay").classList.remove("open");
+          openRow(r);
+        });
+      }catch(e){ /* без посилання поле працює як раніше */ }
+    }
   };
   await drawObj();
   $("tk-kind").addEventListener("change", drawObj);

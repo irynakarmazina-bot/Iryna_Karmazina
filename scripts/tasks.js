@@ -210,6 +210,13 @@ const check = (ok, what) => { console.log((ok ? "  ✓ " : "  ✗ ") + what); if
   console.log("\n— картка угоди —");
   await page.click('.nav-item[data-page="dispatch"]');
   await page.waitForSelector(".dispscroll tbody tr", { timeout: 8000 });
+  /* Чіп задач просто в таблиці (25.08.2026): під номером угоди видно «📌 N»,
+     а коли є прострочена — чіп червоний і з «!». */
+  check(await page.isVisible(".taskchip"), "під номером угоди є чіп задач 📌");
+  check(((await page.getAttribute(".taskchip", "class")) || "").includes("over"),
+        "чіп червоний — по угоді є прострочена задача");
+  check(/задача/i.test((await page.getAttribute(".taskchip", "title")) || ""),
+        "у підказці чіпа видно назви задач");
   await page.click(".dispscroll tbody tr td:first-child");
   await page.waitForSelector("#row-overlay.open", { timeout: 5000 });
   await page.waitForTimeout(700);
@@ -223,6 +230,29 @@ const check = (ok, what) => { console.log((ok ? "  ✓ " : "  ✗ ") + what); if
   await page.click('.nav-item[data-page="clients"]');
   await page.waitForSelector("#content table", { timeout: 8000 });
   check(/Задач/.test(await page.textContent("#content")), "у клієнтах є колонка «Задач»");
+
+  console.log("\n— посилання «відкрити угоду» в картці задачі —");
+  /* Додано 25.08.2026: з картки задачі типу «Угода» має бути перехід на саму
+     угоду. Посилання видно лише коли номер існує в таблиці; клік закриває
+     задачу і відкриває картку угоди. */
+  await page.click('.nav-item[data-page="tasks"]');
+  await page.waitForSelector(".taskrow", { timeout: 8000 });
+  await page.click('.taskrow[data-task="1"]');
+  await page.waitForSelector("#task-overlay.open", { timeout: 5000 });
+  await page.waitForTimeout(400);
+  check(await page.isVisible("#tk-goto"), "біля номера 259 видно «відкрити угоду»");
+  await page.fill("#tk-obj", "9999");
+  await page.waitForTimeout(200);
+  check(!(await page.isVisible("#tk-goto")), "на неіснуючому номері посилання ховається");
+  await page.fill("#tk-obj", "259");
+  await page.waitForTimeout(200);
+  check(await page.isVisible("#tk-goto"), "повернувся справжній номер — посилання знову є");
+  await page.click("#tk-goto");
+  await page.waitForSelector("#row-overlay.open", { timeout: 5000 });
+  check(!(await page.isVisible("#task-overlay.open")), "картка задачі закрилась");
+  check(/№259/.test(await page.textContent("#row-title")), "відкрилась картка саме угоди 259");
+  await page.click("#row-close");
+  await page.waitForTimeout(300);
 
   /* Другий вхід — уже НЕ адміністратором. Перевіряємо саме те, що просила
      користувачка: не-адмін чужих задач не бачить і вибирати ролі не може. */
