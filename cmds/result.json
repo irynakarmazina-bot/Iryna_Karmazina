@@ -1,7 +1,7 @@
 {
-  "stdout": "HEAD is now at e679ebbba relay: перезапустити кабінет (стафіровка, дата на плечі)\nactive\nActiveEnterTimestamp=Tue 2026-08-25 14:18:37 EEST\ne679ebbba relay: перезапустити кабінет (стафіровка, дата на плечі)\n",
-  "stderr": "From https://github.com/irynakarmazina-bot/Iryna_Karmazina\n * branch                main       -> FETCH_HEAD\n   fd5d470ca..e679ebbba  main       -> origin/main\n",
+  "stdout": "варіант «Гейт аут» додано до статусів\nTRACK_OK\nтрекінг запущено у фоні\nDEPLOY_OK · гілка main · коміт 0f585b392 · позначка «в. 13.08 15:36»\n",
+  "stderr": "",
   "returncode": 0,
-  "id": "86b04d18c448",
-  "ts": "2026-08-25T11:18:41Z"
+  "id": "deploy-rail-1",
+  "ts": "2026-08-25T11:20:38Z"
 }
