@@ -1,1 +1,1 @@
-{"id": "0b35627e87ac", "cmd": "cd /root/Iryna_Karmazina && git fetch origin main && git reset --hard origin/main && systemctl restart unitex-cabinet && sleep 4 && systemctl is-active unitex-cabinet && systemctl show unitex-cabinet -p ActiveEnterTimestamp && git log --oneline -1"}
+{"id": "86b04d18c448", "cmd": "cd /root/Iryna_Karmazina && git fetch origin main && git reset --hard origin/main && systemctl restart unitex-cabinet && sleep 4 && systemctl is-active unitex-cabinet && systemctl show unitex-cabinet -p ActiveEnterTimestamp && git log --oneline -1"}
