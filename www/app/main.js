@@ -3051,15 +3051,38 @@ PAGES.accounting = async () => {
     });
   };
   const dmy = v => v ? esc(String(v).slice(0,10).split("-").reverse().join(".")) : "";
+  // Сортування: типово за ДАТОЮ ОПЛАТИ ВІД КЛІЄНТА, найновіші зверху (вимога користувачки
+  // 25.08.2026). Клік по заголовку сортує за цією колонкою, повторний клік — навпаки.
+  const COLS = [
+    {h:"№ угоди", k:"num", n:true}, {h:"Статус", k:"status"}, {h:"Коносамент", k:"bl"},
+    {h:"Контейнер", k:"cont"}, {h:"Маршрут", k:"route"}, {h:"Оплата від клієнта", k:"paid"},
+    {h:"Профіт", k:"profit", n:true}, {h:"Винагорода", k:"fee", n:true},
+    {h:"Курс НБУ", k:"rate", n:true}, {h:"Винагорода, грн", k:"fee_uah", n:true},
+    {h:"Інфо+комісії", k:"info_added", n:true}, {h:"Різниця", k:"diff", n:true},
+    {h:"Переказано", k:"sent"}, {h:"Сума переказу", k:"sentAmt", n:true},
+    {h:"Дата переказу", k:"sentDate"},
+  ];
+  let sortKey = "paid", sortDir = -1;
+  const sorted = list => list.slice().sort((a, b) => {
+    const col = COLS.find(c => c.k === sortKey) || {};
+    let x = a[sortKey], y = b[sortKey];
+    if (col.n){ x = Number(x)||0; y = Number(y)||0; return (x - y) * sortDir; }
+    x = String(x == null ? "" : x); y = String(y == null ? "" : y);
+    // порожня дата — завжди в кінець, щоб не заважала
+    if (col.k === "paid" || col.k === "sentDate"){
+      if (!x && y) return 1;
+      if (x && !y) return -1;
+    }
+    return x.localeCompare(y, "uk") * sortDir;
+  });
   const draw = () => {
-    const list = visible();
+    const list = sorted(visible());
     const sum = list.filter(r=>!r.sent).reduce((s,r)=>s+r.diff,0);
     $("lc-count").textContent = `показано ${list.length} · до переказу ${
       sum.toLocaleString("uk-UA",{maximumFractionDigits:2})} УО`;
     $("lc-table").innerHTML = finTable(
-      ["№ угоди","Статус","Коносамент","Контейнер","Маршрут","Оплата від клієнта",
-       "Профіт","Винагорода","Курс НБУ","Винагорода, грн","Інфо+комісії","Різниця",
-       "Переказано","Сума переказу","Дата переказу"],
+      COLS.map((c,i) => `<span class="lc-sort" data-i="${i}" style="cursor:pointer">${esc(c.h)}${
+        c.k === sortKey ? (sortDir < 0 ? " ▼" : " ▲") : ""}</span>`),
       list.map(r => `<tr class="${r.sent?"lc-sent":""}">
         <td class="mono">${esc(r.num)}</td>
         <td>${esc(r.status)}</td>
@@ -3088,6 +3111,12 @@ PAGES.accounting = async () => {
         </tr>`));
     if (canMark) $("lc-table").querySelectorAll("input.lc-mark").forEach(ch =>
       ch.addEventListener("change", () => mark(ch)));
+    $("lc-table").querySelectorAll("span.lc-sort").forEach(el =>
+      el.addEventListener("click", () => {
+        const k = COLS[+el.dataset.i].k;
+        if (k === sortKey) sortDir = -sortDir; else { sortKey = k; sortDir = -1; }
+        draw();
+      }));
   };
 
   // позначка «переказано» пишеться в таблицю диспетчеризації (та сама угода — той самий рядок)
@@ -3155,7 +3184,7 @@ PAGES.accounting = async () => {
       "Інфо+комісії УО",
       "Різниця до переказу УО","Переказано","Дата переказу","Сума переказу УО"];
     const e2 = v => '"' + String(v==null?"":v).replace(/"/g,'""') + '"';
-    const csv = [head.map(e2).join(";")].concat(visible().map(r => [r.num,r.status,r.bl,r.cont,
+    const csv = [head.map(e2).join(";")].concat(sorted(visible()).map(r => [r.num,r.status,r.bl,r.cont,
       r.route,r.paid,r.profit,r.fee,
       r.fee_ccy||"", r.fee_val??"", r.rate??"", r.fee_uah??"",
       r.info_added,r.diff,
