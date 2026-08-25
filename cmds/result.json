@@ -1,7 +1,7 @@
 {
-  "stdout": "DEPLOY_OK · гілка main · коміт 173f2d4bf · позначка «в. 13.08 15:36»\nsrc=\"/app/main.js?v=4de76b6da9\"\n",
+  "stdout": "колонку «Закрито нами» (галочка) додано\n",
   "stderr": "",
   "returncode": 0,
-  "id": "deploy-cont-1",
-  "ts": "2026-08-25T09:53:20Z"
+  "id": "tuck-col-1",
+  "ts": "2026-08-25T10:29:38Z"
 }
