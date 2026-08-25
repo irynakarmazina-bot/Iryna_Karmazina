@@ -61,6 +61,10 @@ RATES = os.path.join(BASE, "computed", "nbu_rates.json")   # кеш курсів
 # і оплати клієнтів на нього теж мають потрапляти в розрахунок.
 ACCOUNTS = ["Банк Юнітекс Ейч-Ді", "Банк Юнітекс Ейч-Ді EUR"]
 ACCOUNT = " / ".join(ACCOUNTS)          # для підписів на сторінці
+# «Рахунки від Юнітекс Форвардинг та витрати з ними повʼязані ти не береш» (25.08.2026).
+# Доходні рахунки Форвардинга й так не проходять (їх немає в ACCOUNTS); витрати,
+# оплачені з цього рахунку, виключаємо тут.
+EXCLUDE_EXPENSE_ACCOUNTS = {"Банк Юнітекс Форвардинг"}
 
 # --- статті (довідник Catalog_СтатьиСчета опублікований Софт Про 02.08.2026) ---
 FEE_NAME = "Винагорода експедитора"
@@ -180,6 +184,7 @@ def collect(c):
             "completed": d10(r.get("ДатаЗавершения")),
             "revenue": 0.0, "cost": 0.0, "fee": 0.0, "local_abroad": 0.0, "info_bank": 0.0,
             "paid": "", "n_inv": 0, "revenue_all": 0.0, "cost_all": 0.0, "cost_acc": 0.0,
+            "cost_fwd": 0.0,
             # винагорода у валюті рахунку: {валюта: сума}, і дата оплати по кожній валюті
             "fee_val": collections.Counter(), "fee_paid": {},
         }
@@ -227,6 +232,9 @@ def collect(c):
         if dk not in deals or not r.get("Posted"):
             continue
         d = deals[dk]
+        if acc.get(r.get("ВидОплаты_Key")) in EXCLUDE_EXPENSE_ACCOUNTS:
+            d["cost_fwd"] += f(r.get("Сумма_УЕ"))         # витрати Форвардинга — довідково
+            continue
         d["cost_all"] += f(r.get("Сумма_УЕ"))             # довідково: всі проведені витрати
         if acc.get(r.get("ВидОплаты_Key")) in ACCOUNTS and str(r.get("СтатусСчета") or "") == PAID:
             d["cost_acc"] += f(r.get("Сумма_УЕ"))         # довідково: витрати з наших рахунків
@@ -250,7 +258,7 @@ def build(deals, rates=None):
         if not d["n_inv"]:
             skipped["немає сплаченого рахунку клієнта на рахунки Юнітекса"] += 1
             continue
-        profit = round(d["revenue_all"] - d["cost"], 2)
+        profit = round(d["revenue"] - d["cost"], 2)   # дохід ТІЛЬКИ з рахунків Ейч-Ді
         add = round(d["info_bank"], 2) if d["info_bank"] > INFO_MIN else 0.0   # поріг 0
         fee_uah, rate_shown, fee_ccy = 0.0, None, ""
         for ccy, val in d["fee_val"].items():
@@ -266,7 +274,7 @@ def build(deals, rates=None):
             "date": d["date"],
             "revenue": round(d["revenue_all"], 2), "cost": round(d["cost"], 2),
             "revenue_acc": round(d["revenue"], 2), "cost_acc": round(d["cost_acc"], 2),
-            "cost_all": round(d["cost_all"], 2),
+            "cost_all": round(d["cost_all"], 2), "cost_fwd": round(d["cost_fwd"], 2),
             "profit": profit, "fee": round(d["fee"], 2),
             "info_bank": round(d["info_bank"], 2), "info_added": add,
             "fee_val": round(sum(d["fee_val"].values()), 2), "fee_ccy": fee_ccy,
