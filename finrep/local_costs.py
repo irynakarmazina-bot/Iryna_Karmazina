@@ -270,6 +270,11 @@ def build(deals, rates=None):
                 rate_shown, fee_ccy = round(rate, 4), ccy
             elif not fee_ccy:
                 fee_ccy = ccy
+        if round(profit + add - d["fee"], 2) < 0:
+            # «мінусові угоди не включай» (25.08.2026): якщо різниця відʼємна — угода
+            # у звіт не потрапляє взагалі
+            skipped["різниця відʼємна"] += 1
+            continue
         rows.append({
             "num": d["num"], "status": d["status"], "bl": d["bl"], "cont": d["cont"],
             "route": d["route"], "paid": d["paid"], "completed": d["completed"],
