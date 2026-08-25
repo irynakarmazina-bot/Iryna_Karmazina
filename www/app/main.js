@@ -2381,35 +2381,50 @@ function parseCarrierText(txt){
   const lines = t.split(/\n/).map(l => l.trim()).filter(Boolean);
   const out = {};
   // саме [а-яіїєґ]*, а не \w: у JS \w — лише латиниця, і «подача» на ній обривалась
-  const feed = /подач[а-яіїєґ]*\s*(?:на|до|:)?\s*(\d{1,2})[./](\d{1,2})(?:[./](\d{2,4}))?/iu.exec(t);
+  const feed = /(?:подач[а-яіїєґ]*|завантаження|загрузка)\s*(?:на|до|:)?\s*(\d{1,2})[./](\d{1,2})(?:[./](\d{2,4}))?/iu.exec(t);
   if (feed){
     const y = feed[3] ? (feed[3].length === 2 ? "20" + feed[3] : feed[3]) : String(new Date().getFullYear());
     out["подача"] = y + "-" + feed[2].padStart(2, "0") + "-" + feed[1].padStart(2, "0");
   }
   const cont = /\b([A-Z]{4}\d{7})\b/.exec(t);
   if (cont) out["контейнер"] = cont[1];
-  // держномер: 2 літери + 4 цифри + 2 літери, кирилиця або латиниця
-  const plates = [...t.matchAll(/\b([A-ZА-ЯІЇЄ]{2}\s?\d{4}\s?[A-ZА-ЯІЇЄ]{2})\b/gu)].map(m => m[1].replace(/\s+/g, ""));
+  /* Держномер: 2 літери + 4 цифри + 2 літери. НЕ через \b: у JS межа слова
+     знає лише латиницю, і чисто кириличний номер (АС5205НО) не знаходився —
+     упіймано на другому ж реальному повідомленні 25.08.2026. Тому текст ріжемо
+     на токени і перевіряємо кожен цілком. Пробіл усередині номера теж буває. */
+  const plates = t.replace(/([A-ZА-ЯІЇЄҐ]{2})\s+(\d{4})\s+([A-ZА-ЯІЇЄҐ]{2})/gu, "$1$2$3")
+    .split(/[^A-ZА-ЯІЇЄҐ0-9]+/u).filter(w => /^[A-ZА-ЯІЇЄҐ]{2}\d{4}[A-ZА-ЯІЇЄҐ]{2}$/u.test(w));
   if (plates[0]) out["тягач"] = plates[0];
   if (plates[1]) out["причеп"] = plates[1];
-  const pib = lines.find(l => /^[А-ЯІЇЄҐ][а-яіїєґ'’]+\s+[А-ЯІЇЄҐ][а-яіїєґ'’]+\s+[А-ЯІЇЄҐ][а-яіїєґ'’]+$/u.test(l));
+  // ПІБ буває і голим рядком, і з підписом «Водій: …» — підпис зрізаємо
+  const pib = lines.map(l => l.replace(/^(?:водій|піб|дані водія)\s*[:\-–]\s*/iu, ""))
+    .find(l => /^[А-ЯІЇЄҐ][а-яіїєґ'’]+\s+[А-ЯІЇЄҐ][а-яіїєґ'’]+\s+[А-ЯІЇЄҐ][а-яіїєґ'’]+$/u.test(l));
   if (pib) out["піб"] = pib;
   const tel = /(?:\+?38)?\s*\(?(0\d{2})\)?[\s\-.]*(\d{3})[\s\-.]*(\d{2})[\s\-.]*(\d{2})/.exec(t);
   if (tel) out["телефон"] = tel[1] + " " + tel[2] + " " + tel[3] + " " + tel[4];
   const pass = /паспорт[:\s]*([A-ZА-ЯІЇЄ]{2}\s?\d{6})/i.exec(t);
   if (pass) out["паспорт"] = pass[1].replace(/\s+/g, "");
-  const pp = /^ПП\s+([^\n]+)$/mi.exec(t);
-  if (pp) out["перехід"] = ("ПП " + pp[1]).trim();
+  // пункт пропуску пишуть по-різному: «ПП Ягодин», «перехід Ягодин», «пункт пропуску …»
+  const pp = /^(ПП|перехід|переход|пункт\s+пропуску)\s+([^\n]+)$/mi.exec(t);
+  if (pp) out["перехід"] = ((/^пп$/i.test(pp[1]) ? "ПП " : "") + pp[2]).trim();
   const nameLine = lines.find(l => l.includes("«"));
   if (nameLine){
-    const m = /«([^»]+)»\s*([^\d]*)(.*)$/.exec(nameLine);
+    /* форма власності буває ПЕРЕД лапками («ТОВ «МАЛЬ-ТРАНС»») або ПІСЛЯ
+       («HM TRANSPORT» LIMITED) — збираємо назву з обох боків */
+    const m = /(?:^|\s)((?:ТОВ|ТзОВ|ПП|ФОП|ПрАТ|АТ|LLC)\s+)?«([^»]+)»\s*([^\d«]*)(.*)$/u.exec(nameLine.replace(/^перевізник\s*[:\-–]\s*/iu, ""));
     if (m){
-      out["перевізник"] = (m[1] + " " + (m[2] || "").trim()).replace(/\s+/g, " ").trim();
-      if ((m[3] || "").trim()) out["адреса"] = m[3].trim();
+      out["перевізник"] = ((m[1] || "") + m[2] + " " + (m[3] || "").trim()).replace(/\s+/g, " ").trim();
+      if ((m[4] || "").trim()) out["адреса"] = m[4].trim();
     }
   }
-  const code = /\b(?:code|код)\s*[:№]?\s*(\d{6,12})/i.exec(t);
+  const addr = /^адреса\s*[:\-–]\s*(.+)$/mi.exec(t);
+  if (addr) out["адреса"] = addr[1].trim();
+  const code = /(?:ЄДРПОУ|ЕДРПОУ|ЕГРПОУ|code|код)\s*[:№]?\s*(\d{6,12})/iu.exec(t);
   if (code) out["код"] = code[1];
+  // \b тут не працює (він не знає кирилиці) — межу слова робимо руками
+  if (/(?:^|[\s,;:—-])тент/imu.test(t)) out["обладнання"] = "тент";
+  else if (/контейнеровоз/iu.test(t)) out["обладнання"] = "контейнеровоз";
+  else if (/(?:^|[\s,;:—-])реф/imu.test(t)) out["обладнання"] = "реф";
   const iban = /\b(UA\d{20,30})\b/.exec(t);
   if (iban){
     out["iban"] = iban[1];
@@ -2434,11 +2449,12 @@ function openTruck(r){
       <textarea id="trk-raw" rows="6" placeholder="вставте сюди повідомлення цілком…"></textarea></div>
     <button class="btn ghost" id="trk-parse" style="margin:2px 0 10px">🔍 Розібрати текст</button>
     <div class="fldrow">${F("trk-truck", "Номер авто (тягач)", r["Номер авто"])}${F("trk-trail", "Причеп", r["Причеп"])}</div>
-    <div class="fldrow">${F("trk-feed", "Подача (план)", String(r["Подача авто (план)"] || "").slice(0, 10), "РРРР-ММ-ДД")}${F("trk-pp", "Пункт перетину", r["Пункт перетину"])}</div>
+    <div class="fldrow">${F("trk-feed", "Подача (план)", fmtD(String(r["Подача авто (план)"] || "").slice(0, 10)), DATE_HINT)}${F("trk-pp", "Пункт перетину", r["Пункт перетину"])}</div>
+    <div class="fldrow">${F("trk-equip", "Тип обладнання (тент, контейнеровоз…)", r["Тип обладнання"])}${F("trk-cmr", "Номер ЦМР", r["Номер ЦМР"])}</div>
     <div class="fldrow">${F("trk-pib", "Водій (ПІБ)", r["Водій (ПІБ)"])}${F("trk-tel", "Водій (телефон)", r["Водій (телефон)"])}</div>
     <div class="fldrow">${F("trk-pass", "Водій (паспорт)", r["Водій (паспорт)"])}${F("trk-cont", "Контейнер (звірка з угодою)", "")}</div>
     <h3 style="margin:10px 0 4px;font-size:14px">Перевізник — піде в довідник</h3>
-    <div class="fldrow">${F("trk-carr", "Назва", r["Перевізник"])}${F("trk-code", "Код", "")}</div>
+    <div class="fldrow">${F("trk-carr", "Назва", r["Перевізник"])}${F("trk-code", "ЄДРПОУ", "")}</div>
     <div class="fldrow">${F("trk-iban", "IBAN", "")}${F("trk-bank", "Банк", "")}</div>
     <div class="fldrow">${F("trk-eori", "EORI", "")}${F("trk-addr", "Адреса", "")}</div>
     <p class="sub" id="trk-note"></p>`;
@@ -2446,7 +2462,8 @@ function openTruck(r){
     const p = parseCarrierText($("trk-raw").value);
     const setIf = (id, v) => { if (v && $(id)) $(id).value = v; };
     setIf("trk-truck", p["тягач"]);   setIf("trk-trail", p["причеп"]);
-    setIf("trk-feed", p["подача"]);   setIf("trk-pp", p["перехід"]);
+    setIf("trk-feed", p["подача"] ? fmtD(p["подача"]) : "");   setIf("trk-pp", p["перехід"]);
+    setIf("trk-equip", p["обладнання"]);
     setIf("trk-pib", p["піб"]);       setIf("trk-tel", p["телефон"]);
     setIf("trk-pass", p["паспорт"]);  setIf("trk-cont", p["контейнер"]);
     setIf("trk-carr", p["перевізник"]); setIf("trk-code", p["код"]);
@@ -2490,7 +2507,7 @@ async function truckUpserts(v){
   await up("Авто", "Номер", v("trk-truck"), {"Тип": "тягач", "Перевізник": v("trk-carr")});
   await up("Авто", "Номер", v("trk-trail"), {"Тип": "причеп", "Перевізник": v("trk-carr")});
   await up("Водії", "ПІБ", v("trk-pib"), {"Телефон": v("trk-tel"), "Паспорт": v("trk-pass"), "Перевізник": v("trk-carr")});
-  await up("Перевізники", "Назва", v("trk-carr"), {"Код": v("trk-code"), "IBAN": v("trk-iban"), "Банк": v("trk-bank"), "EORI": v("trk-eori"), "Адреса": v("trk-addr")});
+  await up("Перевізники", "Назва", v("trk-carr"), {"ЄДРПОУ": v("trk-code"), "IBAN": v("trk-iban"), "Банк": v("trk-bank"), "EORI": v("trk-eori"), "Адреса": v("trk-addr")});
 }
 $("truck-close").addEventListener("click", () => $("truck-overlay").classList.remove("open"));
 $("truck-overlay").addEventListener("click", e => { if (e.target === $("truck-overlay")) $("truck-overlay").classList.remove("open"); });
@@ -2500,11 +2517,18 @@ $("truck-save").addEventListener("click", async () => {
   const v = id => String(($(id) || {}).value || "").trim();
   const map = [["Номер авто", "trk-truck"], ["Причеп", "trk-trail"], ["Водій (ПІБ)", "trk-pib"],
                ["Водій (телефон)", "trk-tel"], ["Водій (паспорт)", "trk-pass"], ["Пункт перетину", "trk-pp"],
-               ["Перевізник", "trk-carr"], ["Подача авто (план)", "trk-feed"]];
+               ["Перевізник", "trk-carr"], ["Тип обладнання", "trk-equip"], ["Номер ЦМР", "trk-cmr"],
+               ["Подача авто (план)", "trk-feed"]];
   const patch = {};
   for (const [col, id] of map){
-    const val = v(id);
-    if (val && String(r[col] || "").trim() !== val) patch[col] = val;
+    let val = v(id);
+    if (col === "Подача авто (план)" && val){
+      const iso = parseUserDate(val);          // людський формат 26.08.2026 → база
+      if (iso === null){ $("truck-msg").textContent = "⚠ Не зрозуміла дату подачі «" + val + "». Формат: " + DATE_HINT; return; }
+      val = iso;
+    }
+    const cur = col === "Подача авто (план)" ? String(r[col] || "").slice(0, 10) : String(r[col] || "").trim();
+    if (val && cur !== val) patch[col] = val;
   }
   if (!Object.keys(patch).length){ $("truck-msg").textContent = "Немає що зберігати — жодне поле не змінилось."; return; }
   $("truck-save").disabled = true;

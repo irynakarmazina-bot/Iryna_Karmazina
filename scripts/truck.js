@@ -106,7 +106,7 @@ const check = (ok, what) => { console.log((ok ? "  ✓ " : "  ✗ ") + what); if
   check(await val("trk-tel") === "093 746 27 56", "телефон: " + await val("trk-tel"));
   check(await val("trk-pass") === "GJ729236", "паспорт: " + await val("trk-pass"));
   check(await val("trk-pp") === "ПП Ягодин", "пункт перетину: " + await val("trk-pp"));
-  check(/-08-26$/.test(await val("trk-feed")), "подача 26.08: " + await val("trk-feed"));
+  check(await val("trk-feed") === "26.08.26", "подача у людському форматі: " + await val("trk-feed"));
   check(await val("trk-cont") === "MRSU5082306", "контейнер: " + await val("trk-cont"));
   check(await val("trk-carr") === "HM TRANSPORT LIMITED", "перевізник: " + await val("trk-carr"));
   check(await val("trk-code") === "43266315", "код: " + await val("trk-code"));
@@ -126,7 +126,7 @@ const check = (ok, what) => { console.log((ok ? "  ✓ " : "  ✗ ") + what); if
     check(b["Номер авто"] === "BH2921TB" && b["Причеп"] === "BH9739XF", "в угоду пішли тягач і причеп");
     check(b["Водій (ПІБ)"] === "Цьоць Олександр Ярославович" && b["Водій (телефон)"] === "093 746 27 56",
           "в угоду пішов водій з телефоном");
-    check(/-08-26$/.test(b["Подача авто (план)"] || ""), "в угоду пішла дата подачі");
+    check(/-08-26$/.test(b["Подача авто (план)"] || ""), "в угоду дата пішла в форматі бази: " + b["Подача авто (план)"]);
     check(b["Перевізник"] === "HM TRANSPORT LIMITED", "в угоду пішла назва перевізника");
   }
   const carPosts = writes.filter(w => w.m === "POST" && w.u.includes(ID("Авто")));
@@ -134,10 +134,41 @@ const check = (ok, what) => { console.log((ok ? "  ✓ " : "  ✗ ") + what); if
   const drvPost = writes.find(w => w.m === "POST" && w.u.includes(ID("Водії")));
   check(!!drvPost && /Цьоць/.test(drvPost.body) && /GJ729236/.test(drvPost.body), "у довідник «Водії» пішов водій з паспортом");
   const carrPost = writes.find(w => w.m === "POST" && w.u.includes(ID("Перевізники")));
-  check(!!carrPost && /43266315/.test(carrPost.body) && /LTUA0000000010145/.test(carrPost.body),
-        "у довідник «Перевізники» пішли код і EORI");
+  check(!!carrPost && /ЄДРПОУ/.test(carrPost.body) && /43266315/.test(carrPost.body) && /LTUA0000000010145/.test(carrPost.body),
+        "у довідник «Перевізники» пішли ЄДРПОУ і EORI");
   const trailFill = writes.find(w => w.m === "PATCH" && w.u.includes(ID("Авто")));
   check(!!trailFill && /HM TRANSPORT/.test(trailFill.body), "наявному причепу ДОПОВНЕНО порожнє поле «Перевізник»");
+
+  console.log("\n— другий формат повідомлення (МАЛЬ-ТРАНС, 25.08.2026) —");
+  /* Реальний лист, на якому перший парсер розібрав лише половину: кириличні
+     номери, «Водій:» з підписом, «перехід» замість «ПП», «ЄДРПОУ:», адреса
+     окремим рядком, тент. */
+  await page.click('td[data-trk]');
+  await page.waitForSelector("#truck-overlay.open", { timeout: 5000 });
+  await page.fill("#trk-raw", `подача на 27.08
+Водій: Мальчук Іван Петрович
+АС5205НО  АС5605ХЕ
+тел. 099 392 04 82
+паспорт: АС123456
+перехід Ягодин
+авто тент
+
+Перевізник: ТОВ «МАЛЬ-ТРАНС»
+Адреса: 44543, Волинська обл., Камінь-Каширський р-н, с. Сошичне, вул. Миру, буд. 113
+ЄДРПОУ: 45626475`);
+  await page.click("#trk-parse");
+  await page.waitForTimeout(300);
+  check(await val("trk-truck") === "АС5205НО", "кириличний тягач: " + await val("trk-truck"));
+  check(await val("trk-trail") === "АС5605ХЕ", "кириличний причеп: " + await val("trk-trail"));
+  check(await val("trk-pib") === "Мальчук Іван Петрович", "ПІБ з підпису «Водій:»: " + await val("trk-pib"));
+  check(await val("trk-pass") === "АС123456", "паспорт: " + await val("trk-pass"));
+  check(await val("trk-pp") === "Ягодин", "«перехід Ягодин»: " + await val("trk-pp"));
+  check(await val("trk-equip") === "тент", "тент → тип обладнання: " + await val("trk-equip"));
+  check(await val("trk-carr") === "ТОВ МАЛЬ-ТРАНС", "назва з формою власності: " + await val("trk-carr"));
+  check(await val("trk-code") === "45626475", "ЄДРПОУ: " + await val("trk-code"));
+  check(/Волинська/.test(await val("trk-addr")), "адреса з окремого рядка: " + (await val("trk-addr")).slice(0, 30));
+  check(await val("trk-feed") === "27.08.26", "подача 27.08: " + await val("trk-feed"));
+  await page.click("#truck-close");
 
   console.log("");
   if (errors.length) { console.log("ПОМИЛКИ В БРАУЗЕРІ:"); errors.forEach(e => console.log("   " + e)); }
