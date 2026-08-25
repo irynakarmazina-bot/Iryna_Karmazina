@@ -1,7 +1,7 @@
 {
-  "stdout": "DEPLOY_OK · гілка main · коміт a8f3b3fab · позначка «в. 13.08 15:36»\nверсія: /app/main.js?v=2bc7a44ec3\n8\n",
+  "stdout": "DEPLOY_OK · гілка main · коміт 6fcf03504 · позначка «в. 13.08 15:36»\nверсія: /app/main.js?v=614da9deb9\n6\n",
   "stderr": "",
   "returncode": 0,
-  "id": "deploy-tuck-1",
-  "ts": "2026-08-25T10:32:05Z"
+  "id": "deploy-sel-1",
+  "ts": "2026-08-25T10:37:46Z"
 }
