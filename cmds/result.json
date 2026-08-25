@@ -1,7 +1,7 @@
 {
-  "stdout": " * branch                main       -> FETCH_HEAD\n   c1a2ddd1b..e028be1f2  main       -> origin/main\n   викладено модулів: 1\n   журнал: 2026-08-25T16:10:34\tmain\te028be1f2\tв. 13.08 15:36\tindex.html:71617 findash.html:33986 finperiod.html:17527\trelay: deploy-26\n   UI/FINDASH/CHART: 200 200 200\nDEPLOY_OK · гілка main · коміт e028be1f2 · позначка «в. 13.08 15:36»\n--- перевірка на сервері ---\n1\n2\n",
+  "stdout": "   журнал: 2026-08-25T16:14:55\tmain\taee6de4cd\tв. 13.08 15:36\tindex.html:71619 findash.html:33986 finperiod.html:17527\trelay: deploy-27\n   UI/FINDASH/CHART: 200 200 200\nDEPLOY_OK · гілка main · коміт aee6de4cd · позначка «в. 13.08 15:36»\n",
   "stderr": "",
   "returncode": 0,
-  "id": "deploy-26",
-  "ts": "2026-08-25T13:10:34Z"
+  "id": "deploy-27",
+  "ts": "2026-08-25T13:14:55Z"
 }
