@@ -1718,8 +1718,9 @@ PAGES.dispatch = async () => {
               ? (staleStatus(r) ? "застаріло" : "трекінг не відповідає") + ": " + staleWhy(r)
               : "")}</td>
         <td class="tog c-rel" data-l="Реліз" data-tog="Реліз" title="Реліз${CAN_EDIT ? ": клік — поставити/зняти" : ""}">${
-            r["Реліз"] ? "✓" : ""}</td>
-        <td class="mono${ED}" data-l="Авто" data-ed="Подача авто (факт)" title="дата подачі авто">${truckDate(r)
+            r["Реліз"] ? RELIZ_SVG : ""}</td>
+        <td class="mono${ED}" data-l="Авто"${CAN_EDIT ? ' data-trk="1"' : ""} title="${
+            CAN_EDIT ? "клік — внести дані від перевізника (текст розбирається на поля)" : "дата подачі авто і номер"}">${truckDate(r)
             ? `${dateB(truckDate(r))}${_s(r,"Подача авто (факт)")?"":'<span class="cell-muted"> план</span>'}`
             : (truckLate(r) ? '<span style="color:#d1453b;font-weight:700">немає</span>' : '<span class="cell-muted">—</span>')}${
             _s(r,"Номер авто") ? `<br><span class="cell-muted">${esc(r["Номер авто"])}</span>` : ""}</td>
@@ -1759,6 +1760,14 @@ PAGES.dispatch = async () => {
     // клік по галочці «Реліз» — перемикається одразу, картка не відкривається
     if (CAN_EDIT) $("drows").querySelectorAll("td.tog[data-tog]").forEach(td=>{
       td.addEventListener("click", e=>{ e.stopPropagation(); toggleFlag(td); });
+    });
+    // клік по клітинці «Авто» — вікно даних від перевізника (25.08.2026)
+    $("drows").querySelectorAll("td[data-trk]").forEach(td=>{
+      td.addEventListener("click", e=>{
+        e.stopPropagation();
+        const row = all.find(x => String(x.Id) === td.closest("tr").dataset.id);
+        if (row) openTruck(row);
+      });
     });
     // клік по редагованій клітинці — правка на місці, картка угоди при цьому не відкривається
     if (CAN_EDIT) $("drows").querySelectorAll(".ed[data-ed]").forEach(td=>{
@@ -2000,6 +2009,12 @@ function attList(r){
   if (typeof f === "string"){ try{ f = JSON.parse(f); }catch(e){ f = []; } }
   return Array.isArray(f) ? f : [];
 }
+/* Галочка «Реліз» — фінальний вибір користувачки 25.08.2026: НАМАЛЬОВАНА
+   (варіант 6 зі сторінки варіантів), бо шрифтова у 21 px вийшла завеликою.
+   Малюнок не залежить від шрифту — однаковий на Mac, Windows і телефоні,
+   а товщина лінії задається напряму (4.5 з 24 — жирна при 15 px). */
+const RELIZ_SVG = '<svg class="relmark" width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">'
+  + '<path d="M4 12.5 L9.5 18 L20 6.5" stroke="#1a7f37" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 function docBtn(r){
   const n = attList(r).length;
   return `<button class="btn ghost docs-btn" data-doc="${r.Id}" style="padding:3px 10px" title="Документи">📄${n||""}</button>`;
@@ -2328,16 +2343,173 @@ $("gen-btn").addEventListener("click", async ()=>{
   $("gen-btn").disabled = false;
 });
 
+/* ===== дані від перевізника: вікно на клітинці «Авто» =====
+   Прохання користувачки 25.08.2026: перевізник надсилає повідомлення одним
+   шматком (подача, контейнер, водій, номери тягача і причепа, телефон, паспорт,
+   пункт перетину, реквізити фірми) — його вставляють у вікно ЯК Є, сторінка
+   розбирає текст на поля, людина перевіряє і зберігає. Збереження:
+   (а) заповнює поля картки угоди; (б) поповнює довідники «Авто», «Водії»,
+   «Перевізники» — НОВИЙ запис або ДОПОВНЕННЯ ПОРОЖНІХ полів наявного, чуже
+   ніколи не перезаписується. Тягач і причеп — два окремі записи довідника
+   «Авто» без жорсткої прив'язки (причеп змінюється незалежно).
+   У таблиці, як і раніше, видно лише номер авто. */
+function parseCarrierText(txt){
+  const t = String(txt || "");
+  const lines = t.split(/\n/).map(l => l.trim()).filter(Boolean);
+  const out = {};
+  // саме [а-яіїєґ]*, а не \w: у JS \w — лише латиниця, і «подача» на ній обривалась
+  const feed = /подач[а-яіїєґ]*\s*(?:на|до|:)?\s*(\d{1,2})[./](\d{1,2})(?:[./](\d{2,4}))?/iu.exec(t);
+  if (feed){
+    const y = feed[3] ? (feed[3].length === 2 ? "20" + feed[3] : feed[3]) : String(new Date().getFullYear());
+    out["подача"] = y + "-" + feed[2].padStart(2, "0") + "-" + feed[1].padStart(2, "0");
+  }
+  const cont = /\b([A-Z]{4}\d{7})\b/.exec(t);
+  if (cont) out["контейнер"] = cont[1];
+  // держномер: 2 літери + 4 цифри + 2 літери, кирилиця або латиниця
+  const plates = [...t.matchAll(/\b([A-ZА-ЯІЇЄ]{2}\s?\d{4}\s?[A-ZА-ЯІЇЄ]{2})\b/gu)].map(m => m[1].replace(/\s+/g, ""));
+  if (plates[0]) out["тягач"] = plates[0];
+  if (plates[1]) out["причеп"] = plates[1];
+  const pib = lines.find(l => /^[А-ЯІЇЄҐ][а-яіїєґ'’]+\s+[А-ЯІЇЄҐ][а-яіїєґ'’]+\s+[А-ЯІЇЄҐ][а-яіїєґ'’]+$/u.test(l));
+  if (pib) out["піб"] = pib;
+  const tel = /(?:\+?38)?\s*\(?(0\d{2})\)?[\s\-.]*(\d{3})[\s\-.]*(\d{2})[\s\-.]*(\d{2})/.exec(t);
+  if (tel) out["телефон"] = tel[1] + " " + tel[2] + " " + tel[3] + " " + tel[4];
+  const pass = /паспорт[:\s]*([A-ZА-ЯІЇЄ]{2}\s?\d{6})/i.exec(t);
+  if (pass) out["паспорт"] = pass[1].replace(/\s+/g, "");
+  const pp = /^ПП\s+([^\n]+)$/mi.exec(t);
+  if (pp) out["перехід"] = ("ПП " + pp[1]).trim();
+  const nameLine = lines.find(l => l.includes("«"));
+  if (nameLine){
+    const m = /«([^»]+)»\s*([^\d]*)(.*)$/.exec(nameLine);
+    if (m){
+      out["перевізник"] = (m[1] + " " + (m[2] || "").trim()).replace(/\s+/g, " ").trim();
+      if ((m[3] || "").trim()) out["адреса"] = m[3].trim();
+    }
+  }
+  const code = /\b(?:code|код)\s*[:№]?\s*(\d{6,12})/i.exec(t);
+  if (code) out["код"] = code[1];
+  const iban = /\b(UA\d{20,30})\b/.exec(t);
+  if (iban){
+    out["iban"] = iban[1];
+    const ibLine = lines.find(l => l.includes(iban[1]));
+    const bank = ibLine && /(?:\bin\b|\bв\b)\s+(.+)$/i.exec(ibLine);
+    if (bank) out["банк"] = bank[1].trim();
+  }
+  const eori = /EORI[:\s–-]*([A-Z0-9]{8,20})/i.exec(t);
+  if (eori) out["eori"] = eori[1].replace(/\.$/, "");
+  return out;
+}
+
+let TRUCK_ROW = null;
+function openTruck(r){
+  TRUCK_ROW = r;
+  $("truck-title").textContent = "🚚 Дані від перевізника — угода №" + (r["Угода"] || "");
+  $("truck-hint").textContent = "Вставте повідомлення перевізника як є і натисніть «Розібрати». Кожне поле можна виправити руками перед збереженням.";
+  $("truck-msg").textContent = "";
+  const F = (id, label, val, ph) => `<div class="fld"><label for="${id}">${label}</label><input id="${id}" type="text" value="${esc(val || "")}" placeholder="${esc(ph || "")}"></div>`;
+  $("truck-body").innerHTML = `
+    <div class="fld"><label for="trk-raw">Текст від перевізника</label>
+      <textarea id="trk-raw" rows="6" placeholder="вставте сюди повідомлення цілком…"></textarea></div>
+    <button class="btn ghost" id="trk-parse" style="margin:2px 0 10px">🔍 Розібрати текст</button>
+    <div class="fldrow">${F("trk-truck", "Номер авто (тягач)", r["Номер авто"])}${F("trk-trail", "Причеп", r["Причеп"])}</div>
+    <div class="fldrow">${F("trk-feed", "Подача (план)", String(r["Подача авто (план)"] || "").slice(0, 10), "РРРР-ММ-ДД")}${F("trk-pp", "Пункт перетину", r["Пункт перетину"])}</div>
+    <div class="fldrow">${F("trk-pib", "Водій (ПІБ)", r["Водій (ПІБ)"])}${F("trk-tel", "Водій (телефон)", r["Водій (телефон)"])}</div>
+    <div class="fldrow">${F("trk-pass", "Водій (паспорт)", r["Водій (паспорт)"])}${F("trk-cont", "Контейнер (звірка з угодою)", "")}</div>
+    <h3 style="margin:10px 0 4px;font-size:14px">Перевізник — піде в довідник</h3>
+    <div class="fldrow">${F("trk-carr", "Назва", r["Перевізник"])}${F("trk-code", "Код", "")}</div>
+    <div class="fldrow">${F("trk-iban", "IBAN", "")}${F("trk-bank", "Банк", "")}</div>
+    <div class="fldrow">${F("trk-eori", "EORI", "")}${F("trk-addr", "Адреса", "")}</div>
+    <p class="sub" id="trk-note"></p>`;
+  $("trk-parse").addEventListener("click", () => {
+    const p = parseCarrierText($("trk-raw").value);
+    const setIf = (id, v) => { if (v && $(id)) $(id).value = v; };
+    setIf("trk-truck", p["тягач"]);   setIf("trk-trail", p["причеп"]);
+    setIf("trk-feed", p["подача"]);   setIf("trk-pp", p["перехід"]);
+    setIf("trk-pib", p["піб"]);       setIf("trk-tel", p["телефон"]);
+    setIf("trk-pass", p["паспорт"]);  setIf("trk-cont", p["контейнер"]);
+    setIf("trk-carr", p["перевізник"]); setIf("trk-code", p["код"]);
+    setIf("trk-iban", p["iban"]);     setIf("trk-bank", p["банк"]);
+    setIf("trk-eori", p["eori"]);     setIf("trk-addr", p["адреса"]);
+    /* контейнер із тексту звіряємо з угодою: якщо це чужий запит — краще
+       побачити ДО збереження, ніж шукати потім, куди поїхали чужі дані */
+    const dealCont = String(TRUCK_ROW["Контейнер"] || "");
+    $("trk-note").textContent =
+      p["контейнер"] && dealCont && !dealCont.includes(p["контейнер"])
+        ? "⚠ У тексті контейнер " + p["контейнер"] + ", а в угоді " + dealCont + " — перевірте, чи до тієї угоди цей запит."
+        : (p["контейнер"] && dealCont ? "✓ Контейнер збігається з угодою." : "");
+    $("truck-msg").textContent = Object.keys(p).length ? "" : "⚠ Не знайшла у тексті жодного знайомого поля — заповніть руками.";
+  });
+  $("truck-overlay").classList.add("open");
+}
+/* Довідники: новий запис або доповнення ПОРОЖНІХ полів наявного.
+   Непорожні значення в довіднику не перезаписуються ніколи. */
+async function truckUpserts(v){
+  const up = async (table, keyCol, keyVal, fields) => {
+    if (!keyVal || !T[table]) return;
+    try{
+      const js = await api(`/api/v2/tables/${T[table]}/records?limit=1000`);
+      const hit = (js.list || []).find(x => String(x[keyCol] || "").trim().toLowerCase() === keyVal.toLowerCase());
+      if (!hit){
+        await api(`/api/v2/tables/${T[table]}/records`, {method: "POST",
+          body: JSON.stringify([Object.assign({[keyCol]: keyVal}, fields)])});
+        logAction("довідник: додано", table + ": " + keyVal, "", "", "");
+        return;
+      }
+      const fill = {};
+      for (const [k, val] of Object.entries(fields))
+        if (val && !String(hit[k] || "").trim()) fill[k] = val;
+      if (Object.keys(fill).length){
+        await api(`/api/v2/tables/${T[table]}/records`, {method: "PATCH",
+          body: JSON.stringify([Object.assign({Id: hit.Id}, fill)])});
+        logAction("довідник: доповнено", table + ": " + keyVal, Object.keys(fill).join(", "), "", "");
+      }
+    }catch(e){ toast("⚠ Довідник «" + table + "» не оновився: " + e.message); }
+  };
+  await up("Авто", "Номер", v("trk-truck"), {"Тип": "тягач", "Перевізник": v("trk-carr")});
+  await up("Авто", "Номер", v("trk-trail"), {"Тип": "причеп", "Перевізник": v("trk-carr")});
+  await up("Водії", "ПІБ", v("trk-pib"), {"Телефон": v("trk-tel"), "Паспорт": v("trk-pass"), "Перевізник": v("trk-carr")});
+  await up("Перевізники", "Назва", v("trk-carr"), {"Код": v("trk-code"), "IBAN": v("trk-iban"), "Банк": v("trk-bank"), "EORI": v("trk-eori"), "Адреса": v("trk-addr")});
+}
+$("truck-close").addEventListener("click", () => $("truck-overlay").classList.remove("open"));
+$("truck-overlay").addEventListener("click", e => { if (e.target === $("truck-overlay")) $("truck-overlay").classList.remove("open"); });
+$("truck-save").addEventListener("click", async () => {
+  const r = TRUCK_ROW;
+  if (!r) return;
+  const v = id => String(($(id) || {}).value || "").trim();
+  const map = [["Номер авто", "trk-truck"], ["Причеп", "trk-trail"], ["Водій (ПІБ)", "trk-pib"],
+               ["Водій (телефон)", "trk-tel"], ["Водій (паспорт)", "trk-pass"], ["Пункт перетину", "trk-pp"],
+               ["Перевізник", "trk-carr"], ["Подача авто (план)", "trk-feed"]];
+  const patch = {};
+  for (const [col, id] of map){
+    const val = v(id);
+    if (val && String(r[col] || "").trim() !== val) patch[col] = val;
+  }
+  if (!Object.keys(patch).length){ $("truck-msg").textContent = "Немає що зберігати — жодне поле не змінилось."; return; }
+  $("truck-save").disabled = true;
+  try{
+    await api(`/api/v2/tables/${T["Диспетчеризація"]}/records`, {method: "PATCH",
+      body: JSON.stringify([Object.assign({Id: r.Id}, patch)])});
+    for (const col of Object.keys(patch)){
+      logAction("правка угоди", "Угода №" + (r["Угода"] || r.Id), col, r[col], patch[col]);
+      r[col] = patch[col];
+    }
+    await truckUpserts(v);      // довідники після угоди; їх помилка збереження не валить
+    toast("✅ Збережено: " + Object.keys(patch).join(", "));
+    $("truck-overlay").classList.remove("open");
+    redrawDisp(r.Id);
+  }catch(err){ $("truck-msg").textContent = "⚠ Не збереглось: " + err.message; }
+  $("truck-save").disabled = false;
+});
+
 const CARD_GROUPS = [
   ["Основне", ["Угода","Напрямок","Клієнт","Лінія","Вид перевезення","FCL/LCL","Тип","Умови поставки (Інкотермс)","Перевізник","Агент","Маршрут","ПОО","POL","POD","FD","Митне оформлення","Кінцева точка доставки","HBL","BL","Контейнер","Вантаж","Тип обладнання","Кількість","Вивіз (Carrier/Merchant)","Сухий порт","Адреса розмитнення"]],
   ["Море", ["Судно","Вояж","Контейнер (лінія)","Звірка","Статус","Етап (Експедитор)","ETA","ETD (план)","ETD (факт)","ETA порт (план)","ETA порт (факт)","Порт перевалки","Перевалка (прибуття)","Перевалка (відправлення)","Зміни ETA (історія)","Остання зміна","Останнє оновлення","Статус (джерело)","Статус (оновлено)","Трекінг (стан)"]],
   ["Дати на землі", ["Stuffing","Подача авто (план)","Подача авто (факт)","Port Cut Off","Гейт ін","Здача в порт (факт)","Вивантаження в порту (факт)","Гейт аут","ETA сухий порт","Gate out for delivery","Постановка/завантаження (план)","Постановка/завантаження (факт)","На кордоні","Перетин кордону (факт)","Планова до клієнта (план)","Планова до клієнта (факт)","Вивантаження у отримувача (факт)"]],
-  ["Авто і документи", ["Номер авто","Номер ЦМР","Водій (ПІБ)","Водій (телефон)","Телекс","Т1","ДО","Документи","SI","Замитнення","Реліз"]],
+  ["Авто і документи", ["Номер авто","Причеп","Номер ЦМР","Водій (ПІБ)","Водій (телефон)","Водій (паспорт)","Пункт перетину","Телекс","Т1","ДО","Документи","SI","Замитнення","Реліз"]],
   ["Команда і коментарі", ["Менеджер","Оп. менеджер","Лист (джерело)","Нагадування","Коментар","Коментар клієнту"]],
 ];
 const LOGIST_GROUPS = [
   ["Основне", ["Угода","Клієнт","Контейнер","Статус","Маршрут","Сухий порт"]],
-  ["Авто", ["Номер авто","Номер ЦМР","Водій (ПІБ)","Водій (телефон)","Перетин кордону (факт)","Постановка/завантаження (план)","Постановка/завантаження (факт)"]],
+  ["Авто", ["Номер авто","Причеп","Номер ЦМР","Водій (ПІБ)","Водій (телефон)","Водій (паспорт)","Пункт перетину","Перетин кордону (факт)","Постановка/завантаження (план)","Постановка/завантаження (факт)"]],
 ];
 /* ===== картка угоди: перегляд + редагування =====
    Поля, які веде Експедитор (AUTHORITATIVE у expeditor_direct_sync.py), редагувати

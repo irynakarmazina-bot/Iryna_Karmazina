@@ -85,6 +85,7 @@ if node -e "require.resolve(process.env.PW || 'playwright')" >/dev/null 2>&1; th
   # задачу, закриває її, перемикає фільтри. Без цього кроку зламана форма або
   # загублені виконавці проходили б шлюз непоміченими.
   node "$ROOT/scripts/tasks.js" "$FILE" || fail=1
+  node "$ROOT/scripts/truck.js" "$FILE" || fail=1
   # findash.js — плитка «Усього в обороті» у фінансовому дашборді. Окремий файл
   # (www/findash.html), тому «$FILE» їй не підходить: беремо сусідній файл із тієї
   # самої теки, що й кандидат на викладення.
