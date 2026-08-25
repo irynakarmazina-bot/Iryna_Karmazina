@@ -1,7 +1,7 @@
 {
-  "stdout": "   UI/FINDASH/CHART: 200 200 200\nDEPLOY_OK · гілка main · коміт 72b427504 · позначка «в. 13.08 15:36»\n",
+  "stdout": "num          60\nstatus       Завершена\npaid         2026-06-19\nrevenue      7001.72\ncost         5993.08\ncost_all     6053.55\nprofit       1008.64\nfee          67.04\ninfo_bank    105.84\ninfo_added   105.84\nlocal_abroad 100.0\ndiff         1047.44\n",
   "stderr": "",
   "returncode": 0,
-  "id": "deploy-22",
-  "ts": "2026-08-25T12:44:38Z"
+  "id": "check-43",
+  "ts": "2026-08-25T12:47:12Z"
 }
