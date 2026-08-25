@@ -286,8 +286,13 @@ tbody tr:last-child td{border-bottom:0}
 .chip.exp{background:var(--pos-bg);color:var(--pos)}
 .d{font-weight:700;white-space:nowrap}
 .dim{color:var(--muted)}
+/* Статус пишемо В ОДИН РЯДОК: «В морі» переносилось на два, і колонка виглядала
+   зламаною (зауваження користувачки 25.08.2026). Колонці даємо запас ширини під
+   найдовший статус — «Вивантажений в порту прибуття». */
 .pill{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;
-  padding:4px 11px;border-radius:99px;background:var(--surface-2);color:var(--ink-2)}
+  padding:4px 11px;border-radius:99px;background:var(--surface-2);color:var(--ink-2);
+  white-space:nowrap}
+th:nth-child(11),td[data-l="Статус"]{min-width:190px}
 .pill::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor;flex:none}
 .pill.sea{background:var(--accent-soft);color:var(--accent-ink)}
 .pill.ok{background:var(--pos-bg);color:var(--pos)}
@@ -532,7 +537,7 @@ __BANNER__
       <thead><tr>
         <th>Угода</th><th></th><th>Маршрут</th><th>Коносамент / контейнер</th>
         <th>Судно / Лінія</th><th>Відправлення</th><th>Прибуття</th>
-        <th>Завантажено</th><th>Сухий порт</th><th>Доставка</th>
+        <th>Завантажено</th><th>Сухий порт</th><th>Доставлено</th>
         <th>Статус</th><th>Реліз</th><th>Документи</th>
         <th class="cmt">Коментар</th>
       </tr></thead>
@@ -1229,7 +1234,7 @@ function render(){
       <td class="mono" data-l="Відправлення">${etd?`<span class="d">${fmt(etd)}</span>`:'<span class="dim">—</span>'}</td>
       <td class="mono" data-l="Прибуття">${arrOf(r)?`<span class="d">${fmt(arrOf(r))}</span>`:'<span class="dim">—</span>'}</td>
       ${[loadOf(r), dryOf(r), delivOf(r)].map((v, i) =>
-        `<td class="mono" data-l="${["Завантажено","Сухий порт","Доставка"][i]}">${
+        `<td class="mono" data-l="${["Завантажено","Сухий порт","Доставлено"][i]}">${
           v ? `<span class="d">${fmt(v)}</span>` : '<span class="dim">—</span>'}</td>`).join("")}
       <td data-l="Статус"><span class="pill ${stCls(r)}">${esc(s(r,"Статус")||"—")}</span></td>
       <td data-l="Реліз"><span class="ck${isOn(r,"Реліз")?" on":""}" title="${
