@@ -1,1 +1,1 @@
-{"id": "3a82819599d6", "cmd": "cd /root/Iryna_Karmazina && git log --oneline -1 && systemctl is-active unitex-cabinet"}
+{"id":"revert-rail-1","cmd":"cd /root/Iryna_Karmazina && git fetch origin main -q && git reset --hard origin/main -q && cp direct_sync/maersk_track_sync.py /root/direct-sync/maersk_track_sync.py && python3 -m py_compile /root/direct-sync/maersk_track_sync.py && echo TRACK_REVERTED && systemctl restart unitex-cabinet && bash server/deploy_ui.sh main 2>&1 | grep -E 'DEPLOY_OK|FAIL'"}
