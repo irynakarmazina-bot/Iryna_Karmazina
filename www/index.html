@@ -502,7 +502,10 @@
   .stalemark{display:inline-block;margin-left:5px;font-size:10px;font-weight:700;
     border-radius:5px;padding:1px 4px;white-space:nowrap;cursor:help;
     background:var(--warn-bg);color:var(--warn-text)}
-  td.c-rel{text-align:center}
+  /* «Реліз» повернуто в таблицю вузькою колонкою (44 px) 25.08.2026 на прохання
+     користувачки. Заголовок трохи дрібніший, щоб слово вмістилось у 44 px. */
+  td.c-rel{text-align:center;font-size:14px;font-weight:700;color:#1a7f37}
+  th.c-rel{font-size:11.5px;padding-left:2px;padding-right:2px;text-align:center}
   td.c-rel.tog{cursor:pointer}
   td.c-rel.tog:hover{background:var(--accent-soft)}
   /* BL і кожен контейнер — окремим рядком; сам номер НЕ розривається,

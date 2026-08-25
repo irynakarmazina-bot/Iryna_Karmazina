@@ -1215,7 +1215,7 @@ PAGES.dispatch = async () => {
     : `<span class="updstamp cell-muted">час оновлення невідомий</span>`;
   const head = logist
     ? "<th>Угода</th><th>Клієнт</th><th>Контейнер</th><th>Статус</th><th>Номер авто</th><th>Водій</th><th>Телефон</th><th>Перетин кордону</th><th></th>"
-    : "<th class=\"c-num\">Угода</th><th></th><th>Клієнт</th><th>Маршрут</th><th>Вид / лінія</th><th class=\"c-bl\">Коносамент /<br>контейнер</th><th class=\"c-ves\">Судно</th><th class=\"dt\">Stuffing</th><th class=\"dt\">Gate in /<br>здача</th><th class=\"dt\">ETD POL</th><th class=\"dt\">ETA POD</th><th class=\"dt\">ETA<br>dry port</th><th class=\"dt\">Gate out<br>delivery</th><th>Статус</th><th>Авто</th><th>Коментар</th><th></th>";
+    : "<th class=\"c-num\">Угода</th><th></th><th>Клієнт</th><th>Маршрут</th><th>Вид / лінія</th><th class=\"c-bl\">Коносамент /<br>контейнер</th><th class=\"c-ves\">Судно</th><th class=\"dt\">Stuffing</th><th class=\"dt\">Gate in /<br>здача</th><th class=\"dt\">ETD POL</th><th class=\"dt\">ETA POD</th><th class=\"dt\">ETA<br>dry port</th><th class=\"dt\">Gate out<br>delivery</th><th>Статус</th><th class=\"c-rel\" title=\"Реліз: галочка ставиться кліком прямо в таблиці\">Реліз</th><th>Авто</th><th>Коментар</th><th></th>";
   // ── активні алерти над таблицею
   const uniq = k => [...new Set(all.map(r=>_s(r,k)).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"uk"));
   const nActive = all.filter(r=>!_done(r)).length;
@@ -1286,10 +1286,17 @@ PAGES.dispatch = async () => {
                узято 72 px — 15 px запасу на те, що інший браузер намалює шрифт
                ширше. Різницю бере на себе
                «Коментар» — єдина колонка без фіксованої ширини. -->
+          <!-- 18 колонок (25.08.2026): повернулась вузька «Реліз» (44 px, галочка) —
+               прохання користувачки, між «Статус» і «Авто». Щоб сума фіксованих
+               ширин НЕ виросла (правило «без бічної прокрутки» від 01.08.2026
+               лишається в силі), 44 px забрано в сусідів: шість дат 86→80
+               (жирним 13 px «12.06.26» треба ~72 px, запас є), «Вид / лінія»
+               110→106, «Судно» 74→70 (довгі назви й так переносяться).
+               Сума фіксованих без «Коментаря» та сама: 1356 px. -->
           <col style="width:72px"><col style="width:62px"><col style="width:84px"><col style="width:102px">
-          <col style="width:110px"><col style="width:124px"><col style="width:74px"><col style="width:86px">
-          <col style="width:86px"><col style="width:86px"><col style="width:86px"><col style="width:86px">
-          <col style="width:86px"><col style="width:106px"><col style="width:74px"><col><col style="width:32px">
+          <col style="width:106px"><col style="width:124px"><col style="width:70px"><col style="width:80px">
+          <col style="width:80px"><col style="width:80px"><col style="width:80px"><col style="width:80px">
+          <col style="width:80px"><col style="width:106px"><col style="width:44px"><col style="width:74px"><col><col style="width:32px">
         </colgroup>`}
         <thead><tr>${head}</tr></thead>
         <tbody id="drows"></tbody></table></div>
@@ -1367,7 +1374,12 @@ PAGES.dispatch = async () => {
      Це свідомий вибір: краще прокрутка, ніж обрізані номери.
 
      Заміри вартості — у коментарі до виклику fitCols нижче за текстом. */
-  const FLEX_COL = 15;             // «Коментар» — забирає все, що лишилось
+  /* Номер РАХУЄТЬСЯ З НУЛЯ і має вказувати САМЕ на «Коментар». 25.08.2026 між
+     «Статус» і «Авто» вставлено колонку «Реліз», і Коментар з'їхав з 15 на 16;
+     поки константу не поправили, гумовою колонкою було «Авто» — його стискало
+     до нуля, і заголовок зникав з екрана (упіймала перевірка cols.js). Якщо
+     додаєш/прибираєш колонку лівіше за «Коментар» — онови цей індекс. */
+  const FLEX_COL = 16;             // «Коментар» — забирає все, що лишилось
   const FLEX_MIN = 90;             // але не вужче за це, інакше колонка зникає
   let colFitKey = "";
   const fitCols = (force, src) => {
@@ -1646,13 +1658,15 @@ PAGES.dispatch = async () => {
             noteMark("stalemark", (staleStatus(r) || trackSilent(r))
               ? (staleStatus(r) ? "застаріло" : "трекінг не відповідає") + ": " + staleWhy(r)
               : "")}</td>
+        <td class="tog c-rel" data-l="Реліз" data-tog="Реліз" title="Реліз${CAN_EDIT ? ": клік — поставити/зняти" : ""}">${
+            r["Реліз"] ? "✔" : ""}</td>
         <td class="mono${ED}" data-l="Авто" data-ed="Подача авто (факт)" title="дата подачі авто">${truckDate(r)
             ? `${dateB(truckDate(r))}${_s(r,"Подача авто (факт)")?"":'<span class="cell-muted"> план</span>'}`
             : (truckLate(r) ? '<span style="color:#d1453b;font-weight:700">немає</span>' : '<span class="cell-muted">—</span>')}${
             _s(r,"Номер авто") ? `<br><span class="cell-muted">${esc(r["Номер авто"])}</span>` : ""}</td>
         <td class="cell-muted c-com${ED}" data-l="Коментар" data-ed="Коментар" title="${esc(r["Коментар"]||"")}">${esc(r["Коментар"]||"")}</td>
         <td>${docBtn(r)}</td>
-      </tr>`).join("") : `<tr><td colspan="${logist?7:17}" class="cell-muted" style="padding:18px">${emptyMsg()}</td></tr>`);
+      </tr>`).join("") : `<tr><td colspan="${logist?7:18}" class="cell-muted" style="padding:18px">${emptyMsg()}</td></tr>`);
     /* Рядки спершу збираються ПОЗА сторінкою, потім міряються ширини на
        порожній таблиці, і аж тоді рядки потрапляють у неї. Порядок не
        косметичний, а заміряний: якщо міряти вже вставлені рядки, браузер
