@@ -15,6 +15,15 @@
    ═══════════════════════════════════════════════════════════════════════════ */
 "use strict";
 const $ = id => document.getElementById(id);
+/* Людина ВИДІЛЯЄ текст (номер угоди, коносамент…), щоб скопіювати, а браузер
+   після відпускання миші все одно шле click — і відкривалась картка угоди
+   (скарга користувачки 25.08.2026: «скопіювати не виходить»). Тому кожен клік
+   по рядку/клітинці спершу питає: чи є зараз виділений текст? Є — це
+   копіювання, нічого не відкриваємо. Клік без виділення працює як раніше. */
+function textSelected(){
+  try{ return String(window.getSelection().toString()).trim().length > 0; }
+  catch(e){ return false; }
+}
 function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
 
 /* Українське відмінювання після числа: 1 угода, 2 угоди, 5 угод, 11 угод, 22 угоди. */
@@ -1764,17 +1773,21 @@ PAGES.dispatch = async () => {
   });
     markEmptyCells($("drows"));
 
-    $("drows").querySelectorAll("tr[data-id]").forEach(tr=>tr.addEventListener("click",()=>openRow(all.find(x=>String(x.Id)===tr.dataset.id))));
+    $("drows").querySelectorAll("tr[data-id]").forEach(tr=>tr.addEventListener("click",()=>{
+      if (textSelected()) return;          // виділяють текст для копіювання
+      openRow(all.find(x=>String(x.Id)===tr.dataset.id));
+    }));
     // клік по номеру відкриває трекінг лінії, а не картку угоди
     $("drows").querySelectorAll("a.tl").forEach(a=>a.addEventListener("click", e=>e.stopPropagation()));
     // клік по галочці «Реліз» — перемикається одразу, картка не відкривається
     if (CAN_EDIT) $("drows").querySelectorAll("td.tog[data-tog]").forEach(td=>{
-      td.addEventListener("click", e=>{ e.stopPropagation(); toggleFlag(td); });
+      td.addEventListener("click", e=>{ e.stopPropagation(); if (textSelected()) return; toggleFlag(td); });
     });
     // клік по клітинці «Авто» — вікно даних від перевізника (25.08.2026)
     $("drows").querySelectorAll("td[data-trk]").forEach(td=>{
       td.addEventListener("click", e=>{
         e.stopPropagation();
+        if (textSelected()) return;
         const row = all.find(x => String(x.Id) === td.closest("tr").dataset.id);
         if (row) openTruck(row);
       });
@@ -1783,7 +1796,7 @@ PAGES.dispatch = async () => {
     if (CAN_EDIT) $("drows").querySelectorAll(".ed[data-ed]").forEach(td=>{
       if (!td.title) td.title = "клік — редагувати «" + td.dataset.ed +
         "», Enter — зберегти, Esc — скасувати";
-      td.addEventListener("click", e=>{ e.stopPropagation(); editCell(td); });
+      td.addEventListener("click", e=>{ e.stopPropagation(); if (textSelected()) return; editCell(td); });
     });
     /* Прокрутка. При ПЕРШОМУ відкритті ховаємо доставлені за шапку, щоб зверху
        був найближчий за ключовою датою вантаж. Далі — не смикаємо: після правки
@@ -2732,6 +2745,7 @@ function redrawDisp(id){
 function editCardField(td, r){
   const f = td.dataset.f;
   if (td.querySelector(".edinput")) return;
+  if (textSelected()) return;              // копіюють значення, а не редагують
   // галочка — просто перемикаємо
   if (FLAGS.includes(f)){
     const nv = !r[f];
