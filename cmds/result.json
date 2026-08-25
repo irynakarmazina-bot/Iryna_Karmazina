@@ -1,7 +1,7 @@
 {
-  "stdout": "num          60\nstatus       Завершена\npaid         2026-06-19\nrevenue      7001.72\ncost         5993.08\ncost_all     6053.55\nprofit       1008.64\nfee          67.04\ninfo_bank    105.84\ninfo_added   105.84\nlocal_abroad 100.0\ndiff         1047.44\n",
+  "stdout": "=== чи запущено щось із RDP на сервері ===\n(порожньо = нічого не запущено)\n\n=== останні команди реле ===\nAug 25 15:38:06 ubuntu-s-1vcpu-1gb-ams3 python3[326334]: Executing [deploy-20]: cd /root/Iryna_Karmazina && git fetch -q origin main && bash server/deploy_ui.sh main 2>&1 | tail -3\nAug 25 15:44:34 ubuntu-s-1vcpu-1gb-ams3 python3[326334]: Executing [deploy-22]: cd /root/Iryna_Karmazina && git fetch -q origin main && bash server/deploy_ui.sh main 2>&1 | tail -2\nAug 25 15:47:11 ubuntu-s-1vcpu-1gb-ams3 python3[326334]: Executing [check-43]: python3 -c \"\nAug 25 15:49:13 ubuntu-s-1vcpu-1gb-ams3 python3[326334]: Executing [check-44]: echo '=== чи запущено щось із RDP на сервері ==='; ps aux | grep -iE 'freerdp|rdp|xdotool|Xvfb' | grep -v grep | head; echo '(порожньо = нічого не запущено)'; echo; echo '=== останні команди реле ==='; journalctl -u cmdrunner --since '30 min ago' --no-pager 2>/dev/null | grep Executing | tail -6; echo; echo '=== чи живий 1С прямо зараз (лише читання) ==='; python3 -c \"\n\n=== чи живий 1С прямо зараз (лише читання) ===\nOData відповідає: 3 валют за 0.4 с\n",
   "stderr": "",
   "returncode": 0,
-  "id": "check-43",
-  "ts": "2026-08-25T12:47:12Z"
+  "id": "check-44",
+  "ts": "2026-08-25T12:49:13Z"
 }
