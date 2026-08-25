@@ -531,7 +531,7 @@ __BANNER__
     <table>
       <thead><tr>
         <th>Угода</th><th></th><th>Маршрут</th><th>Коносамент / контейнер</th>
-        <th>Судно / авіалінія</th><th>Відправлення</th><th>Прибуття</th>
+        <th>Судно / Лінія</th><th>Відправлення</th><th>Прибуття</th>
         <th>Завантажено</th><th>Сухий порт</th><th>Доставка</th>
         <th>Статус</th><th>Реліз</th><th>Документи</th>
         <th class="cmt">Коментар</th>
@@ -1225,7 +1225,7 @@ function render(){
       <td data-l="Маршрут">${esc(routeArrows(s(r,"Маршрут"))||"—")}${miniRoute(r)}</td>
       <td class="mono" data-l="Коносамент / контейнер">${bl?`<b>${esc(bl)}</b>`:'<span class="dim">—</span>'}${
           conts.map(c=>`<br><span class="dim">${esc(c)}</span>`).join("")}</td>
-      <td data-l="Судно / авіалінія">${esc(carrier(r)||"—")}</td>
+      <td data-l="Судно / Лінія">${esc(carrier(r)||"—")}</td>
       <td class="mono" data-l="Відправлення">${etd?`<span class="d">${fmt(etd)}</span>`:'<span class="dim">—</span>'}</td>
       <td class="mono" data-l="Прибуття">${arrOf(r)?`<span class="d">${fmt(arrOf(r))}</span>`:'<span class="dim">—</span>'}</td>
       ${[loadOf(r), dryOf(r), delivOf(r)].map((v, i) =>

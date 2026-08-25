@@ -76,9 +76,9 @@ check('позначка «оновлено» видима', /^Оновлено/.
 check('у позначці є година і дата', /\d{2}:\d{2}, \d{2}\.\d{2}\.\d{2}/.test(upd), upd);
 
 console.log('\n=== авіа: авіалінія замість судна ===');
-const airCell = await page.locator('tr.deal[data-id="202"] td[data-l="Судно / авіалінія"]').innerText();
+const airCell = await page.locator('tr.deal[data-id="202"] td[data-l="Судно / Лінія"]').innerText();
 check('в авіа-угоді показана авіалінія', airCell.includes('Turkish Cargo'), airCell);
-const seaCell = await page.locator('tr.deal[data-id="201"] td[data-l="Судно / авіалінія"]').innerText();
+const seaCell = await page.locator('tr.deal[data-id="201"] td[data-l="Судно / Лінія"]').innerText();
 check('у морській лишилось судно', seaCell.includes('MAERSK'), seaCell);
 
 console.log('\n=== неможлива дата не рухає крапку в кінець ===');
