@@ -1,7 +1,7 @@
 {
-  "stdout": "HEAD is now at dff9fc035 relay: перезапустити кабінет після правки портів\nactive\nActiveEnterTimestamp=Tue 2026-08-25 13:53:39 EEST\ndff9fc035 relay: перезапустити кабінет після правки портів\n",
-  "stderr": "From https://github.com/irynakarmazina-bot/Iryna_Karmazina\n * branch                main       -> FETCH_HEAD\n   3c1a19eeb..dff9fc035  main       -> origin/main\n",
+  "stdout": "HEAD is now at e679ebbba relay: перезапустити кабінет (стафіровка, дата на плечі)\nactive\nActiveEnterTimestamp=Tue 2026-08-25 14:18:37 EEST\ne679ebbba relay: перезапустити кабінет (стафіровка, дата на плечі)\n",
+  "stderr": "From https://github.com/irynakarmazina-bot/Iryna_Karmazina\n * branch                main       -> FETCH_HEAD\n   fd5d470ca..e679ebbba  main       -> origin/main\n",
   "returncode": 0,
-  "id": "0b35627e87ac",
-  "ts": "2026-08-25T10:53:43Z"
+  "id": "86b04d18c448",
+  "ts": "2026-08-25T11:18:41Z"
 }
