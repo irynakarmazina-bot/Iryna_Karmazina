@@ -1,1 +1,1 @@
-{"id":"deploy-cols3-1","cmd":"cd /root/Iryna_Karmazina && git fetch origin main -q && git reset --hard origin/main -q && bash server/deploy_ui.sh main 2>&1 | grep -E 'DEPLOY_OK|FAIL' && V=$(curl -sk https://134.209.94.12/ | grep -o '/app/main.js?v=[a-f0-9]*') && echo \"версія: $V\" && curl -sk \"https://134.209.94.12$V\" | grep -c 'Сухий<br>порт'"}
+{"id":"deploy-contdup-1","cmd":"cd /root/Iryna_Karmazina && git fetch origin main -q && git reset --hard origin/main -q && bash server/deploy_ui.sh main 2>&1 | grep -E 'DEPLOY_OK|FAIL'"}
