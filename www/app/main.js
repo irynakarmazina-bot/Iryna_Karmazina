@@ -3054,14 +3054,17 @@ PAGES.accounting = async () => {
   // Сортування: типово за ДАТОЮ ОПЛАТИ ВІД КЛІЄНТА, НАЙСТАРІШІ ЗВЕРХУ (рішення користувачки
   // 25.08.2026). Клік по заголовку сортує за цією колонкою, повторний клік — навпаки.
   // Угоди без дати оплати завжди в кінці.
+  // Порядок колонок: спершу те, заради чого звіт (гроші й різниця), потім довідкове.
+  // Причина — «Різниця» опинялась за правим краєм екрана, і користувачка її не бачила.
   const COLS = [
-    {h:"№ угоди", k:"num", n:true}, {h:"Статус", k:"status"}, {h:"Коносамент", k:"bl"},
-    {h:"Контейнер", k:"cont"}, {h:"Маршрут", k:"route"}, {h:"Оплата від клієнта", k:"paid"},
-    {h:"Профіт", k:"profit", n:true}, {h:"Винагорода", k:"fee", n:true},
-    {h:"Курс НБУ", k:"rate", n:true}, {h:"Винагорода, грн", k:"fee_uah", n:true},
-    {h:"Інфо+комісії", k:"info_added", n:true}, {h:"Різниця", k:"diff", n:true},
+    {h:"№ угоди", k:"num", n:true}, {h:"Коносамент", k:"bl"}, {h:"Контейнер", k:"cont"},
+    {h:"Оплата від клієнта", k:"paid"},
+    {h:"Профіт", k:"profit", n:true}, {h:"Інфо+комісії", k:"info_added", n:true},
+    {h:"Винагорода", k:"fee", n:true}, {h:"Різниця", k:"diff", n:true},
     {h:"Переказано", k:"sent"}, {h:"Сума переказу", k:"sentAmt", n:true},
     {h:"Дата переказу", k:"sentDate"},
+    {h:"Статус", k:"status"}, {h:"Маршрут", k:"route"},
+    {h:"Курс НБУ", k:"rate", n:true}, {h:"Винагорода, грн", k:"fee_uah", n:true},
   ];
   let sortKey = "paid", sortDir = 1;
   const sorted = list => list.slice().sort((a, b) => {
@@ -3086,21 +3089,15 @@ PAGES.accounting = async () => {
         c.k === sortKey ? (sortDir < 0 ? " ▼" : " ▲") : ""}</span>`),
       list.map(r => `<tr class="${r.sent?"lc-sent":""}">
         <td class="mono">${esc(r.num)}</td>
-        <td>${esc(r.status)}</td>
         <td class="mono">${esc(r.bl) || "<span class='sub'>—</span>"}</td>
         <td class="mono" title="${esc(r.cont||"")}">${
           String(r.cont||"").trim().split(/[\s,;]+/).filter(Boolean).map(esc).join("<br>")
           || "<span class='sub'>—</span>"}</td>
-        <td>${esc(r.route) || "<span class='sub'>—</span>"}</td>
         <td class="mono">${r.paid ? dmy(r.paid) : "<span class='sub'>не оплачено</span>"}</td>
         <td style="text-align:right">${fmtN(r.profit,2)}</td>
-        <td style="text-align:right">${r.fee ? fmtN(r.fee,2) : "<span class='sub'>немає статті</span>"}</td>
-        <td style="text-align:right" class="mono">${r.rate
-          ? `${fmtN(r.rate,4)}<span class="sub"> ${esc(r.fee_ccy||"")}</span>`
-          : "<span class='sub'>—</span>"}</td>
-        <td style="text-align:right">${r.fee_uah ? fmtN(r.fee_uah,2) : "<span class='sub'>—</span>"}</td>
         <td style="text-align:right">${r.info_added ? fmtN(r.info_added,2)
           : (r.info_bank ? `<span class="sub">${fmtN(r.info_bank,2)}</span>` : "")}</td>
+        <td style="text-align:right">${r.fee ? fmtN(r.fee,2) : "<span class='sub'>немає статті</span>"}</td>
         <td style="text-align:right"><b>${fmtN(r.diff,2)}</b></td>
         <td class="mono" style="white-space:nowrap">${r._row
           ? `<label style="display:flex;align-items:center;gap:6px;cursor:${canMark?"pointer":"default"}">
@@ -3111,6 +3108,12 @@ PAGES.accounting = async () => {
           ? fmtN(r.sentAmt,2) : "<span class='sub'>—</span>"}</td>
         <td class="lc-keep mono">${r.sent && r.sentDate
           ? dmy(r.sentDate) : "<span class='sub'>—</span>"}</td>
+        <td>${esc(r.status)}</td>
+        <td>${esc(r.route) || "<span class='sub'>—</span>"}</td>
+        <td style="text-align:right" class="mono">${r.rate
+          ? `${fmtN(r.rate,4)}<span class="sub"> ${esc(r.fee_ccy||"")}</span>`
+          : "<span class='sub'>—</span>"}</td>
+        <td style="text-align:right">${r.fee_uah ? fmtN(r.fee_uah,2) : "<span class='sub'>—</span>"}</td>
         </tr>`));
     if (canMark) $("lc-table").querySelectorAll("input.lc-mark").forEach(ch =>
       ch.addEventListener("change", () => mark(ch)));
