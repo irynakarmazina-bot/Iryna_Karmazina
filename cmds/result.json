@@ -1,7 +1,7 @@
 {
-  "stdout": "5aef8dad4 memory: залізничні статуси, живий конфлікт BL 245/250\nactive\n",
+  "stdout": "TRACK_REVERTED\nDEPLOY_OK · гілка main · коміт 6c8a1f338 · позначка «в. 13.08 15:36»\n",
   "stderr": "",
   "returncode": 0,
-  "id": "3a82819599d6",
-  "ts": "2026-08-25T11:34:10Z"
+  "id": "revert-rail-1",
+  "ts": "2026-08-25T11:43:09Z"
 }
