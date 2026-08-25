@@ -1,7 +1,7 @@
 {
-  "stdout": "   журнал: 2026-08-25T16:14:55\tmain\taee6de4cd\tв. 13.08 15:36\tindex.html:71619 findash.html:33986 finperiod.html:17527\trelay: deploy-27\n   UI/FINDASH/CHART: 200 200 200\nDEPLOY_OK · гілка main · коміт aee6de4cd · позначка «в. 13.08 15:36»\n",
+  "stdout": "угода 60   рах.482   від 2026-05-19   3100.00 УО  проведено=False НеОплачен   кому=Cr String Cycle LLC    U-0012\nугода 211  рах.1021  від 2026-07-16   3200.00 УО  проведено=False НеОплачен   кому=Cr String Cycle LLC    \n",
   "stderr": "",
   "returncode": 0,
-  "id": "deploy-27",
-  "ts": "2026-08-25T13:14:55Z"
+  "id": "check-51",
+  "ts": "2026-08-25T13:15:31Z"
 }
