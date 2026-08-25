@@ -1187,8 +1187,14 @@ PAGES.dispatch = async () => {
        уже в морі, реліз віддано і наша частина сплачена, ховається ПІД ШАПКУ до
        доставлених — СТАТУС ПРИ ЦЬОМУ НЕ МІНЯЄТЬСЯ (вимога користувачки). Тому
        тут і в класі рядка враховуємо не лише статус, а й цю галочку. */
-    const _tk = r => _done(r) || !!r["Закрито нами"];
-    const ra = _tk(a) ? (ph?1:0) : (ph?0:1), rb = _tk(b) ? (ph?1:0) : (ph?0:1);
+    /* Три яруси, а не два (уточнення користувачки 25.08.2026): «закриті нами»
+       стоять ОДРАЗУ НАД активними — останніми в прихованій зоні, а не десь
+       посередині доставлених. На комп'ютері підвал згори: доставлені (0) →
+       закриті нами (1) → активні (2); на телефоні дзеркально. */
+    const _tier = ph
+      ? (r => _done(r) ? 2 : (r["Закрито нами"] ? 1 : 0))
+      : (r => _done(r) ? 0 : (r["Закрито нами"] ? 1 : 2));
+    const ra = _tier(a), rb = _tier(b);
     if (ra !== rb) return ra - rb;
     const ea=_key(a), eb=_key(b);
     if (!ea && !eb) return (_rank(b) - _rank(a)) || (_num(a) - _num(b));
@@ -1277,7 +1283,7 @@ PAGES.dispatch = async () => {
     : `<span class="updstamp cell-muted">час оновлення невідомий</span>`;
   const head = logist
     ? "<th>Угода</th><th>Клієнт</th><th>Контейнер</th><th>Статус</th><th>Номер авто</th><th>Водій</th><th>Телефон</th><th>Перетин кордону</th><th></th>"
-    : "<th class=\"c-num\">Угода</th><th></th><th>Клієнт</th><th>Маршрут</th><th>Вид / лінія</th><th class=\"c-bl\">Коносамент /<br>контейнер</th><th class=\"c-ves\">Судно</th><th class=\"dt\">Stuffing</th><th class=\"dt\">Gate in /<br>здача</th><th class=\"dt\">ETD POL</th><th class=\"dt\">ETA POD</th><th class=\"dt\">ETA<br>dry port</th><th class=\"dt\">Gate out<br>delivery</th><th>Статус</th><th class=\"c-rel\" title=\"Реліз: галочка ставиться кліком прямо в таблиці\">Реліз</th><th>Авто</th><th>Коментар</th><th></th>";
+    : "<th class=\"c-num\">Угода</th><th></th><th>Клієнт</th><th>Маршрут</th><th>Вид / лінія</th><th class=\"c-bl\">Коносамент /<br>контейнер</th><th class=\"c-ves\">Судно</th><th class=\"dt\">Stuffing</th><th class=\"dt\">Gate in /<br>здача</th><th class=\"dt\">ETD POL</th><th class=\"dt\">ETA POD</th><th class=\"dt\">Гейт<br>аут</th><th class=\"dt\">Сухий<br>порт</th><th class=\"dt\">Доставлено</th><th>Статус</th><th class=\"c-rel\" title=\"Реліз: галочка ставиться кліком прямо в таблиці\">Реліз</th><th>Авто</th><th>Коментар</th><th></th>";
   // ── активні алерти над таблицею
   const uniq = k => [...new Set(all.map(r=>_s(r,k)).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"uk"));
   const nActive = all.filter(r=>!_done(r)).length;
@@ -1355,10 +1361,14 @@ PAGES.dispatch = async () => {
                (жирним 13 px «12.06.26» треба ~72 px, запас є), «Вид / лінія»
                110→106, «Судно» 74→70 (довгі назви й так переносяться).
                Сума фіксованих без «Коментаря» та сама: 1356 px. -->
+          <!-- 19 колонок (25.08.2026): дат стало сім — «ETA dry port» і «Gate out
+               delivery» замінені трійкою «Гейт аут / Сухий порт / Доставлено»
+               (рішення користувачки). Стартові ширини орієнтовні: справжні
+               рахує fitCols за вмістом. -->
           <col style="width:72px"><col style="width:62px"><col style="width:84px"><col style="width:102px">
           <col style="width:106px"><col style="width:124px"><col style="width:70px"><col style="width:80px">
           <col style="width:80px"><col style="width:80px"><col style="width:80px"><col style="width:80px">
-          <col style="width:80px"><col style="width:106px"><col style="width:44px"><col style="width:74px"><col><col style="width:32px">
+          <col style="width:80px"><col style="width:80px"><col style="width:106px"><col style="width:44px"><col style="width:74px"><col><col style="width:32px">
         </colgroup>`}
         <thead><tr>${head}</tr></thead>
         <tbody id="drows"></tbody></table></div>
@@ -1441,7 +1451,7 @@ PAGES.dispatch = async () => {
      поки константу не поправили, гумовою колонкою було «Авто» — його стискало
      до нуля, і заголовок зникав з екрана (упіймала перевірка cols.js). Якщо
      додаєш/прибираєш колонку лівіше за «Коментар» — онови цей індекс. */
-  const FLEX_COL = 16;             // «Коментар» — забирає все, що лишилось
+  const FLEX_COL = 17;             // «Коментар» — забирає все, що лишилось
   const FLEX_MIN = 90;             // але не вужче за це, інакше колонка зникає
   let colFitKey = "";
   const fitCols = (force, src) => {
@@ -1727,13 +1737,19 @@ PAGES.dispatch = async () => {
             const c = etaChanged(r) ? etaChange(r) : null;
             return c ? noteMark("wasdt", `було ${fmtD(c.from)} · дата прибуття змінилася ${fmtD(c.when)}`) : "";
           })()}</td>
-        <td class="mono dt${ED} sec" data-l="ETA dry port" data-ed="ETA сухий порт" title="${
-            isRail(r) ? "ETA сухий порт" : "сухий порт буває лише на залізничних перевезеннях"}">${
-            _s(r,"ETA сухий порт") ? dateB(r["ETA сухий порт"])
-              : (isRail(r) ? '<span class="cell-muted">—</span>'
-                           : '<span class="cell-muted">—</span>')}</td>
-        <td class="mono dt${ED} sec" data-l="Gate out delivery" data-ed="Gate out for delivery" title="виїзд із сухого порту на авто — послуга «остання миля»">${
-            dateB(r["Gate out for delivery"])}</td>
+        <!-- ПОРЯДОК КОЛОНОК — рішення користувачки 25.08.2026: після прибуття
+             судна шлях контейнера читається зліва направо: «Гейт аут» (вивіз з
+             порту прибуття) → «Сухий порт» (прибуття туди) → «Доставлено»
+             (вивантаження у отримувача; саме це поле ведеться — 109 заповнених,
+             у альтернатив 0 і 3). «Gate out delivery» з таблиці прибрано на її
+             прохання («вона не потрібна») — поле живе в картці угоди. -->
+        <td class="mono dt${ED} sec" data-l="Гейт аут" data-ed="Гейт аут" title="вивіз контейнера з порту прибуття">${
+            dateB(r["Гейт аут"])}</td>
+        <td class="mono dt${ED} sec" data-l="Сухий порт" data-ed="ETA сухий порт" title="${
+            isRail(r) ? "прибуття в сухий порт" : "сухий порт буває лише на залізничних перевезеннях"}">${
+            dateB(r["ETA сухий порт"])}</td>
+        <td class="mono dt${ED} sec" data-l="Доставлено" data-ed="Вивантаження у отримувача (факт)" title="вивантаження у отримувача">${
+            dateB(r["Вивантаження у отримувача (факт)"])}</td>
         <td class="${ED.trim()}" data-l="Статус" data-ed="Статус">${
             /* ДВА РІЗНІ ПОВІДОМЛЕННЯ, а не одне слово на обидва випадки.
                «застаріло» = дані старі, вантаж стоїть довше, ніж мав.
@@ -1754,7 +1770,7 @@ PAGES.dispatch = async () => {
             _s(r,"Номер авто") ? `<br><span class="cell-muted">${esc(r["Номер авто"])}</span>` : ""}</td>
         <td class="cell-muted c-com${ED}" data-l="Коментар" data-ed="Коментар" title="${esc(r["Коментар"]||"")}">${esc(r["Коментар"]||"")}</td>
         <td>${docBtn(r)}</td>
-      </tr>`).join("") : `<tr><td colspan="${logist?7:18}" class="cell-muted" style="padding:18px">${emptyMsg()}</td></tr>`);
+      </tr>`).join("") : `<tr><td colspan="${logist?7:19}" class="cell-muted" style="padding:18px">${emptyMsg()}</td></tr>`);
     /* Рядки спершу збираються ПОЗА сторінкою, потім міряються ширини на
        порожній таблиці, і аж тоді рядки потрапляють у неї. Порядок не
        косметичний, а заміряний: якщо міряти вже вставлені рядки, браузер
