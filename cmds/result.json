@@ -1,7 +1,7 @@
 {
-  "stdout": "колонку «Код» перейменовано на «ЄДРПОУ»\n",
+  "stdout": "DEPLOY_OK · гілка main · коміт e16ecf87a · позначка «в. 13.08 15:36»\nверсія: /app/main.js?v=90ae7b5e95\n3\n",
   "stderr": "",
   "returncode": 0,
-  "id": "edrpou-col-1",
-  "ts": "2026-08-25T10:41:12Z"
+  "id": "deploy-truck2-1",
+  "ts": "2026-08-25T10:45:13Z"
 }
