@@ -441,6 +441,10 @@
   #lc-table tbody tr:hover td{background:#eef4ff}
   #lc-table tbody tr.lc-sent:hover td{background:#e7ebf2}
   #lc-table th,#lc-table td{padding:5px 8px;white-space:nowrap}
+  /* Контейнер і Маршрут переносяться і мають стелю ширини: в угоді 219 п'ять контейнерів
+     в одному рядку (111 символів) — саме через них колонка розтягувалась на пів екрана. */
+  #lc-table td:nth-child(4),#lc-table th:nth-child(4){white-space:normal;max-width:150px;
+    word-break:break-word}
   #lc-table td:nth-child(5),#lc-table th:nth-child(5){white-space:normal;max-width:170px}
   /* Висоту задає JS (fitDispScroll) від реального положення таблиці — інакше
      при двох рядках фільтрів низ таблиці йде за екран разом із горизонтальною
