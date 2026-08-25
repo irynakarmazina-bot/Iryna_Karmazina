@@ -1,1 +1,1 @@
-{"id": "deploy-26", "cmd": "cd /root/Iryna_Karmazina && git fetch origin main 2>&1 | tail -2 && bash server/deploy_ui.sh main 2>&1 | tail -4; echo '--- перевірка на сервері ---'; grep -c 'nth-child(4)' /root/unitex-os-www/index.html; grep -c 'join(\"<br>\")' /root/unitex-os-www/app/main.js"}
+{"id": "deploy-27", "cmd": "cd /root/Iryna_Karmazina && git fetch -q origin main && bash server/deploy_ui.sh main 2>&1 | tail -3"}
