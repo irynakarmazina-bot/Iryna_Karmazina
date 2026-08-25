@@ -184,11 +184,14 @@ async function loadAll(table){
 
 /* ===== ролі ===== */
 const RC = {
-  "Адміністратор":        { nav:["dashboard","tasks","dispatch","calc","finance","clients","crm","accounting","instr","users"], scope:"all", fin:"full", sync:true, edit:true },
+  "Адміністратор":        { nav:["dashboard","tasks","dispatch","calc","finance","clients","crm","accounting","cabinets","instr","users"], scope:"all", fin:"full", sync:true, edit:true },
   /* sync:true для сейлза — рішення користувачки 03.08.2026: «має бути дозволено
      і сейлзу і операціоністу — оновлення таблиці диспетчеризації». Це оновлення
      угод з Експедитора, а не фінанси; фінансові кнопки лишаються фінансовим ролям. */
-  "Сейлз-менеджер":       { nav:["dashboard","tasks","dispatch","calc","finance","clients","crm","instr","users"], scope:"mgr", fin:"personal", sync:true, edit:true },
+    /* «cabinets» сейлзу — рішення користувачки 24.08.2026: він бачить кабінети
+     ТІЛЬКИ своїх клієнтів. Обмеження робить сервер кабінету (erp_scope), а не
+     ця сторінка: браузер лише не малює зайвого. */
+  "Сейлз-менеджер":       { nav:["dashboard","tasks","dispatch","calc","finance","clients","crm","cabinets","instr","users"], scope:"mgr", fin:"personal", sync:true, edit:true },
   "Бухгалтер":            { nav:["dashboard","tasks","dispatch","calc","finance","clients","accounting","instr","users"], scope:"all", fin:"acct", sync:true },
   /* Фінансисту не потрібні ні CRM, ні диспетчеризація (рішення користувачки
      11.08.2026) — його робота це «Фінанси» і «Бух. облік».
@@ -322,6 +325,7 @@ const MODMAP = {
   finance:  {label:"Фінанси",    ico:"cash",      c:"green"},
   accounting:{label:"Бух. облік",ico:"book",      c:"violet"},
   tasks:    {label:"Задачі",     ico:"check",     c:"green"},
+  cabinets: {label:"Кабінети клієнтів", ico:"key", c:"amber"},
   instr:    {label:"Інструкції", ico:"doc",       c:"slate"},
   users:    {label:"Налаштування",ico:"gear",   c:"slate"},
 };
@@ -372,6 +376,7 @@ function go(page){
 
 /* ===== іконки (як у фінзвіті): емодзі в картках замінюються на лінійні значки ===== */
 const ICONS = {
+  key:'<circle cx="8" cy="12" r="4.2"/><path d="M12.2 12H21"/><path d="M17.5 12v3.2"/><path d="M20.2 12v2.2"/>',
   wallet:'<rect x="2.5" y="5.5" width="19" height="14" rx="3"/><path d="M2.5 10h19"/><circle cx="17.5" cy="14.5" r="1.2"/>',
   users:'<circle cx="9" cy="8" r="3.2"/><path d="M2.8 20c0-3.4 2.8-5.4 6.2-5.4S15.2 16.6 15.2 20"/><path d="M16.5 5.2a3.2 3.2 0 0 1 0 5.6M17.5 14.9c2.3.5 3.9 2.2 3.9 5.1"/>',
   truck:'<rect x="2" y="6.5" width="12" height="9.5" rx="1.6"/><path d="M14 10h3.6l2.9 3.1V16H14z"/><circle cx="7" cy="18" r="1.9"/><circle cx="17.5" cy="18" r="1.9"/>',
@@ -3641,18 +3646,20 @@ async function renderCabinets(){
       fetch("/cabinet-clients", {headers: head}),
       fetch("/cabinet-accounts", {headers: head})]);
     if (c.status === 403 || a.status === 403){
-      note.textContent = "Доступно лише адміністратору."; return; }
+      note.textContent = "Цей розділ доступний адміністратору й сейлз-менеджеру."; return; }
     if (!c.ok || !a.ok) throw new Error("HTTP " + c.status + "/" + a.status);
     clients = (await c.json()).list || [];
     accounts = (await a.json()).list || [];
   }catch(e){ note.textContent = "Не вдалося прочитати: " + e.message; return; }
 
+  /* Порожньо — це не помилка: у сейлза може ще не бути своїх компаній.
+     Кажемо про це словами, а не лишаємо голу таблицю. */
   $("cc-rows").innerHTML = clients.map(r=>`<tr>
     <td><b>${esc(r.client)}</b></td>
     <td class="mono">${r.deals}</td>
     <td class="cell-muted">${r.active ? r.active + " з " + r.accounts : "немає"}</td>
     <td style="text-align:right"><button class="btn cc-open" data-c="${esc(r.client)}">Відкрити кабінет</button></td>
-  </tr>`).join("") || '<tr><td colspan="4" class="cell-muted">Компаній немає.</td></tr>';
+  </tr>`).join("") || '<tr><td colspan="4" class="cell-muted">Компаній, доступних вам, немає.</td></tr>';
 
   const when = v => { const d = new Date(v); return isNaN(d) ? "—" :
     d.toLocaleString("uk-UA",{day:"2-digit",month:"2-digit",year:"2-digit",hour:"2-digit",minute:"2-digit"}); };
@@ -4814,6 +4821,30 @@ async function openTask(t, preset){
 }
 
 let INSTR_CACHE = null;
+/* Кабінети клієнтів — окремий розділ меню (вимога користувачки 24.08.2026:
+   «треба винести на окрему вкладку»). Раніше це була картка в «Налаштуваннях»,
+   і бачив її лише адміністратор.
+   Хто що бачить, вирішує СЕРВЕР кабінету (erp_scope у server/cabinet.py):
+   адміністратор — усі компанії, сейлз-менеджер — лише ті, де він менеджер,
+   фінансист і бухгалтер — нічого. Тут ми лише малюємо те, що він віддав, і не
+   дублюємо правило вдруге: одне місце правди краще за два, які розійдуться. */
+PAGES.cabinets = async () => {
+  $("content").innerHTML = `
+    <div class="card"><h3>🔑 Кабінети клієнтів</h3>
+      <p class="sub">відкрити кабінет очима клієнта і видати доступ</p>
+      <div class="tablewrap scrollbox" style="max-height:340px;margin-top:10px"><table>
+        <thead><tr><th>Компанія</th><th>Угод</th><th>Доступи</th><th></th></tr></thead>
+        <tbody id="cc-rows"></tbody></table></div>
+      <h4 style="margin:16px 0 6px;font-size:13.5px">Люди з доступом</h4>
+      <div class="tablewrap scrollbox" style="max-height:340px"><table>
+        <thead><tr><th>Пошта</th><th>Компанія</th><th>Стан</th><th>Останній вхід</th><th></th></tr></thead>
+        <tbody id="ca-rows"></tbody></table></div>
+      <p class="sub" id="cc-note" style="margin-top:8px">завантажую…</p>
+      <div class="note">🔒 Перегляд кабінету записується в журнал. Клієнт вашого перегляду не бачить.
+        Посилання на пароль діє 72 години й спрацьовує один раз — передайте його клієнту напряму.</div></div>`;
+  await renderCabinets();
+};
+
 PAGES.instr = async () => {
   const arts = INSTR_CACHE || (INSTR_CACHE = await loadAll(T["Інструкції"]));
   const cats = {};
@@ -4935,18 +4966,6 @@ PAGES.users = async () => {
         <tbody id="lg-rows"></tbody></table></div>
       <p class="sub" id="lg-note" style="margin-top:8px"></p>
       <div class="note">🔒 Журнал доступний лише адміністратору й нічого в ньому змінити не можна — він фіксує все.</div></div>` : ""}
-    ${isAdmin ? `<div class="card"><h3>🔑 Кабінети клієнтів</h3>
-      <p class="sub">відкрити кабінет очима клієнта і видати доступ</p>
-      <div class="tablewrap scrollbox" style="max-height:300px;margin-top:10px"><table>
-        <thead><tr><th>Компанія</th><th>Угод</th><th>Доступи</th><th></th></tr></thead>
-        <tbody id="cc-rows"></tbody></table></div>
-      <h4 style="margin:16px 0 6px;font-size:13.5px">Люди з доступом</h4>
-      <div class="tablewrap scrollbox" style="max-height:300px"><table>
-        <thead><tr><th>Пошта</th><th>Компанія</th><th>Стан</th><th>Останній вхід</th><th></th></tr></thead>
-        <tbody id="ca-rows"></tbody></table></div>
-      <p class="sub" id="cc-note" style="margin-top:8px">завантажую…</p>
-      <div class="note">🔒 Перегляд кабінету записується в журнал. Клієнт вашого перегляду не бачить.
-        Посилання на пароль діє 72 години й спрацьовує один раз — передайте його клієнту напряму.</div></div>` : ""}
     ${isAdmin ? `<div class="card"><h3>👤 Журнал кабінету клієнтів</h3>
       <p class="sub">хто з клієнтів заходив, що дивився і що завантажував — від найсвіжішого</p>
       <div class="filters" style="margin:10px 0 0">
@@ -4978,7 +4997,7 @@ PAGES.users = async () => {
   bindPalette();
   bindPasswordChange();
   if (isFin) renderPipelineJournal();
-  if (isAdmin){ renderAudit(); renderCabinetLog(); renderCabinets(); bindUserEdit(rows); bindUserAdmin(rows); }
+  if (isAdmin){ renderAudit(); renderCabinetLog(); bindUserEdit(rows); bindUserAdmin(rows); }
 };
 
 /* ===== старт ===== */

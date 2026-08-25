@@ -621,13 +621,23 @@ def view_use(token):
     return (row["email"], row["client"]), ""
 
 
-def clients_with_deals():
-    """Компанії, у яких є непорожній кабінет: назва + скільки угод."""
+def clients_with_deals(manager=None):
+    """Компанії, у яких є непорожній кабінет: назва + скільки угод.
+
+    `manager` — якщо задано, рахуємо ЛИШЕ угоди цього менеджера. Так сейлз
+    бачить тільки своїх клієнтів (рішення користувачки 24.08.2026: «сейлз
+    менеджер — тільки свої клієнтів»). Порожній рядок сюди передавати НЕ можна:
+    це означало б «без обмеження», тобто відкрити все. Виклик зверху зобов'язаний
+    перевірити, що ім'я взагалі є.
+    """
     out = {}
     for r in all_rows():
         name = BP.nz(r.get("Клієнт"))
-        if name and BP.nz(r.get("Статус")) != BP.CANCELLED:
-            out[name] = out.get(name, 0) + 1
+        if not name or BP.nz(r.get("Статус")) == BP.CANCELLED:
+            continue
+        if manager is not None and BP.nz(r.get("Менеджер")) != manager:
+            continue
+        out[name] = out.get(name, 0) + 1
     return out
 
 
@@ -1175,12 +1185,38 @@ class Handler(BaseHTTPRequestHandler):
         email, _n, role = gw.whoami(self.headers.get("xc-auth") or "")
         return email if role == "Адміністратор" else None
 
+    def erp_scope(self):
+        """Хто прийшов з ЕРП і які компанії йому видно.
+
+        Повертає (пошта, {назва: угод} або None). None — доступу немає взагалі.
+        Рішення користувачки 24.08.2026: кабінети клієнтів бачать адміністратор
+        (усі) і сейлз-менеджер (лише свої компанії); фінансист і бухгалтер не
+        бачать їх зовсім.
+
+        Свідомо fail-closed: якщо роль не з переліку, або в сейлза не заповнене
+        ім'я в довіднику — доступу немає. Обмежувати нема по чому, а «пропустити
+        про всяк випадок» тут означало б віддати чужі кабінети.
+        """
+        gw = gateway()
+        if gw is None:
+            return None, None
+        email, name, role = gw.whoami(self.headers.get("xc-auth") or "")
+        if role == "Адміністратор":
+            return email, clients_with_deals()
+        if role != "Сейлз-менеджер":
+            return None, None
+        name = (name or "").strip()
+        if not name:
+            audit(email or "", "", "відмова у кабінетах",
+                  "сейлз без імені в довіднику", self.ip())
+            return None, None
+        return email, clients_with_deals(name)
+
     def serve_clients(self):
         """Список компаній для платформи: кого можна відкрити і скільки угод."""
-        who = self.erp_admin()
+        who, counts = self.erp_scope()
         if not who:
-            return self.send_plain(403, "Доступно лише адміністратору.")
-        counts = clients_with_deals()
+            return self.send_plain(403, "Кабінети клієнтів доступні адміністратору й сейлз-менеджеру.")
         con = db()
         accs = {}
         for r in con.execute("SELECT client, COUNT(*) n, SUM(active) a FROM accounts "
@@ -1196,13 +1232,15 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_view_link(self):
         """ЕРП просить посилання, щоб відкрити кабінет клієнта. Тільки адмін."""
-        who = self.erp_admin()
+        who, allowed = self.erp_scope()
         if not who:
-            return self.send_plain(403, "Доступно лише адміністратору.")
+            return self.send_plain(403, "Кабінети клієнтів доступні адміністратору й сейлз-менеджеру.")
         f = self.form()
         client = (f.get("client") or "").strip()
-        if client not in clients_with_deals():
-            return self.send_plain(404, "Такої компанії немає серед угод.")
+        # Перевіряємо саме ДОЗВОЛЕНИЙ перелік, а не всі компанії: інакше сейлз
+        # відкрив би чужий кабінет, підмінивши назву в запиті.
+        if client not in allowed:
+            return self.send_plain(404, "Такої компанії немає серед ваших угод.")
         token = view_new(who, client)
         audit(who, client, "видано посилання на перегляд", "з платформи", self.ip())
         return self.send_plain(200, json.dumps(
@@ -1211,29 +1249,36 @@ class Handler(BaseHTTPRequestHandler):
 
     def serve_accounts(self):
         """Акаунти клієнтів для платформи. Паролів і хешів тут НЕМАЄ."""
-        if not self.erp_admin():
-            return self.send_plain(403, "Доступно лише адміністратору.")
+        who, allowed = self.erp_scope()
+        if not who:
+            return self.send_plain(403, "Кабінети клієнтів доступні адміністратору й сейлз-менеджеру.")
         con = db()
         rows = [{"email": r["email"], "client": r["client"], "name": r["name"],
                  "active": bool(r["active"]), "new": bool(r["must_change"]),
                  "last": r["last_login"] or ""}
                 for r in con.execute("SELECT email,client,name,active,must_change,"
-                                     "last_login FROM accounts ORDER BY client, email")]
+                                     "last_login FROM accounts ORDER BY client, email")
+                if r["client"] in allowed]
         con.close()
         return self.send_plain(200, json.dumps({"list": rows}, ensure_ascii=False).encode(),
                                "application/json; charset=utf-8")
 
     def do_invite_link(self):
         """Посилання, за яким КЛІЄНТ САМ створює пароль. Показується один раз."""
-        who = self.erp_admin()
+        who, allowed = self.erp_scope()
         if not who:
-            return self.send_plain(403, "Доступно лише адміністратору.")
+            return self.send_plain(403, "Кабінети клієнтів доступні адміністратору й сейлз-менеджеру.")
         email = (self.form().get("email") or "").strip().lower()
         con = db()
         row = con.execute("SELECT * FROM accounts WHERE email=?", (email,)).fetchone()
         con.close()
         if not row:
             return self.send_plain(404, "Такого акаунта немає.")
+        # Те саме, що й для перегляду: сейлз не видає доступ чужій компанії.
+        if row["client"] not in allowed:
+            audit(email, row["client"], "відмова у посиланні",
+                  "не свій клієнт (" + str(who) + ")", self.ip())
+            return self.send_plain(403, "Це не ваш клієнт.")
         if not row["active"]:
             return self.send_plain(409, "Акаунт заблокований — спершу розблокуйте.")
         token, exp = invite_new(email)
