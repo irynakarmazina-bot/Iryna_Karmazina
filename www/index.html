@@ -273,6 +273,9 @@
 
   .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}
   .tile.clickable{cursor:pointer}
+  /* натиснута плитка-фільтр на сторінці «Бух. облік» */
+  .tile[data-tile].on{border-color:var(--accent,#2563eb);box-shadow:0 0 0 2px rgba(37,99,235,.15)}
+  .tile[data-tile].on .lbl{color:var(--accent,#2563eb)}
   .tile.clickable:hover{box-shadow:0 2px 10px rgba(16,24,40,.08);border-color:#d5dae4}
   .tile.clickable .delta::after{content:" ›";font-weight:700}
   .quickchip{display:inline-flex;align-items:center;gap:8px;background:var(--accent-bg,#eef4ff);color:var(--accent);

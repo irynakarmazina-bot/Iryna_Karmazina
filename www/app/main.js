@@ -2977,17 +2977,22 @@ PAGES.accounting = async () => {
       сплачений на <b>${esc((d.accounts||[d.account||"—"]).join(" або "))}</b> ·
       дані з Експедитора станом на ${stamp}</p>
     <div class="tiles" style="margin-top:12px">
-      <div class="tile tready"><div class="tbody"><div class="lbl">Угод із різницею</div>
-        <div class="val">${pos.length}</div><div class="hint">з ${rows.length} переглянутих</div></div></div>
-      <div class="tile tready"><div class="tbody"><div class="lbl">Ще не переказано</div>
+      <div class="tile tready clickable" data-tile="diff" title="показати тільки ці угоди">
+        <div class="tbody"><div class="lbl">Угод із різницею</div>
+        <div class="val">${pos.length}</div>
+        <div class="hint">з ${rows.length}, що пройшли відбір</div></div></div>
+      <div class="tile tready clickable" data-tile="todo" title="показати тільки ці угоди">
+        <div class="tbody"><div class="lbl">Ще не переказано</div>
         <div class="val">${fmtN(pos.filter(r=>!r.sent).reduce((s,r)=>s+r.diff,0), 2)}</div>
         <div class="hint">УО · ${pos.filter(r=>!r.sent).length} угод</div></div></div>
-      <div class="tile tready"><div class="tbody"><div class="lbl">Уже переказано</div>
-        <div class="val">${fmtN(pos.filter(r=>r.sent).reduce((s,r)=>s+(Number(r.sentAmt)||r.diff),0), 2)}</div>
-        <div class="hint">УО · ${pos.filter(r=>r.sent).length} угод із позначкою</div></div></div>
-      <div class="tile tready"><div class="tbody"><div class="lbl">Уже виділено в рахунках</div>
+      <div class="tile tready clickable" data-tile="sent" title="показати тільки ці угоди">
+        <div class="tbody"><div class="lbl">Уже переказано</div>
+        <div class="val">${fmtN(rows.filter(r=>r.sent).reduce((s,r)=>s+(Number(r.sentAmt)||r.diff),0), 2)}</div>
+        <div class="hint">УО · ${rows.filter(r=>r.sent).length} угод із позначкою</div></div></div>
+      <div class="tile tready clickable" data-tile="art" title="показати тільки ці угоди">
+        <div class="tbody"><div class="lbl">Уже виділено в рахунках</div>
         <div class="val">${fmtN(rows.reduce((s,r)=>s+(r.local_abroad||0),0), 2)}</div>
-        <div class="hint">стаття «Локальні витрати за кордоном»</div></div></div>
+        <div class="hint">${rows.filter(r=>r.local_abroad).length} угод · стаття «Локальні витрати за кордоном»</div></div></div>
     </div>
     <div class="note" style="margin-top:12px">
       <b>Як рахується:</b> профіт = надходження від клієнта на рахунки
@@ -3019,13 +3024,20 @@ PAGES.accounting = async () => {
     <div id="lc-table"></div>
   </div>`;
 
+  // яка плитка натиснута: "" — жодна, diff — з різницею, todo — ще не переказано,
+  // sent — уже переказано, art — стаття «Локальні витрати» вже є в рахунку
+  let tile = "";
   const visible = () => {
     const q = ($("lc-q").value||"").trim().toLowerCase();
     const st = $("lc-st").value, base = $("lc-base").value;
     const from = $("lc-from").value, to = $("lc-to").value, sent = $("lc-sent").value;
     const all = $("lc-all").checked;
     return rows.filter(r => {
-      if (!all && r.diff <= 0) return false;
+      if (tile === "diff" && r.diff <= 0) return false;
+      if (tile === "todo" && (r.sent || r.diff <= 0)) return false;
+      if (tile === "sent" && !r.sent) return false;
+      if (tile === "art" && !r.local_abroad) return false;
+      if (!all && tile !== "sent" && tile !== "art" && r.diff <= 0) return false;
       if (st && r.status !== st) return false;
       if (sent === "yes" && !r.sent) return false;
       if (sent === "no" && r.sent) return false;
@@ -3102,9 +3114,18 @@ PAGES.accounting = async () => {
   }
 
   restoreNote("lc-note");
+  document.querySelectorAll("#content .tile[data-tile]").forEach(el =>
+    el.addEventListener("click", () => {
+      tile = (tile === el.dataset.tile) ? "" : el.dataset.tile;   // повторний клік — скинути
+      document.querySelectorAll("#content .tile[data-tile]").forEach(x =>
+        x.classList.toggle("on", x.dataset.tile === tile));
+      draw();
+    }));
   ["lc-q","lc-st","lc-all","lc-base","lc-from","lc-to","lc-sent"].forEach(id =>
     $(id).addEventListener(id === "lc-q" ? "input" : "change", draw));
   $("lc-reset").addEventListener("click", () => {
+    tile = "";
+    document.querySelectorAll("#content .tile[data-tile]").forEach(x => x.classList.remove("on"));
     ["lc-q","lc-from","lc-to"].forEach(id => $(id).value = "");
     ["lc-st","lc-sent"].forEach(id => $(id).value = "");
     $("lc-base").value = "paid"; $("lc-all").checked = false; draw();
