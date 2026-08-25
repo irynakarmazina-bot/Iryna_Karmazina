@@ -483,6 +483,16 @@ const cliName = v => {
   return cut || full;          // якщо після чистки нічого не лишилось — показуємо як є
 };
 const stPill = st => st ? `<span class="pill ${STATUSES[st]||"t-neutral"}">${esc(st)}</span>` : '<span class="cell-muted">—</span>';
+/* Статус із приміткою — варіант 4, обраний користувачкою 25.08.2026 з шести:
+   ЖОДНОГО окремого значка. Плашка отримує пунктирне підкреслення (як примітки
+   в текстових редакторах) і сама стає кнопкою: клік по ній відкриває текст
+   (bindNotes ловить клас cnote-line у режимі захоплення, тому редактор статусу
+   при цьому НЕ відкривається — редагувати можна кліком повз плашку).
+   До того тут був трикутник у куті — «сильно кидається в очі та розфокусує». */
+const stPillNote = (st, note) => !note || !st
+  ? stPill(st)
+  : stPill(st).replace('<span class="pill ',
+      `<span data-note="${esc(note)}" title="${esc(note)}" class="cnote-line pill `);
 
 /* ===== класифікація перевезень (спільна для дашборда і швидких фільтрів) =====
    Правила від користувачки 31.07.2026:
@@ -728,7 +738,7 @@ function bindNotes(){
   window.__notesBound = true;
   const hide = () => { const p = $("notepop"); if (p) p.style.display = "none"; };
   document.addEventListener("click", e => {
-    const c = e.target.closest && e.target.closest(".cnote");
+    const c = e.target.closest && e.target.closest(".cnote, .cnote-line");
     if (!c) { hide(); return; }
     e.preventDefault(); e.stopPropagation();
     const p = $("notepop");
@@ -1696,7 +1706,7 @@ PAGES.dispatch = async () => {
                            : '<span class="cell-muted">—</span>')}</td>
         <td class="mono dt${ED} sec" data-l="Gate out delivery" data-ed="Gate out for delivery" title="виїзд із сухого порту на авто — послуга «остання миля»">${
             dateB(r["Gate out for delivery"])}</td>
-        <td class="${ED.trim()}" data-l="Статус" data-ed="Статус">${stPill(r["Статус"])}${
+        <td class="${ED.trim()}" data-l="Статус" data-ed="Статус">${
             /* ДВА РІЗНІ ПОВІДОМЛЕННЯ, а не одне слово на обидва випадки.
                «застаріло» = дані старі, вантаж стоїть довше, ніж мав.
                «трекінг не відповідає» = ми не змогли СПИТАТИ лінію (напр. Maersk
@@ -1704,11 +1714,11 @@ PAGES.dispatch = async () => {
                перевірено 11.08.2026 на угодах 250, 251, 245, 272, 273).
                Раніше обидва писались як «застаріло», і збій зв'язку виглядав як
                застій вантажу. Для кабінету клієнта це неприпустимо поготів. */
-            noteMark("stalemark", (staleStatus(r) || trackSilent(r))
+            stPillNote(r["Статус"], (staleStatus(r) || trackSilent(r))
               ? (staleStatus(r) ? "застаріло" : "трекінг не відповідає") + ": " + staleWhy(r)
               : "")}</td>
         <td class="tog c-rel" data-l="Реліз" data-tog="Реліз" title="Реліз${CAN_EDIT ? ": клік — поставити/зняти" : ""}">${
-            r["Реліз"] ? "✔" : ""}</td>
+            r["Реліз"] ? "✓" : ""}</td>
         <td class="mono${ED}" data-l="Авто" data-ed="Подача авто (факт)" title="дата подачі авто">${truckDate(r)
             ? `${dateB(truckDate(r))}${_s(r,"Подача авто (факт)")?"":'<span class="cell-muted"> план</span>'}`
             : (truckLate(r) ? '<span style="color:#d1453b;font-weight:700">немає</span>' : '<span class="cell-muted">—</span>')}${

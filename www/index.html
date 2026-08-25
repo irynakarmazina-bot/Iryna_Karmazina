@@ -508,10 +508,11 @@
     background:var(--warn-bg);color:var(--warn-text)}
   /* «Реліз» повернуто в таблицю вузькою колонкою (44 px) 25.08.2026 на прохання
      користувачки. Заголовок трохи дрібніший, щоб слово вмістилось у 44 px. */
-  /* Галочка навмисно «жирна»: більший кегль + обведення тим самим кольором
-     (прохання користувачки 25.08.2026 — «більш чітка, товстіша»). */
-  td.c-rel{text-align:center;font-size:16px;font-weight:900;color:#1a7f37;
-    -webkit-text-stroke:.9px #1a7f37}
+  /* Галочка — варіант 4, обраний користувачкою 25.08.2026 із шести
+     запропонованих: тонка форма знака «✓», але з максимально товстою лінією
+     (21 px, обведення 1.3 px тим самим зеленим). */
+  td.c-rel{text-align:center;font-size:21px;font-weight:900;color:#1a7f37;
+    -webkit-text-stroke:1.3px #1a7f37;line-height:1}
   th.c-rel{font-size:11.5px;padding-left:2px;padding-right:2px;text-align:center}
   td.c-rel.tog{cursor:pointer}
   td.c-rel.tog:hover{background:var(--accent-soft)}
@@ -602,9 +603,15 @@
      другим рядком у клітинці — маленький помаранчевий трикутник у кутку; клік
      відкриває текст. Рядок не росте, а увага лишається на самих датах. */
   .dispscroll td{position:relative}
+  /* Статус із приміткою (варіант 4, вибір користувачки 25.08.2026): плашка з
+     пунктирним підкресленням, окремого значка немає. Клік по плашці — текст. */
+  .cnote-line{border-bottom:2px dotted #8ab4e8;border-radius:9px 9px 3px 3px;cursor:pointer}
+  .cnote-line:hover{border-bottom-color:#5b8fd4}
   /* Колір куточка змінено 25.08.2026 на прохання користувачки: помаранчевий
      «важко сприймається оком, як сміття на екрані» — тепер спокійний блакитний,
-     без жодних тіней. Форма та сама, щоб звичне місце кліку не змінилось. */
+     без жодних тіней. Форма та сама, щоб звичне місце кліку не змінилось.
+     На СТАТУСІ трикутника більше немає (замінений пунктиром, див. .cnote-line);
+     куточок лишився для приміток на датах («було 02.08…»). */
   .cnote{position:absolute;top:0;right:0;width:0;height:0;cursor:pointer;
     border-style:solid;border-width:0 9px 9px 0;
     border-color:transparent #8ab4e8 transparent transparent}

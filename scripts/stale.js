@@ -114,7 +114,9 @@ const serve = dir => new Promise(res => {
     document.querySelectorAll("#drows tr[data-id]").forEach(tr => {
       const num = tr.cells[0] ? tr.cells[0].textContent.replace(/\D+/g, "") : "";
       out[num] = {
-        позначка: !!tr.querySelector(".stalemark"),
+        /* 25.08.2026: позначка тепер не трикутник .stalemark, а пунктир на самій
+           плашці статусу (.cnote-line з data-note) — вибір користувачки, варіант 4 */
+        позначка: !!tr.querySelector(".cnote-line[data-note], .stalemark"),
         рядок_підсвічено: tr.classList.contains("warnrow"),
         підказка: (tr.getAttribute("title") || "").slice(0, 120),
         статус: (tr.querySelector('[data-ed="Статус"]') || {}).textContent || "",
