@@ -1,7 +1,7 @@
 {
-  "stdout": "HEAD is now at 84be7ca88 relay: викласти окремий розділ кабінетів і нову назву колонки\n   журнал: 2026-08-25T11:51:50\tmain\t84be7ca88\tв. 13.08 15:36\tindex.html:70059 findash.html:33986 finperiod.html:17527\trelay: викласти окремий розділ кабінетів і нову назву колонки\n   UI/FINDASH/CHART: 200 200 200\nDEPLOY_OK · гілка main · коміт 84be7ca88 · позначка «в. 13.08 15:36»\nactive\nActiveEnterTimestamp=Tue 2026-08-25 11:51:50 EEST\n--- доступ за роллю (без ЕРП-токена має бути 403) ---\ncabinet-clients без токена: 403\n",
-  "stderr": "From https://github.com/irynakarmazina-bot/Iryna_Karmazina\n * branch                main       -> FETCH_HEAD\n   cde97de21..84be7ca88  main       -> origin/main\n",
+  "stdout": "DEPLOY_OK · гілка main · коміт 173f2d4bf · позначка «в. 13.08 15:36»\nsrc=\"/app/main.js?v=4de76b6da9\"\n",
+  "stderr": "",
   "returncode": 0,
-  "id": "de7f311bea2a",
-  "ts": "2026-08-25T08:51:54Z"
+  "id": "deploy-cont-1",
+  "ts": "2026-08-25T09:53:20Z"
 }
