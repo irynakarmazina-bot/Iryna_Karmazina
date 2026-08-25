@@ -3088,7 +3088,9 @@ PAGES.accounting = async () => {
         <td class="mono">${esc(r.num)}</td>
         <td>${esc(r.status)}</td>
         <td class="mono">${esc(r.bl) || "<span class='sub'>—</span>"}</td>
-        <td class="mono">${esc(r.cont) || "<span class='sub'>—</span>"}</td>
+        <td class="mono" title="${esc(r.cont||"")}">${
+          String(r.cont||"").trim().split(/[\s,;]+/).filter(Boolean).map(esc).join("<br>")
+          || "<span class='sub'>—</span>"}</td>
         <td>${esc(r.route) || "<span class='sub'>—</span>"}</td>
         <td class="mono">${r.paid ? dmy(r.paid) : "<span class='sub'>не оплачено</span>"}</td>
         <td style="text-align:right">${fmtN(r.profit,2)}</td>
