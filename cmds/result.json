@@ -1,7 +1,7 @@
 {
-  "stdout": "   UI/FINDASH/CHART: 200 200 200\nDEPLOY_OK · гілка main · коміт 65f77b0ec · позначка «в. 13.08 15:36»\n",
+  "stdout": "1\n",
   "stderr": "",
   "returncode": 0,
-  "id": "deploy-23",
-  "ts": "2026-08-25T12:50:11Z"
+  "id": "check-45",
+  "ts": "2026-08-25T12:50:28Z"
 }
