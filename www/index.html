@@ -437,6 +437,9 @@
      порожнечі в «Контейнері» (вимога користувачки 25.08.2026 — «щоб було видно все
      на одному екрані»). Ширину не розтягуємо на 100%, поля вужчі, числа не переносяться. */
   #lc-table table{width:auto}
+  /* наведення мишкою — синюватим, щоб не плутати з сірим «уже переказано» */
+  #lc-table tbody tr:hover td{background:#eef4ff}
+  #lc-table tbody tr.lc-sent:hover td{background:#e7ebf2}
   #lc-table th,#lc-table td{padding:5px 8px;white-space:nowrap}
   #lc-table td:nth-child(5),#lc-table th:nth-child(5){white-space:normal;max-width:170px}
   /* Висоту задає JS (fitDispScroll) від реального положення таблиці — інакше
