@@ -1,7 +1,7 @@
 {
-  "stdout": "   бекап: chart.min.js-20260825-100544.bak (205399 б)\n   прибрано копій, старших за 14 днів: 9\n   усього копій у архіві: 161\n   бекап: app-main.js-20260825-100544.bak (369449 б)\n   викладено модулів: 1\n   журнал: 2026-08-25T10:05:44\tmain\tf7cae7510\tв. 13.08 15:36\tindex.html:67411 findash.html:33986 finperiod.html:17527\trelay: викласти колонку Реліз\n   UI/FINDASH/CHART: 200 200 200\nDEPLOY_OK · гілка main · коміт f7cae7510 · позначка «в. 13.08 15:36»\nsrc=\"/app/main.js?v=526310a449\"\n2\n",
+  "stdout": "   бекап: app-main.js-20260825-101908.bak (371294 б)\n   викладено модулів: 1\n   журнал: 2026-08-25T10:19:09\tmain\t7c0329e0a\tв. 13.08 15:36\tindex.html:68226 findash.html:33986 finperiod.html:17527\trelay: викласти задачі-в-таблиці + редактор дат + галочку\n   UI/FINDASH/CHART: 200 200 200\nDEPLOY_OK · гілка main · коміт 7c0329e0a · позначка «в. 13.08 15:36»\nsrc=\"/app/main.js?v=2fc569d025\"\n1\n1\n",
   "stderr": "",
   "returncode": 0,
-  "id": "deploy-reliz-1",
-  "ts": "2026-08-25T07:05:44Z"
+  "id": "deploy-tasks-ui-1",
+  "ts": "2026-08-25T07:19:09Z"
 }
