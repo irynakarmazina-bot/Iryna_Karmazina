@@ -1,7 +1,7 @@
 {
-  "stdout": "1\n3037:      if (tile === \"todo\" && (r.sent || r.diff <= 0)) return false;\n3042:      if (sent === \"yes\" && !r.sent) return false;\n3043:      if (sent === \"no\" && r.sent) return false;\n--- як рахується r.sent ---\n2946:      r.sent = !!p[\"Переказ за кордон\"];\n3135:      r.sent = on; r.sentDate = on ? today : \"\"; r.sentAmt = on ? r.diff : null;\n",
+  "stdout": "app/main.js?v=f302e0fe1e\n--- дата файлів ---\n2026-08-25 15:50 +0300 /root/unitex-os-www/index.html\n2026-08-25 15:50 +0300 /root/unitex-os-www/app/main.js\n--- заголовки, які віддає сервер для main.js ---\netag: \"dky1d6n78mdu8pnu\"\nlast-modified: Tue, 25 Aug 2026 12:50:11 GMT\n",
   "stderr": "",
   "returncode": 0,
-  "id": "check-46",
-  "ts": "2026-08-25T12:58:56Z"
+  "id": "check-47",
+  "ts": "2026-08-25T12:59:44Z"
 }
