@@ -1,1 +1,1 @@
-{"id": "befa1454600c", "cmd": "python3 - <<'PY'\nimport csv\nf='/root/unitex-finrep/normalized/supplier_invoices.csv'\nrows=[r for r in csv.DictReader(open(f,encoding='utf-8'))]\nprint('усього:', len(rows), '| зі статтею:', sum(1 for r in rows if (r['service'] or '').strip()),\n      '| з видом оплати:', sum(1 for r in rows if (r['payment_method'] or '').strip()),\n      '| з BL:', sum(1 for r in rows if (r['bill_of_lading'] or '').strip()))\nPY\n"}
+{"id": "c8ae594b4248", "cmd": "sed -n '1,80p' /root/unitex-finrep/engine/odata_client.py"}
