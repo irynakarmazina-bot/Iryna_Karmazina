@@ -1,7 +1,7 @@
 {
-  "stdout": "-rw-r--r-- 1 root root 170408 Aug 26 10:41 /root/unitex-finrep/normalized/supplier_invoices.csv\n--- header ---\nnumber,date,supplier,deal,advance_flag,payment_method,service,currency,amount,amount_uo,expense_date,invoice_status,payment_date,debt,note,bill_of_lading,container_list,planned_payment_date,import_export_transit\n--- maersk count ---\n390\n--- маерск кир ---\n2\n",
+  "stdout": "усього рядків: 1076 | Maersk: 392\nпостачальники Maersk: Counter({'Maersk A/S': 390, 'Мерск Україна Лтд': 2})\nMaersk БЕЗ угоди: 0\nMaersk з угодою: 392\nбез BL: 392\n--- приклад рядка ---\n  number = 22\n  date = 2025-12-02\n  supplier = Maersk A/S\n  deal = Угода 00000026 від 28.11.2025 18:04:35\n  advance_flag = Ні\n  payment_method = \n  service = \n  currency = USD\n  amount = 332.79\n  amount_uo = 332.79\n  expense_date = 2026-02-28\n  invoice_status = Сплачений\n  payment_date = 2025-12-02\n  debt = 0.0\n  note = \n  bill_of_lading = \n  container_list = \n  planned_payment_date = 2025-12-02\n  import_export_transit = \n",
   "stderr": "",
   "returncode": 0,
-  "id": "a431f8f49508",
-  "ts": "2026-08-26T11:33:11Z"
+  "id": "8b7d71520520",
+  "ts": "2026-08-26T11:33:44Z"
 }
