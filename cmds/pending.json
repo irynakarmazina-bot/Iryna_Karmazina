@@ -1,1 +1,1 @@
-{"id": "f74731200708", "cmd": "for p in scripts/mod_bootstrap_bootstrap.js e1cib/logon manifest.json; do printf '%s -> ' $p; curl -sk -o /dev/null -w '%{http_code}\\n' --max-time 20 https://unitex.rdport.net:29231/DB/$p; done; printf 'root -> '; curl -sk -o /dev/null -w '%{http_code} %{size_download}b\\n' --max-time 20 https://unitex.rdport.net:29231/DB/"}
+{"id": "57e9a3c50a0d", "cmd": "ls -la /root/find_inv_maersk*.py 2>/dev/null; echo '--- maersk-related dirs ---'; ls /root/ | head -50"}
