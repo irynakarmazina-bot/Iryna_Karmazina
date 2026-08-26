@@ -1,7 +1,7 @@
 {
-  "stdout": "ФІНАЛЬНИЙ URL: about:blank\n---\nHTTP 402\nURL : https://unitex.rdport.net:29231/DB/uk_UA/e1cib/login?version=8.3.19.1529&nooida&vl=uk_UA&clnId=e98e29fa-6ef2-e2bd-6a93-9fc917e78efc\nТІЛО: {\"#exception\":\"{http://v8.1c.ru/8.2/virtual-resource-system}Exception\",\"exception\":{\"clsid\":\"580392e6-ba49-4280-ac67-fcd6f2180121\",\"reason\":402,\"seanceID\":\"42da044b-c887-41eb-a614-c17a0b20e620\",\"descr\":\"Неправильне ім’я користувача або пароль\\nПомилка при виконанні запиту POST до ресурсу /e1cib/login:\",\"category\":\"000000000000000000\",\"creationStack\":\"core83.dll:0x000000000008238E vrsbase.dll:0x00000000000AF171 vrsbase.dll:0x000000000013ABE5 VCRUNTIME140.dll:0x0000000000001030 VCRUNTIME140.dll:0x\n---\nHTTP 412\nURL : https://unitex.rdport.net:29231/DB/uk_UA/e1cib/login?version=8.3.19.1529&sid=42da044b-c887-41eb-a614-c17a0b20e620&nooida&vl=uk_UA&clnId=e98e29fa-6ef2-e2bd-6a93-9fc917e78efc\nТІЛО: <?xml version=\"1.0\" encoding=\"UTF-8\"?><?xml-stylesheet type=\"text/xsl\" href=\"https://unitex.rdport.net:29231/DB/e1csys/vrscore/exception.xslt?sysver=8.3.19.1529\"?><exception xmlns=\"http://v8.1c.ru/8.2/virtual-resource-system\" xmlns:xs=\"http://www.w3.org/2001/XMLSchema\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:type=\"Exception\" clsid=\"580392e6-ba49-4280-ac67-fcd6f2180121\" reason=\"412\"><descr xmlns=\"http://v8.1c.ru/8.1/data/core\">Немає прав на запуск потрібного виду клієнта</descr>\n",
+  "stdout": "getChat ok: True | title: UNITEX Leads | type: group\nmember status: creator\nping sent: True\n",
   "stderr": "",
   "returncode": 0,
-  "id": "49e7833ad36f",
-  "ts": "2026-08-26T13:02:19Z"
+  "id": "find-group-20260817-1",
+  "ts": "2026-08-26T15:46:22Z"
 }
