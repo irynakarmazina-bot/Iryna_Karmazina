@@ -1,1 +1,1 @@
-{"id": "2bb93fbfa16e", "cmd": "python3 /root/lc_audit.py > /root/lc_audit.txt 2>&1; sed -n '1,45p' /root/lc_audit.txt"}
+{"id": "b760fafbd1bb", "cmd": "sed -n '1,18p' /root/lc_audit.txt"}
