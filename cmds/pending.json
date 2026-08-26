@@ -1,1 +1,1 @@
-{"id": "47ffd55ee32f", "cmd": "for p in '' scripts/mod_bootstrap_bootstrap.js e1cib/logon manifest.json e1cib/start; do printf '%-38s ' \"/DB/$p\"; curl -sk -o /dev/null -w '%{http_code}  %{size_download}b\\n' --max-time 25 \"https://unitex.rdport.net:29231/DB/$p\"; done"}
+{"id": "4059ec845653", "cmd": "ls -la /root/webbot/ | head -25; echo '--- login_test.js ---'; sed -n '1,60p' /root/webbot/login_test.js"}
