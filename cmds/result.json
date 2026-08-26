@@ -1,7 +1,7 @@
 {
-  "stdout": "scripts/mod_bootstrap_bootstrap.js -> 404\ne1cib/logon -> 404\nmanifest.json -> 404\nroot -> 200 1784b\n",
+  "stdout": "-rw-r--r-- 1 root root 1422 Aug 11 17:05 /root/find_inv_maersk.py\n-rw-r--r-- 1 root root  894 Aug 11 17:06 /root/find_inv_maersk2.py\n-rw-r--r-- 1 root root 1254 Aug 11 17:07 /root/find_inv_maersk3.py\n-rw-r--r-- 1 root root  872 Aug 11 17:08 /root/find_inv_maersk4.py\n-rw-r--r-- 1 root root  693 Aug 11 17:08 /root/find_inv_maersk5.py\n--- maersk-related dirs ---\nCaddyfile\nCaddyfile.bak-1785057761\nCaddyfile.bak-1785078733\nCaddyfile.bak-20260804-094655\nCaddyfile.bak-20260813-130838\nCaddyfile.bak-cabinet-20260813-135704\nCaddyfile.bak-cablog-20260814-111000\nCaddyfile.bak-cabview-20260814-125922\nCaddyfile.bak-cash\nCaddyfile.bak-dltemp-20260819-134503\nCaddyfile.bak-http\nCaddyfile.bak-localcosts\nCaddyfile.bak-rmsheet-20260804-073620\nCaddyfile.https\nCaddyfile.new\nCaddyfile.tpl\nDocuments\nIryna_Karmazina\nLibrary\n__pycache__\nac.py\nadd_button.py\nadd_incoterms.py\nadd_vitalii.py\narap.py\narticles.json\nat.py\naudit_gaps.py\nauthcheck.log\nauthcheck.py\nautodeploy.sh\nautomation_log.py\nbackup.py\nbackup_log.tsv\nbackups\nbuild_preview.py\nbw.py\nbyline.py\ncabinet\ncabinet-archive-2026-08-15\ncabinet.log\ncabinet.out\ncabinet.py.bak-20260818-104715\ncaddy_download.py\ncaddy_running.json\ncancel241.py\ncash_check.py\ncash_trigger.py\ncash_trigger.py.bak-localcosts\ncashf.py\n",
   "stderr": "",
   "returncode": 0,
-  "id": "f74731200708",
-  "ts": "2026-08-26T11:31:14Z"
+  "id": "57e9a3c50a0d",
+  "ts": "2026-08-26T11:32:49Z"
 }
