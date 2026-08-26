@@ -1,1 +1,1 @@
-{"id": "deploy-9", "cmd": "cd /root/Iryna_Karmazina && git pull origin main -q 2>&1|tail -2; bash /root/Iryna_Karmazina/server/deploy_ui.sh main 2>&1 | tail -12"}
+{"id": "calc-20", "cmd": "cd /root/Iryna_Karmazina && git pull origin main -q 2>&1|tail -2; grep -c 'Организация_Key' finrep/local_costs.py; cp finrep/local_costs.py /root/unitex-finrep/engine/local_costs.py && cd /root/unitex-finrep && python3 engine/local_costs.py 2>&1 | tail -12"}
