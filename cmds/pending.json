@@ -1,1 +1,1 @@
-{"id": "d7f00e91d613", "cmd": "cd /root/webbot && timeout 180 node login_test.js 2>&1 | tail -30; echo '--- shots ---'; ls -la /root/webbot/shots/ | tail -8"}
+{"id": "d0d9cb1a9002", "cmd": "base64 -w0 /root/webbot/shots/03-after-login.png"}
