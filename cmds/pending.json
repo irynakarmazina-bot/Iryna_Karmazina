@@ -1,1 +1,1 @@
-{"id": "57e9a3c50a0d", "cmd": "ls -la /root/find_inv_maersk*.py 2>/dev/null; echo '--- maersk-related dirs ---'; ls /root/ | head -50"}
+{"id": "a431f8f49508", "cmd": "f=/root/unitex-finrep/normalized/supplier_invoices.csv; ls -la $f; echo '--- header ---'; head -1 $f; echo '--- maersk count ---'; grep -ci maersk $f; echo '--- маерск кир ---'; grep -ci 'маерск\\|мерск' $f"}
