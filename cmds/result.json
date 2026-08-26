@@ -1,7 +1,7 @@
 {
-  "stdout": "логін у файлі: 'assistant pro' | довжина пароля: 19\n",
-  "stderr": "http/client.py\", line 1376, in _send_request\n    self.putrequest(method, url, **skips)\n  File \"/usr/lib/python3.12/http/client.py\", line 1214, in putrequest\n    self._output(self._encode_request(request))\n                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/http/client.py\", line 1294, in _encode_request\n    return request.encode('ascii')\n           ^^^^^^^^^^^^^^^^^^^^^^^\nUnicodeEncodeError: 'ascii' codec can't encode characters in position 37-42: ordinal not in range(128)\n",
-  "returncode": 1,
-  "id": "9099160e2d11",
-  "ts": "2026-08-26T12:56:01Z"
+  "stdout": "логін у файлі: 'assistant pro' | довжина пароля: 19\nOData GET -> 200 — АВТОРИЗАЦІЯ ПРОХОДИТЬ, логін і пароль правильні\n",
+  "stderr": "",
+  "returncode": 0,
+  "id": "db9dcbee8546",
+  "ts": "2026-08-26T12:56:24Z"
 }
