@@ -1,1 +1,1 @@
-{"id": "db37548637d7", "cmd": "cd /root/webbot && timeout 200 node diag2.js 2>&1 | grep -E 'ФІНАЛЬНИЙ|HTTP|descr|Неправильне' | head -12"}
+{"id": "a0f5eb38f88f", "cmd": "cd /root/webbot && timeout 200 node diag2.js 2>&1 | grep -E 'ФІНАЛЬНИЙ|^HTTP|descr>|Неправильне' | head -10"}
