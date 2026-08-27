@@ -1,7 +1,7 @@
 {
-  "stdout": "getChat ok: True | title: UNITEX Leads | type: group\nmember status: creator\nping sent: True\n",
+  "stdout": "/root/unitex-finrep/secure/odata.env -> ODATA_USER = 'assistant' | довжина пароля: 8\n/root/unitex-finrep/secure/odata_write.env -> ODATA_USER = 'assistant pro' | довжина пароля: 19\n",
   "stderr": "",
   "returncode": 0,
-  "id": "find-group-20260817-1",
-  "ts": "2026-08-26T15:46:22Z"
+  "id": "05c8975432c9",
+  "ts": "2026-08-27T10:10:33Z"
 }
