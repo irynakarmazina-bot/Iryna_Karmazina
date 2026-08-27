@@ -1,1 +1,1 @@
-{"id": "74a0e8ec4b60", "cmd": "cd /root/webbot && timeout 250 node inside.js 2>&1 | tail -35"}
+{"id":"mode-dry-1","cmd":"cd /root/Iryna_Karmazina && git fetch origin main -q && git reset --hard origin/main -q && cp direct_sync/expeditor_direct_sync.py /root/direct-sync/expeditor_direct_sync.py && python3 -m py_compile /root/direct-sync/expeditor_direct_sync.py && echo COMPILE_OK && timeout 110 python3 /root/direct-sync/expeditor_direct_sync.py --dry-run 2>&1 | grep -E 'Вид|DRY|бракує' | head -10"}
