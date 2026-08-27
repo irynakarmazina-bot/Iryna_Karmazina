@@ -184,9 +184,29 @@ SRC_WHEN = "Статус (оновлено)"
 STATUS_SRC = "Експедитор"
 HUMAN_SRC = "людина"
 
+# «Вид перевезення» ← Document_Сделка.ТипСделки_Key (увімкнено 27.08.2026 за
+# рішенням користувачки; доти поле заповнювали лише РАЗОВІ скрипти, і всі нові
+# угоди лишалися з прочерком — 21 активна на момент увімкнення).
+# «Збірний» (не «Збірний вантаж») і «Перетарка» — її вибір із прев'ю 27.08.2026.
+# Поле НЕ в AUTHORITATIVE: пишеться лише в порожнє, ручні значення недоторканні.
+MODE_COL = "Вид перевезення"
+MODE_BY_TYPE = {
+    "9c247035": "фрахт+ТЕО+авто",
+    "3885a4c4": "фрахт+ТЕО+залізниця",
+    "326dd400": "ТЕО+залізниця",
+    "326dd3fe": "фрахт",
+    "24ccaf2c": "ТЕО+авто",
+    "65f8d234": "авто",
+    "326dd3f8": "авіа",
+    "055a1679": "Збірний",
+    "1c704d63": "Перетарка",
+}
+# «Перетарка+Авто» в Експедиторі ще не існує як тип — але варіант у списку
+# платформи потрібен наперед (прохання користувачки 27.08.2026).
+MODE_EXTRA_OPTIONS = {"Перетарка+Авто"}
 WRITTEN_COLS = (
     ["Клієнт", "Напрямок", "Лінія", "Менеджер", "Агент", "Кількість", "Коментар", "Статус",
-     "Етап (Експедитор)", "Маршрут", DRY_COL]
+     "Етап (Експедитор)", "Маршрут", DRY_COL, MODE_COL]
     + [c for c, _ in TEXT_FIELDS]
     + [c for c, _ in DATE_FIELDS]
     + [c for c, _ in CITY_FIELDS]
@@ -536,6 +556,9 @@ def map_deal(d, names, allowed_lines, allowed_kinds, allowed_statuses=frozenset(
     # уже після того, як статус був виставлений — тобто правилу був недоступний.
     kind = KIND_MAP.get(str(d.get("Вид") or "").strip())
     is_export = kind == "Експорт"
+    mode = MODE_BY_TYPE.get(str(d.get("ТипСделки_Key") or "")[:8])
+    if mode:
+        o[MODE_COL] = mode
     raw_stage = str(d.get("Статус") or "").strip()
     if raw_stage:
         o[STAGE_COL] = raw_stage
@@ -689,6 +712,7 @@ def main():
     allowed_kinds = ensure_options(meta, "Напрямок", kind_values, dry)
     # «Скасована» має бути серед варіантів колонки — інакше запис не пройде
     allowed_statuses = ensure_options(meta, "Статус", {CANCELLED_STATUS}, dry)
+    ensure_options(meta, MODE_COL, set(MODE_BY_TYPE.values()) | MODE_EXTRA_OPTIONS, dry)
 
     rows = nc_records(["Id", "Угода", SRC_COL] + WRITTEN_COLS)
     by_num = {}
