@@ -1,7 +1,7 @@
 {
-  "stdout": "копія старих значень: /root/dryport_clear_backup.json (15 угод)\nочищено 15; лишилось незалізничних із датою: 0\nу залізничних дата збережена (не чіпалась): 8 угод\n",
+  "stdout": "=== що зараз стоїть в угоді 292 (всі дати) ===\n  CreatedAt                        = 2026-08-21\n  UpdatedAt                        = 2026-08-27\n  ETD (план)                       = 2026-09-01\n  Stuffing                         = 2026-08-25\n  Статус (оновлено)                = 2026-08-21\n\n=== журнал дій платформи по №292 ===\n  2026-08-25 11:35 · irynakarmazina@gmail.com · правка угоди · Stuffing: «» → «2026-08-25»\n=== синк про 292 ===\n866:2026-08-23 07:00:17 DONE deals=285 new=0 updated=0 errors=0 last=292\n874:2026-08-24 07:00:19 DONE deals=285 new=0 updated=0 errors=0 last=292\n882:2026-08-25 07:00:13 DONE deals=285 new=0 updated=0 errors=0 last=292\n890:2026-08-25 13:20:51 DONE deals=285 new=0 updated=0 errors=0 last=292\n898:2026-08-26 07:00:12 DONE deals=285 new=0 updated=0 errors=0 last=292\n907:2026-08-27 07:00:11 DONE deals=285 new=0 updated=1 errors=0 last=292\n",
   "stderr": "",
   "returncode": 0,
-  "id": "clear-dry-1",
-  "ts": "2026-08-28T09:20:36Z"
+  "id": "d292-1",
+  "ts": "2026-08-28T09:21:16Z"
 }
