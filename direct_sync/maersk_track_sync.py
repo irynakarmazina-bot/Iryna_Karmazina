@@ -126,6 +126,10 @@ READ_FIELDS = ["Id", "Угода", "Напрямок", "BL", "Контейнер
                "Зміни ETA (історія)", "Звірка", "Лінія",
                "Гейт ін", "Гейт аут", "ETD (факт)", "ETD (план)",
                "Вивантаження в порту (факт)", "ETA сухий порт", "Вид перевезення",
+               # 31.08.2026: читаємо для перевірки ПОСЛІДОВНОСТІ дат (див. CHAIN
+               # у parse_events) — якщо поля тут немає, воно приходить порожнім
+               # і перевірка його не бачить (граблі 02.08 з «Напрямком»)
+               "Вивантаження у отримувача (факт)",
                "Порт перевалки", "Перевалка (прибуття)", "Перевалка (відправлення)",
                "Остання зміна", "Останнє оновлення",
                # 05.08.2026: джерело статусу і стан трекінгу — див. STATUS_SRC нижче
@@ -527,19 +531,107 @@ def parse_events(events, row, today_iso, statuses=frozenset()):
     # «немає сухого порту для цього перевезення, це авто». Maersk часом віддає
     # планову RAIL-подію навіть коли вантаж повезе авто — і дата сухого порту
     # з'являлась в авто-угоді. Вид перевезення веде синк з Експедитора.
-    rail_deal = "залізниця" in str(row.get("Вид перевезення") or "")
-    if ves and rail_deal:
-        dry = pick(("ARRI",), None, "RAIL", last=True)
-        if dry:
-            out["ETA сухий порт"] = dry
-
     disc = pick(("DISC",), "ACT", "VESSEL", last=True)
     if disc:
         out["Вивантаження в порту (факт)"] = disc
-    # виїзд із порту — контейнер забрали
-    gtot = pick(("GTOT",), "ACT", last=True)
+
+    # ── ГЕЙТ АУТ = вивіз з порту ПРИБУТТЯ, і ТІЛЬКИ з нього ─────────────────
+    # (правило користувачки 25.08.2026: «Гейт аут → Сухий порт → Доставлено»).
+    # Було до 31.08.2026: бралась ОСТАННЯ фактична GTOT-подія де завгодно, і в
+    # колонку потрапляло що завгодно, крім потрібного:
+    #   • угода 280 (експорт, ще не поплив): GTOT 26.08 з депо ВІДПРАВЛЕННЯ
+    #     (порожній контейнер поїхав на завантаження) — «звідки тут гейт аут????»;
+    #   • угода 236 (імпорт із залізницею): потяг виїхав з Гданська 19.08, але
+    #     остання GTOT — це вивіз АВТО з сухого порту 26.08, і «Гейт аут» (26.08)
+    #     ставав ПІЗНІШИМ за «Сухий порт» (24.08) — порядок колонок ламався.
+    # Тепер: перша фактична GTOT ПІСЛЯ останнього фактичного вивантаження з
+    # судна, і лише коли моря попереду вже немає. Немає такої події — колонка
+    # порожня; а якщо в ній стоїть дата якоїсь ІНШОЇ GTOT-події (тобто наш же
+    # старий запис із відправлення) — чистимо (None: NocoDB на "" для дат свариться).
+    disc_full = ""            # момент останнього фактичного вивантаження з судна
+    for e in events:
+        c = e.get("equipmentEventTypeCode") or e.get("transportEventTypeCode") or ""
+        if (c == "DISC" and e.get("eventClassifierCode") == "ACT"
+                and (e.get("transportCall") or {}).get("modeOfTransport") == "VESSEL"
+                and _dt(e) > disc_full):
+            disc_full = _dt(e)
+    gt_all = sorted([e for e in events
+                     if (e.get("equipmentEventTypeCode")
+                         or e.get("transportEventTypeCode") or "") == "GTOT"
+                     and e.get("eventClassifierCode") == "ACT"], key=_dt)
+    if ves:
+        gt_ok = [e for e in gt_all
+                 if disc_full and _dt(e) > disc_full
+                 and not vessel_move_after(events, _dt(e))]
+        gtot = _dt(gt_ok[0])[:10] if gt_ok else ""
+    else:
+        # суто безморська відправка — тут «порт прибуття» не розрізнити,
+        # лишаємо стару поведінку (остання фактична GTOT)
+        gtot = _dt(gt_all[-1])[:10] if gt_all else ""
+        gt_ok = gt_all
+    cur_gt = str(row.get("Гейт аут") or "")[:10]
     if gtot:
         out["Гейт аут"] = gtot
+    elif cur_gt and cur_gt in {_dt(e)[:10] for e in gt_all}:
+        out["Гейт аут"] = None
+
+    # ── СУХИЙ ПОРТ: факт важливіший за прогноз, прогноз — лише поки не бреше ──
+    # Було до 31.08.2026: остання ARRI RAIL БУДЬ-ЯКОЇ класифікації. Maersk свої
+    # RAIL-прогнози не оновлює, тому в 275 стояло «прибуде 15.08», хоча потяг
+    # виїхав з Гданська лише 26.08 — «прибуття» раніше за виїзд. А ФАКТ прибуття
+    # в сухий порт приходить подією GTIN ACT RAIL (заїзд у ворота термінала,
+    # угода 236: Мостиська 24.08), яку старий код не дивився взагалі.
+    # Тепер: (1) факт = остання ARRI/GTIN ACT залізницею після виїзду з порту;
+    # (2) немає факту — прогноз ARRI EST, але тільки якщо він НЕ раніший за
+    # фактичний виїзд потяга; (3) прогноз, що став неможливим, чистимо.
+    rail_deal = "залізниця" in str(row.get("Вид перевезення") or "")
+    if ves and rail_deal:
+        rail_dep = ""         # факт виїзду залізницею з порту прибуття
+        for e in gt_ok:
+            if ((e.get("transportCall") or {}).get("modeOfTransport") == "RAIL"
+                    and _dt(e) > rail_dep):
+                rail_dep = _dt(e)
+        after = rail_dep or disc_full
+        arr_fact = ""
+        for e in events:
+            c = e.get("equipmentEventTypeCode") or e.get("transportEventTypeCode") or ""
+            if (c in ("ARRI", "GTIN") and e.get("eventClassifierCode") == "ACT"
+                    and (e.get("transportCall") or {}).get("modeOfTransport") == "RAIL"
+                    and after and _dt(e) > after and _dt(e) > arr_fact):
+                arr_fact = _dt(e)
+        if arr_fact:
+            dry = arr_fact[:10]
+        else:
+            est = pick(("ARRI",), "EST", "RAIL", last=True)
+            dry = est if est and (not rail_dep or est >= rail_dep[:10]) else ""
+        cur_dry = str(row.get("ETA сухий порт") or "")[:10]
+        if dry:
+            out["ETA сухий порт"] = dry
+        elif cur_dry and rail_dep and cur_dry < rail_dep[:10]:
+            out["ETA сухий порт"] = None
+
+    # ── ПОСЛІДОВНІСТЬ ДАТ (вимога користувачки 31.08.2026: «всі дати
+    # послідовні, не може бути наступна дата ранішою ніж попередня»).
+    # Рух вантажу один: здача в порт → відхід → прибуття й вивантаження →
+    # вивіз з порту → сухий порт → доставка отримувачу. Дату, що РАНІША за
+    # попередній факт, прибираємо (None) — вона фізично неможлива. Приклад,
+    # з якого це з'явилось: угода 236 — «Вивантаження у отримувача (факт)»
+    # 10.06 при відході з порту 16.06; трекінг це поле взагалі не пише,
+    # це слід старого разового імпорту. Чистимо саме ПІЗНІШУ за ланцюжком
+    # колонку: попередні дати тут — перевірені події Maersk.
+    CHAIN = ("Гейт ін", "ETD (факт)", "ETA порт (факт)",
+             "Вивантаження в порту (факт)", "Гейт аут", "ETA сухий порт",
+             "Вивантаження у отримувача (факт)")
+    prev = ""
+    for cname in CHAIN:
+        v = out.get(cname, str(row.get(cname) or ""))
+        v = (v or "")[:10] if isinstance(v, str) else ""
+        if not v:
+            continue
+        if prev and v < prev:
+            out[cname] = None
+        else:
+            prev = v
 
     # статус: 8-модель, «Завантажений» розділений на авто/потяг.
     #
@@ -785,9 +877,12 @@ def main():
             # і тоді порівняння з нашим 10-символьним значенням завжди давало б «змінилось»
             if re.match(r"^\d{4}-\d{2}-\d{2}", old):
                 old = old[:10]
-            if val == "" and not old:
+            # None = «очистити колонку» (послідовність дат, 31.08.2026): NocoDB
+            # для дат приймає null, а не "". Порожнє при порожньому — пропуск,
+            # інакше кожен прогін «чистив» би вже чисте.
+            if val in ("", None) and not old:
                 continue
-            if old != str(val):
+            if old != ("" if val is None else str(val)):
                 patch[col] = val
                 changed_cols[col] = changed_cols.get(col, 0) + 1
         if patch:
