@@ -1,7 +1,7 @@
 {
   "stdout": "",
-  "stderr": "'utf-8' codec can't decode byte 0xd0 in position 601: invalid continuation byte",
-  "returncode": -1,
-  "id": "264c2a9f8757",
-  "ts": "2026-08-31T12:00:55Z"
+  "stderr": "grep: Invalid collation character\n",
+  "returncode": 0,
+  "id": "0bf6a5945a4e",
+  "ts": "2026-08-31T12:01:12Z"
 }
