@@ -1,7 +1,7 @@
 {
-  "stdout": "   журнал: 2026-08-31T11:47:00\tmain\t7268783f7\tв. 13.08 15:36\tindex.html:71896 findash.html:33986 finperiod.html:17527\trelay: bash /root/Iryna_Karmazina/server/deploy_ui.sh main 2>&1 | t\n   UI/FINDASH/CHART: 200 200 200\nDEPLOY_OK · гілка main · коміт 7268783f7 · позначка «в. 13.08 15:36»\n",
+  "stdout": "1\n",
   "stderr": "",
   "returncode": 0,
-  "id": "6d0f8416e12e",
-  "ts": "2026-08-31T08:47:01Z"
+  "id": "2283bbd7d8f0",
+  "ts": "2026-08-31T08:48:05Z"
 }
