@@ -1,1 +1,1 @@
-{"id": "dd4c5d3c05cd", "cmd": "sed -n '13,24p' /root/lc_probe3.txt"}
+{"id": "6fe9570160f8", "cmd": "ls /root/webbot/ && cd /root/webbot && timeout 100 node diag2.js 2>&1 | tail -25"}
