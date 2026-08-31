@@ -1,7 +1,7 @@
 {
-  "stdout": "1284508 /bin/sh -c pgrep -af dispatch_watch.py; wc -c /root/dispatch_watch.log 2>/dev/null || echo 'лога немає'; python3 -c \"print(open('/root/dispatch_watch.log').read()[:600])\" 2>/dev/null\nлога немає\n",
+  "stdout": "-rw-r--r-- 1 root root 2433 Aug 31 15:17 /root/dispatch_watch.py\n1284514\n1284516\n=== старт пастки 2026-08-31T15:30:30 ===\nTRAP_OK\n",
   "stderr": "",
-  "returncode": 1,
-  "id": "98bb0840aeee",
-  "ts": "2026-08-31T12:29:57Z"
+  "returncode": 0,
+  "id": "c7446a431644",
+  "ts": "2026-08-31T12:30:34Z"
 }
