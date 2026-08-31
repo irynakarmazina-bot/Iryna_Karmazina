@@ -1,1 +1,1 @@
-{"id": "98bb0840aeee", "cmd": "pgrep -af dispatch_watch.py; wc -c /root/dispatch_watch.log 2>/dev/null || echo 'лога немає'; python3 -c \"print(open('/root/dispatch_watch.log').read()[:600])\" 2>/dev/null"}
+{"id": "c7446a431644", "cmd": "ls -la /root/dispatch_watch.py; setsid nohup python3 /root/dispatch_watch.py >/dev/null 2>&1 < /dev/null & sleep 4; pgrep -f 'python3 /root/dispatch_watch.py' && head -c 200 /root/dispatch_watch.log && echo TRAP_OK || echo TRAP_FAIL"}
