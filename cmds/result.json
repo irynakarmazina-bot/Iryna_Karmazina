@@ -1,7 +1,7 @@
 {
-  "stdout": "   UI/FINDASH/CHART: 200 200 200\nDEPLOY_OK · гілка main · коміт 201d27475 · позначка «в. 13.08 15:36»\n",
-  "stderr": "",
-  "returncode": 0,
-  "id": "378b65121f81",
-  "ts": "2026-08-31T12:18:29Z"
+  "stdout": "",
+  "stderr": "tail: cannot open '/root/maersk_manual2_20260831.log' for reading: No such file or directory\n",
+  "returncode": 1,
+  "id": "155b695ba53e",
+  "ts": "2026-08-31T12:18:46Z"
 }
