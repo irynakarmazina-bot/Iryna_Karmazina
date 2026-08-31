@@ -1,7 +1,7 @@
 {
-  "stdout": "/root/unitex-finrep/engine/odata_client.py\n/root/claude-archive/projects/unitex-finrep/engine/odata_client.py\n19:import base64\n45:        self.url = env[\"ODATA_URL\"].rstrip(\"/\")\n46:        self.user = env[\"ODATA_USER\"]\n59:        self._auth = \"Basic \" + base64.b64encode(f\"{self.user}:{self._pw}\".encode()).decode()\n99:        base_q = \"&\".join(parts)\n117:            q = base_q + f\"&$top={page}&$skip={skip}\"\n127:                base_q = \"&\".join(parts_no_order)\n128:                q = base_q + f\"&$top={page}&$skip={skip}\"\n",
+  "stdout": "ANTHROPIC_API_KEY=\nGITHUB_TOKEN=\nN8N_API_KEY=\nRDP_PASSWORD=\nTELEGRAM_BOT_TOKEN=\n",
   "stderr": "",
   "returncode": 0,
-  "id": "b612d5b64549",
-  "ts": "2026-08-31T11:51:15Z"
+  "id": "25a5b1836e8f",
+  "ts": "2026-08-31T11:51:32Z"
 }
