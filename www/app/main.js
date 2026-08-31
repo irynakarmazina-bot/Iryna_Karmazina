@@ -1283,7 +1283,7 @@ PAGES.dispatch = async () => {
     : `<span class="updstamp cell-muted">час оновлення невідомий</span>`;
   const head = logist
     ? "<th>Угода</th><th>Клієнт</th><th>Контейнер</th><th>Статус</th><th>Номер авто</th><th>Водій</th><th>Телефон</th><th>Перетин кордону</th><th></th>"
-    : "<th class=\"c-num\">Угода</th><th></th><th>Клієнт</th><th>Маршрут</th><th>Вид / лінія</th><th class=\"c-bl\">Коносамент /<br>контейнер</th><th class=\"c-ves\">Судно</th><th class=\"dt\">Stuffing</th><th class=\"dt\">Gate in /<br>здача</th><th class=\"dt\">ETD POL</th><th class=\"dt\">ETA POD</th><th class=\"dt\">Гейт<br>аут</th><th class=\"dt\">Сухий<br>порт</th><th class=\"dt\">Доставлено</th><th>Статус</th><th class=\"c-rel\" title=\"Реліз: галочка ставиться кліком прямо в таблиці\">Реліз</th><th>Авто</th><th>Коментар</th><th></th>";
+    : "<th class=\"c-num\">Угода</th><th></th><th>Клієнт</th><th>Маршрут</th><th>Вид / лінія</th><th class=\"c-bl\">Коносамент /<br>контейнер</th><th class=\"c-ves\">Судно</th><th class=\"dt\">Stuffing</th><th class=\"dt\">Gate in /<br>здача</th><th class=\"dt\">ETD POL</th><th class=\"dt\">ETA POD</th><th class=\"dt\">Gate<br>out</th><th class=\"dt\">Сухий<br>порт</th><th class=\"dt\">Доставлено</th><th>Статус</th><th class=\"c-rel\" title=\"Реліз: галочка ставиться кліком прямо в таблиці\">Реліз</th><th>Авто</th><th>Коментар</th><th></th>";
   // ── активні алерти над таблицею
   const uniq = k => [...new Set(all.map(r=>_s(r,k)).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"uk"));
   const nActive = all.filter(r=>!_done(r)).length;
@@ -2401,64 +2401,158 @@ $("gen-btn").addEventListener("click", async ()=>{
    ніколи не перезаписується. Тягач і причеп — два окремі записи довідника
    «Авто» без жорсткої прив'язки (причеп змінюється незалежно).
    У таблиці, як і раніше, видно лише номер авто. */
+/* Розбір повідомлення перевізника — СИСТЕМНО, а не під конкретний формат
+   (вимога користувачки 31.08.2026: «визнач сенс тексту та рознеси його, не під
+   конкретну форму, а системно»). Два проходи:
+     1) ПІДПИСИ — словник синонімів «підпис → поле»: «Водій: …», «Code …»,
+        «тел. …» читаються незалежно від порядку, мови і розділювача; значення
+        одразу перевіряється нормалізатором свого поля (номер має бути номером,
+        дата — датою), сміття відкидається («авто тент» не стане тягачем);
+     2) ФОРМИ — все непідписане шукається за формою значення: контейнер
+        ABCD1234567, держномер АА0000АА, ПІБ трьома словами, телефон, IBAN,
+        поштовий індекс для адреси, форма власності для назви фірми.
+   Підписане має пріоритет над знайденим за формою. Нове слово-підпис
+   додається одним рядком у LABELS, нова форма — одним нормалізатором. */
 function parseCarrierText(txt){
   const t = String(txt || "");
   const lines = t.split(/\n/).map(l => l.trim()).filter(Boolean);
   const out = {};
-  // саме [а-яіїєґ]*, а не \w: у JS \w — лише латиниця, і «подача» на ній обривалась
-  const feed = /(?:подач[а-яіїєґ]*|завантаження|загрузка)\s*(?:на|до|:)?\s*(\d{1,2})[./](\d{1,2})(?:[./](\d{2,4}))?/iu.exec(t);
-  if (feed){
-    const y = feed[3] ? (feed[3].length === 2 ? "20" + feed[3] : feed[3]) : String(new Date().getFullYear());
-    out["подача"] = y + "-" + feed[2].padStart(2, "0") + "-" + feed[1].padStart(2, "0");
-  }
-  const cont = /\b([A-Z]{4}\d{7})\b/.exec(t);
-  if (cont) out["контейнер"] = cont[1];
-  /* Держномер: 2 літери + 4 цифри + 2 літери. НЕ через \b: у JS межа слова
-     знає лише латиницю, і чисто кириличний номер (АС5205НО) не знаходився —
-     упіймано на другому ж реальному повідомленні 25.08.2026. Тому текст ріжемо
-     на токени і перевіряємо кожен цілком. Пробіл усередині номера теж буває. */
-  const plates = t.replace(/([A-ZА-ЯІЇЄҐ]{2})\s+(\d{4})\s+([A-ZА-ЯІЇЄҐ]{2})/gu, "$1$2$3")
-    .split(/[^A-ZА-ЯІЇЄҐ0-9]+/u).filter(w => /^[A-ZА-ЯІЇЄҐ]{2}\d{4}[A-ZА-ЯІЇЄҐ]{2}$/u.test(w));
-  if (plates[0]) out["тягач"] = plates[0];
-  if (plates[1]) out["причеп"] = plates[1];
-  // ПІБ буває і голим рядком, і з підписом «Водій: …» — підпис зрізаємо
-  const pib = lines.map(l => l.replace(/^(?:водій|піб|дані водія)\s*[:\-–]\s*/iu, ""))
-    .find(l => /^[А-ЯІЇЄҐ][а-яіїєґ'’]+\s+[А-ЯІЇЄҐ][а-яіїєґ'’]+\s+[А-ЯІЇЄҐ][а-яіїєґ'’]+$/u.test(l));
-  if (pib) out["піб"] = pib;
-  const tel = /(?:\+?38)?\s*\(?(0\d{2})\)?[\s\-.]*(\d{3})[\s\-.]*(\d{2})[\s\-.]*(\d{2})/.exec(t);
-  if (tel) out["телефон"] = tel[1] + " " + tel[2] + " " + tel[3] + " " + tel[4];
-  const pass = /паспорт[:\s]*([A-ZА-ЯІЇЄ]{2}\s?\d{6})/i.exec(t);
-  if (pass) out["паспорт"] = pass[1].replace(/\s+/g, "");
-  // пункт пропуску пишуть по-різному: «ПП Ягодин», «перехід Ягодин», «пункт пропуску …»
-  const pp = /^(ПП|перехід|переход|пункт\s+пропуску)\s+([^\n]+)$/mi.exec(t);
-  if (pp) out["перехід"] = ((/^пп$/i.test(pp[1]) ? "ПП " : "") + pp[2]).trim();
-  const nameLine = lines.find(l => l.includes("«"));
-  if (nameLine){
-    /* форма власності буває ПЕРЕД лапками («ТОВ «МАЛЬ-ТРАНС»») або ПІСЛЯ
-       («HM TRANSPORT» LIMITED) — збираємо назву з обох боків */
-    const m = /(?:^|\s)((?:ТОВ|ТзОВ|ПП|ФОП|ПрАТ|АТ|LLC)\s+)?«([^»]+)»\s*([^\d«]*)(.*)$/u.exec(nameLine.replace(/^перевізник\s*[:\-–]\s*/iu, ""));
-    if (m){
-      out["перевізник"] = ((m[1] || "") + m[2] + " " + (m[3] || "").trim()).replace(/\s+/g, " ").trim();
-      if ((m[4] || "").trim()) out["адреса"] = m[4].trim();
+  const set = (k, v) => { if (v && !out[k]) out[k] = String(v).trim(); };
+
+  // ── нормалізатори: перевіряють і чистять значення конкретного поля
+  const isoDate = s => {
+    const m = /(\d{1,2})[./](\d{1,2})(?:[./](\d{2,4}))?/.exec(s || "");
+    if (!m) return "";
+    const y = m[3] ? (m[3].length === 2 ? "20" + m[3] : m[3]) : String(new Date().getFullYear());
+    return y + "-" + m[2].padStart(2, "0") + "-" + m[1].padStart(2, "0");
+  };
+  /* держномери: НЕ через \b (у JS він не знає кирилиці — АС5205НО губився,
+     25.08.2026) — ріжемо на токени і перевіряємо кожен цілком; пробіли
+     всередині номера («СВ 5205 НО») склеюємо */
+  const platesIn = s => String(s || "")
+    .replace(/([A-ZА-ЯІЇЄҐ]{2})\s+(\d{4})\s+([A-ZА-ЯІЇЄҐ]{2})/gu, "$1$2$3")
+    .split(/[^A-ZА-ЯІЇЄҐ0-9]+/u)
+    .filter(w => /^[A-ZА-ЯІЇЄҐ]{2}\d{4}[A-ZА-ЯІЇЄҐ]{2}$/u.test(w));
+  const phoneIn = s => {
+    const m = /(?:\+?38)?\s*\(?(0\d{2})\)?[\s\-.]*(\d{3})[\s\-.]*(\d{2})[\s\-.]*(\d{2})(?!\d)/.exec(s || "");
+    return m ? m[1] + " " + m[2] + " " + m[3] + " " + m[4] : "";
+  };
+  const passIn = s => {
+    const m = /([A-ZА-ЯІЇЄҐ]{2})\s?(\d{6})(?!\d)/u.exec(s || "");
+    return m ? m[1] + m[2] : "";
+  };
+  const contIn = s => ((/(?:^|[^A-Z0-9])([A-Z]{4}\d{7})(?!\d)/.exec(s || "")) || [])[1] || "";
+  const pibIn = s => /^[А-ЯІЇЄҐ][а-яіїєґ'’]+\s+[А-ЯІЇЄҐ][а-яіїєґ'’]+\s+[А-ЯІЇЄҐ][а-яіїєґ'’]+$/u
+    .test((s || "").trim()) ? (s || "").trim() : "";
+  const carrName = s => String(s || "").replace(/[«»"]/g, " ").replace(/\s+/g, " ").trim();
+  const NORM = {
+    "подача": isoDate, "тягач": s => platesIn(s)[0] || "", "причеп": s => platesIn(s)[0] || "",
+    "телефон": phoneIn, "паспорт": passIn, "контейнер": contIn, "піб": pibIn,
+    "код": s => ((/(?:^|\D)(\d{6,12})(?!\d)/.exec(s || "")) || [])[1] || "",
+    "iban": s => ((/UA\d{20,30}/.exec(s || "")) || [])[0] || "",
+    "eori": s => (((/[A-Z]{2}[A-Z0-9]{6,18}/i.exec(s || "")) || [])[0] || "").toUpperCase(),
+    "перевізник": carrName,
+  };
+
+  /* ── прохід 1: підписані рядки. (?![а-яіїєґa-z]) замість \b — та сама
+     кирилична межа слова руками («тел» не має ловити «телекс»). Порядок
+     важливий там, де підписи схожі: «перехід/кордон» раніше за «код»,
+     «причеп» раніше за «тягач/авто». Один рядок → перший відповідний підпис. */
+  const LABELS = [
+    ["піб",        /^(?:водій|піб|дані водія|driver)(?![а-яіїєґa-z])/iu],
+    ["телефон",    /^(?:тел(?:ефон)?|моб|phone|tel)(?![а-яіїєґa-z])\.?/iu],
+    ["паспорт",    /^(?:паспорт|passport)(?![а-яіїєґa-z])/iu],
+    ["перехід",    /^(?:перехід|переход|пункт\s+пропуску|кордон|ПП(?=\s))(?![а-яіїєґa-z])/iu],
+    ["адреса",     /^(?:адреса|адрес|address)(?![а-яіїєґa-z])/iu],
+    ["код",        /^(?:ЄДРПОУ|ЕДРПОУ|ЕГРПОУ|ОКПО|код|code)(?![а-яіїєґa-z])/iu],
+    ["eori",       /^EORI(?![A-Za-z])/i],
+    ["iban",       /^(?:IBAN|рахунок|р\/р)(?![а-яіїєґa-z])/iu],
+    ["банк",       /^(?:банк|bank)(?![а-яіїєґa-z])/iu],
+    ["перевізник", /^(?:перевізник|перевозчик|фірма|компанія|carrier)(?![а-яіїєґa-z])/iu],
+    ["цмр",        /^(?:номер\s+)?(?:ЦМР|CMR)(?![а-яіїєґa-z])/iu],
+    ["причеп",     /^(?:причеп|прицеп|напівпричеп|trailer)(?![а-яіїєґa-z])/iu],
+    ["тягач",      /^(?:тягач|номер\s+авто|авто|truck)(?![а-яіїєґa-z])/iu],
+    ["контейнер",  /^(?:контейнер|container)(?![а-яіїєґa-z])/iu],
+    ["подача",     /^(?:подач[а-яіїєґ]*|завантаження|загрузка|loading)(?![a-z])/iu],
+    ["обладнання", /^(?:тип\s+обладнання|обладнання)(?![а-яіїєґa-z])/iu],
+  ];
+  for (const raw of lines){
+    for (const [key, lab] of LABELS){
+      const m = lab.exec(raw);
+      if (!m) continue;
+      let rest = raw.slice(m[0].length).replace(/^[\s:\-–—.()№]+/u, "").trim();
+      if (key === "перехід" && /^ПП/i.test(m[0])) rest = rest ? "ПП " + rest : "";
+      set(key, (NORM[key] || (s => s))(rest));
+      break;
     }
   }
-  const addr = /^адреса\s*[:\-–]\s*(.+)$/mi.exec(t);
-  if (addr) out["адреса"] = addr[1].trim();
-  const code = /(?:ЄДРПОУ|ЕДРПОУ|ЕГРПОУ|code|код)\s*[:№]?\s*(\d{6,12})/iu.exec(t);
-  if (code) out["код"] = code[1];
-  // \b тут не працює (він не знає кирилиці) — межу слова робимо руками
-  if (/(?:^|[\s,;:—-])тент/imu.test(t)) out["обладнання"] = "тент";
-  else if (/контейнеровоз/iu.test(t)) out["обладнання"] = "контейнеровоз";
-  else if (/(?:^|[\s,;:—-])реф/imu.test(t)) out["обладнання"] = "реф";
+
+  // ── прохід 2: форми значень — для всього, що лишилось непідписаним
+  const feed = /(?:подач[а-яіїєґ]*|завантаження|загрузка)\s*(?:на|до|:)?\s*([\d./]+)/iu.exec(t);
+  if (feed) set("подача", isoDate(feed[1]));
+  set("контейнер", contIn(t));
+  // держномери: перший невикористаний — тягач, наступний — причеп;
+  // рядок з IBAN пропускаємо, щоб не різати його цифри на псевдономери
+  for (const p of platesIn(lines.filter(l => !/UA\d{20,30}/.test(l)).join("\n"))){
+    if (out["тягач"] === p || out["причеп"] === p) continue;
+    if (!out["тягач"]) out["тягач"] = p;
+    else if (!out["причеп"]) out["причеп"] = p;
+  }
+  if (!out["піб"]){
+    const pib = lines.map(pibIn).find(Boolean);
+    if (pib) out["піб"] = pib;
+  }
+  if (!out["телефон"]){
+    for (const l of lines){
+      if (/UA\d{20,30}/.test(l)) continue;       // цифри IBAN — не телефон
+      const v = phoneIn(l);
+      if (v){ out["телефон"] = v; break; }
+    }
+  }
+  const pass = /паспорт[:\s]*([A-ZА-ЯІЇЄҐ]{2}\s?\d{6})/iu.exec(t);
+  if (pass) set("паспорт", pass[1].replace(/\s+/g, ""));
+  const nameLine = lines.find(l => l.includes("«"));
+  if (nameLine && !out["перевізник"]){
+    /* форма власності буває ПЕРЕД лапками («ТОВ «МАЛЬ-ТРАНС»») або ПІСЛЯ
+       («HM TRANSPORT» LIMITED) — збираємо назву з обох боків */
+    const m = /(?:^|\s)((?:ТОВ|ТзОВ|ПП|ФОП|ПрАТ|АТ|LLC)\s+)?«([^»]+)»\s*([^\d«]*)(.*)$/u.exec(nameLine);
+    if (m){
+      out["перевізник"] = ((m[1] || "") + m[2] + " " + (m[3] || "").trim()).replace(/\s+/g, " ").trim();
+      if ((m[4] || "").trim()) set("адреса", m[4].trim());
+    }
+  }
+  if (!out["перевізник"]){
+    /* назва без лапок (упіймано 31.08.2026 на «LLC JD TRANS»): рядок, що
+       починається або закінчується формою власності — латинською чи кирилицею.
+       «ПП Ягодин» (два токени) не чіпаємо — це пункт пропуску, а не фірма */
+    const legalStart = /^(?:ТОВ|ТзОВ|ФОП|ПрАТ|АТ|LLC|LTD|INC|GMBH|SIA|UAB|PE|FE)[\s.]/iu;
+    const legalEnd = /[\s.](?:LLC|LTD|LIMITED|INC|GMBH|SIA|UAB|PE|FE)\.?$/iu;
+    const cand = lines.find(l => (legalStart.test(l) || legalEnd.test(l) || /^ПП\s+\S+\s+\S+/u.test(l))
+                 && !/^(?:ПП|перехід|переход|пункт\s+пропуску)\s+\S+$/iu.test(l));
+    if (cand) out["перевізник"] = carrName(cand);
+  }
+  if (!out["адреса"]){
+    /* адреса голим рядком (31.08.2026, «02094, Ukraine, Kyiv city…»):
+       поштовий індекс на початку або вуличні слова з комою */
+    const a = lines.find(l => /^\d{4,6},\s*\S/.test(l)
+      || (l.includes(",") && /(вул\.|просп|обл\.|street|city|Ukraine|Україна)/iu.test(l)));
+    if (a) out["адреса"] = a;
+  }
+  const code = /(?:ЄДРПОУ|ЕДРПОУ|ЕГРПОУ|ОКПО|code|код)\s*[:№]?\s*(\d{6,12})/iu.exec(t);
+  if (code) set("код", code[1]);
+  // кирилична межа слова руками — \b її не знає
+  if (/(?:^|[\s,;:—-])тент/imu.test(t)) set("обладнання", "тент");
+  else if (/контейнеровоз/iu.test(t)) set("обладнання", "контейнеровоз");
+  else if (/(?:^|[\s,;:—-])реф/imu.test(t)) set("обладнання", "реф");
   const iban = /\b(UA\d{20,30})\b/.exec(t);
   if (iban){
-    out["iban"] = iban[1];
+    set("iban", iban[1]);
     const ibLine = lines.find(l => l.includes(iban[1]));
     const bank = ibLine && /(?:\bin\b|\bв\b)\s+(.+)$/i.exec(ibLine);
-    if (bank) out["банк"] = bank[1].trim();
+    if (bank) set("банк", bank[1].trim());
   }
   const eori = /EORI[:\s–-]*([A-Z0-9]{8,20})/i.exec(t);
-  if (eori) out["eori"] = eori[1].replace(/\.$/, "");
+  if (eori) set("eori", eori[1].replace(/\.$/, ""));
   return out;
 }
 
@@ -2488,7 +2582,7 @@ function openTruck(r){
     const setIf = (id, v) => { if (v && $(id)) $(id).value = v; };
     setIf("trk-truck", p["тягач"]);   setIf("trk-trail", p["причеп"]);
     setIf("trk-feed", p["подача"] ? fmtD(p["подача"]) : "");   setIf("trk-pp", p["перехід"]);
-    setIf("trk-equip", p["обладнання"]);
+    setIf("trk-equip", p["обладнання"]); setIf("trk-cmr", p["цмр"]);
     setIf("trk-pib", p["піб"]);       setIf("trk-tel", p["телефон"]);
     setIf("trk-pass", p["паспорт"]);  setIf("trk-cont", p["контейнер"]);
     setIf("trk-carr", p["перевізник"]); setIf("trk-code", p["код"]);
@@ -2739,8 +2833,72 @@ function openRow(r){
   }).join("");
   if (canEdit) $("row-body").querySelectorAll("td.cardedit").forEach(td=>
     td.addEventListener("click", ()=>editCardField(td, r)));
+  renderContainerDates(r);       // дати по кожному контейнеру — якщо їх 2+
   renderDealTasks(r);            // задачі по цій угоді — тут же, в картці
   $("row-overlay").classList.add("open");
+}
+
+/* ── Дати по КОЖНОМУ контейнеру (вимога користувачки 31.08.2026: «для угод,
+   в яких 2 і більше контейнерів зроби можливість додавати окремо дати
+   прибуття та доставки на кожний контейнер», приклад — угода 224 з
+   CAAU4665092 і GAOU7367344). Зберігається в колонці «Контейнери (дати)»
+   як JSON {номер: {прибуття, доставка}}; блок малюється лише коли
+   контейнерів у угоді два і більше — для одного контейнера дати угоди
+   і так одні. */
+function containerList(r){
+  const seen = new Set(), list = [];
+  for (const src of ["Контейнер", "Контейнер (лінія)"])
+    for (const c of String(r[src] || "").toUpperCase().split(/[,\s]+/))
+      if (/^[A-Z]{4}\d{7}$/.test(c) && !seen.has(c)){ seen.add(c); list.push(c); }
+  return list;
+}
+function renderContainerDates(r){
+  const old = $("row-conts");
+  if (old) old.remove();
+  const conts = containerList(r);
+  if (conts.length < 2) return;
+  let saved = {};
+  try{ saved = JSON.parse(r["Контейнери (дати)"] || "{}") || {}; }catch(e){ saved = {}; }
+  const canEdit = !!cfg().edit;
+  const inp = (id, c, k) => `<input id="${id}" type="text" ${canEdit ? "" : "disabled"}
+      value="${esc(fmtD(String((saved[c] || {})[k] || "").slice(0, 10)))}"
+      placeholder="${esc(DATE_HINT)}" style="max-width:110px">`;
+  const box = document.createElement("div");
+  box.id = "row-conts";
+  box.innerHTML = `<h3 style="margin-top:16px">📦 Дати по контейнерах</h3>
+    <div class="tablewrap"><table><tbody>
+      <tr><td class="cell-muted">Контейнер</td><td class="cell-muted">Прибуття</td>
+          <td class="cell-muted">Доставка</td></tr>
+      ${conts.map((c, i) => `<tr><td class="mono">${esc(c)}</td>
+        <td>${inp("cd-arr-" + i, c, "прибуття")}</td>
+        <td>${inp("cd-del-" + i, c, "доставка")}</td></tr>`).join("")}
+    </tbody></table></div>
+    ${canEdit ? '<button class="btn ghost" id="cd-save" style="margin-top:8px">💾 Зберегти дати контейнерів</button>' +
+                '<span class="sub" id="cd-msg" style="margin-left:8px"></span>' : ""}`;
+  $("row-body").appendChild(box);
+  if (!canEdit) return;
+  $("cd-save").addEventListener("click", async () => {
+    const obj = {};
+    for (let i = 0; i < conts.length; i++){
+      const a = parseUserDate(String($("cd-arr-" + i).value || "").trim());
+      const d = parseUserDate(String($("cd-del-" + i).value || "").trim());
+      if (a === null || d === null){
+        $("cd-msg").textContent = "⚠ Не зрозуміла дату в рядку " + conts[i] + ". Формат: " + DATE_HINT;
+        return;
+      }
+      if (a || d) obj[conts[i]] = {"прибуття": a || "", "доставка": d || ""};
+    }
+    $("cd-save").disabled = true;
+    $("cd-msg").textContent = "зберігаю…";
+    try{
+      await saveField(r, "Контейнери (дати)", Object.keys(obj).length ? JSON.stringify(obj) : "");
+      $("cd-msg").textContent = "✅ збережено";
+      toast("✅ Дати по контейнерах збережено");
+    }catch(e){
+      $("cd-msg").textContent = "⚠ не збереглось: " + e.message;
+    }
+    $("cd-save").disabled = false;
+  });
 }
 
 /* Задачі по конкретній угоді просто в її картці — щоб «постановка задач по

@@ -170,6 +170,33 @@ const check = (ok, what) => { console.log((ok ? "  ✓ " : "  ✗ ") + what); if
   check(await val("trk-feed") === "27.08.26", "подача 27.08: " + await val("trk-feed"));
   await page.click("#truck-close");
 
+  console.log("\n— третій формат (LLC JD TRANS, 31.08.2026) —");
+  /* Реальне повідомлення, на якому не розносились назва і адреса: фірма
+     ЛАТИНИЦЕЮ без лапок, адреса голим рядком з індексом, «Code» замість
+     «ЄДРПОУ». Користувачка: «дані не розносяться по полях». */
+  await page.click('td[data-trk]');
+  await page.waitForSelector("#truck-overlay.open", { timeout: 5000 });
+  await page.fill("#trk-raw", `Подача 01.09
+KA7961KO / AA2030XL
+тел 066 880 15 25
+SUDU8659610
+
+LLC JD TRANS
+02094, Ukraine, Kyiv city, Popravky Yurii street, 4/39A
+Code 44156316
+EORI LTUA0000000013697`);
+  await page.click("#trk-parse");
+  await page.waitForTimeout(300);
+  check(await val("trk-carr") === "LLC JD TRANS", "назва латиницею без лапок: " + await val("trk-carr"));
+  check(/^02094, Ukraine/.test(await val("trk-addr")), "адреса голим рядком: " + (await val("trk-addr")).slice(0, 25));
+  check(await val("trk-code") === "44156316", "«Code» → ЄДРПОУ: " + await val("trk-code"));
+  check(await val("trk-eori") === "LTUA0000000013697", "EORI: " + await val("trk-eori"));
+  check(await val("trk-truck") === "KA7961KO", "тягач: " + await val("trk-truck"));
+  check(await val("trk-trail") === "AA2030XL", "причеп: " + await val("trk-trail"));
+  check(await val("trk-tel") === "066 880 15 25", "телефон: " + await val("trk-tel"));
+  check(await val("trk-cont") === "SUDU8659610", "контейнер: " + await val("trk-cont"));
+  await page.click("#truck-close");
+
   console.log("");
   if (errors.length) { console.log("ПОМИЛКИ В БРАУЗЕРІ:"); errors.forEach(e => console.log("   " + e)); }
   await browser.close(); srv.close();
