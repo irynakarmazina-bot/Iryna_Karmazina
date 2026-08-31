@@ -1,7 +1,7 @@
 {
-  "stdout": "730 /root/lc_meta.txt\n8:    AccountingRegister_Хозрасчетный\n9:    AccountingRegister_Хозрасчетный_RecordType\n14:    AccumulationRegister_БанкДокументы\n15:    AccumulationRegister_БанкДокументы_RecordType\n16:    AccumulationRegister_БанкОстатки\n17:    AccumulationRegister_БанкОстатки_RecordType\n20:    AccumulationRegister_Взаиморасчеты\n21:    AccumulationRegister_Взаиморасчеты_RecordType\n22:    AccumulationRegister_ВзаиморасчетыСЛинией\n23:    AccumulationRegister_ВзаиморасчетыСЛинией_RecordType\n76:    Catalog_Банки\n85:    Catalog_ВидОплаты\n86:    Catalog_ВидОплаты_ДополнительнаяИнформация\n87:    Catalog_ВидОплаты_ПраваОплаты\n88:    Catalog_ВидОплаты_ПраваПодписи\n90:    Catalog_ВидПлатежа\n111:    Catalog_ГруппаШаблонаРасчетаПрибыли\n114:    Catalog_ГруппыБюджета_ФормулаСложногоРасчета\n176:    Catalog_Контрагенты_БанковскиеРеквизиты\n195:    Catalog_НастройкаПлатежногоКалендаря\n196:    Catalog_НастройкаПлатежногоКалендаря_ОперацииПоступлений\n197:    Catalog_НастройкаПлатежногоКалендаря_ОперацииСписаний\n241:    Catalog_ПоручениеПунктыОбОплате\n292:    Catalog_СчетаДляВыпискиБанка\n360:    Catalog_ШаблонРасчетаПрибыли\n377:    ChartOfAccounts_Хозрасчетный\n381:    ChartOfCharacteristicTypes_ВидыСубконтоХозрасчетные\n414:    Document_Взаимозачет\n415:    Document_Взаимозачет_АвансыВыданные\n416:    Document_Взаимозачет_АвансыПолученные\n417:    Document_Взаимозачет_Счета\n418:    Document_Взаимозачет_Счета2\n419:    Document_ВнутреннееПеремещение\n420:    Document_ВнутреннееПеремещение_Счета\n421:    Document_ВнутреннееПеремещение_СчетаПост\n422:    Document_ВнутреннееПеремещение_ТЧ\n459:    Document_ЗаявкаНаОплату\n460:    Document_ЗаявкаНаОплату_Контейнера\n461:    Document_ЗаявкаНаОплату_Счета\n462:    Document_ЗаявкаНаОплатуРасходов\n",
-  "stderr": "",
-  "returncode": 0,
-  "id": "f0233fc173d1",
-  "ts": "2026-08-31T12:00:28Z"
+  "stdout": "",
+  "stderr": "'utf-8' codec can't decode byte 0xd0 in position 601: invalid continuation byte",
+  "returncode": -1,
+  "id": "264c2a9f8757",
+  "ts": "2026-08-31T12:00:55Z"
 }
