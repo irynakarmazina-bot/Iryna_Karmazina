@@ -1,7 +1,7 @@
 {
-  "stdout": "",
-  "stderr": "'utf-8' codec can't decode byte 0xb0 in position 2: invalid start byte",
-  "returncode": -1,
-  "id": "d6653d590efc",
-  "ts": "2026-08-31T12:28:02Z"
+  "stdout": "2\nода 217/TGHU1370537, угода 222/TGBU6552281, угода 267/MAGU2419496, угода 268/CMAU7498306, угода 271/SEGU1312511, угода 284/MSDU7988799, угода 285/MSDU6107110, угода 286/HLBU2394818, угода 291/EGSU9163941\nDONE tracked=42 updated=12 nodata=6 foreign=16 api_errors=0 write_fails=0\nMAERSK_OK tracked=42 updated=12 nodata=6 foreign=16 api_errors=0 write_fails=0\n",
+  "stderr": "",
+  "returncode": 0,
+  "id": "39050fafe12b",
+  "ts": "2026-08-31T12:29:00Z"
 }
