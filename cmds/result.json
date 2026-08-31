@@ -1,7 +1,7 @@
 {
-  "stdout": "4\nmain.js?v=2db016b329\n",
-  "stderr": "",
-  "returncode": 0,
-  "id": "1bcc23159128",
-  "ts": "2026-08-31T08:31:02Z"
+  "stdout": "",
+  "stderr": "Timeout (120s)",
+  "returncode": -1,
+  "id": "ce0259302cdf",
+  "ts": "2026-08-31T08:33:24Z"
 }
