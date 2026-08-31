@@ -1,7 +1,7 @@
 {
-  "stdout": "DEPLOY.md\nREADME.md\n__pycache__\napps-script\ncomputed\nconfig.api.json\nconfig.example.json\ndocs\nengine\nfix_odata_ordering.py\n/root/unitex-finrep/secure/odata.env\n/root/unitex-finrep/secure/odata_write.env\n/root/claude-archive/projects/unitex-finrep/secure/odata.env\n/root/claude-archive/secrets/odata.env\n/root/unitex-finrep/secure/odata.env\n/root/unitex-finrep/secure/odata_write.env\n/root/Iryna_Karmazina/.env\n/root/direct-sync/secure/maersk.env\n/root/eks_run/.env\n/root/claude-archive/secrets/odata.env\n",
+  "stdout": "користувач OData: assistant pro\n1) ЧИТАННЯ довідника «Види витрат»: HTTP 200 → працює\n2) ЗАПИС У ДОВІДНИК (те саме значення « Основная Деятельность»): HTTP 200; перечитано — значення не змінилось ✓\n   тест-документ: накладна №00000132 від 2020-12-31, Оплачен=False (НЕсплачена)\n3) ЗАПИС У ДОКУМЕНТ (те саме значення поля «Комментарий»): HTTP 500\n   відповідь: {\n\"odata.error\": {\n\"code\": \"-1\",\n\"message\": {\n\"lang\": \"uk\",\n\"value\": \"Помилка при виконанні обробника - 'ПередЗаписью'\"\n}\n}\n}\n   перечитано: Комментарий УВАГА, ЗМІНИВСЯ: None\n4) ВЕБ-КЛІЄНТ DB: HTTP 200 — сторінка входу 1С відповідає\n",
   "stderr": "",
   "returncode": 0,
-  "id": "7246695414cd",
-  "ts": "2026-08-31T11:51:54Z"
+  "id": "a51820399084",
+  "ts": "2026-08-31T11:53:26Z"
 }
