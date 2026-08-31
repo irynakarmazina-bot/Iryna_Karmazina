@@ -1,1 +1,1 @@
-{"id": "b612d5b64549", "cmd": "find /root -name 'odata_client.py' 2>/dev/null | head -3; f=$(find /root -name 'odata_client.py' | head -1); grep -n 'getenv\\|environ\\|user\\|URL\\|base' $f | head -15"}
+{"id": "25a5b1836e8f", "cmd": "grep -rh -o '^[A-Z_0-9]*=' /root/.env /root/unitex-finrep/.env /root/Iryna_Karmazina/.env 2>/dev/null | sort -u"}
