@@ -1,7 +1,7 @@
 {
-  "stdout": "",
-  "stderr": "tail: cannot open '/root/maersk_manual2_20260831.log' for reading: No such file or directory\n",
-  "returncode": 1,
-  "id": "b236fae13a1b",
-  "ts": "2026-08-31T12:22:25Z"
+  "stdout": "33:\thandle /sync {\n37:\thandle /sync-state {\n---\n/etc/systemd/system/dbus-org.freedesktop.timesync1.service:12:Documentation=man:systemd-timesyncd.service(8)\n/etc/systemd/system/dbus-org.freedesktop.timesync1.service:23:BusName=org.freedesktop.timesync1\n/etc/systemd/system/dbus-org.freedesktop.timesync1.service:29:ExecStart=!!/usr/lib/systemd/systemd-timesyncd\n/etc/systemd/system/dbus-org.freedesktop.timesync1.service:49:RuntimeDirectory=systemd/timesync\n/etc/systemd/system/dbus-org.freedesktop.timesync1.service:50:StateDirectory=systemd/timesync\n/etc/systemd/system/dbus-org.freedesktop.timesync1.service:55:User=systemd-timesync\n/etc/systemd/system/dbus-org.freedesktop.timesync1.service:60:Alias=dbus-org.freedesktop.timesync1.service\n/etc/systemd/system/deals-sync-trigger.service:2:Description=On-demand Ekspedytor->NocoDB sync trigger (port 8788)\n/etc/systemd/system/iscsi.service:26:ExecStop=/bin/sync\n/etc/systemd/system/nocodb-deals-sync.service:6:ExecStart=/usr/bin/python3 /root/nocodb_deals_sync.py\n---\nLISTEN 0      5          127.0.0.1:8790      0.0.0.0:*    users:((\"python3\",pid=1107939,fd=3))                      \nLISTEN 0      5          127.0.0.1:8791      0.0.0.0:*    users:((\"python3\",pid=1107929,fd=3))                      \nLISTEN 0      5          127.0.0.1:8792      0.0.0.0:*    users:((\"python3\",pid=1107943,fd=3))                      \nLISTEN 0      5          127.0.0.1:8793      0.0.0.0:*    users:((\"python3\",pid=1107944,fd=3))                      \nLISTEN 0      4096       127.0.0.1:8080      0.0.0.0:*    users:((\"docker-proxy\",pid=547393,fd=8))                  \n",
+  "stderr": "",
+  "returncode": 0,
+  "id": "5a48620c40f7",
+  "ts": "2026-08-31T12:23:19Z"
 }
