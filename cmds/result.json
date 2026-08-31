@@ -1,7 +1,7 @@
 {
-  "stdout": "2026-08-12 08:20:47+00:00 · irynakarmazina@gmail.com · ETA сухий порт: '2026-08-10' -> '2026-08-26'\n2026-08-21 12:31:52+00:00 · irynakarmazina@gmail.com · ETA сухий порт: '2026-08-10' -> '2026-08-26'\n2026-08-31 08:17:02+00:00 · irynakarmazina@gmail.com · ETA сухий порт: '2026-08-10' -> '2026-08-28'\nкінець\n",
+  "stdout": "   журнал: 2026-08-31T11:47:00\tmain\t7268783f7\tв. 13.08 15:36\tindex.html:71896 findash.html:33986 finperiod.html:17527\trelay: bash /root/Iryna_Karmazina/server/deploy_ui.sh main 2>&1 | t\n   UI/FINDASH/CHART: 200 200 200\nDEPLOY_OK · гілка main · коміт 7268783f7 · позначка «в. 13.08 15:36»\n",
   "stderr": "",
   "returncode": 0,
-  "id": "99370bfaef07",
-  "ts": "2026-08-31T08:46:36Z"
+  "id": "6d0f8416e12e",
+  "ts": "2026-08-31T08:47:01Z"
 }
