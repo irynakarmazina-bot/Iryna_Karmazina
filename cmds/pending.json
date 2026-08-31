@@ -1,1 +1,1 @@
-{"id": "ingest-note-check", "cmd": "grep -n \"supplier_invoices\" /root/unitex-finrep/engine/*.py | head -5; grep -nE \"Комментарий|note\" /root/unitex-finrep/engine/odata_ingest.py | head -15; grep -nE \"Document_[А-Яа-яA-Za-z]+\" /root/unitex-finrep/engine/odata_ingest.py | head -10"}
+{"id": "ingest-src-view", "cmd": "sed -n \"120,175p\" /root/unitex-finrep/engine/odata_ingest.py"}
