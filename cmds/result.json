@@ -1,7 +1,7 @@
 {
-  "stdout": "   ключ версії /app/main.js?v=2db016b329 · замін у сторінці: 1\n   бекап: index-20260831-113044.html (71896 б)\n   бекап: findash-20260831-113044.html (33986 б)\n   бекап: finperiod-20260831-113044.html (17527 б)\n   бекап: chart.min.js-20260831-113044.bak (205399 б)\n   прибрано копій, старших за 14 днів: 119\n   усього копій у архіві: 117\n   бекап: app-main.js-20260831-113044.bak (407308 б)\n   викладено модулів: 1\n   журнал: 2026-08-31T11:30:44\tmain\tbacb0fb92\tв. 13.08 15:36\tindex.html:71896 findash.html:33986 finperiod.html:17527\trelay: bash /root/Iryna_Karmazina/server/deploy_ui.sh main 2>&1 | t\n   UI/FINDASH/CHART: 200 200 200\nDEPLOY_OK · гілка main · коміт bacb0fb92 · позначка «в. 13.08 15:36»\n",
+  "stdout": "4\nmain.js?v=2db016b329\n",
   "stderr": "",
   "returncode": 0,
-  "id": "373685deb106",
-  "ts": "2026-08-31T08:30:45Z"
+  "id": "1bcc23159128",
+  "ts": "2026-08-31T08:31:02Z"
 }
