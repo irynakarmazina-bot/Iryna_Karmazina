@@ -1,7 +1,7 @@
 {
-  "stdout": "ANTHROPIC_API_KEY=\nGITHUB_TOKEN=\nN8N_API_KEY=\nRDP_PASSWORD=\nTELEGRAM_BOT_TOKEN=\n",
+  "stdout": "DEPLOY.md\nREADME.md\n__pycache__\napps-script\ncomputed\nconfig.api.json\nconfig.example.json\ndocs\nengine\nfix_odata_ordering.py\n/root/unitex-finrep/secure/odata.env\n/root/unitex-finrep/secure/odata_write.env\n/root/claude-archive/projects/unitex-finrep/secure/odata.env\n/root/claude-archive/secrets/odata.env\n/root/unitex-finrep/secure/odata.env\n/root/unitex-finrep/secure/odata_write.env\n/root/Iryna_Karmazina/.env\n/root/direct-sync/secure/maersk.env\n/root/eks_run/.env\n/root/claude-archive/secrets/odata.env\n",
   "stderr": "",
   "returncode": 0,
-  "id": "25a5b1836e8f",
-  "ts": "2026-08-31T11:51:32Z"
+  "id": "7246695414cd",
+  "ts": "2026-08-31T11:51:54Z"
 }
