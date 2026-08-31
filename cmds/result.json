@@ -1,7 +1,7 @@
 {
-  "stdout": "\t\trewrite * /run?token=ab035256f864e587ac4f2173ff0e9b12\n\t\treverse_proxy 127.0.0.1:8787\n\t}\n\thandle /sync {\n\t\trewrite * /run?token=84e86ebff415eea4223397784afc815c\n\t\treverse_proxy 127.0.0.1:8788\n\t}\n\thandle /sync-state {\n\t\trewrite * /state?token=84e86ebff415eea4223397784afc815c\n\t\treverse_proxy 127.0.0.1:8788\n\t}\n\thandle /cash-refresh {\n\t\trewrite * /refresh?token=ab035256f864e587ac4f2173ff0e9b12\n\t\treverse_proxy 127.0.0.1:8791\n\t}\n\thandle /localcosts-refresh {\n---\nExecStart=/usr/bin/python3 /root/deals_trigger.py\nactive\ninactive\n---\n-rw-r--r-- 1 root root 4040 Jul 27 20:58 /root/nocodb_deals_sync.py\n---TRIGGER---\n/root/deals_trigger.py\n18:   хиба вже виправлялась у cash_trigger.py 03.08.2026 — тут її не поправили.\n24:Копія робочого файла /root/deals_trigger.py (у репозиторії — для історії змін).\n30:import subprocess\n40:SYNC = '/root/direct-sync/expeditor_direct_sync.py'\n41:MAERSK = '/root/direct-sync/maersk_track_sync.py'\n42:COSCO = '/root/direct-sync/cosco_track_sync.py'\n105:        p = subprocess.run([PY, script], cwd=WORKDIR, capture_output=True, timeout=1800)\n106:    except subprocess.TimeoutExpired:\n157:        # рубіж — ключ сесії самого користувача і його роль (див. authcheck.py).\n163:            print('УВАГА: authcheck.py не знайдено — перевірка ролі ПРОПУЩЕНА', flush=True)\n",
-  "stderr": "",
-  "returncode": 0,
-  "id": "bd11789ddb6a",
-  "ts": "2026-08-31T12:23:46Z"
+  "stdout": "",
+  "stderr": "tail: cannot open '/root/maersk_manual2_20260831.log' for reading: No such file or directory\n",
+  "returncode": 1,
+  "id": "f0afe3b56d99",
+  "ts": "2026-08-31T12:24:03Z"
 }
