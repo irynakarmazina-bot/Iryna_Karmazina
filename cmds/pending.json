@@ -1,1 +1,1 @@
-{"id": "ce0259302cdf", "cmd": "cd /root/Iryna_Karmazina && python3 direct_sync/maersk_track_sync.py 2>&1 | tail -14"}
+{"id": "9a06cb2c414d", "cmd": "cd /root/Iryna_Karmazina && nohup python3 direct_sync/maersk_track_sync.py > /root/maersk_manual_20260831.log 2>&1 & echo запущено, pid $!"}
