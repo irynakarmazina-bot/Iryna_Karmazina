@@ -1,7 +1,7 @@
 {
-  "stdout": "\n---ПАСТКА---\n---РОБОТ-ЮЗЕР---\n23:  await page.fill('#userName', env.ODATA_USER);\n24:  await page.fill('#userPassword', env.ODATA_PASS);\n25:  await page.press('#userPassword','Enter');\n224: гейт-аут='2026-08-11' сухий='2026-08-28' статус='Завантажений на потяг'\n278: гейт-аут='2026-08-28' сухий=None статус='Завантажений на авто'\n280: гейт-аут='2026-08-26' сухий=None статус='Завантажений на авто'\n",
+  "stdout": "",
   "stderr": "tail: cannot open '/root/maersk_manual2_20260831.log' for reading: No such file or directory\n",
-  "returncode": 0,
-  "id": "2ec26d094ac0",
-  "ts": "2026-08-31T12:24:37Z"
+  "returncode": 1,
+  "id": "21e63ef5e623",
+  "ts": "2026-08-31T12:24:54Z"
 }
