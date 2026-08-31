@@ -1,7 +1,7 @@
 {
-  "stdout": "nocodb\ncaddy\n",
-  "stderr": "",
-  "returncode": 0,
-  "id": "5d51a109dab6",
-  "ts": "2026-08-31T12:14:11Z"
+  "stdout": "",
+  "stderr": "'utf-8' codec can't decode byte 0xd0 in position 69: invalid continuation byte",
+  "returncode": -1,
+  "id": "a419c302a226",
+  "ts": "2026-08-31T12:17:39Z"
 }
