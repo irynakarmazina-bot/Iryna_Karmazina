@@ -1,7 +1,7 @@
 {
-  "stdout": "",
-  "stderr": "Timeout (120s)",
-  "returncode": -1,
-  "id": "ce0259302cdf",
-  "ts": "2026-08-31T08:33:24Z"
+  "stdout": "запущено, pid 1276849\n",
+  "stderr": "",
+  "returncode": 0,
+  "id": "9a06cb2c414d",
+  "ts": "2026-08-31T08:33:40Z"
 }
