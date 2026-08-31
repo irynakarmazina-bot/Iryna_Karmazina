@@ -1,1 +1,1 @@
-{"id": "b236fae13a1b", "cmd": "tail -c 900 /root/maersk_manual2_20260831.log"}
+{"id": "5a48620c40f7", "cmd": "grep -n 'sync' /root/Caddyfile | head; echo ---; grep -rn 'sync' /etc/systemd/system/*.service 2>/dev/null | grep -vi 'track\\|expeditor\\|backup' | head; echo ---; ss -ltnp 2>/dev/null | grep -E '879|880|8080' | head"}
