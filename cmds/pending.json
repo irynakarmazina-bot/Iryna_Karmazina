@@ -1,1 +1,1 @@
-{"id": "983019756c1a", "cmd": "ps aux | grep -E 'maersk|track' | grep -v grep; ls -la /var/lock/unitex-maersk.lock 2>/dev/null; tail -8 /root/Iryna_Karmazina/direct_sync/maersk.log 2>/dev/null || find /root -name 'maersk*.log' -newer /root/gtot_fix_backup_20260831.json 2>/dev/null | head"}
+{"id": "3f66c4c823f6", "cmd": "grep -n '2026-08-31 11' /root/direct-sync/maersk.log | tail -25"}
