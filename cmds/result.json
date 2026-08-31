@@ -1,7 +1,7 @@
 {
-  "stdout": "АКТИВНІ воркфлоу n8n:\n  1YdXnLFOXI85IsWv · CRM Дашборд (web)\n  FC3qzaxp5M89LpI7 · UNITEX Telegram Bot\n  GIhQk0ETziCTYgTB · Довідка про транспортні витрати\n  VGi9phda7zLZC9eD · CRM Клієнтська вітрина (web)\n  zVlHFJCe0Afy0kMU · finrep-sheets-proxy\n    UNITEX Telegram Bot: 2026-08-29T08:12 (success)\n    UNITEX Telegram Bot: 2026-08-29T08:11 (success)\n    Довідка про транспортні витрати: 2026-08-31T09:29 (success)\n    Довідка про транспортні витрати: 2026-08-26T12:47 (success)\n    finrep-sheets-proxy: 2026-08-31T11:51 (success)\n    finrep-sheets-proxy: 2026-08-31T11:51 (success)\n",
+  "stdout": "ЗАРАЗ 224: сухий='2026-08-10' статус='Завантажений на потяг' гейт-аут='2026-08-11'\n2026-08-31 08:17:02+00:00 · irynakarmazina@gmail.com · ETA сухий порт: '2026-08-10' -> '2026-08-28'\nкінець журналу\n",
   "stderr": "",
   "returncode": 0,
-  "id": "3ced2d5a6378",
-  "ts": "2026-08-31T12:08:12Z"
+  "id": "f861f1436d28",
+  "ts": "2026-08-31T12:09:19Z"
 }
