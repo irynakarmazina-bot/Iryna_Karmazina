@@ -728,6 +728,15 @@ def parse_events(events, row, today_iso, statuses=frozenset()):
         else:
             st = load_st
     was = str(row.get("Статус") or "")
+    # «Статус не виправлено» (користувачка 31.08.2026, угода 224): Maersk часто
+    # ВЗАГАЛІ не надсилає фактичної події прибуття потяга в сухий порт — останнім
+    # фактом лишається виїзд із Гданська, і «Завантажений на потяг» висить
+    # тижнями. Якщо дата «ETA сухий порт» відома (факт трекінгу чи людська) і
+    # вже настала — вантаж у сухому порту.
+    dry_eff = str(out.get("ETA сухий порт", row.get("ETA сухий порт")) or "")[:10]
+    if (dry_eff and dry_eff <= today_iso and rail_deal
+            and (st or was) == "Завантажений на потяг"):
+        st = DRY_PORT
     src = str(row.get("Статус (джерело)") or "").strip()
     if st and was != DELIVERED and st != was:
         if src == HUMAN_SRC and not _fact_newer_than_human(row, last_dt):
