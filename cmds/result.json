@@ -1,7 +1,7 @@
 {
-  "stdout": "   журнал: 2026-08-31T12:09:40\tmain\t85b1b7318\tв. 13.08 15:36\tindex.html:71896 findash.html:33986 finperiod.html:17527\trelay: bash /root/Iryna_Karmazina/server/deploy_ui.sh main 2>&1 | t\n   UI/FINDASH/CHART: 200 200 200\nDEPLOY_OK · гілка main · коміт 85b1b7318 · позначка «в. 13.08 15:36»\n4\n",
+  "stdout": "MEMORY.md\nfeedback_ask_dont_assume_business_rules.md\nfeedback_by_example_means_identical.md\nfeedback_cmr_template.md\nfeedback_delivered_frozen.md\nfeedback_dont_overwrite_user_edits.md\nfeedback_email_drafts.md\nfeedback_email_formatting.md\nfeedback_every_deal_priority.md\nfeedback_expenses_from_overhead_invoices.md\nfeedback_gas_template_literal_escaping.md\nfeedback_human_data_comment.md\nfeedback_incoterms_chain.md\nfeedback_keep_api_key.md\nfeedback_large_code_via_file.md\nfeedback_no_fabrication.md\nfeedback_no_reconstruction_real_data_only.md\nfeedback_no_specific_invoice.md\nfeedback_paid_not_delivered.md\nfeedback_prefer_browser_extension.md\n--- пошук інструкцій ---\n/root/Iryna_Karmazina/docs/Юнітекс-OS-інструкції.docx\n/root/Iryna_Karmazina/docs/ТЗ-HTTP-сервіс-Експедитор.md\n/root/Iryna_Karmazina/docs/Юнітекс-OS-інструкції.md\n/root/erp-scripts/softpro.py\n",
   "stderr": "",
   "returncode": 0,
-  "id": "e13e5a19370c",
-  "ts": "2026-08-31T09:09:40Z"
+  "id": "c73568fc5033",
+  "ts": "2026-08-31T09:25:55Z"
 }
