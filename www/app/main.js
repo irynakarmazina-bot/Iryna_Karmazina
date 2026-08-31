@@ -556,10 +556,14 @@ function parseUserDate(s){
   if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
   const m = /^(\d{1,2})[.\-/](\d{1,2})[.\-/](\d{2}|\d{4})$/.exec(s)
          || /^(\d{2})(\d{2})(\d{4})$/.exec(s)
-         || /^(\d{2})(\d{2})(\d{2})$/.exec(s);
+         || /^(\d{2})(\d{2})(\d{2})$/.exec(s)
+         /* без року — «1.09» (прохання користувачки 31.08.2026):
+            рік підставляється поточний */
+         || /^(\d{1,2})[.\-/](\d{1,2})$/.exec(s);
   if (!m) return null;
   const d = m[1].padStart(2, "0"), mo = m[2].padStart(2, "0");
-  const y = m[3].length === 2 ? "20" + m[3] : m[3];
+  const y = !m[3] ? String(new Date().getFullYear())
+          : m[3].length === 2 ? "20" + m[3] : m[3];
   const iso = `${y}-${mo}-${d}`;
   const dt = new Date(iso + "T00:00:00Z");
   if (isNaN(dt) || dt.getUTCDate() !== +d || dt.getUTCMonth() + 1 !== +mo) return null;
