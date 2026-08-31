@@ -1,7 +1,7 @@
 {
-  "stdout": "запущено, pid 1276849\n",
+  "stdout": "ALREADY_RUNNING maersk\nВЖЕ ВИКОНУЄТЬСЯ: інший запуск «maersk» ще працює (/var/lock/unitex-maersk.lock). Цей запуск пропускаю — це не помилка.\n",
   "stderr": "",
   "returncode": 0,
-  "id": "9a06cb2c414d",
-  "ts": "2026-08-31T08:33:40Z"
+  "id": "b084afffaaf1",
+  "ts": "2026-08-31T08:34:08Z"
 }
