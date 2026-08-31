@@ -1,7 +1,7 @@
 {
-  "stdout": "RUN_OK\n-rw-r--r-- 1 root root 428 Aug 31 15:25 /root/maersk_manual2_20260831.log\nODATA_USER=assistant\ndiag2.js\ndiag_20260831.log\ndiag_login.js\ninside.js\ninstall.log\nlogin_test.js\nlogin_test2.js\nnav.js\n",
-  "stderr": "",
-  "returncode": 0,
-  "id": "47a15857d6e9",
-  "ts": "2026-08-31T12:25:31Z"
+  "stdout": "",
+  "stderr": "'utf-8' codec can't decode byte 0xb0 in position 2: invalid start byte",
+  "returncode": -1,
+  "id": "d356a4bfc17e",
+  "ts": "2026-08-31T12:25:59Z"
 }
