@@ -1,7 +1,7 @@
 {
-  "stdout": "к-сть: 9\n539 | 1400.0 | Maersk №: — | примітка: \n540 | 333.05 | Maersk №: — | примітка: \n541 | 1400.0 | Maersk №: — | примітка: \n542 | 333.05 | Maersk №: — | примітка: \n543 | 1400.0 | Maersk №: — | примітка: \n544 | 333.05 | Maersk №: — | примітка: \n547 | 1400.0 | Maersk №: — | примітка: \n548 | 333.05 | Maersk №: — | примітка: \n550 | 332.61 | Maersk №: — | примітка: \n",
-  "stderr": "",
+  "stdout": "/root/unitex-finrep/engine/build_dashboard_data.py:17:sup=rd(N('supplier_invoices.csv'))\n/root/unitex-finrep/engine/cash_moves_from_odata.py:148:    14:01:16») працює ключем зв'язки рухів з deals_all.csv і supplier_invoices.csv,\n/root/unitex-finrep/engine/common.py:126:    Визначає роль файлу (income_invoices/supplier_invoices/cash_moves/deals_all/deals_open/cash_balances)\n/root/unitex-finrep/engine/monthly_series.py:84:    sup = _rd(\"supplier_invoices.csv\")\n/root/unitex-finrep/engine/odata_ingest.py:6:Формує: income_invoices.csv, supplier_invoices.csv, deals_all.csv\n165:            \"note\": \"\",\n",
+  "stderr": "grep: Invalid collation character\n",
   "returncode": 0,
-  "id": "maersk-notes-0313",
-  "ts": "2026-08-31T14:18:45Z"
+  "id": "ingest-note-check",
+  "ts": "2026-08-31T14:19:18Z"
 }
