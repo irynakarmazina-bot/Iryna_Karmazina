@@ -1,1 +1,1 @@
-{"id": "264c2a9f8757", "cmd": "grep -n '    Document_' /root/lc_meta.txt | sed 's/^[0-9]*: *//' | grep -v '_ТЧ$' | tr '\\n' ' ' | fold -w 200"}
+{"id": "0bf6a5945a4e", "cmd": "grep -oE 'Document_[А-Яа-яЁёA-Za-z0-9]+' /root/lc_meta.txt | sort -u | grep -vE '_(RecordType)$' | head -100"}
