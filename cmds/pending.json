@@ -1,1 +1,1 @@
-{"id": "6d0f8416e12e", "cmd": "bash /root/Iryna_Karmazina/server/deploy_ui.sh main 2>&1 | tail -3"}
+{"id": "2283bbd7d8f0", "cmd": "curl -sk https://134.209.94.12/app/main.js | grep -c 'FLEX_MIN = 120'"}
