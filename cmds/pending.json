@@ -1,1 +1,1 @@
-{"id": "e13e5a19370c", "cmd": "bash /root/Iryna_Karmazina/server/deploy_ui.sh main 2>&1 | tail -3 && curl -sk https://134.209.94.12/app/main.js | grep -c 'disp-filters'"}
+{"id": "c73568fc5033", "cmd": "ls /root/claude-archive/memory/ 2>/dev/null | head -20; echo '--- пошук інструкцій ---'; find /root -maxdepth 4 -iname '*кспедитор*' -o -maxdepth 4 -iname '*нструкц*' -o -maxdepth 4 -iname '*soft*pro*' 2>/dev/null | grep -v node_modules | head -30"}
