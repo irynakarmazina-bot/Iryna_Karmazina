@@ -1,7 +1,7 @@
 {
-  "stdout": "",
-  "stderr": "'utf-8' codec can't decode byte 0xd0 in position 69: invalid continuation byte",
-  "returncode": -1,
-  "id": "a419c302a226",
-  "ts": "2026-08-31T12:17:39Z"
+  "stdout": "COPY_OK\nBAK_OK\nWATCH_OK\n\n224: 2026-08-28\n",
+  "stderr": "",
+  "returncode": 0,
+  "id": "47908be23c0f",
+  "ts": "2026-08-31T12:18:02Z"
 }
