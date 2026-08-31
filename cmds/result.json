@@ -2,6 +2,6 @@
   "stdout": "ALREADY_RUNNING maersk\nВЖЕ ВИКОНУЄТЬСЯ: інший запуск «maersk» ще працює (/var/lock/unitex-maersk.lock). Цей запуск пропускаю — це не помилка.\n",
   "stderr": "",
   "returncode": 0,
-  "id": "9cc31f5ee1aa",
-  "ts": "2026-08-31T08:38:08Z"
+  "id": "96f5260aef5d",
+  "ts": "2026-08-31T08:39:12Z"
 }
