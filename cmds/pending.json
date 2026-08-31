@@ -1,1 +1,1 @@
-{"id": "1bcc23159128", "cmd": "curl -sk https://134.209.94.12/app/main.js | grep -c 'renderContainerDates\\|Gate<br>out\\|СИСТЕМНО' ; curl -sk https://134.209.94.12/ | grep -o 'main.js?v=[a-f0-9]*' | head -1"}
+{"id": "ce0259302cdf", "cmd": "cd /root/Iryna_Karmazina && python3 direct_sync/maersk_track_sync.py 2>&1 | tail -14"}
