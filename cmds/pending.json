@@ -1,1 +1,1 @@
-{"id": "378b65121f81", "cmd": "bash /root/Iryna_Karmazina/server/deploy_ui.sh main 2>&1 | tail -2"}
+{"id": "155b695ba53e", "cmd": "tail -c 900 /root/maersk_manual2_20260831.log"}
