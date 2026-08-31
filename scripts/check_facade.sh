@@ -88,6 +88,8 @@ if node -e "require.resolve(process.env.PW || 'playwright')" >/dev/null 2>&1; th
   node "$ROOT/scripts/truck.js" "$FILE" || fail=1
   # contdates.js — «Дати по контейнерах» у картці угоди (2+ контейнери), 31.08.2026
   node "$ROOT/scripts/contdates.js" "$FILE" || fail=1
+  # filtkeep.js — фільтри переживають перехід між вкладками, 31.08.2026
+  node "$ROOT/scripts/filtkeep.js" "$FILE" || fail=1
   # findash.js — плитка «Усього в обороті» у фінансовому дашборді. Окремий файл
   # (www/findash.html), тому «$FILE» їй не підходить: беремо сусідній файл із тієї
   # самої теки, що й кандидат на викладення.

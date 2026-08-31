@@ -1792,6 +1792,7 @@ PAGES.dispatch = async () => {
       ["q","stf","dirf","linef","clif","manf","opmf","modef"].forEach(id=>{
         const el = $(id); if (el) el.value = "";
       });
+      try{ sessionStorage.removeItem("disp-filters"); }catch(e){ /* приватний режим */ }
       if (DISP_QUICK){ DISP_QUICK = null; go("dispatch"); } else draw();
     });
     const ft = $("filt-toggle");
@@ -1950,8 +1951,37 @@ PAGES.dispatch = async () => {
      11.08.2026: на основному екрані доставлені сховані під шапкою, а щойно
      вибрати менеджера — вони знову на весь екран, бо прокрутка не спрацювала.
      Відтворено і перевірено в браузері: scripts/mgrscroll.js. */
-  ["q","dirf","stf","modef","linef","clif","manf","opmf"]
-    .forEach(id=>$(id).addEventListener(id==="q"?"input":"change", ()=>draw()));
+  /* ── Фільтри переживають перехід на іншу вкладку і повернення (прохання
+     користувачки 31.08.2026; оновлення даних усе одно робиться кнопкою, тож
+     збережений відбір нікому не заважає). Зберігаємо в sessionStorage: живе,
+     поки відкрита вкладка БРАУЗЕРА (переживає і F5); нове вікно — чисті
+     фільтри. «Скинути фільтри» і «Всі угоди» чистять і збережене. */
+  const FILT_IDS = ["q","dirf","stf","modef","linef","clif","manf","opmf"];
+  const saveFilters = () => {
+    try{
+      const v = {};
+      FILT_IDS.forEach(id => { const el = $(id); if (el && el.value) v[id] = el.value; });
+      sessionStorage.setItem("disp-filters", JSON.stringify(v));
+    }catch(e){ /* приватний режим браузера — просто не запам'ятовуємо */ }
+  };
+  try{
+    const saved = JSON.parse(sessionStorage.getItem("disp-filters") || "{}");
+    let any = false;
+    FILT_IDS.forEach(id => {
+      const el = $(id);
+      if (!el || !saved[id]) return;
+      el.value = saved[id];               // значення, якого немає у списку, селект тихо відкине
+      if (el.value === saved[id]) any = true;
+    });
+    if (any){
+      /* повернулись із активним відбором — панель одразу розгорнута,
+         щоб було видно, ЧОМУ в таблиці не всі угоди */
+      const box = $("filters"), ft0 = $("filt-toggle");
+      if (box) box.classList.add("open");
+      if (ft0){ ft0.setAttribute("aria-expanded", "true"); ft0.textContent = "✕ Сховати фільтри"; }
+    }
+  }catch(e){ /* зіпсоване збережене — працюємо з чистими фільтрами */ }
+  FILT_IDS.forEach(id=>$(id).addEventListener(id==="q"?"input":"change", ()=>{ saveFilters(); draw(); }));
   $("page-actions").querySelectorAll(".abadge[data-q]").forEach(b=>b.addEventListener("click",()=>{
     DISP_QUICK = (DISP_QUICK === b.dataset.q) ? null : b.dataset.q; go("dispatch");
   }));
@@ -1965,6 +1995,7 @@ PAGES.dispatch = async () => {
     ["q","dirf","stf","modef","linef","clif","manf","opmf"].forEach(id=>{
       const el = $(id); if (el) el.value = "";
     });
+    try{ sessionStorage.removeItem("disp-filters"); }catch(e){ /* приватний режим */ }
     DISP_QUICK = null;
     go("dispatch");
   });
