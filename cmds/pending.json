@@ -1,1 +1,1 @@
-{"id": "25a5b1836e8f", "cmd": "grep -rh -o '^[A-Z_0-9]*=' /root/.env /root/unitex-finrep/.env /root/Iryna_Karmazina/.env 2>/dev/null | sort -u"}
+{"id": "7246695414cd", "cmd": "ls /root/unitex-finrep/ 2>/dev/null | head; grep -rl 'ODATA_URL' /root --include='.env*' --include='*.env' 2>/dev/null | head -5; grep -o '^[A-Z_0-9]*=' /root/unitex-finrep/engine/.env 2>/dev/null; find /root -maxdepth 3 -name '*.env' -o -maxdepth 3 -name '.env' 2>/dev/null | head -8"}
