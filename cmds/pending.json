@@ -1,1 +1,1 @@
-{"id": "0bf6a5945a4e", "cmd": "grep -oE 'Document_[А-Яа-яЁёA-Za-z0-9]+' /root/lc_meta.txt | sort -u | grep -vE '_(RecordType)$' | head -100"}
+{"id": "f461db979f7f", "cmd": "python3 -c \"\nimport io,re\nt=io.open('/root/lc_meta.txt',encoding='utf-8').read()\ndocs=sorted(set(re.findall(r'Document_[^\\s]+',t)))\ntop=[d for d in docs if d.count('_')==1]\nprint('документів (без табличних частин):',len(top))\nfor i,d in enumerate(top): print(' ',d)\n\""}
