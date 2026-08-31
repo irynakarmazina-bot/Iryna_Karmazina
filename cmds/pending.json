@@ -1,1 +1,1 @@
-{"id": "c73568fc5033", "cmd": "ls /root/claude-archive/memory/ 2>/dev/null | head -20; echo '--- пошук інструкцій ---'; find /root -maxdepth 4 -iname '*кспедитор*' -o -maxdepth 4 -iname '*нструкц*' -o -maxdepth 4 -iname '*soft*pro*' 2>/dev/null | grep -v node_modules | head -30"}
+{"id": "b612d5b64549", "cmd": "find /root -name 'odata_client.py' 2>/dev/null | head -3; f=$(find /root -name 'odata_client.py' | head -1); grep -n 'getenv\\|environ\\|user\\|URL\\|base' $f | head -15"}
