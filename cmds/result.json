@@ -1,7 +1,7 @@
 {
-  "stdout": "291 Gate out: було '1.09'\n  тепер: '2026-09-01'\n---ПАСТКА---\n14 /root/dispatch_watch.log\n2026-09-01T07:23:10 угода 275 · ETA сухий порт: '' -> '2026-09-01'\n2026-09-01T07:23:10 угода 275 · Статус: 'Завантажений на пот' -> 'Вивантажений в сухо'\n",
+  "stdout": "Статус = 'Вантаж доставлено'\nСтатус (джерело) = 'трекінг Maersk'\nСтатус (оновлено) = '2026-08-31'\nГейт аут = '2026-08-25'\nУмови поставки (Інкотермс) = None\nНапрямок = 'Імпорт'\n2026-08-01 15:33:19+00:00 · irynakarmazina@gmail.com: 'Виконується' -> 'В морі'\n--- останні фактичні події ---\n 2026-08-20T07:01 LOAD VESSEL Wilhelmshaven Eurogate CT\n 2026-08-20T22:00 DEPA VESSEL Wilhelmshaven Eurogate CT\n 2026-08-23T17:32 ARRI VESSEL Gdansk Baltic HUB Terminal\n 2026-08-24T01:19 DISC VESSEL Gdansk Baltic HUB Terminal\n 2026-08-25T22:47 GTOT TRUCK  Gdansk Baltic HUB Terminal\n 2026-08-26T00:01 GTIN TRUCK  Euroterminal Depot\n",
   "stderr": "",
   "returncode": 0,
-  "id": "a348a52b1b08",
-  "ts": "2026-09-02T07:33:31Z"
+  "id": "4d84740ee835",
+  "ts": "2026-09-02T08:33:30Z"
 }
