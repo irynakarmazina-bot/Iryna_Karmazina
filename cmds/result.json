@@ -1,7 +1,7 @@
 {
-  "stdout": "Статус = 'Вантаж доставлено'\nСтатус (джерело) = 'трекінг Maersk'\nСтатус (оновлено) = '2026-08-31'\nГейт аут = '2026-08-25'\nУмови поставки (Інкотермс) = None\nНапрямок = 'Імпорт'\n2026-08-01 15:33:19+00:00 · irynakarmazina@gmail.com: 'Виконується' -> 'В морі'\n--- останні фактичні події ---\n 2026-08-20T07:01 LOAD VESSEL Wilhelmshaven Eurogate CT\n 2026-08-20T22:00 DEPA VESSEL Wilhelmshaven Eurogate CT\n 2026-08-23T17:32 ARRI VESSEL Gdansk Baltic HUB Terminal\n 2026-08-24T01:19 DISC VESSEL Gdansk Baltic HUB Terminal\n 2026-08-25T22:47 GTOT TRUCK  Gdansk Baltic HUB Terminal\n 2026-08-26T00:01 GTIN TRUCK  Euroterminal Depot\n",
+  "stdout": "   UI/FINDASH/CHART: 200 200 200\nDEPLOY_OK · гілка main · коміт fb057cbac · позначка «в. 13.08 15:36»\n",
   "stderr": "",
   "returncode": 0,
-  "id": "4d84740ee835",
-  "ts": "2026-09-02T08:33:30Z"
+  "id": "6b0e15a4eea9",
+  "ts": "2026-09-02T08:52:55Z"
 }
